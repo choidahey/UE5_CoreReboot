@@ -52,5 +52,12 @@ desktop.ini
 *.res
 *.exp
 
+# Content 폴더의 전체 내용을 무시
+/Content/*
+
+# 단, CR4S 폴더는 예외로 포함
+!/Content/CR4S/
+!/Content/CR4S/**
+
 # ShaderWorkingDirectory (5.x 이상에서 사용)
 ShaderWorkingDir/
