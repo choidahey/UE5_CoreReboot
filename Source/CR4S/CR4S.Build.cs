@@ -19,5 +19,10 @@ public class CR4S : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
-	}
+
+        PublicIncludePaths.AddRange(new string[]
+        {
+            "CR4S",
+		});
+    }
 }
