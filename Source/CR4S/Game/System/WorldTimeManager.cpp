@@ -1,4 +1,5 @@
 #include "Game/System/WorldTimeManager.h"
+#include "Game/System/SeasonManager.h"
 
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -18,13 +19,13 @@ void UWorldTimeManager::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Initialize called"));
 
-	SetWorldTimeData();
+	LoadTimeData();
 
     FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UWorldTimeManager::OnPostWorldInit);
 	FWorldDelegates::OnWorldCleanup.AddUObject(this, &UWorldTimeManager::OnWorldCleanup);
 }
 
-void UWorldTimeManager::SetWorldTimeData()
+void UWorldTimeManager::LoadTimeData()
 {
 	// if Saved Data Exists, Load Time Data
 }
@@ -40,6 +41,7 @@ void UWorldTimeManager::OnPostWorldInit(UWorld* World, const UWorld::Initializat
 
 void UWorldTimeManager::UpdateTime()
 {
+	TotalPlayTime += 1;
 	CurrentTimeData.Second += 1;
 	if (CurrentTimeData.Second >= 60)
 	{
@@ -52,11 +54,22 @@ void UWorldTimeManager::UpdateTime()
 			if (CurrentTimeData.Day > SeasonLength)
 			{
 				CurrentTimeData.Day = 1;
+				USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
+				if (SeasonManager)
+				{
+					SeasonManager->ChangeToNextSeason();
+					UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Season changed"));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("WorldTimeManager: SeasonManager not found"));
+				}
 			}
 		}
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Time updated - Day: %d, Minute: %d, Second: %d"), CurrentTimeData.Day, CurrentTimeData.Minute, CurrentTimeData.Second);
+	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Total Play Time: %lld seconds"), TotalPlayTime);
 }
 
 void UWorldTimeManager::PauseTime()
@@ -90,9 +103,11 @@ void UWorldTimeManager::Deinitialize()
 	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Deinitialize called"));
 }
 
-
 void UWorldTimeManager::ModifyTime(int32 Day, int32 Minute)
 {
+	TotalPlayTime = TotalPlayTime + Day * DayLength * 60 + Minute * 60; // Convert to seconds
+	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Total Play Time modified to %lld seconds"), TotalPlayTime);
+
 	CurrentTimeData.Day += Day;
 	CurrentTimeData.Minute += Minute;
 
@@ -101,15 +116,33 @@ void UWorldTimeManager::ModifyTime(int32 Day, int32 Minute)
 		CurrentTimeData.Day += 1;
 		if (CurrentTimeData.Day > SeasonLength)
 		{
-			//Add Season Change Logic Here
-
 			CurrentTimeData.Day = 1;
+
+			USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
+			if (SeasonManager)
+			{
+				SeasonManager->ChangeToNextSeason();
+				UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Season changed"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("WorldTimeManager: SeasonManager not found"));
+			}
 		}
 	}
 
 	for (CurrentTimeData.Day; CurrentTimeData.Day > SeasonLength; CurrentTimeData.Day -= SeasonLength)
 	{
-		//Add Season Change Logic Here
+		USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
+		if (SeasonManager)
+		{
+			SeasonManager->ChangeToNextSeason();
+			UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Season changed"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("WorldTimeManager: SeasonManager not found"));
+		}
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Time modified - Day: %d, Minute: %d"), CurrentTimeData.Day, CurrentTimeData.Minute);
