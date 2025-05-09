@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BasePlayer.h"
+#include "ModularRobot.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "CharacterController.h"
@@ -12,7 +12,7 @@
 
 
 // Sets default values
-ABasePlayer::ABasePlayer()
+AModularRobot::AModularRobot()
 {
 	//Set Tick
 	PrimaryActorTick.bCanEverTick = true;
@@ -52,13 +52,13 @@ ABasePlayer::ABasePlayer()
 }
 
 // Called when the game starts or when spawned
-void ABasePlayer::BeginPlay()
+void AModularRobot::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void ABasePlayer::NotifyControllerChanged()
+void AModularRobot::NotifyControllerChanged()
 {
 	Super::NotifyControllerChanged();
 
@@ -76,12 +76,12 @@ void ABasePlayer::NotifyControllerChanged()
 }
 
 // Called every frame
-void ABasePlayer::Tick(float DeltaTime)
+void AModularRobot::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
-void ABasePlayer::Move(const FInputActionValue& Value)
+void AModularRobot::Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;
 	//Move Logic
@@ -98,7 +98,7 @@ void ABasePlayer::Move(const FInputActionValue& Value)
 	}
 }
 
-void ABasePlayer::Look(const FInputActionValue& Value)
+void AModularRobot::Look(const FInputActionValue& Value)
 {
 	FVector2D LookInput=Value.Get<FVector2D>();
 
@@ -106,7 +106,7 @@ void ABasePlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookInput.Y);
 }
 
-void ABasePlayer::StartJump(const FInputActionValue& Value)
+void AModularRobot::StartJump(const FInputActionValue& Value)
 {
 	// Jump 함수는 Character가 기본 제공
 	if (Value.Get<bool>())
@@ -115,7 +115,7 @@ void ABasePlayer::StartJump(const FInputActionValue& Value)
 	}
 }
 
-void ABasePlayer::StopJump(const FInputActionValue& Value)
+void AModularRobot::StopJump(const FInputActionValue& Value)
 {
 	// StopJumping 함수도 Character가 기본 제공
 	if (!Value.Get<bool>())
@@ -124,7 +124,7 @@ void ABasePlayer::StopJump(const FInputActionValue& Value)
 	}
 }
 
-void ABasePlayer::StartSprint(const FInputActionValue& Value)
+void AModularRobot::StartSprint(const FInputActionValue& Value)
 {
 	if (GetCharacterMovement())
 	{
@@ -132,7 +132,7 @@ void ABasePlayer::StartSprint(const FInputActionValue& Value)
 	}
 }
 
-void ABasePlayer::StopSprint(const FInputActionValue& Value)
+void AModularRobot::StopSprint(const FInputActionValue& Value)
 {
 	if (GetCharacterMovement())
 	{
@@ -141,7 +141,7 @@ void ABasePlayer::StopSprint(const FInputActionValue& Value)
 }
 
 // Called to bind functionality to input
-void ABasePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
@@ -150,12 +150,12 @@ void ABasePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		if (ACharacterController* MyController=Cast<ACharacterController>(GetController()))
 		{
 			// Moving
-			EnhancedInputComponent->BindAction(MyController->MoveAction, ETriggerEvent::Triggered, this, &ABasePlayer::Move);
+			EnhancedInputComponent->BindAction(MyController->MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Move);
 			//Looking
-			EnhancedInputComponent->BindAction(MyController->LookAction,ETriggerEvent::Triggered, this, &ABasePlayer::Look);
+			EnhancedInputComponent->BindAction(MyController->LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Look);
 			//Sprinting
-			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Triggered, this, &ABasePlayer::StartSprint);
-			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Completed, this, &ABasePlayer::StopSprint);
+			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::StartSprint);
+			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Completed, this, &AModularRobot::StopSprint);
 			// Jumping
 			EnhancedInputComponent->BindAction(MyController->JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 			EnhancedInputComponent->BindAction(MyController->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);

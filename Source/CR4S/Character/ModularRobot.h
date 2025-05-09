@@ -4,20 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "BasePlayer.generated.h"
+#include "ModularRobot.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
 
 UCLASS()
-class CR4S_API ABasePlayer : public ACharacter
+class CR4S_API AModularRobot : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	ABasePlayer();
+	AModularRobot();
 #pragma region OverrideFunctions
 public:
 	// Called every frame
@@ -51,9 +51,9 @@ protected:
 #pragma region Components
 private:
 	// === Components ===
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
 #pragma endregion
 };
