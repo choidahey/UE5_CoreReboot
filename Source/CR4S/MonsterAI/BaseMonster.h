@@ -18,6 +18,7 @@ class CR4S_API ABaseMonster : public ACharacter
 
 
 #pragma region ACharacter Override
+
 public:
 	ABaseMonster();
 
@@ -28,9 +29,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	virtual float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		class AController* EventInstigator,
+		AActor* DamageCauser
+	) override;
+
 #pragma endregion
 
 //#pragma region BaseMonster Components
+// 
 //public:
 //	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 //	UMonsterAttributeComponent* AttributeComp;
@@ -50,10 +59,57 @@ public:
 //#pragma endregion
 
 #pragma region Monster AI
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|AI")
 	UBehaviorTree* BehaviorTree;
 
 #pragma endregion
 
+#pragma region Monster Behavior - Combat
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
+	virtual void TryAttack();
+	
+	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
+	virtual void PerfromAttack(int32 AttackIndex);
+	
+	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
+	virtual bool CanAttack() const;
+
+#pragma endregion
+
+#pragma region Monster Behavior - Damage & Death
+
+public:
+	/* Delegate Function */
+	UFUNCTION()
+	virtual void HandleDeath();
+
+	virtual void Die();
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|State")
+	FORCEINLINE bool IsDead() const { return bIsDead; }
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
+	bool bIsDead = false;
+
+#pragma endregion
+
+#pragma region Monster Behavior - Targeting
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Monster|Target")
+	virtual void SetTargetActor(AActor* NewTarget);
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Target")
+	FORCEINLINE AActor* GetTargetActor() const { return TargetActor; }
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Target")
+	AActor* TargetActor;
+
+#pragma endregion
 };
