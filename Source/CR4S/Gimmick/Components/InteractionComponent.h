@@ -25,11 +25,10 @@ public:
 #pragma region Initialize
 	
 private:
-	UFUNCTION(BlueprintCallable, Category = "InteractionComponent")
 	void InitComponent();
-
-	UPROPERTY(visibleanywhere, Category = "Interaction")
-	TObjectPtr<APlayerController> OwnerPlayer;
+	
+	UPROPERTY(Visibleanywhere, Category = "Initialize")
+	TObjectPtr<APlayerController> OwnerPlayerController;
 	
 #pragma endregion
 
@@ -37,21 +36,30 @@ private:
 
 public:
 	void ShowInteractionWidget() const;
+	void HideInteractionWidget() const;
 
-	UFUNCTION(BlueprintCallable, Category = "InteractionComponent")
+	UFUNCTION(BlueprintCallable, Category = "InteractionComponent|Intercation")
 	bool TryStartInteraction() const;
 
-	UFUNCTION(BlueprintCallable, Category = "InteractionComponent")
-	FORCEINLINE AActor* GetTargetActor() const { return TargetActor; }
+	UFUNCTION(BlueprintCallable, Category = "InteractionComponent|Intercation")
+	FORCEINLINE AActor* GetDetectedActor() const { return DetectedActor; }
 
 private:
-	void FindProcess();
+	void UpdateDetectProcess();
+	bool TryDetectProcess();
 
 	UPROPERTY(visibleanywhere, Category = "Interaction")
-	TObjectPtr<AActor> TargetActor;
+	TObjectPtr<AActor> DetectedActor;
 	
 	UPROPERTY(visibleanywhere, Category = "Interaction")
-	TObjectPtr<UInteractableComponent> TargetInteractableComponent;
+	TObjectPtr<UInteractableComponent> DetectedInteractableComponent;
+
+	/**
+	 * Trace Distance
+	 * From Camera to TargetActor
+	 */
+	UPROPERTY(EditAnywhere, Category = "Initialize")
+	float HitResultTraceDistance;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float InteractionRange;
@@ -71,5 +79,20 @@ private:
 	UPROPERTY()
 	TObjectPtr<UInteractionWidget> InteractionWidgetInstance;
 
+#pragma endregion
+
+#pragma region Debug
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "InteractionComponent|Debug")
+	FORCEINLINE bool GetIsDebugMode() const { return bIsDebugMode; }
+
+	UFUNCTION(BlueprintCallable, Category = "InteractionComponent|Debug")
+	FORCEINLINE void ChangeDebugMode(const bool bInIsDebugMode) { bIsDebugMode = bInIsDebugMode; }
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bIsDebugMode;
+	
 #pragma endregion
 };

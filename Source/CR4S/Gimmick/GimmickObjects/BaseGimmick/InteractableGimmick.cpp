@@ -1,26 +1,28 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "InteractableGimmick.h"
 
+#include "Gimmick/Components/InteractableComponent.h"
 
-#include "MyClass.h"
-
-
-// Sets default values
-AMyClass::AMyClass()
+AInteractableGimmick::AInteractableGimmick()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+
+	/** SET AS AN INTERACTION TRACECHANNEL BLOCK */
+	StaticMeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 }
 
-// Called when the game starts or when spawned
-void AMyClass::BeginPlay()
+void AInteractableGimmick::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (IsValid(InteractableComponent))
+	{
+		InteractableComponent->OnTryInteract.BindUObject(this, &ThisClass::OnGimmickInteracted);
+	}
 }
 
-// Called every frame
-void AMyClass::Tick(float DeltaTime)
+void AInteractableGimmick::OnGimmickInteracted()
 {
-	Super::Tick(DeltaTime);
+	UE_LOG(LogTemp, Warning, TEXT("InteractableGimmick is interacted"));
 }
-

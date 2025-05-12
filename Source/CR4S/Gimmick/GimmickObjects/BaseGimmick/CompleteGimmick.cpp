@@ -1,26 +1,43 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "CompleteGimmick.h"
 
+#include "Gimmick/Components/DestructibleComponent.h"
+#include "Gimmick/Components/InteractableComponent.h"
 
-#include "CompleteGimmick.h"
-
-
-// Sets default values
 ACompleteGimmick::ACompleteGimmick()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	/** SET AS AN INTERACTION TRACECHANNEL BLOCK */
+	StaticMeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	
+	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
+	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 }
 
-// Called when the game starts or when spawned
 void ACompleteGimmick::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (IsValid(DestructibleComponent))
+	{
+		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroyed);
+	}
 	
+	if (IsValid(InteractableComponent))
+	{
+		InteractableComponent->OnTryInteract.BindUObject(this, &ThisClass::OnGimmickInteracted);
+	}
 }
 
-// Called every frame
-void ACompleteGimmick::Tick(float DeltaTime)
+void ACompleteGimmick::OnGimmickDestroyed()
 {
-	Super::Tick(DeltaTime);
+	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
+
+	Destroy();
+}
+
+void ACompleteGimmick::OnGimmickInteracted()
+{
+	UE_LOG(LogTemp, Warning, TEXT("CompleteGimmick is interacted"));
 }
 

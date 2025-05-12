@@ -2,33 +2,34 @@
 
 #include "CoreMinimal.h"
 #include "CR4S/Gimmick/GimmickObjects/BaseGimmick/BaseGimmick.h"
-#include "BaseResourceGimmick.generated.h"
+#include "DestructibleGimmick.generated.h"
 
 class UDestructibleComponent;
 
 UCLASS()
-class CR4S_API ABaseResourceGimmick : public ABaseGimmick
+class CR4S_API ADestructibleGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()
 
 #pragma region ABaseGimmick Override
 
 public:
-	ABaseResourceGimmick();
+	ADestructibleGimmick();
 
 	virtual void BeginPlay() override;
 
 #pragma endregion
 
-#pragma region Components
+#pragma region UDestructibleComponent
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Components")
 	FORCEINLINE UDestructibleComponent* GetDestructibleComponent() const { return DestructibleComponent; }
 
-private:
+protected:
+	/** IMPLEMENTED IN THE INHERITED CLASS */
 	UFUNCTION()
-	void OnDestroyedGimmick();
+	virtual void OnGimmickDestroyed();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;

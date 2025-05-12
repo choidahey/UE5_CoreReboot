@@ -1,27 +1,27 @@
-﻿#include "BaseResourceGimmick.h"
+﻿#include "DestructibleGimmick.h"
 
 #include "CR4S/Gimmick/Components/DestructibleComponent.h"
 
-ABaseResourceGimmick::ABaseResourceGimmick()
+ADestructibleGimmick::ADestructibleGimmick()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
 }
 
-void ABaseResourceGimmick::BeginPlay()
+void ADestructibleGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
 	if (IsValid(DestructibleComponent))
 	{
-		DestructibleComponent->OnDestroyed.BindUObject(this, &ThisClass::OnDestroyedGimmick);
+		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroyed);
 	}
 }
 
-void ABaseResourceGimmick::OnDestroyedGimmick()
+void ADestructibleGimmick::OnGimmickDestroyed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick Destroy!"));
+	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
 
 	Destroy();
 }

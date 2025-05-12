@@ -3,52 +3,32 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 UDestructibleComponent::UDestructibleComponent()
-	: CurrentHealth(0.f)
-	  , MaxHealth(0.f)
+	: MaxHealth(100.f)
+	  , CurrentHealth(100.f)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UDestructibleComponent::ApplyDamage(const float DamageAmount, const FVector& HitLocation, const FVector& ImpulseDir,
-                                         const float ImpulseStrength)
+void UDestructibleComponent::TakeDamage(AController* DamageCauserController, float DamageAmount)
 {
-	CurrentHealth = FMath::Max(0.f, CurrentHealth - DamageAmount);
-
-	UE_LOG(LogTemp, Warning, TEXT("CurrentHealth: %.2f"), CurrentHealth);
-	
-	if (CurrentHealth <= 0)
-	{
-		if (AActor* Owner = GetOwner())
-		{
-			Owner->Destroy();
-		}
-	}
-}
-
-void UDestructibleComponent::ApplyRadiusDamage(float BaseDamage, const FVector& HurtOrigin, float DamageRadius,
-                                               float ImpulseStrength, bool bFullDamage)
-{
-}
-
-void UDestructibleComponent::TakeDamage(const FDestructibleDamageData& DestructibleDamageData)
-{
-	APlayerController* PlayerController = Cast<APlayerController>(DestructibleDamageData.Instigator);
+	APlayerController* PlayerController = Cast<APlayerController>(DamageCauserController);
 	if (IsValid(PlayerController))
 	{
 		UKismetSystemLibrary::PrintString(
-			GetWorld(), FString::Printf(TEXT("DamageAmount: %.1f"), DestructibleDamageData.DamageAmount));
+			GetWorld(), FString::Printf(TEXT("DamageAmount: %.1f"), DamageAmount));
 
-		ApplyDamage(
-			DestructibleDamageData.DamageAmount,
-			DestructibleDamageData.HitLocation,
-			DestructibleDamageData.ImpulseDir,
-			DestructibleDamageData.ImpulseStrength
-		);
+		CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
+
+		UKismetSystemLibrary::PrintString(
+			GetWorld(), FString::Printf(TEXT("CurrentHealth: %.1f"), CurrentHealth));
+
+		if (CurrentHealth <= 0.f)
+		{
+			OnDestroy.ExecuteIfBound();
+		}
 	}
 	else
 	{
-		UKismetSystemLibrary::PrintString(
-			GetWorld(), FString::Printf(
-				TEXT("%s is not PlayerController"), *DestructibleDamageData.Instigator->GetName()));
+		UE_LOG(LogTemp, Warning, TEXT("%s is not PlayerController"), *DamageCauserController->GetName());
 	}
 }

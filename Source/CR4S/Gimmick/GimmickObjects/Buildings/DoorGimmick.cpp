@@ -1,26 +1,80 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "DoorGimmick.h"
 
+#include "Gimmick/Components/InteractableComponent.h"
 
-#include "DoorGimmick.h"
-
-
-// Sets default values
 ADoorGimmick::ADoorGimmick()
+	: bIsMoving(false)
+	  , bIsOpen(false)
+	  , bNextStateIsOpen(false)
+	  , OpenAngle(90.f)
+	  , DoorSpeed(90.f)
+	  , ClosedRotation(FRotator::ZeroRotator)
+	  , OpenRotation(FRotator::ZeroRotator), TargetRotation()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
 void ADoorGimmick::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	ClosedRotation = GetActorRotation();
+	OpenRotation = FRotator(ClosedRotation.Pitch, ClosedRotation.Yaw + OpenAngle, ClosedRotation.Roll);
+
+	UpdateInteractionText();
 }
 
-// Called every frame
-void ADoorGimmick::Tick(float DeltaTime)
+void ADoorGimmick::Tick(const float DeltaSeconds)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaSeconds);
+
+	if (bIsMoving)
+	{
+		const FRotator CurrentRotation = GetActorRotation();
+		FRotator NewRotation = FMath::RInterpConstantTo(CurrentRotation, TargetRotation, DeltaSeconds, DoorSpeed);
+		NewRotation.Normalize();
+		SetActorRotation(NewRotation);
+
+		if (NewRotation.Equals(TargetRotation, 1.f))
+		{
+			bIsMoving = false;
+			bIsOpen = bNextStateIsOpen;
+		}
+	}
 }
 
+void ADoorGimmick::OnGimmickDestroyed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("DoorGimmick is destroyed"));
+
+	Super::OnGimmickDestroyed();
+}
+
+void ADoorGimmick::OnGimmickInteracted()
+{
+	Super::OnGimmickInteracted();
+
+	if (!bIsMoving)
+	{
+		bNextStateIsOpen = !bIsOpen;
+	}
+	else
+	{
+		bNextStateIsOpen = !bNextStateIsOpen;
+	}
+
+	bIsMoving = true;
+
+	TargetRotation = bNextStateIsOpen ? OpenRotation : ClosedRotation;
+	TargetRotation.Normalize();
+
+	UpdateInteractionText();
+}
+
+void ADoorGimmick::UpdateInteractionText() const
+{
+	const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
+	const FString InteractionString = FString::Printf(
+		TEXT("Press '2' to %s"), bNextWillOpen ? TEXT("OPEN") : TEXT("CLOSE"));
+	InteractableComponent->SetInteractionText(FText::FromString(InteractionString));
+}

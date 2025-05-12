@@ -2,7 +2,7 @@
 
 #include "Components/TextBlock.h"
 
-void UInteractionWidget::InitWidget(const FString& InInteractionText) const
+void UInteractionWidget::InitWidget(const FText& InInteractionText) const
 {
-	InteractionTextBlock->SetText(FText::FromString(InInteractionText));
+	InteractionTextBlock->SetText(InInteractionText);
 }

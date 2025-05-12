@@ -1,25 +1,38 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "BaseGimmick.h"
-#include "MyClass.generated.h"
+#include "InteractableGimmick.generated.h"
+
+class UInteractableComponent;
 
 UCLASS()
-class CR4S_API AMyClass : public ABaseGimmick
+class CR4S_API AInteractableGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()
 
-public:
-	// Sets default values for this actor's properties
-	AMyClass();
+#pragma region ABaseGimmick Override
 
-protected:
-	// Called when the game starts or when spawned
+public:
+	AInteractableGimmick();
+
 	virtual void BeginPlay() override;
 
+#pragma endregion
+
+#pragma region UInteractableComponent
+
 public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintPure, Category = "Gimmick|Components")
+	FORCEINLINE UInteractableComponent* GetInteractableComponent() const { return InteractableComponent; }
+
+protected:
+	/** IMPLEMENTED IN THE INHERITED CLASS */
+	UFUNCTION()
+	virtual void OnGimmickInteracted();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UInteractableComponent> InteractableComponent;
+
+#pragma endregion
 };

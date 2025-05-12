@@ -15,7 +15,7 @@ class CR4S_API UInteractionWidget : public UUserWidget
 #pragma region Initalize
 
 public:
-	void InitWidget(const FString& InInteractionText) const;
+	void InitWidget(const FText& InInteractionText) const;
 	
 #pragma endregion
 	
