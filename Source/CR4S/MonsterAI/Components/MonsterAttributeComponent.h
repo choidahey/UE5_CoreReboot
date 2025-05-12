@@ -7,6 +7,8 @@
 
 class UDataTable;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMonsterDeath);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterAttributeComponent : public UActorComponent
 {
@@ -27,6 +29,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool IsDead() const;
+
+	/* Broadcasts on monster death */
+	UPROPERTY(BlueprintAssignable, Category = "Attributes")
+	FOnMonsterDeath OnDeath;
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	FORCEINLINE float GetCurrentHP() const { return CurrentHP; }

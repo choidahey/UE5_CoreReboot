@@ -58,9 +58,12 @@ void UMonsterAttributeComponent::ChangeHP(float Delta)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + Delta, 0.0f, CurrentAttribute.MaxHP);
 	
-	if (IsDead() && GetOwner())
+	if (IsDead())
 	{
-		GetOwner()->Destroy();
+		if (OnDeath.IsBound())
+		{
+			OnDeath.Broadcast();
+		}
 	}
 }
 

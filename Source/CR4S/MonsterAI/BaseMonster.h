@@ -38,12 +38,12 @@ public:
 
 #pragma endregion
 
-//#pragma region BaseMonster Components
-// 
-//public:
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-//	UMonsterAttributeComponent* AttributeComp;
-//
+#pragma region BaseMonster Components
+ 
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	UMonsterAttributeComponent* AttributeComp;
+
 //	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 //	UMonsterSkillComponent* SkillComp;
 //
@@ -56,7 +56,7 @@ public:
 //	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 //	UMonsterAnimComponent* AnimComp;
 //
-//#pragma endregion
+#pragma endregion
 
 #pragma region Monster AI
 
@@ -90,7 +90,7 @@ public:
 	virtual void Die();
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
-	FORCEINLINE bool IsDead() const { return bIsDead; }
+	FORCEINLINE bool IsDead() const { return AttributeComp && AttributeComp->IsDead(); }
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")

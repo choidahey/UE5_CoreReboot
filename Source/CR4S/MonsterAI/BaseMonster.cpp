@@ -1,7 +1,7 @@
 #include "BaseMonster.h"
 #include "Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-// #include "Components/MonsterAttributeComponent.h"
+#include "Components/MonsterAttributeComponent.h"
 // #include "Components/MonsterSkillComponent.h"
 // #include "Components/MonsterStateComponent.h"
 // #include "Components/MonsterPerceptionComponent.h"
@@ -11,8 +11,8 @@ ABaseMonster::ABaseMonster()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	//// Initialize Components
-	//AttributeComp = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
+	// Initialize Components
+	AttributeComp = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
 	//SkillComp = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
 	//StateComp = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
 	//PerceptionComp = CreateDefaultSubobject<UMonsterPerceptionComponent>(TEXT("PerceptionComp"));
@@ -26,12 +26,11 @@ void ABaseMonster::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-	// Bind death delegate
-	//if (AttributeComp)
-	//{
-	//	AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
-	//}
+	// Bind OnDeath delegate
+	if (AttributeComp)
+	{
+		AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
+	}
 }
 
 void ABaseMonster::Tick(float DeltaTime)
@@ -48,19 +47,14 @@ void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	/*if (!AttributeComp)
+	if (!AttributeComp || IsDead())
 	{
-
-	}*/
-
-	if (IsDead())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TakeDamage - Monster is already dead!"));
+		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TakeDamage - AttributeComponent is null or Monster is already dead!"));
 		return 0.0f;
 	}
 
-	// Delegate HP reduction to the AttributeComponent
-	//AttributeComp->ApplyDamage(DamageAmount);
+	// Apply damage via AttributeComponent
+	AttributeComp->ApplyDamage(DamageAmount);
 
 	return DamageAmount;
 }
@@ -111,6 +105,7 @@ void ABaseMonster::HandleDeath()
 {
 	if (bIsDead)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[BaseMonster] HandleDeath already called"));
 		return;
 	}
 
@@ -139,6 +134,11 @@ void ABaseMonster::Die()
 	{
 		AnimComp->PlayDeathMontage();
 	}*/
+}
+
+bool ABaseMonster::IsDead() const
+{
+	return AttributeComp && AttributeComp->IsDead();
 }
 
 void ABaseMonster::SetTargetActor(AActor* NewTarget)
