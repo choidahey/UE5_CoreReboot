@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Data/MonsterEnum.h"
 #include "BaseMonster.generated.h"
 
 class UMonsterAttributeComponent;
@@ -50,12 +51,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	UMonsterStateComponent* StateComp;
 
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-//	UMonsterPerceptionComponent* PerceptionComp;
-//
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-//	UMonsterAnimComponent* AnimComp;
-//
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	UMonsterPerceptionComponent* PerceptionComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	UMonsterAnimComponent* AnimComp;
+
 #pragma endregion
 
 #pragma region Monster AI
@@ -80,12 +81,9 @@ public:
 
 #pragma endregion
 
-#pragma region Monster Behavior - Damage & Death
+#pragma region Monster Behavior - Death
 
 public:
-	/* Delegate Function */
-	UFUNCTION()
-	virtual void HandleDeath();
 
 	virtual void Die();
 
@@ -119,5 +117,29 @@ public:
 	FName MonsterID;
 
 #pragma endregion
+
+#pragma region Monster Event Handler
+
+protected:
+	/* Called when monster dies */
+	UFUNCTION()
+	virtual void HandleDeath();
+
+	/* Called when monster state changes */
+	UFUNCTION()
+	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
+
+	/* Called when target is detected via perception */
+	UFUNCTION()
+	virtual void OnTargetDetected(AActor* DetectedActor);
+
+	/* Called when target is lost via perception */
+	UFUNCTION()
+	virtual void OnTargetLost(AActor* LostActor);
+
+#pragma endregion
+
+private:
+	FString MyHeader;
 
 };

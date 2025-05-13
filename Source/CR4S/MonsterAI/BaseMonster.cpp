@@ -4,10 +4,11 @@
 #include "Components/MonsterAttributeComponent.h"
 // #include "Components/MonsterSkillComponent.h"
 #include "Components/MonsterStateComponent.h"
-// #include "Components/MonsterPerceptionComponent.h"
-// #include "Components/MonsterAnimComponent.h"
+#include "Components/MonsterPerceptionComponent.h"
+#include "Components/MonsterAnimComponent.h"
 
 ABaseMonster::ABaseMonster()
+	: MyHeader(TEXT("BaseMonster"))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -15,8 +16,8 @@ ABaseMonster::ABaseMonster()
 	AttributeComp = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
 	//SkillComp = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
 	StateComp = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
-	//PerceptionComp = CreateDefaultSubobject<UMonsterPerceptionComponent>(TEXT("PerceptionComp"));
-	//AnimComp = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
+	PerceptionComp = CreateDefaultSubobject<UMonsterPerceptionComponent>(TEXT("PerceptionComp"));
+	AnimComp = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
 
 	AIControllerClass = ABaseMonsterAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -31,6 +32,22 @@ void ABaseMonster::BeginPlay()
 	{
 		AttributeComp->InitializeAttribute(MonsterID);
 		AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
+	}
+
+	if (StateComp)
+	{
+		StateComp->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
+	}
+
+	if (PerceptionComp)
+	{
+		PerceptionComp->OnActorDetected.AddDynamic(this, &ABaseMonster::OnTargetDetected);
+		PerceptionComp->OnActorLost.AddDynamic(this, &ABaseMonster::OnTargetLost);
+	}
+
+	if (AnimComp)
+	{
+		AnimComp->Initialize(GetMesh());
 	}
 }
 
@@ -86,7 +103,7 @@ void ABaseMonster::TryAttack()
 	//int32 SelectedSkillIndex = SkillComp->SelectAvailableSkill();
 	//if (SelectedSkillIndex >= 0)
 	//{
-	//	PerfromAttac(SelectedSkillIndex);
+	//	PerfromAttack(SelectedSkillIndex);
 	//}
 }
 
@@ -112,18 +129,6 @@ bool ABaseMonster::CanAttack() const
 		StateComp->IsInState(EMonsterState::Chase);
 }
 
-void ABaseMonster::HandleDeath()
-{
-	if (bIsDead)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[BaseMonster] HandleDeath already called"));
-		return;
-	}
-
-	bIsDead = true;
-	Die();
-}
-
 void ABaseMonster::Die()
 {
 	if (StateComp)
@@ -141,10 +146,10 @@ void ABaseMonster::Die()
 	}
 
 	// Play Death Montage
-	/*if (AnimComp)
+	if (AnimComp)
 	{
 		AnimComp->PlayDeathMontage();
-	}*/
+	}
 }
 
 bool ABaseMonster::IsDead() const
@@ -163,5 +168,54 @@ void ABaseMonster::SetTargetActor(AActor* NewTarget)
 		{
 			BB->SetValueAsObject(TEXT("TargetActor"), TargetActor);
 		}
+	}
+}
+
+void ABaseMonster::HandleDeath()
+{
+	if (bIsDead)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[BaseMonster] HandleDeath already called"));
+		return;
+	}
+
+	bIsDead = true;
+	Die();
+}
+
+void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)
+{
+	// NOTICE :: Test Log
+	UE_LOG(LogTemp, Log, TEXT("[%s] OnMonsterStateChanged : State changed from %s to %s."),
+		*MyHeader,
+		*UEnum::GetValueAsString(Previous),
+		*UEnum::GetValueAsString(Current)
+	);
+}
+
+void ABaseMonster::OnTargetDetected(AActor* DetectedActor)
+{
+	if (!IsDead())
+	{
+		SetTargetActor(DetectedActor);
+	}
+
+	// NOTICE :: Test Log
+	UE_LOG(LogTemp, Log, TEXT("[%s] Target Detected: %s"),
+		*MyHeader,
+		*DetectedActor->GetName()
+	);
+}
+
+void ABaseMonster::OnTargetLost(AActor* LostActor)
+{
+	if (TargetActor == LostActor)
+	{
+		// NOTICE :: Test Log
+		UE_LOG(LogTemp, Log, TEXT("[%s] Lost Target: %s"),
+			*MyHeader, 
+			*LostActor->GetName());
+
+		SetTargetActor(nullptr);
 	}
 }
