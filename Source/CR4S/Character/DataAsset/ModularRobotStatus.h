@@ -7,7 +7,7 @@
 #include "ModularRobotStatus.generated.h"
 
 USTRUCT(BlueprintType)
-struct CR4S_API FModularRobotStatus
+struct CR4S_API FModularRobotStats
 {
 	GENERATED_BODY()
 public:
@@ -46,5 +46,5 @@ class CR4S_API UModularRobotStatus : public UDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	FModularRobotStatus Status;
+	FModularRobotStats Status;
 };

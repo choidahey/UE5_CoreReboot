@@ -4,7 +4,7 @@
 #include "ModularRobot.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "CharacterController.h"
+#include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"

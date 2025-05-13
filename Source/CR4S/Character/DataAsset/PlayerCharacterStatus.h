@@ -8,7 +8,7 @@
 #include "PlayerCharacterStatus.generated.h"
 
 USTRUCT(BlueprintType)
-struct CR4S_API FPlayerCharacterStatus
+struct CR4S_API FPlayerCharacterStats
 {
 	GENERATED_BODY()
 public:
@@ -34,6 +34,6 @@ class CR4S_API UPlayerCharacterStatus : public UDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	FPlayerCharacterStatus Status;
+	FPlayerCharacterStats Status;
 	
 };
