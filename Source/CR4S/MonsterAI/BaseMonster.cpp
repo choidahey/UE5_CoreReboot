@@ -30,7 +30,7 @@ void ABaseMonster::BeginPlay()
 	// Bind OnDeath delegate
 	if (AttributeComp)
 	{
-		AttributeComp->InitializeAttribute(MonsterID);
+		AttributeComp->InitializeMonsterAttribute(MonsterID);
 		AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
 	}
 
