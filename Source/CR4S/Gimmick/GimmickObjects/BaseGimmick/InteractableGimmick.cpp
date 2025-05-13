@@ -9,7 +9,7 @@ AInteractableGimmick::AInteractableGimmick()
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 
 	/** SET AS AN INTERACTION TRACECHANNEL BLOCK */
-	StaticMeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 }
 
 void AInteractableGimmick::BeginPlay()

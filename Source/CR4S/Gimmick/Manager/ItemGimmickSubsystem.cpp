@@ -10,66 +10,86 @@ UItemGimmickSubsystem::UItemGimmickSubsystem()
 	  , GimmickDataTable(FSoftObjectPath(TEXT("/Game/GimmickTest/Data/DT_GimmickData.DT_GimmickData")))
 	  , bIsItemDataTableLoaded(false)
 	  , bIsGimmickDataTableLoaded(false)
-	  , bIsAllDataTableLoaded(false)
 {
 }
 
 void UItemGimmickSubsystem::LoadDataTableAsync()
 {
 	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+	
+	if (ItemDataTable.ToSoftObjectPath().IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Start ItemDataTable loading..."));
+		StreamableManager.RequestAsyncLoad(
+			ItemDataTable.ToSoftObjectPath(),
+			FStreamableDelegate::CreateUObject(this, &ThisClass::OnItemDataTableLoaded)
+		);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable ReferencePath is invalid"));
+	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Start ItemDataTable loading..."));
-	StreamableManager.RequestAsyncLoad(
-		ItemDataTable.ToSoftObjectPath(),
-		FStreamableDelegate::CreateUObject(this, &ThisClass::OnItemDataTableLoaded)
-	);
-
-	UE_LOG(LogTemp, Warning, TEXT("Start GimmickDataTable loading..."));
-	StreamableManager.RequestAsyncLoad(
-		GimmickDataTable.ToSoftObjectPath(),
-		FStreamableDelegate::CreateUObject(this, &ThisClass::OnGimmickDataTableLoaded)
-	);
+	if (GimmickDataTable.ToSoftObjectPath().IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Start GimmickDataTable loading..."));
+		StreamableManager.RequestAsyncLoad(
+			GimmickDataTable.ToSoftObjectPath(),
+			FStreamableDelegate::CreateUObject(this, &ThisClass::OnGimmickDataTableLoaded)
+		);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable ReferencePath is invalid"));
+	}
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-void UItemGimmickSubsystem::OnItemDataTableLoaded()
+void UItemGimmickSubsystem::OnDataTableLoaded(TSoftObjectPtr<UDataTable>& DataTable,
+                                              bool& bIsDataTableLoaded, const FString& DataTableName) const
 {
-	const UDataTable* LoadedTable = Cast<UDataTable>(ItemDataTable.Get());
+	const UDataTable* LoadedTable = Cast<UDataTable>(DataTable.Get());
 	if (IsValid(LoadedTable))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable loaded successfully!"));
-		ItemDataTable = ItemDataTable.Get();
-		bIsItemDataTableLoaded = true;
+		UE_LOG(LogTemp, Warning, TEXT("%s loaded successfully!"), *DataTableName);
+		DataTable = DataTable.Get();
+		bIsDataTableLoaded = true;
 		CheckAllDataTableLoaded();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ItemDataTable loaded failed!"));
+		UE_LOG(LogTemp, Error, TEXT("%s loaded failed!"), *DataTableName);
 	}
+}
+
+void UItemGimmickSubsystem::OnItemDataTableLoaded()
+{
+	OnDataTableLoaded(ItemDataTable, bIsItemDataTableLoaded, TEXT("ItemDataTable"));
 }
 
 void UItemGimmickSubsystem::OnGimmickDataTableLoaded()
 {
-	const UDataTable* LoadedTable = Cast<UDataTable>(GimmickDataTable.Get());
-	if (IsValid(LoadedTable))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable loaded successfully!"));
-		GimmickDataTable = GimmickDataTable.Get();
-		bIsGimmickDataTableLoaded = true;
-		CheckAllDataTableLoaded();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("GimmickDataTable loaded failed!"));
-	}
+	OnDataTableLoaded(GimmickDataTable, bIsGimmickDataTableLoaded, TEXT("GimmickDataTable"));
 }
 
-void UItemGimmickSubsystem::CheckAllDataTableLoaded()
+void UItemGimmickSubsystem::CheckAllDataTableLoaded() const
 {
-	bIsAllDataTableLoaded = bIsItemDataTableLoaded && bIsGimmickDataTableLoaded;
+	if (bIsItemDataTableLoaded && bIsGimmickDataTableLoaded)
+	{
+		OnDataTablesReady.Broadcast();
+	}
 }
 
-void UItemGimmickSubsystem::SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation)
+const FBaseItemData* UItemGimmickSubsystem::FindItemData(const FName& RowName) const
+{
+	return FindRow<FBaseItemData>(ItemDataTable, RowName, TEXT("Load Item Data"));
+}
+
+const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowName) const
+{
+	return FindRow<FBaseGimmickData>(GimmickDataTable, RowName, TEXT("Load Gimmick Data"));
+}
+
+bool UItemGimmickSubsystem::SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation) const
 {
 	if (GimmickDataTable.IsValid())
 	{
@@ -81,13 +101,33 @@ void UItemGimmickSubsystem::SpawnGimmickByRowName(const FName& RowName, const FV
 			if (GimmickData)
 			{
 				UClass* Class = GimmickData->GimmickClass.LoadSynchronous();
-				GetWorld()->SpawnActor<ABaseGimmick>(Class, SpawnLocation, FRotator::ZeroRotator);
-				UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable loaded successfully!"));
+
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.SpawnCollisionHandlingOverride =
+					ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				const ABaseGimmick* Gimmick = GetWorld()->SpawnActor<ABaseGimmick>(
+					Class, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+				if (IsValid(Gimmick))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Gimmick spawned successfully!"));
+					return true;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Gimmick spawned failed!"));
+				}
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("GimmickDataTable is invalid"));
+			UE_LOG(LogTemp, Error, TEXT("LoadedTable is invalid"));
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("GimmickDataTable is invalid"));
+	}
+
+	return false;
 }

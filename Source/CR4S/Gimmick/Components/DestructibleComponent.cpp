@@ -9,19 +9,24 @@ UDestructibleComponent::UDestructibleComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UDestructibleComponent::InitComponent(const float InMaxHealth)
+{
+	MaxHealth = InMaxHealth;
+	CurrentHealth = InMaxHealth;
+}
+
 void UDestructibleComponent::TakeDamage(AController* DamageCauserController, float DamageAmount)
 {
 	APlayerController* PlayerController = Cast<APlayerController>(DamageCauserController);
 	if (IsValid(PlayerController))
 	{
-		UKismetSystemLibrary::PrintString(
-			GetWorld(), FString::Printf(TEXT("DamageAmount: %.1f"), DamageAmount));
-
 		CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
 
-		UKismetSystemLibrary::PrintString(
-			GetWorld(), FString::Printf(TEXT("CurrentHealth: %.1f"), CurrentHealth));
-
+		if (OnTakeDamage.IsBound())
+		{
+			OnTakeDamage.ExecuteIfBound(DamageAmount, CurrentHealth);
+		}
+		
 		if (CurrentHealth <= 0.f)
 		{
 			OnDestroy.ExecuteIfBound();

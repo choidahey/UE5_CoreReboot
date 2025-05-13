@@ -29,7 +29,10 @@ public:
 protected:
 	/** IMPLEMENTED IN THE INHERITED CLASS */
 	UFUNCTION()
-	virtual void OnGimmickDestroyed();
+	virtual void OnGimmickTakeDamage(float DamageAmount, float CurrentHealth);
+	/** IMPLEMENTED IN THE INHERITED CLASS */
+	UFUNCTION()
+	virtual void OnGimmickDestroy();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;

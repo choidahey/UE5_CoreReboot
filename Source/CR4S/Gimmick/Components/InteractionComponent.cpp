@@ -6,7 +6,10 @@
 #include "CR4S/Gimmick/UI/InteractionWidget.h"
 
 UInteractionComponent::UInteractionComponent()
-	: HitResultTraceDistance(2000.f), InteractionRange(200.f), bIsDebugMode(false)
+	: InteractionTraceChannel(ECC_GameTraceChannel1)
+	  , HitResultTraceDistance(2000.f)
+	  , InteractionRange(200.f)
+	  , bIsDebugMode(false)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -103,14 +106,14 @@ bool UInteractionComponent::TryStartInteraction() const
 void UInteractionComponent::UpdateDetectProcess()
 {
 	UInteractableComponent* BeforeComponent = DetectedInteractableComponent;
-	
+
 	const bool bIsDetected = TryDetectProcess();
 
 	if (IsValid(BeforeComponent) && (BeforeComponent != DetectedInteractableComponent || !bIsDetected))
 	{
 		BeforeComponent->SetHighlight(false);
 	}
-	
+
 	if (bIsDetected && IsValid(DetectedInteractableComponent))
 	{
 		DetectedInteractableComponent->SetHighlight(true);

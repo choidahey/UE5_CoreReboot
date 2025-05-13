@@ -57,6 +57,7 @@ struct FBaseGimmickData : public FBaseDataInfo
 	GENERATED_BODY()
 
 	FBaseGimmickData()
+		: GimmickMaxHealth(0.f)
 	{
 	}
 
@@ -64,4 +65,6 @@ struct FBaseGimmickData : public FBaseDataInfo
 	TSoftClassPtr<class ABaseGimmick> GimmickClass;
 	UPROPERTY(EditAnywhere)
 	TArray<FResourceItemData> ResourceItemDataList;
+	UPROPERTY(EditAnywhere)
+	float GimmickMaxHealth;
 };

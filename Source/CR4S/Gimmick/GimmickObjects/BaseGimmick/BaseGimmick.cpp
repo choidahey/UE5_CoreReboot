@@ -1,5 +1,7 @@
 ﻿#include "BaseGimmick.h"
 
+#include "Gimmick/Manager/ItemGimmickSubsystem.h"
+
 ABaseGimmick::ABaseGimmick()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -10,5 +12,4 @@ ABaseGimmick::ABaseGimmick()
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	StaticMeshComponent->SetupAttachment(SceneComponent);
 }
-
 

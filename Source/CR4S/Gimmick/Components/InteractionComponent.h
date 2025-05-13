@@ -4,7 +4,6 @@
 #include "Components/ActorComponent.h"
 #include "InteractionComponent.generated.h"
 
-
 class UInteractionWidget;
 class UInteractableComponent;
 
@@ -48,17 +47,20 @@ private:
 	void UpdateDetectProcess();
 	bool TryDetectProcess();
 
-	UPROPERTY(visibleanywhere, Category = "Interaction")
+	UPROPERTY(Visibleanywhere, Category = "Interaction")
 	TObjectPtr<AActor> DetectedActor;
 	
-	UPROPERTY(visibleanywhere, Category = "Interaction")
+	UPROPERTY(Visibleanywhere, Category = "Interaction")
 	TObjectPtr<UInteractableComponent> DetectedInteractableComponent;
-
+	
+	UPROPERTY(EditAnywhere, Category = "Interaction")
+	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
+	
 	/**
 	 * Trace Distance
 	 * From Camera to TargetActor
 	 */
-	UPROPERTY(EditAnywhere, Category = "Initialize")
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	float HitResultTraceDistance;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")

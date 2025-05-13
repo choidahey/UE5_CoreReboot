@@ -6,6 +6,7 @@
 #include "DestructibleComponent.generated.h"
 
 DECLARE_DELEGATE(FOnDestry);
+DECLARE_DELEGATE_TwoParams(FOnTakeDamage, float, float);
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UDestructibleComponent : public UActorComponent
@@ -19,7 +20,14 @@ public:
 	
 #pragma endregion
 
-#pragma region UDestructibleComponent Health
+#pragma region Initialize
+
+public:
+	void InitComponent(const float InMaxHealth);
+	
+#pragma endregion
+	
+#pragma region Health
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Health")
@@ -29,9 +37,9 @@ public:
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 	
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "DestructibleComponent|Health")
+	UPROPERTY(VisibleAnywhere, Category = "DestructibleComponent|Health")
 	float MaxHealth;
-	UPROPERTY(EditDefaultsOnly, Category = "DestructibleComponent|Health")
+	UPROPERTY(VisibleAnywhere, Category = "DestructibleComponent|Health")
 	float CurrentHealth;
 
 #pragma endregion
@@ -39,6 +47,7 @@ private:
 #pragma region Delegate
 
 public:
+	FOnTakeDamage OnTakeDamage;
 	FOnDestry OnDestroy;
 	
 #pragma endregion

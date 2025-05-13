@@ -7,11 +7,11 @@ ACompleteGimmick::ACompleteGimmick()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	/** SET AS AN INTERACTION TRACECHANNEL BLOCK */
-	StaticMeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
-	
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+	
+	/** SET AS AN INTERACTION TRACECHANNEL BLOCK */
+	GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 }
 
 void ACompleteGimmick::BeginPlay()
