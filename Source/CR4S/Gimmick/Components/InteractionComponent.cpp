@@ -2,7 +2,7 @@
 
 #include "InteractableComponent.h"
 #include "Blueprint/UserWidget.h"
-#include "Character/BasePlayer.h"
+#include "CR4S/Character/Characters/PlayerCharacter.h"
 #include "CR4S/Gimmick/UI/InteractionWidget.h"
 
 UInteractionComponent::UInteractionComponent()
@@ -31,7 +31,7 @@ void UInteractionComponent::BeginPlay()
 
 void UInteractionComponent::InitComponent()
 {
-	ABasePlayer* PlayerCharacter = Cast<ABasePlayer>(GetOwner());
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 	if (IsValid(PlayerCharacter))
 	{
 		OwnerPlayerController = Cast<APlayerController>(PlayerCharacter->GetController());
