@@ -19,7 +19,7 @@ public:
 
 #pragma region MonsterAttribute
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	void InitializeAttribute(const FName MonsterKey);
+	void InitializeMonsterAttribute(const FName MonsterKey);
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	void ApplyDamage(float DamageAmount);
@@ -36,10 +36,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	FORCEINLINE float GetCurrentHP() const { return CurrentHP; }
-
-
-	UPROPERTY(EditAnywhere, Category = "Attributes")
-	UDataTable* MonsterAttributeTable;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FMonsterAttributeRow CurrentAttribute;
