@@ -47,9 +47,9 @@ public:
 //	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 //	UMonsterSkillComponent* SkillComp;
 //
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-//	UMonsterStateComponent* StateComp;
-//
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	UMonsterStateComponent* StateComp;
+
 //	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 //	UMonsterPerceptionComponent* PerceptionComp;
 //
@@ -90,7 +90,7 @@ public:
 	virtual void Die();
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
-	FORCEINLINE bool IsDead() const { return AttributeComp && AttributeComp->IsDead(); }
+	bool IsDead() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
@@ -112,4 +112,12 @@ protected:
 	AActor* TargetActor;
 
 #pragma endregion
+
+#pragma region Monster Components - Attribute
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
+	FName MonsterID;
+
+#pragma endregion
+
 };

@@ -3,7 +3,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/MonsterAttributeComponent.h"
 // #include "Components/MonsterSkillComponent.h"
-// #include "Components/MonsterStateComponent.h"
+#include "Components/MonsterStateComponent.h"
 // #include "Components/MonsterPerceptionComponent.h"
 // #include "Components/MonsterAnimComponent.h"
 
@@ -14,7 +14,7 @@ ABaseMonster::ABaseMonster()
 	// Initialize Components
 	AttributeComp = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
 	//SkillComp = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
-	//StateComp = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
+	StateComp = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
 	//PerceptionComp = CreateDefaultSubobject<UMonsterPerceptionComponent>(TEXT("PerceptionComp"));
 	//AnimComp = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
 
@@ -29,6 +29,7 @@ void ABaseMonster::BeginPlay()
 	// Bind OnDeath delegate
 	if (AttributeComp)
 	{
+		AttributeComp->InitializeAttribute(MonsterID);
 		AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
 	}
 }
@@ -37,6 +38,14 @@ void ABaseMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (StateComp->IsInState(EMonsterState::Idle))
+	{
+		float TotalIdleTime = StateComp->GetStateDuration(EMonsterState::Idle);
+		if (TotalIdleTime > 10.f)
+		{
+			//AnimComp->PlayIdleBoredAnimation();
+		}
+	}
 }
 
 void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -98,7 +107,9 @@ bool ABaseMonster::CanAttack() const
 		return false;
 	}*/
 
-	return true;
+	return StateComp->IsInState(EMonsterState::Idle) ||
+		StateComp->IsInState(EMonsterState::Patrol) ||
+		StateComp->IsInState(EMonsterState::Chase);
 }
 
 void ABaseMonster::HandleDeath()
@@ -115,10 +126,10 @@ void ABaseMonster::HandleDeath()
 
 void ABaseMonster::Die()
 {
-	/*if (StateComp)
+	if (StateComp)
 	{
 		StateComp->SetState(EMonsterState::Dead);
-	}*/
+	}
 
 	// Update Blackboard
 	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
