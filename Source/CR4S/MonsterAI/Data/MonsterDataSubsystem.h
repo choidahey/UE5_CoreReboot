@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "CR4S/MonsterAI/Data/MonsterAttributeRow.h"
-#include "CR4S/MonsterAI/Data/MonsterSkillRow.h"
+#include "CR4S/MonsterAI/Data/MonsterSkillData.h"
 #include "MonsterDataSubsystem.generated.h"
 
 
@@ -16,7 +16,7 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 #pragma region AttributeData
-	const FMonsterAttributeRow* GetMonsterAttributeData(FName MonsterID) const;
+	FMonsterAttributeRow* GetMonsterAttributeData(FName MonsterID) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
@@ -26,11 +26,15 @@ protected:
 
 #pragma region SkillData
 public:
-	const FMonsterSkillRow* GetMonsterSkillData(FName SkillID) const;
+	const TArray<FMonsterSkillData>& GetMonsterSkillData(FName MonsterID) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
-	TSoftObjectPtr<UDataTable> MonsterSkillTableAsset;
 	UDataTable* MonsterSkillTable = nullptr;
+
+	TMap<FName, TArray<FMonsterSkillData>> CacheSkillData;
+
+private:
+	void CacheMonsterSkillData();
 #pragma endregion
 };

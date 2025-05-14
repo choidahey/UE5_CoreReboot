@@ -1,6 +1,6 @@
-,Name,MaxHP,AttackPower,AttackRange,AttackSpeed,MoveSpeed
-MonsterTest1,MonsterTest1,100,10,15,10,5
-MonsterTest2,MonsterTest2,100,20,15,10,5
-MonsterTest3,MonsterTest3,100,30,15,10,5
-MonsterTest4,MonsterTest4,100,40,15,10,5
-MonsterTest5,MonsterTest5,100,50,15,10,5
+,MonsterID,MaxHP,AttackPower,AttackRange,AttackSpeed,MoveSpeed,SkillDataTable
+MonsterTest1,MonsterTest1,100,10,15,10,5,/Game/CR4S/_MonsterAI/Data/MonsterSkillDataTable.MonsterSkillDataTable
+MonsterTest2,MonsterTest2,100,20,15,10,5,
+MonsterTest3,MonsterTest3,100,30,15,10,5,
+MonsterTest4,MonsterTest4,100,40,15,10,5,
+MonsterTest5,MonsterTest5,100,50,15,10,5,

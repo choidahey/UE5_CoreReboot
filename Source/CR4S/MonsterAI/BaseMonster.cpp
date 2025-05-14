@@ -41,8 +41,8 @@ void ABaseMonster::BeginPlay()
 
 	if (PerceptionComp)
 	{
-		PerceptionComp->OnActorDetected.AddDynamic(this, &ABaseMonster::OnTargetDetected);
-		PerceptionComp->OnActorLost.AddDynamic(this, &ABaseMonster::OnTargetLost);
+		PerceptionComp->OnPlayerDetected.AddDynamic(this, &ABaseMonster::OnTargetDetected);
+		PerceptionComp->OnPlayerLost.AddDynamic(this, &ABaseMonster::OnTargetLost);
 	}
 
 	if (AnimComp)
