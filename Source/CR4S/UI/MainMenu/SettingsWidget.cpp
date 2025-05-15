@@ -1,5 +1,6 @@
 #include "UI/MainMenu/SettingsWidget.h"
 #include "Components/Button.h"
+
 void USettingsWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -12,5 +13,5 @@ void USettingsWidget::NativeConstruct()
 
 void USettingsWidget::OnExitButtonClicked()
 {
-	RemoveFromViewport();
+	RemoveFromParent();
 }

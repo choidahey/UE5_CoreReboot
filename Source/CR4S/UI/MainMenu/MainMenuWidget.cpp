@@ -1,6 +1,7 @@
 #include "UI/MainMenu/MainMenuWidget.h"
 #include "UI/MainMenu/SettingsWidget.h"
 #include "UI/MainMenu/CreditsWidget.h"
+#include "UI/Common/ConfirmWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 
@@ -9,16 +10,18 @@ void UMainMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	CreateChildWidgets();
+
 	if (PlayGameButton)
 	{
 		PlayGameButton->OnHovered.AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonHovered);
 		PlayGameButton->OnUnhovered.AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonUnhovered);
 	}
-
 	if (NewGameButton)
 	{
 		NewGameButton->OnHovered.AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
 		NewGameButton->OnUnhovered.AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
+		NewGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnNewGameButtonClicked);
 	}
 	if (LoadGameButton)
 	{
@@ -107,39 +110,47 @@ void UMainMenuWidget::OnGameButtonUnhovered()
 	);
 }
 
-void UMainMenuWidget::OnSettingsButtonClicked()
+void UMainMenuWidget::CreateChildWidgets()
 {
 	if (!SettingsWidgetInstance && SettingsWidgetClass)
 	{
 		SettingsWidgetInstance = CreateWidget<USettingsWidget>(GetWorld(), SettingsWidgetClass);
-		if (SettingsWidgetInstance)
-		{
-			SettingsWidgetInstance->AddToViewport(10);
-			UE_LOG(LogTemp, Warning, TEXT("MainMenuWidget: SettingsWidget created and added to viewport"));
-		}
 	}
-	else if (SettingsWidgetInstance)
+
+	if (!CreditsWidgetInstance && CreditsWidgetClass)
+	{
+		CreditsWidgetInstance = CreateWidget<UCreditsWidget>(GetWorld(), CreditsWidgetClass);
+	}
+
+	if (!ConfirmWidgetInstance && ConfirmWidgetClass)
+	{
+		ConfirmWidgetInstance = CreateWidget<UConfirmWidget>(GetWorld(), ConfirmWidgetClass);
+	}
+}
+
+void UMainMenuWidget::OnNewGameButtonClicked()
+{
+	UE_LOG(LogTemp, Warning, TEXT("NewGameButtonClicked"));
+	if (ConfirmWidgetInstance)
+	{
+		ConfirmWidgetInstance->AddToViewport(10);
+		UE_LOG(LogTemp, Warning, TEXT("ConfirmWidget to viewport"));
+	}
+}
+
+void UMainMenuWidget::OnSettingsButtonClicked()
+{
+	if (SettingsWidgetInstance)
 	{
 		SettingsWidgetInstance->AddToViewport(10);
-		UE_LOG(LogTemp, Warning, TEXT("MainMenuWidget: SettingsWidget already exists, added to viewport again"));
 	}
 }
 
 void UMainMenuWidget::OnCreditsButtonClicked()
 {
-	if (!CreditsWidgetInstance && CreditsWidgetClass)
-	{
-		CreditsWidgetInstance = CreateWidget<UCreditsWidget>(GetWorld(), CreditsWidgetClass);
-		if (CreditsWidgetInstance)
-		{
-			CreditsWidgetInstance->AddToViewport(10);
-			UE_LOG(LogTemp, Warning, TEXT("MainMenuWidget: CreditsWidget created and added to viewport"));
-		}
-	}
-	else if (CreditsWidgetInstance)
+	if (CreditsWidgetInstance)
 	{
 		CreditsWidgetInstance->AddToViewport(10);
-		UE_LOG(LogTemp, Warning, TEXT("MainMenuWidget: CreditsWidget already exists, added to viewport again"));
 	}
 }
 

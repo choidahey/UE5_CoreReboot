@@ -13,5 +13,5 @@ void UCreditsWidget::NativeConstruct()
 
 void UCreditsWidget::OnExitButtonClicked()
 {
-	RemoveFromViewport();
+	RemoveFromParent();
 }
