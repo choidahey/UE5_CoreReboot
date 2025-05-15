@@ -12,16 +12,20 @@ UMonsterPerceptionComponent::UMonsterPerceptionComponent()
 	SightConfig->SightRadius = 2000.0f;
 	SightConfig->LoseSightRadius = 3000.0f;
 	SightConfig->PeripheralVisionAngleDegrees = 90.0f;
+	
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-	SightConfig->DetectionByAffiliation.bDetectNeutrals = false;
-	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
 	ConfigureSense(*SightConfig);
 
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
 	HearingConfig->HearingRange = 1500.0f;
+
 	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
-	HearingConfig->DetectionByAffiliation.bDetectNeutrals = false;
-	HearingConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
 	ConfigureSense(*HearingConfig);
 
 	SetDominantSense(UAISense_Sight::StaticClass());
@@ -32,6 +36,7 @@ void UMonsterPerceptionComponent::BeginPlay()
 	Super::BeginPlay();
 	
 	OnTargetPerceptionUpdated.AddDynamic(this, &UMonsterPerceptionComponent::OnUpdatePerception);
+	RequestStimuliListenerUpdate();
 
 	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] Sight Radius = %.0f, LoseRadius = %.0f, SightAngle = %.0f"),
@@ -54,28 +59,51 @@ void UMonsterPerceptionComponent::BeginPlay()
 
 void UMonsterPerceptionComponent::OnUpdatePerception(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (Stimulus.WasSuccessfullySensed())
+	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception"));
+
+	const bool bIsDetected = Stimulus.WasSuccessfullySensed();
+	const FName PlayerTag = TEXT("Player");
+
+	if (!Actor->ActorHasTag(PlayerTag)) return;
+
+	if (bIsDetected)
 	{
-		OnActorDetected.Broadcast(Actor);
+		OnPlayerDetected.Broadcast(Actor);
 	}
 	else
 	{
-		OnActorLost.Broadcast(Actor);
+		OnPlayerLost.Broadcast(Actor);
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception: %s | Type: %s | Success: %s"),
+		*Actor->GetName(),
+		*Stimulus.Type.Name.ToString(),
+		Stimulus.WasSuccessfullySensed() ? TEXT("YES") : TEXT("NO"));
 }
 
-TArray<AActor*> UMonsterPerceptionComponent::GetSightInActors() const
+AActor* UMonsterPerceptionComponent::FindTaggedActorInSense(const TSubclassOf<UAISense> SenseClass, const FName& Tag) const
 {
-	TArray<AActor*> DetecteActors;
-	GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), DetecteActors);
+	TArray<AActor*> DetectedActors;
+	GetCurrentlyPerceivedActors(SenseClass, DetectedActors);
 
-	return DetecteActors;
+	for (AActor* Actor : DetectedActors)
+	{
+		if (Actor && Actor->ActorHasTag(Tag))
+		{
+			return Actor;
+		}
+	}
+
+	return nullptr;
 }
 
-TArray<AActor*> UMonsterPerceptionComponent::GetHearingInAcotrs() const
+AActor* UMonsterPerceptionComponent::GetDetectedPlayerBySight() const
 {
-	TArray<AActor*> DetecteActors;
-	GetCurrentlyPerceivedActors(UAISense_Hearing::StaticClass(), DetecteActors);
-
-	return DetecteActors;
+	return FindTaggedActorInSense(UAISense_Sight::StaticClass(), TEXT("Player"));
 }
+
+AActor* UMonsterPerceptionComponent::GetDetectedPlayerByHearing() const
+{
+	return FindTaggedActorInSense(UAISense_Hearing::StaticClass(), TEXT("Player"));
+}
+

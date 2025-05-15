@@ -8,10 +8,11 @@ struct FMonsterAttributeRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) FName Name;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) float MaxHP;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackPower;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackRange;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackSpeed;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) float MoveSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FName MonsterID = NAME_None;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float MaxHP = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackPower = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackRange = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackSpeed = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float MoveSpeed = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UDataTable> SkillDataTable = nullptr;
 };

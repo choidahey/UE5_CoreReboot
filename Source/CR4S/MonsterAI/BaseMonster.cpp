@@ -2,10 +2,10 @@
 #include "Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/MonsterAttributeComponent.h"
-// #include "Components/MonsterSkillComponent.h"
+#include "Components/MonsterSkillComponent.h"
 #include "Components/MonsterStateComponent.h"
-#include "Components/MonsterPerceptionComponent.h"
 #include "Components/MonsterAnimComponent.h"
+#include "Data/MonsterAIKeyNames.h" 
 
 ABaseMonster::ABaseMonster()
 	: MyHeader(TEXT("BaseMonster"))
@@ -14,9 +14,8 @@ ABaseMonster::ABaseMonster()
 
 	// Initialize Components
 	AttributeComp = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
-	//SkillComp = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
+	SkillComp = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
 	StateComp = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
-	PerceptionComp = CreateDefaultSubobject<UMonsterPerceptionComponent>(TEXT("PerceptionComp"));
 	AnimComp = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
 
 	AIControllerClass = ABaseMonsterAIController::StaticClass();
@@ -34,15 +33,14 @@ void ABaseMonster::BeginPlay()
 		AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
 	}
 
+	if (SkillComp)
+	{
+		SkillComp->InitializeMonsterSkills(MonsterID);
+	}
+
 	if (StateComp)
 	{
 		StateComp->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
-	}
-
-	if (PerceptionComp)
-	{
-		PerceptionComp->OnActorDetected.AddDynamic(this, &ABaseMonster::OnTargetDetected);
-		PerceptionComp->OnActorLost.AddDynamic(this, &ABaseMonster::OnTargetLost);
 	}
 
 	if (AnimComp)
@@ -54,6 +52,11 @@ void ABaseMonster::BeginPlay()
 void ABaseMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (IsDead())
+	{
+		return;
+	}
 
 	if (StateComp->IsInState(EMonsterState::Idle))
 	{
@@ -85,48 +88,20 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return DamageAmount;
 }
 
-void ABaseMonster::TryAttack()
+void ABaseMonster::PlayPreMontage(int32 SkillIndex)
 {
-	/*if (!SkillComp)
+	if (SkillComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TryAttack - SkillComponent is null!"));
-		return;
-	}*/
-	
-	if (!CanAttack())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TryAttack - Monster cannot attack!"));
-		return;
+		SkillComp->PlayPreMontage(SkillIndex);
 	}
-
-	// Select an available skill and Execute
-	//int32 SelectedSkillIndex = SkillComp->SelectAvailableSkill();
-	//if (SelectedSkillIndex >= 0)
-	//{
-	//	PerfromAttack(SelectedSkillIndex);
-	//}
 }
 
-void ABaseMonster::PerfromAttack(int32 AttackIndex)
+void ABaseMonster::UseSkill(int32 SkillIndex)
 {
-	//if (!StateComp || !SkillComp || IsDead())
-	//	return false;
-
-	//// Check current state and Skill cooldown
-	//return StateComp->GetCurrentState() != EMonsterState::Dead
-	//	&& SkillComp->HasAvailableSkill();
-}
-
-bool ABaseMonster::CanAttack() const
-{
-	/*if (!StateComp || !SkillComp || IsDead())
+	if (SkillComp)
 	{
-		return false;
-	}*/
-
-	return StateComp->IsInState(EMonsterState::Idle) ||
-		StateComp->IsInState(EMonsterState::Patrol) ||
-		StateComp->IsInState(EMonsterState::Chase);
+		SkillComp->UseSkill(SkillIndex);
+	}
 }
 
 void ABaseMonster::Die()
@@ -141,7 +116,7 @@ void ABaseMonster::Die()
 	{
 		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
 		{
-			BB->SetValueAsBool(TEXT("IsDead"), true);
+			BB->SetValueAsBool(FAIKeys::IsDead, true);
 		}
 	}
 
@@ -155,20 +130,6 @@ void ABaseMonster::Die()
 bool ABaseMonster::IsDead() const
 {
 	return AttributeComp && AttributeComp->IsDead();
-}
-
-void ABaseMonster::SetTargetActor(AActor* NewTarget)
-{
-	TargetActor = NewTarget;
-
-	// Sync with Blackboard
-	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
-	{
-		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
-		{
-			BB->SetValueAsObject(TEXT("TargetActor"), TargetActor);
-		}
-	}
 }
 
 void ABaseMonster::HandleDeath()
@@ -191,31 +152,4 @@ void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState C
 		*UEnum::GetValueAsString(Previous),
 		*UEnum::GetValueAsString(Current)
 	);
-}
-
-void ABaseMonster::OnTargetDetected(AActor* DetectedActor)
-{
-	if (!IsDead())
-	{
-		SetTargetActor(DetectedActor);
-	}
-
-	// NOTICE :: Test Log
-	UE_LOG(LogTemp, Log, TEXT("[%s] Target Detected: %s"),
-		*MyHeader,
-		*DetectedActor->GetName()
-	);
-}
-
-void ABaseMonster::OnTargetLost(AActor* LostActor)
-{
-	if (TargetActor == LostActor)
-	{
-		// NOTICE :: Test Log
-		UE_LOG(LogTemp, Log, TEXT("[%s] Lost Target: %s"),
-			*MyHeader, 
-			*LostActor->GetName());
-
-		SetTargetActor(nullptr);
-	}
 }

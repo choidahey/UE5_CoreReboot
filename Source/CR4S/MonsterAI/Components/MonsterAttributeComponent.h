@@ -19,7 +19,7 @@ public:
 
 #pragma region MonsterAttribute
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	void InitializeMonsterAttribute(const FName MonsterKey);
+	void InitializeMonsterAttribute(const FName MonsterID);
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	void ApplyDamage(float DamageAmount);
