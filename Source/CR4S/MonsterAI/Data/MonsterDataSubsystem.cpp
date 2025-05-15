@@ -4,7 +4,7 @@ void UMonsterDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	const FSoftObjectPath Path(TEXT("/Game/CR4S/_MonsterAI/Data/MonsterAttributeDataTable.MonsterAttributeDataTable"));
+	const FSoftObjectPath Path(TEXT("/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable.MonsterAttributeDataTable"));
 	MonsterAttributeTable = Cast<UDataTable>(Path.TryLoad());
 
 	CacheMonsterSkillData();

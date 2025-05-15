@@ -12,10 +12,20 @@ UMonsterPerceptionComponent::UMonsterPerceptionComponent()
 	SightConfig->SightRadius = 2000.0f;
 	SightConfig->LoseSightRadius = 3000.0f;
 	SightConfig->PeripheralVisionAngleDegrees = 90.0f;
+	
+	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
 	ConfigureSense(*SightConfig);
 
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
 	HearingConfig->HearingRange = 1500.0f;
+
+	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
 	ConfigureSense(*HearingConfig);
 
 	SetDominantSense(UAISense_Sight::StaticClass());
@@ -26,6 +36,7 @@ void UMonsterPerceptionComponent::BeginPlay()
 	Super::BeginPlay();
 	
 	OnTargetPerceptionUpdated.AddDynamic(this, &UMonsterPerceptionComponent::OnUpdatePerception);
+	RequestStimuliListenerUpdate();
 
 	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] Sight Radius = %.0f, LoseRadius = %.0f, SightAngle = %.0f"),
@@ -48,6 +59,8 @@ void UMonsterPerceptionComponent::BeginPlay()
 
 void UMonsterPerceptionComponent::OnUpdatePerception(AActor* Actor, FAIStimulus Stimulus)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception"));
+
 	const bool bIsDetected = Stimulus.WasSuccessfullySensed();
 	const FName PlayerTag = TEXT("Player");
 

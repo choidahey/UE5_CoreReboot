@@ -63,6 +63,8 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 		return;
 	}
 
+	UE_LOG(LogTemp, Log, TEXT("[%s] UseSkill : Use skill %d."), *MyHeader, Index);
+
 	const FMonsterSkillData& Skill = SkillList[Index];
 
 	if (Skill.SkillMontage.IsValid())
@@ -107,6 +109,7 @@ void UMonsterSkillComponent::ResetCooldown(int32 Index)
 {
 	if (bSkillReady.IsValidIndex(Index))
 	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] ResetCooldown : Use skill %d."), *MyHeader, Index);
 		bSkillReady[Index] = true;
 	}
 }

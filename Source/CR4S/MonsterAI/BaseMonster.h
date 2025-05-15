@@ -89,10 +89,13 @@ protected:
 
 #pragma endregion
 
-#pragma region Monster Components - Attribute
+#pragma region Monster Components
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
 	FName MonsterID;
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	UMonsterSkillComponent* GetSkillComponent() const { return SkillComp; }
 
 #pragma endregion
 
