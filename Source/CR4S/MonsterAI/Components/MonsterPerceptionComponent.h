@@ -18,13 +18,15 @@ public:
 	UMonsterPerceptionComponent();
 
 	UPROPERTY(BlueprintAssignable, Category = "Perception")
-	FOnActorPerceptionSignature OnActorDetected;
+	FOnActorPerceptionSignature OnPlayerDetected;
 
 	UPROPERTY(BlueprintAssignable, Category = "Perception")
-	FOnActorPerceptionSignature OnActorLost;
+	FOnActorPerceptionSignature OnPlayerLost;
 
-	TArray<AActor*> GetSightInActors() const;
-	TArray<AActor*> GetHearingInAcotrs() const;
+	UFUNCTION(BlueprintCallable, Category = "Perception")
+	AActor* GetDetectedPlayerBySight() const;
+	UFUNCTION(BlueprintCallable, Category = "Perception")
+	AActor* GetDetectedPlayerByHearing() const;
 
 protected:
 	UFUNCTION()
@@ -38,5 +40,7 @@ protected:
 	UAISenseConfig_Hearing* HearingConfig;
 
 private:
+	AActor* FindTaggedActorInSense(const TSubclassOf<UAISense> SenseClass, const FName& Tag) const;
+
 	FString MyHeader;
 };
