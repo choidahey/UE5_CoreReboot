@@ -5,8 +5,10 @@
 
 class UButton;
 class UTextBlock;
+class UConfirmWidget;
 class USettingsWidget;
 class UCreditsWidget;
+class UDifficultyOptionsWidget;
 
 UCLASS()
 class CR4S_API UMainMenuWidget : public UUserWidget
@@ -30,19 +32,28 @@ protected:
 	void OnCreditsButtonClicked();
 	UFUNCTION()
 	void OnQuitButtonClicked();
+	UFUNCTION()
+	void OnNewGameButtonClicked();
 
-
+	void CreateChildWidgets();
 	void ShowGameButtons();
 	void HideGameButtons();
 
+	UPROPERTY()
+	UConfirmWidget* ConfirmWidgetInstance;
+	UPROPERTY()
+	UDifficultyOptionsWidget* DifficultyOptionsWidgetInstance;
 	UPROPERTY()
 	USettingsWidget* SettingsWidgetInstance;
 	UPROPERTY()
 	UCreditsWidget* CreditsWidgetInstance;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UConfirmWidget> ConfirmWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UDifficultyOptionsWidget> DifficultyOptionsWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UCreditsWidget> CreditsWidgetClass;
 

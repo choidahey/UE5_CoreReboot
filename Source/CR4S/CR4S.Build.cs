@@ -7,7 +7,7 @@ public class CR4S : ModuleRules
 	public CR4S(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
+    
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core",
