@@ -38,4 +38,19 @@ protected:
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 
 #pragma endregion
+
+#pragma region Destroy
+
+public:
+	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
+	
+private:
+	void DelayedDestroy();
+
+	FTimerHandle DestroyTimerHandle;
+	
+	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
+	float DestroyDelay;
+	
+#pragma endregion
 };

@@ -9,7 +9,10 @@ ADoorGimmick::ADoorGimmick()
 	  , OpenAngle(90.f)
 	  , DoorSpeed(90.f)
 	  , ClosedRotation(FRotator::ZeroRotator)
-	  , OpenRotation(FRotator::ZeroRotator), TargetRotation()
+	  , OpenRotation(FRotator::ZeroRotator)
+	  , TargetRotation()
+	  , InteractionTextOpen(NSLOCTEXT("Gimmick", "Door_Open", "Open"))
+	  , InteractionTextClose(NSLOCTEXT("Gimmick", "Door_Close", "Close"))
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -74,7 +77,5 @@ void ADoorGimmick::OnGimmickInteracted()
 void ADoorGimmick::UpdateInteractionText() const
 {
 	const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
-	const FString InteractionString = FString::Printf(
-		TEXT("Press '2' to %s"), bNextWillOpen ? TEXT("OPEN") : TEXT("CLOSE"));
-	InteractableComponent->SetInteractionText(FText::FromString(InteractionString));
+	InteractableComponent->SetInteractionText(bNextWillOpen ? InteractionTextOpen : InteractionTextClose);
 }
