@@ -6,6 +6,8 @@
 #include "AlsCharacter.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerCharacterStatusComponent;
+class UCombatComponent;
 struct FInputActionValue;
 class UAlsCameraComponent;
 class UInputMappingContext;
@@ -61,6 +63,10 @@ private:
 protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UAlsCameraComponent> Camera;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UCombatComponent> Combat;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UPlayerCharacterStatusComponent> Status;
 #pragma endregion
 
 #pragma region InputActions
@@ -106,6 +112,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> SwitchShoulderAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> AttackAction;
 #pragma endregion
 	
 #pragma region LookSettings
