@@ -35,12 +35,23 @@ public:
 
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+	FORCEINLINE bool IsDestructed() const { return CurrentHealth <= 0.0f; }
+
+	FORCEINLINE void SetMaxHealth(const float InMaxHealth)
+	{
+		MaxHealth = InMaxHealth;
+		CurrentHealth = MaxHealth;
+	}
 	
 private:
-	UPROPERTY(VisibleAnywhere, Category = "DestructibleComponent|Health")
+	
+	UPROPERTY(VisibleAnywhere, Category = "Health")
 	float MaxHealth;
-	UPROPERTY(VisibleAnywhere, Category = "DestructibleComponent|Health")
+	UPROPERTY(VisibleAnywhere, Category = "Health")
 	float CurrentHealth;
+
+	UPROPERTY(VisibleAnywhere, Category = "Health")
+	bool bCanTakeDamage;
 
 #pragma endregion
 

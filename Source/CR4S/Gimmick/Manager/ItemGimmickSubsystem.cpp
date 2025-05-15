@@ -6,8 +6,8 @@
 #include "Gimmick/GimmickObjects/BaseGimmick/BaseGimmick.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
-	: ItemDataTable(FSoftObjectPath(TEXT("/Game/GimmickTest/Data/DT_ItemData.DT_ItemData")))
-	  , GimmickDataTable(FSoftObjectPath(TEXT("/Game/GimmickTest/Data/DT_GimmickData.DT_GimmickData")))
+	: ItemDataTable(FSoftObjectPath(TEXT("/Game/CR4S/_Data/Item/DT_ItemData.DT_ItemData")))
+	  , GimmickDataTable(FSoftObjectPath(TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData")))
 	  , bIsItemDataTableLoaded(false)
 	  , bIsGimmickDataTableLoaded(false)
 {
