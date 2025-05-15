@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "CR4S/MonsterAI/Data/MonsterSkillRow.h"
+#include "CR4S/MonsterAI/Data/MonsterSkillData.h"
 #include "MonsterSkillComponent.generated.h"
 
 class USkillDataSubsystem;
@@ -40,7 +40,7 @@ public:
 	bool IsSkillReady(int32 Index) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	const FMonsterSkillRow GetSkillData(int32 Index) const;
+	const FMonsterSkillData GetSkillData(int32 Index) const;
 
 #pragma endregion
 
@@ -54,7 +54,7 @@ private:
 #pragma region Properties
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Skill")
-	TArray<FMonsterSkillRow> SkillList;
+	TArray<FMonsterSkillData> SkillList;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Skill")
 	TArray<bool> bSkillReady;

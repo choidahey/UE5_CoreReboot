@@ -20,26 +20,23 @@ void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 {
 	if (const UMonsterDataSubsystem* Subsys = GetWorld()->GetGameInstance()->GetSubsystem<UMonsterDataSubsystem>())
 	{
-		//const UDataTable* SkillTable = Subsys->GetMonsterSkillDataTable(MonsterID);
-		//if (!SkillTable)
-		//{
-		//	UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills : Fail to load the monster skill data table."), *MyHeader);
-		//	return;
-		//}
+		SkillList.Empty();
+		bSkillReady.Empty();
+		SkillCooldownTimers.Empty();
 
-		//SkillList.Empty();
-		//bSkillReady.Empty();
-		//SkillCooldownTimers.Empty();
-		//
-		//for (const auto& Row : SkillTable->GetRowMap())
-		//{
-		//	if (const FMonsterSkillRow* RowData = reinterpret_cast<FMonsterSkillRow*>(Row.Value))
-		//	{
-		//		SkillList.Add(*RowData);
-		//		bSkillReady.Add(true);
-		//		SkillCooldownTimers.Add(FTimerHandle());
-		//	}
-		//}
+		SkillList = Subsys->GetMonsterSkillData(MonsterID);
+
+		if (SkillList.IsEmpty())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills : Fail to load the monster skill data table."), *MyHeader);
+			return;
+		}
+		
+		for (const auto& Row : SkillList)
+		{
+			bSkillReady.Add(true);
+			SkillCooldownTimers.Add(FTimerHandle());
+		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills : %d skills loaded from MonsterSkillTable."), *MyHeader, SkillList.Num());
 	}
@@ -47,7 +44,7 @@ void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 
 void UMonsterSkillComponent::PlayPreMontage(int32 Index)
 {
-	const FMonsterSkillRow& Skill = SkillList[Index];
+	const FMonsterSkillData& Skill = SkillList[Index];
 
 	if (Skill.PreMontage.IsValid())
 	{
@@ -66,7 +63,7 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 		return;
 	}
 
-	const FMonsterSkillRow& Skill = SkillList[Index];
+	const FMonsterSkillData& Skill = SkillList[Index];
 
 	if (Skill.SkillMontage.IsValid())
 	{
@@ -91,9 +88,9 @@ bool UMonsterSkillComponent::IsSkillReady(int32 Index) const
 	return bSkillReady.IsValidIndex(Index) && bSkillReady[Index];
 }
 
-const FMonsterSkillRow UMonsterSkillComponent::GetSkillData(int32 Index) const
+const FMonsterSkillData UMonsterSkillComponent::GetSkillData(int32 Index) const
 {
-	return SkillList.IsValidIndex(Index) ? SkillList[Index] : FMonsterSkillRow();
+	return SkillList.IsValidIndex(Index) ? SkillList[Index] : FMonsterSkillData();
 }
 
 UAnimInstance* UMonsterSkillComponent::GetAnimInstance() const

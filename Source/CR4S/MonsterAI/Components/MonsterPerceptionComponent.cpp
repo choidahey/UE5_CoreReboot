@@ -61,6 +61,11 @@ void UMonsterPerceptionComponent::OnUpdatePerception(AActor* Actor, FAIStimulus 
 	{
 		OnPlayerLost.Broadcast(Actor);
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception: %s | Type: %s | Success: %s"),
+		*Actor->GetName(),
+		*Stimulus.Type.Name.ToString(),
+		Stimulus.WasSuccessfullySensed() ? TEXT("YES") : TEXT("NO"));
 }
 
 AActor* UMonsterPerceptionComponent::FindTaggedActorInSense(const TSubclassOf<UAISense> SenseClass, const FName& Tag) const

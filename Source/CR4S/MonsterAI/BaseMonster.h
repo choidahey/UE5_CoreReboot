@@ -8,7 +8,6 @@
 class UMonsterAttributeComponent;
 class UMonsterSkillComponent;
 class UMonsterStateComponent;
-class UMonsterPerceptionComponent;
 class UMonsterAnimComponent;
 class UBehaviorTree;
 
@@ -52,9 +51,6 @@ public:
 	UMonsterStateComponent* StateComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterPerceptionComponent* PerceptionComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	UMonsterAnimComponent* AnimComp;
 
 #pragma endregion
@@ -93,21 +89,6 @@ protected:
 
 #pragma endregion
 
-#pragma region Monster Behavior - Targeting
-
-public:
-	UFUNCTION(BlueprintCallable, Category = "Monster|Target")
-	virtual void SetTargetActor(AActor* NewTarget);
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Target")
-	FORCEINLINE AActor* GetTargetActor() const { return TargetActor; }
-
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Target")
-	AActor* TargetActor;
-
-#pragma endregion
-
 #pragma region Monster Components - Attribute
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
@@ -125,14 +106,6 @@ protected:
 	/* Called when monster state changes */
 	UFUNCTION()
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
-
-	/* Called when target is detected via perception */
-	UFUNCTION()
-	virtual void OnTargetDetected(AActor* DetectedActor);
-
-	/* Called when target is lost via perception */
-	UFUNCTION()
-	virtual void OnTargetLost(AActor* LostActor);
 
 #pragma endregion
 

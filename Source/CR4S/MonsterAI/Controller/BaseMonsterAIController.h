@@ -7,6 +7,7 @@
 class UBlackboardComponent;
 class UBehaviorTreeComponent;
 class UBehaviorTree;
+class UMonsterPerceptionComponent;
 
 UCLASS()
 class CR4S_API ABaseMonsterAIController : public AAIController
@@ -31,6 +32,38 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|AI")
 	UBehaviorTreeComponent* BehaviorTreeComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	UMonsterPerceptionComponent* PerceptionComp;
+
 #pragma endregion
-	
+
+#pragma region Chasing
+public:
+	UFUNCTION(BlueprintCallable, Category = "Monster|AI")
+	void StartChasingPlayer(AActor* Target);
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|AI")
+	void StopChasingPlayer();
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|AI")
+	void StartSearchingLastLocation();
+
+#pragma endregion
+
+#pragma region Monster Event Handler
+
+protected:
+	/* Called when target is detected via perception */
+	UFUNCTION()
+	void OnTargetDetected(AActor* DetectedActor);
+
+	/* Called when target is lost via perception */
+	UFUNCTION()
+	void OnTargetLost(AActor* LostActor);
+
+#pragma endregion
+
+private:
+	FString MyHeader;
+
 };
