@@ -20,8 +20,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
-	TSoftObjectPtr<UDataTable> MonsterAttributeTableAsset;
-	UDataTable* MonsterAttributeTable = nullptr;
+	TSoftObjectPtr<UDataTable> MonsterAttributeTable;
 #pragma endregion
 
 #pragma region SkillData
