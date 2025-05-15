@@ -22,11 +22,10 @@ void UMonsterAttributeComponent::BeginPlay()
 
 void UMonsterAttributeComponent::InitializeMonsterAttribute(const FName MonsterID)
 {
-	// TODO :: 홍일님 한거 참고해서 수정
 	UGameInstance* GI = GetOwner()->GetWorld()->GetGameInstance();
 	if (auto* Subsys = GI ? GI->GetSubsystem<UMonsterDataSubsystem>() : nullptr)
 	{
-		if (const FMonsterAttributeRow* Row = Subsys->GetMonsterAttributeRow(MonsterID))
+		if (const FMonsterAttributeRow* Row = Subsys->GetMonsterAttributeData(MonsterID))
 		{
 			CurrentAttribute = *Row;
 			CurrentHP = CurrentAttribute.MaxHP;
@@ -48,30 +47,6 @@ void UMonsterAttributeComponent::InitializeMonsterAttribute(const FName MonsterI
 
 	CurrentAttribute = FMonsterAttributeRow();
 	CurrentHP = 0.0f;
-
-	/*if (!IsValid(MonsterAttributeTable))
-	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] InValid MonsterAttributeTable"), *MyHeader);
-		return;
-	}
-
-	static const FString Context(TEXT("InitialAttrbute"));
-	if (FMonsterAttributeRow* Row = MonsterAttributeTable->FindRow<FMonsterAttributeRow>(MonsterKey, Context))
-	{
-		CurrentAttribute = *Row;
-		CurrentHP = Row->MaxHP;
-
-		// NOTICE :: Test Log
-		UE_LOG(LogTemp, Log, TEXT("[%s] %s Init: MaxHP=%.2f, AttackPower=%.2f, AttackRange=%.2f, AtkSpeed=%.2f, MoveSpeed=%.2f"),
-			*MyHeader,
-			*MonsterKey.ToString(),
-			CurrentAttribute.MaxHP,
-			CurrentAttribute.AttackPower,
-			CurrentAttribute.AttackRange,
-			CurrentAttribute.AttackSpeed,
-			CurrentAttribute.MoveSpeed
-		);
-	}*/
 }
 
 void UMonsterAttributeComponent::ApplyDamage(float DamageAmount)

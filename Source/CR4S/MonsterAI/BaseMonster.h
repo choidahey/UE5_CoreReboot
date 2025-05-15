@@ -8,7 +8,6 @@
 class UMonsterAttributeComponent;
 class UMonsterSkillComponent;
 class UMonsterStateComponent;
-class UMonsterPerceptionComponent;
 class UMonsterAnimComponent;
 class UBehaviorTree;
 
@@ -45,14 +44,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	UMonsterAttributeComponent* AttributeComp;
 
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-//	UMonsterSkillComponent* SkillComp;
-//
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterStateComponent* StateComp;
+	UMonsterSkillComponent* SkillComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterPerceptionComponent* PerceptionComp;
+	UMonsterStateComponent* StateComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	UMonsterAnimComponent* AnimComp;
@@ -67,17 +63,14 @@ public:
 
 #pragma endregion
 
-#pragma region Monster Behavior - Combat
+#pragma region SKill Interface
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
-	virtual void TryAttack();
-	
-	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
-	virtual void PerfromAttack(int32 AttackIndex);
-	
-	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
-	virtual bool CanAttack() const;
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	void PlayPreMontage(int32 SkillIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	void UseSkill(int32 SkillIndex);
 
 #pragma endregion
 
@@ -96,25 +89,13 @@ protected:
 
 #pragma endregion
 
-#pragma region Monster Behavior - Targeting
-
-public:
-	UFUNCTION(BlueprintCallable, Category = "Monster|Target")
-	virtual void SetTargetActor(AActor* NewTarget);
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Target")
-	FORCEINLINE AActor* GetTargetActor() const { return TargetActor; }
-
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Target")
-	AActor* TargetActor;
-
-#pragma endregion
-
-#pragma region Monster Components - Attribute
+#pragma region Monster Components
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
 	FName MonsterID;
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	UMonsterSkillComponent* GetSkillComponent() const { return SkillComp; }
 
 #pragma endregion
 
@@ -128,14 +109,6 @@ protected:
 	/* Called when monster state changes */
 	UFUNCTION()
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
-
-	/* Called when target is detected via perception */
-	UFUNCTION()
-	virtual void OnTargetDetected(AActor* DetectedActor);
-
-	/* Called when target is lost via perception */
-	UFUNCTION()
-	virtual void OnTargetLost(AActor* LostActor);
 
 #pragma endregion
 
