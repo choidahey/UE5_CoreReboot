@@ -15,16 +15,18 @@ public class CR4S : ModuleRules
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
-			"UMG"
+			"UMG",
+			"Slate",
+			"SlateCore",
+			"ChaosSolverEngine",
+			"GeometryCollectionEngine"
 		});
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Slate", "SlateCore",  });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });
 
-        PublicIncludePaths.AddRange(new string[]
-        {
-            "CR4S",
+		PublicIncludePaths.AddRange(new string[]
+		{
+			"CR4S",
 		});
-    }
+	}
 }

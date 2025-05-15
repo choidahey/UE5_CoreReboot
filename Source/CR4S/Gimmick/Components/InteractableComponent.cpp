@@ -7,7 +7,7 @@ UInteractableComponent::UInteractableComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	InteractionText = FText::FromString("Default Interaction Text");
+	InteractionText = NSLOCTEXT("InteractableComponent", "InteractionText", "Default Interaction Text");
 
 	HighlightOpacityParamName = TEXT("HighlightOpacity");
 	HighlightColorParamName = TEXT("HighlightColor");

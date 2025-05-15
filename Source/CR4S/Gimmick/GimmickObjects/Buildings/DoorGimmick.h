@@ -48,4 +48,14 @@ private:
 	FRotator TargetRotation;
 	
 #pragma endregion
+
+#pragma region Interaction
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	FText InteractionTextOpen;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	FText InteractionTextClose;
+	
+#pragma endregion
 };

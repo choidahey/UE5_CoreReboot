@@ -4,7 +4,7 @@
 
 #include "BaseDataInfo.generated.h"
 
-USTRUCT(BlueprintType)
+USTRUCT()
 struct FBaseDataInfo : public FTableRowBase
 {
 	GENERATED_BODY()
