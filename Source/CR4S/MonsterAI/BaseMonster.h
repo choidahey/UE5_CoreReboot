@@ -45,9 +45,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	UMonsterAttributeComponent* AttributeComp;
 
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-//	UMonsterSkillComponent* SkillComp;
-//
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	UMonsterSkillComponent* SkillComp;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	UMonsterStateComponent* StateComp;
 
@@ -67,17 +67,14 @@ public:
 
 #pragma endregion
 
-#pragma region Monster Behavior - Combat
+#pragma region SKill Interface
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
-	virtual void TryAttack();
-	
-	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
-	virtual void PerfromAttack(int32 AttackIndex);
-	
-	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
-	virtual bool CanAttack() const;
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	void PlayPreMontage(int32 SkillIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	void UseSkill(int32 SkillIndex);
 
 #pragma endregion
 
