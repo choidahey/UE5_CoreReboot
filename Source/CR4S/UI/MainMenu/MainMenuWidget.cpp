@@ -1,6 +1,7 @@
 #include "UI/MainMenu/MainMenuWidget.h"
 #include "UI/MainMenu/SettingsWidget.h"
 #include "UI/MainMenu/CreditsWidget.h"
+#include "UI/MainMenu/DifficultyOptionsWidget.h"
 #include "UI/Common/ConfirmWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
@@ -116,12 +117,14 @@ void UMainMenuWidget::CreateChildWidgets()
 	{
 		SettingsWidgetInstance = CreateWidget<USettingsWidget>(GetWorld(), SettingsWidgetClass);
 	}
-
 	if (!CreditsWidgetInstance && CreditsWidgetClass)
 	{
 		CreditsWidgetInstance = CreateWidget<UCreditsWidget>(GetWorld(), CreditsWidgetClass);
 	}
-
+	if (!DifficultyOptionsWidgetInstance && DifficultyOptionsWidgetClass)
+	{
+		DifficultyOptionsWidgetInstance = CreateWidget<UDifficultyOptionsWidget>(GetWorld(), DifficultyOptionsWidgetClass);
+	}
 	if (!ConfirmWidgetInstance && ConfirmWidgetClass)
 	{
 		ConfirmWidgetInstance = CreateWidget<UConfirmWidget>(GetWorld(), ConfirmWidgetClass);
@@ -130,11 +133,9 @@ void UMainMenuWidget::CreateChildWidgets()
 
 void UMainMenuWidget::OnNewGameButtonClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("NewGameButtonClicked"));
-	if (ConfirmWidgetInstance)
+	if (DifficultyOptionsWidgetInstance)
 	{
-		ConfirmWidgetInstance->AddToViewport(10);
-		UE_LOG(LogTemp, Warning, TEXT("ConfirmWidget to viewport"));
+		DifficultyOptionsWidgetInstance->AddToViewport(10);
 	}
 }
 
