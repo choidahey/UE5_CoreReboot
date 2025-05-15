@@ -33,7 +33,7 @@ void UInteractableComponent::InitHighlightMaterial()
 	const ABaseGimmick* OwnerGimmick = Cast<ABaseGimmick>(GetOwner());
 	if (IsValid(OwnerGimmick))
 	{
-		UStaticMeshComponent* StaticMeshComponent = OwnerGimmick->GetStaticMeshComponent();
+		UStaticMeshComponent* StaticMeshComponent = OwnerGimmick->GetGimmickMeshComponent();
 		if (IsValid(StaticMeshComponent))
 		{
 			HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);

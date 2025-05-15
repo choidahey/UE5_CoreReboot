@@ -1,16 +1,22 @@
 ﻿#include "TreeGimmick.h"
 
+#include "Gimmick/Components/DestructibleComponent.h"
+
 ATreeGimmick::ATreeGimmick()
-	: ShakeDuration(0.5f),
-	  ShakeInterval(0.02f),
-	  ShakeIntensity(5.0f),
-	  OriginalLocation(FVector::ZeroVector),
-	  ElapsedTime(0.f)
+	: StumpHealth(50.f)
+	  , bIsTrunkDestroyed(false)
+	  , ShakeDuration(0.5f)
+	  , ShakeInterval(0.02f)
+	  , ShakeIntensity(5.0f)
+	  , OriginalLocation(FVector::ZeroVector)
+	  , ElapsedTime(0.f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	StumpMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StumpMeshComponent"));
-	StumpMeshComponent->SetupAttachment(RootComponent);
+	TrunkMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TrunkMeshComponent"));
+	TrunkMeshComponent->SetupAttachment(RootComponent);
+	
+	bIsActorDestroyOnDestroyAction = false;
 }
 
 void ATreeGimmick::BeginPlay()
@@ -30,6 +36,17 @@ void ATreeGimmick::OnGimmickTakeDamage(const float DamageAmount, const float Cur
 void ATreeGimmick::OnGimmickDestroy()
 {
 	Super::OnGimmickDestroy();
+
+	if (!bIsTrunkDestroyed)
+	{
+		bIsTrunkDestroyed = true;
+
+		TrunkMeshComponent->SetVisibility(false);
+		TrunkMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		bIsActorDestroyOnDestroyAction = true;
+		DestructibleComponent->SetMaxHealth(StumpHealth);
+	}
 }
 
 void ATreeGimmick::StartShake()

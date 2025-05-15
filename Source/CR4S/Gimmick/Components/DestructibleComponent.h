@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "DestructibleInterface.h"
 #include "Components/ActorComponent.h"
+
 #include "DestructibleComponent.generated.h"
 
 DECLARE_DELEGATE(FOnDestry);
@@ -17,16 +17,16 @@ class CR4S_API UDestructibleComponent : public UActorComponent
 
 public:
 	UDestructibleComponent();
-	
+
 #pragma endregion
 
 #pragma region Initialize
 
 public:
 	void InitComponent(const float InMaxHealth);
-	
+
 #pragma endregion
-	
+
 #pragma region Health
 
 public:
@@ -42,9 +42,8 @@ public:
 		MaxHealth = InMaxHealth;
 		CurrentHealth = MaxHealth;
 	}
-	
+
 private:
-	
 	UPROPERTY(VisibleAnywhere, Category = "Health")
 	float MaxHealth;
 	UPROPERTY(VisibleAnywhere, Category = "Health")
@@ -60,6 +59,6 @@ private:
 public:
 	FOnTakeDamage OnTakeDamage;
 	FOnDestry OnDestroy;
-	
+
 #pragma endregion
 };

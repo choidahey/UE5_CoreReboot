@@ -19,7 +19,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
-	virtual void OnGimmickDestroyed() override;
+	virtual void OnGimmickDestroy() override;
 	virtual void OnGimmickInteracted() override;
 	
 #pragma endregion

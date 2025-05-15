@@ -11,7 +11,7 @@ ACompleteGimmick::ACompleteGimmick()
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 	
 	/** SET AS AN INTERACTION TRACECHANNEL BLOCK */
-	GetStaticMeshComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+	GetGimmickMeshComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 }
 
 void ACompleteGimmick::BeginPlay()
@@ -20,7 +20,7 @@ void ACompleteGimmick::BeginPlay()
 
 	if (IsValid(DestructibleComponent))
 	{
-		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroyed);
+		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroy);
 	}
 	
 	if (IsValid(InteractableComponent))
@@ -29,7 +29,22 @@ void ACompleteGimmick::BeginPlay()
 	}
 }
 
-void ACompleteGimmick::OnGimmickDestroyed()
+void ACompleteGimmick::OnGimmickDestroy()
+{
+	if (!bIsActorDestroyOnDestroyAction)
+	{
+		return;
+	}
+
+	if (DestroyDelay == 0.f)
+	{
+		DelayedDestroy();
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay, false);
+}
+
+void ACompleteGimmick::DelayedDestroy()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
 

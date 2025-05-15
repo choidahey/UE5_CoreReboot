@@ -46,11 +46,11 @@ void ADoorGimmick::Tick(const float DeltaSeconds)
 	}
 }
 
-void ADoorGimmick::OnGimmickDestroyed()
+void ADoorGimmick::OnGimmickDestroy()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoorGimmick is destroyed"));
 
-	Super::OnGimmickDestroyed();
+	Super::OnGimmickDestroy();
 }
 
 void ADoorGimmick::OnGimmickInteracted()

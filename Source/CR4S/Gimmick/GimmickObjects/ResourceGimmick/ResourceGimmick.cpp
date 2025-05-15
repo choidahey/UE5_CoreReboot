@@ -11,7 +11,7 @@ AResourceGimmick::AResourceGimmick()
 	GeometryCollectionComponent->SetVisibility(false);
 	GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GeometryCollectionComponent->SetSimulatePhysics(false);
-	GeometryCollectionComponent->DamageThreshold.Reset(2);
+	GeometryCollectionComponent->DamageThreshold.Init(0.f, 2);
 }
 
 void AResourceGimmick::BeginPlay()
@@ -24,11 +24,10 @@ void AResourceGimmick::BeginPlay()
 
 void AResourceGimmick::OnGimmickDestroy()
 {
-	UStaticMeshComponent* Mesh = GetStaticMeshComponent();
-	if (IsValid(Mesh))
+	if (IsValid(GimmickMeshComponent))
 	{
-		Mesh->SetVisibility(false);
-		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GimmickMeshComponent->SetVisibility(false);
+		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		GeometryCollectionComponent->SetVisibility(true);
 		GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);

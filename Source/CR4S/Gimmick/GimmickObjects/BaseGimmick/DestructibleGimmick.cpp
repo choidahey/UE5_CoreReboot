@@ -4,7 +4,8 @@
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
-	: DestroyDelay(0.f)
+	: bIsActorDestroyOnDestroyAction(true)
+	  , DestroyDelay(0.f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -23,11 +24,15 @@ void ADestructibleGimmick::BeginPlay()
 		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
 		if (IsValid(GimmickSubsystem))
 		{
-			const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName());
-
-			check(GimmickData);
-
-			DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
+			// check(GimmickData);
+			if (const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
+			{
+				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s is not found in GimmickData"), *GetGimmickDataRowName().ToString());
+			}
 		}
 	}
 }
@@ -40,6 +45,11 @@ void ADestructibleGimmick::OnGimmickTakeDamage(const float DamageAmount, const f
 
 void ADestructibleGimmick::OnGimmickDestroy()
 {
+	if (!bIsActorDestroyOnDestroyAction)
+	{
+		return;
+	}
+
 	if (DestroyDelay == 0.f)
 	{
 		DelayedDestroy();

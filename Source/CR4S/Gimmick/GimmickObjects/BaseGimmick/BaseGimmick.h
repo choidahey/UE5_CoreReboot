@@ -22,14 +22,14 @@ public:
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Components")
-	FORCEINLINE UStaticMeshComponent* GetStaticMeshComponent() const { return StaticMeshComponent; }
+	FORCEINLINE UStaticMeshComponent* GetGimmickMeshComponent() const { return GimmickMeshComponent; }
 
-private:
+protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	TObjectPtr<USceneComponent> SceneComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
+	TObjectPtr<UStaticMeshComponent> GimmickMeshComponent;
 
 #pragma endregion
 

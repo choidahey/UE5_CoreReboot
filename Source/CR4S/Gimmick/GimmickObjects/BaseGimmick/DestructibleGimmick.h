@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	bool bIsActorDestroyOnDestroyAction;
+	
 #pragma endregion
 
 #pragma region Destroy

@@ -25,10 +25,20 @@ public:
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
-	TObjectPtr<UStaticMeshComponent> StumpMeshComponent;
+	TObjectPtr<UStaticMeshComponent> TrunkMeshComponent;
 	
 #pragma endregion
 
+#pragma region Destroy
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
+	float StumpHealth;
+	
+	bool bIsTrunkDestroyed;
+	
+#pragma endregion
+	
 #pragma region Shake
 
 private:

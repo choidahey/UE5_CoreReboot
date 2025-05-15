@@ -29,11 +29,29 @@ public:
 protected:
 	/** IMPLEMENTED IN THE INHERITED CLASS */
 	UFUNCTION()
-	virtual void OnGimmickDestroyed();
+	virtual void OnGimmickDestroy();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	bool bIsActorDestroyOnDestroyAction;
+	
+#pragma endregion
+
+#pragma region Destroy
+
+public:
+	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
+	
+private:
+	void DelayedDestroy();
+
+	FTimerHandle DestroyTimerHandle;
+	
+	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
+	float DestroyDelay;
+	
 #pragma endregion
 	
 #pragma region UInteractableComponent
