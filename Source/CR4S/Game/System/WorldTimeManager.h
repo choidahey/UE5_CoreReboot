@@ -3,6 +3,8 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "WorldTimeManager.generated.h"
 
+class AEnvironmentManager;
+
 USTRUCT(BlueprintType)
 struct FWorldTimeData
 {
@@ -20,7 +22,7 @@ UCLASS()
 class CR4S_API UWorldTimeManager : public UWorldSubsystem
 {
 	GENERATED_BODY()
-	
+
 public:
 	FORCEINLINE FWorldTimeData GetCurrentTimeData() const { return CurrentTimeData; }
 	FORCEINLINE int64 GetTotalPlayTime() const { return TotalPlayTime; }
@@ -34,21 +36,30 @@ public:
 	void ModifyTime(int32 Day, int32 Minute);
 
 protected:
-	void UpdateTime();
+
 	void OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS);
 	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
 	void LoadTimeData();
 
-private:
-	UPROPERTY()
-	FTimerHandle TimeUpdateHandle;
-
-	UPROPERTY()
-	int32 DayLength = 10; // Minute Length in a Day
-	UPROPERTY()
-	int32 SeasonLength = 30; // Number of Days in a Season
-	FWorldTimeData CurrentTimeData;
-	int64 TotalPlayTime = 0; // Total Play Time in Seconds
+	void UpdateTime();
+	void AdvanceSkyTime(int32 Min, int32 Sec);
 
 	void UpdateTimeWidget();
+
+	UPROPERTY(Transient)
+	AEnvironmentManager* EnvironmentManager;
+
+	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
+	int32 WorldTimeMultiplier = 10;
+	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
+	int32 DayLength = 10;
+	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
+	int32 SeasonLength = 30;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WorldTime|State", meta = (AllowPrivateAccess = "true"))
+	FWorldTimeData CurrentTimeData;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WorldTime|State", meta = (AllowPrivateAccess = "true"))
+	int64 TotalPlayTime = 0;
+
+	FTimerHandle TimeUpdateHandle;
 };
+
