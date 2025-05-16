@@ -30,13 +30,9 @@ public:
 #pragma region Health
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Health")
-	void TakeDamage(AController* DamageCauserController, float DamageAmount);
-
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
-	FORCEINLINE bool IsDestructed() const { return CurrentHealth <= 0.0f; }
-
+	
 	FORCEINLINE void SetMaxHealth(const float InMaxHealth)
 	{
 		MaxHealth = InMaxHealth;
@@ -49,9 +45,23 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Health")
 	float CurrentHealth;
 
-	UPROPERTY(VisibleAnywhere, Category = "Health")
-	bool bCanTakeDamage;
+#pragma endregion
+	
+#pragma region Hit
 
+public:
+	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Hit")
+	void TakeDamage(AController* DamageCauserController, float DamageAmount);
+
+	FORCEINLINE bool IsDestructed() const { return CurrentHealth <= 0.0f; }
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Hit", meta = (ClampMin = "0.0"))
+	float HitRecoveryTime;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Hit")
+	bool bCanTakeDamage;
+	
 #pragma endregion
 
 #pragma region Delegate

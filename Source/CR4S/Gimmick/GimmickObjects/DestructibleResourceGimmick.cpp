@@ -1,18 +1,27 @@
-﻿#include "DestructibleGimmick.h"
+﻿#include "DestructibleResourceGimmick.h"
 
-#include "CR4S/Gimmick/Components/DestructibleComponent.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
+#include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
-ADestructibleGimmick::ADestructibleGimmick()
+ADestructibleResourceGimmick::ADestructibleResourceGimmick()
 	: bIsActorDestroyOnDestroyAction(true)
 	  , DestroyDelay(0.f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
+
+	GeometryCollectionComponent
+		= CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("GeometryCollectionComponent"));
+	GeometryCollectionComponent->SetupAttachment(RootComponent);
+	GeometryCollectionComponent->SetVisibility(false);
+	GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GeometryCollectionComponent->SetSimulatePhysics(false);
+	GeometryCollectionComponent->DamageThreshold.Init(0.f, 1);
 }
 
-void ADestructibleGimmick::BeginPlay()
+void ADestructibleResourceGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -35,16 +44,32 @@ void ADestructibleGimmick::BeginPlay()
 			}
 		}
 	}
+
+	if (IsValid(GeometryCollectionComponent))
+	{
+		GeometryCollectionComponent->SetVisibility(false);
+		GeometryCollectionComponent->SetSimulatePhysics(false);
+	}
 }
 
-void ADestructibleGimmick::OnGimmickTakeDamage(const float DamageAmount, const float CurrentHealth)
+void ADestructibleResourceGimmick::OnGimmickTakeDamage(float DamageAmount, float CurrentHealth)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
 	       CurrentHealth);
 }
 
-void ADestructibleGimmick::OnGimmickDestroy()
+void ADestructibleResourceGimmick::OnGimmickDestroy()
 {
+	if (IsValid(GimmickMeshComponent))
+	{
+		GimmickMeshComponent->SetVisibility(false);
+		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		GeometryCollectionComponent->SetVisibility(true);
+		GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GeometryCollectionComponent->SetSimulatePhysics(true);
+	}
+	
 	if (!bIsActorDestroyOnDestroyAction)
 	{
 		return;
@@ -58,7 +83,7 @@ void ADestructibleGimmick::OnGimmickDestroy()
 	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay, false);
 }
 
-void ADestructibleGimmick::DelayedDestroy()
+void ADestructibleResourceGimmick::DelayedDestroy()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
 

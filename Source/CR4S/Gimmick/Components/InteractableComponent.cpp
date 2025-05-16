@@ -1,17 +1,40 @@
 ﻿#include "InteractableComponent.h"
 
-#include "Gimmick/GimmickObjects/BaseGimmick/BaseGimmick.h"
+#include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 UInteractableComponent::UInteractableComponent()
-	: DefaultHighlightColor(FColor::Green)
+	: InteractionTraceChannel(ECC_GameTraceChannel1)
+	  , DefaultHighlightColor(FColor::Green)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-
+	
 	InteractionText = NSLOCTEXT("InteractableComponent", "InteractionText", "Default Interaction Text");
 
 	HighlightOpacityParamName = TEXT("HighlightOpacity");
 	HighlightColorParamName = TEXT("HighlightColor");
 }
+
+#if WITH_EDITOR
+void UInteractableComponent::OnComponentCreated()
+{
+	Super::OnComponentCreated();
+	UpdateTraceBlocking();
+}
+
+void UInteractableComponent::PostLoad()
+{
+	Super::PostLoad();
+	UpdateTraceBlocking();
+	
+}
+
+void UInteractableComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	UpdateTraceBlocking();
+	
+}
+#endif
 
 void UInteractableComponent::BeginPlay()
 {
@@ -19,6 +42,24 @@ void UInteractableComponent::BeginPlay()
 
 	InitHighlightMaterial();
 }
+
+void UInteractableComponent::UpdateTraceBlocking() const
+{
+	const AActor* Owner = GetOwner();
+	if (IsValid(Owner))
+	{
+		TArray<UMeshComponent*> MeshComponents;
+		Owner->GetComponents<UMeshComponent>(MeshComponents);
+		for (UMeshComponent* MeshComp : MeshComponents)
+		{
+			if (IsValid(MeshComp))
+			{
+				MeshComp->SetCollisionResponseToChannel(InteractionTraceChannel, ECR_Block);
+			}
+		}
+	}
+}
+
 
 void UInteractableComponent::TryInteract(const APlayerController* PlayerController) const
 {

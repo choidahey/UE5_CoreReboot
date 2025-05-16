@@ -3,7 +3,7 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 #include "Gimmick/Data/BaseDataInfo.h"
-#include "Gimmick/GimmickObjects/BaseGimmick/BaseGimmick.h"
+#include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
 	: ItemDataTable(FSoftObjectPath(TEXT("/Game/CR4S/_Data/Item/DT_ItemData.DT_ItemData")))

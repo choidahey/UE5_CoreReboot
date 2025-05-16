@@ -16,7 +16,20 @@ class CR4S_API UInteractableComponent : public UActorComponent
 public:
 	UInteractableComponent();
 
+#if WITH_EDITOR
+	virtual void OnComponentCreated() override;
+	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	
 	virtual void BeginPlay() override;
+	
+#pragma endregion
+
+#pragma region Initialize
+
+private:
+	void UpdateTraceBlocking() const;
 	
 #pragma endregion
 	
@@ -32,6 +45,9 @@ public:
 	FORCEINLINE void SetInteractionText(const FText& InInteractionText) { InteractionText = InInteractionText; }
 	
 private:
+	UPROPERTY(EditAnywhere, Category = "Interaction")
+	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	FText InteractionText;
 	
