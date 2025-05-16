@@ -42,16 +42,16 @@ public:
  
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterAttributeComponent* AttributeComp;
+	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterSkillComponent* SkillComp;
+	TObjectPtr<UMonsterSkillComponent> SkillComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterStateComponent* StateComp;
+	TObjectPtr<UMonsterStateComponent> StateComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterAnimComponent* AnimComp;
+	TObjectPtr<UMonsterAnimComponent> AnimComponent;
 
 #pragma endregion
 
@@ -59,7 +59,7 @@ public:
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|AI")
-	UBehaviorTree* BehaviorTree;
+	TObjectPtr<UBehaviorTree> BehaviorTree;
 
 #pragma endregion
 
@@ -95,7 +95,7 @@ public:
 	FName MonsterID;
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	UMonsterSkillComponent* GetSkillComponent() const { return SkillComp; }
+	FORCEINLINE UMonsterSkillComponent* GetSkillComponent() const { return SkillComponent; }
 
 #pragma endregion
 

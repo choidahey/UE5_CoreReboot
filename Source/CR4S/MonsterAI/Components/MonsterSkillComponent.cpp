@@ -16,6 +16,27 @@ void UMonsterSkillComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+void UMonsterSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] EndPlay : World is null, skipping timer cleanup."), *MyHeader);
+		return;
+	}
+
+	FTimerManager& TimerManager = World->GetTimerManager();
+	for (FTimerHandle& Handle : SkillCooldownTimers)
+	{
+		if (TimerManager.IsTimerActive(Handle))
+		{
+			TimerManager.ClearTimer(Handle);
+		}
+	}
+}
+
 void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 {
 	if (const UMonsterDataSubsystem* Subsys = GetWorld()->GetGameInstance()->GetSubsystem<UMonsterDataSubsystem>())
@@ -66,6 +87,7 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 	UE_LOG(LogTemp, Log, TEXT("[%s] UseSkill : Use skill %d."), *MyHeader, Index);
 
 	const FMonsterSkillData& Skill = SkillList[Index];
+	CurrentSkillIndex = Index;
 
 	if (Skill.SkillMontage.IsValid())
 	{
@@ -77,6 +99,7 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 
 	// Cooldown
 	bSkillReady[Index] = false;
+
 	GetWorld()->GetTimerManager().SetTimer(
 		SkillCooldownTimers[Index],
 		FTimerDelegate::CreateUObject(this, &UMonsterSkillComponent::ResetCooldown, Index),
@@ -90,9 +113,15 @@ bool UMonsterSkillComponent::IsSkillReady(int32 Index) const
 	return bSkillReady.IsValidIndex(Index) && bSkillReady[Index];
 }
 
-const FMonsterSkillData UMonsterSkillComponent::GetSkillData(int32 Index) const
+float UMonsterSkillComponent::GetSkillRange(int32 Index) const
 {
-	return SkillList.IsValidIndex(Index) ? SkillList[Index] : FMonsterSkillData();
+	return SkillList.IsValidIndex(Index) ? SkillList[Index].Range : 0.f;
+}
+
+const FMonsterSkillData& UMonsterSkillComponent::GetCurrentSkillData() const
+{
+	static const FMonsterSkillData Empty;
+	return SkillList.IsValidIndex(CurrentSkillIndex) ? SkillList[CurrentSkillIndex] : Empty;
 }
 
 UAnimInstance* UMonsterSkillComponent::GetAnimInstance() const
