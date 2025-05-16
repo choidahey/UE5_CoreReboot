@@ -8,7 +8,7 @@
 
 ABaseAnimal::ABaseAnimal()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
     StunValue     = 0.f;
     CurrentTarget = nullptr;
 }
@@ -16,6 +16,7 @@ ABaseAnimal::ABaseAnimal()
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
+    SetAnimalState(EAnimalState::Patrol);
     LoadStats();
 }
 
@@ -52,6 +53,12 @@ void ABaseAnimal::LoadStats()
                     if (AAnimalAIController* AnimalAI = Cast<AAnimalAIController>(AIController))
                     {
                         AnimalAI->ApplyPerceptionStats(CurrentStats);
+                        
+                        if (UBehaviorTree* BTAsset = AnimalAI->GetBehaviorTreeAsset())
+                        {
+                            AnimalAI->RunBehaviorTree(BTAsset);
+                            SetAnimalState(EAnimalState::Patrol);
+                        }
                     }
                 }
             }
@@ -109,10 +116,18 @@ void ABaseAnimal::PerformAttack()
 
     if (!bHit) return;
 
-    for (const FHitResult& Hit : HitResults)
+    for (const FHitResult& EachHit : HitResults)
     {
-        AActor* HitActor = Hit.GetActor();
+        AActor* HitActor = EachHit.GetActor();
         if (!HitActor || HitActor == this) continue;
+        
+        if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(HitActor))
+        {
+            if (HitAnimal->RowName == this->RowName)
+            {
+                continue;
+            }
+        }
 
         float Damage = CurrentStats.AttackDamage;
 
@@ -123,7 +138,7 @@ void ABaseAnimal::PerformAttack()
             this,
             nullptr
         );
-        
+
         break;
     }
 }
@@ -201,6 +216,14 @@ void ABaseAnimal::PlayAttackMontage()
 
 float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+    if (ABaseAnimal* Damager = Cast<ABaseAnimal>(DamageCauser))
+    {
+        if (Damager->RowName == this->RowName)
+        {
+            return 0.f;
+        }
+    }
+    
     float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
     if (ActualDamage <= 0.f) return 0.f;
 
