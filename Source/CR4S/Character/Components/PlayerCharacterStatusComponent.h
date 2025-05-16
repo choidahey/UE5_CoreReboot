@@ -39,11 +39,13 @@ public:
 #pragma endregion
 
 #pragma region Add
+	UFUNCTION(BlueprintCallable)
 	void AddMaxHP(const int32 InAmount);
-	void AddMaxHunger(const int32 InAmount);
-	void AddMaxStamina(const int32 InAmount);
+	UFUNCTION(BlueprintCallable)
 	void AddCurrentHP(const int32 InAmount);
+	void AddMaxHunger(const int32 InAmount);
 	void AddCurrentHunger(const int32 InAmount);
+	void AddMaxStamina(const int32 InAmount);
 	void AddCurrentStamina(const int32 InAmount);
 	void AddAttackPower(const int32 InAmount);
 	void AddArmor(const int32 InAmount);
@@ -81,6 +83,7 @@ private:
 #pragma endregion
 
 #pragma region Delegate
+public:
 	FOnHPChangedDelegate OnHPChanged;
 	FOnHungerChangedDelegate OnHungerChanged;
 	FOnStaminaChangedDelegate OnStaminaChanged;
