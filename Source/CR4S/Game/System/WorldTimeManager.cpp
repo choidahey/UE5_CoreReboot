@@ -1,6 +1,8 @@
 #include "Game/System/WorldTimeManager.h"
 #include "Game/System/SeasonManager.h"
 
+#include "UI/InGame/SurvivalHUD.h"
+
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
     UWorld* World = Cast<UWorld>(Outer);
@@ -68,8 +70,7 @@ void UWorldTimeManager::UpdateTime()
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Time updated - Day: %d, Minute: %d, Second: %d"), CurrentTimeData.Day, CurrentTimeData.Minute, CurrentTimeData.Second);
-	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Total Play Time: %lld seconds"), TotalPlayTime);
+	UpdateTimeWidget();
 }
 
 void UWorldTimeManager::PauseTime()
@@ -145,5 +146,18 @@ void UWorldTimeManager::ModifyTime(int32 Day, int32 Minute)
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Time modified - Day: %d, Minute: %d"), CurrentTimeData.Day, CurrentTimeData.Minute);
+	UpdateTimeWidget();
+}
+
+void UWorldTimeManager::UpdateTimeWidget()
+{
+	if (!GetWorld()) return;
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC) return;
+
+	ASurvivalHUD* InGameHUD = Cast<ASurvivalHUD>(PC->GetHUD());
+	if (!InGameHUD) return;
+
+	InGameHUD->SetTime(GetCurrentTimeData());
 }
