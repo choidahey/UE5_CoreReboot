@@ -1,8 +1,11 @@
 ﻿#include "DestructibleResourceGimmick.h"
 
+#include "Character/CharacterController.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/InventorySystemComponent.h"
 
 ADestructibleResourceGimmick::ADestructibleResourceGimmick()
 	: bIsActorDestroyOnDestroyAction(true)
@@ -52,7 +55,7 @@ void ADestructibleResourceGimmick::BeginPlay()
 	}
 }
 
-void ADestructibleResourceGimmick::OnGimmickTakeDamage(float DamageAmount, float CurrentHealth)
+void ADestructibleResourceGimmick::OnGimmickTakeDamage(const float DamageAmount, const float CurrentHealth)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
 	       CurrentHealth);
@@ -69,7 +72,9 @@ void ADestructibleResourceGimmick::OnGimmickDestroy()
 		GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GeometryCollectionComponent->SetSimulatePhysics(true);
 	}
-	
+
+	GetResourceItem();
+
 	if (!bIsActorDestroyOnDestroyAction)
 	{
 		return;
@@ -88,4 +93,54 @@ void ADestructibleResourceGimmick::DelayedDestroy()
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
 
 	Destroy();
+}
+
+void ADestructibleResourceGimmick::GetResourceItem() const
+{
+	if (!IsValid(DestructibleComponent))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DestructibleComponent is not valid"));
+		return;
+	}
+
+	ACharacterController* CharacterController
+		= Cast<ACharacterController>(DestructibleComponent->GetLastDamageCauserController());
+	if (!IsValid(CharacterController))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CharacterController is not valid"));
+		return;
+	}
+
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterController->GetPawn());
+	if (!IsValid(PlayerCharacter))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter is not valid"));
+		return;
+	}
+
+	UInventorySystemComponent* InventorySystem
+		= PlayerCharacter->FindComponentByClass<UInventorySystemComponent>();
+	if (!IsValid(InventorySystem))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InventorySystem is not valid"));
+		return;
+	}
+
+	UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
+	if (!IsValid(ItemGimmickSubsystem))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is not valid"));
+		return;
+	}
+
+	if (const FBaseGimmickData* GimmickData = ItemGimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
+	{
+		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
+		{
+			FAddItemResult Result = InventorySystem->AddItem(FInventoryItem(RowName, Count));
+
+			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
+			       , Result.Success, Result.AddedCount, Result.RemainingCount);
+		}
+	}
 }

@@ -4,8 +4,6 @@
 #include "Components/ActorComponent.h"
 #include "InteractableComponent.generated.h"
 
-DECLARE_DELEGATE(FOnTryInteract);
-
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UInteractableComponent : public UActorComponent
 {
@@ -82,6 +80,7 @@ private:
 #pragma region Delegate
 
 public:
+	DECLARE_DELEGATE(FOnTryInteract);
 	FOnTryInteract OnTryInteract;
 	
 #pragma endregion

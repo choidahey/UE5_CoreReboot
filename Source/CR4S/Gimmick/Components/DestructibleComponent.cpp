@@ -1,6 +1,6 @@
 ﻿#include "DestructibleComponent.h"
 
-#include "Kismet/KismetSystemLibrary.h"
+#include "Character/CharacterController.h"
 
 UDestructibleComponent::UDestructibleComponent()
 	: MaxHealth(100.f)
@@ -26,8 +26,10 @@ void UDestructibleComponent::TakeDamage(AController* DamageCauserController, con
 
 	bCanTakeDamage = false;
 
-	const APlayerController* PlayerController = Cast<APlayerController>(DamageCauserController);
-	if (IsValid(PlayerController))
+	LastDamageCauserController = DamageCauserController;
+
+	const ACharacterController* CharacterController = Cast<ACharacterController>(LastDamageCauserController);
+	if (IsValid(CharacterController))
 	{
 		CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
 

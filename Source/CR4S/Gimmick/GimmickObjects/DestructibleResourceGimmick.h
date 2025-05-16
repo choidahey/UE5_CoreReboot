@@ -43,6 +43,7 @@ protected:
 
 private:
 	void DelayedDestroy();
+	void GetResourceItem() const;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
 	bool bIsActorDestroyOnDestroyAction;

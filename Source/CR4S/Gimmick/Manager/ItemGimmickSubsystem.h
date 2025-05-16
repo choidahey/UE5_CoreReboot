@@ -71,7 +71,7 @@ private:
 
 public:
 	UFUNCTION(BlueprintPure, Category = "ItemGimmickSubsystem")
-	bool SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation) const;
+	ABaseGimmick* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation) const;
 
 #pragma endregion
 
