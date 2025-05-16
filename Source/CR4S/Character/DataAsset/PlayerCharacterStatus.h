@@ -13,21 +13,27 @@ struct CR4S_API FPlayerCharacterStats
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxHealth{4000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Health{4000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxHunger{100};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Hunger{100};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Attack{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Armor{50};
+	int32 MaxStamina{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Stamina{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float ColdThreshold{-20};
+	int32 AttackPower{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float HeatThreshold{30};
+	int32 Armor{50};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float HumidityThreshold{100};
+	int32 ColdThreshold{-20};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 HeatThreshold{30};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 HumidityThreshold{100};
 	
 };
 
