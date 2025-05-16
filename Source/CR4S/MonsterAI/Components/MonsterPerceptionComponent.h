@@ -35,9 +35,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, Category = "Perception")
-	UAISenseConfig_Sight* SightConfig;
+	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 	UPROPERTY(EditAnywhere, Category = "Perception")
-	UAISenseConfig_Hearing* HearingConfig;
+	TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
 
 private:
 	AActor* FindTaggedActorInSense(const TSubclassOf<UAISense> SenseClass, const FName& Tag) const;

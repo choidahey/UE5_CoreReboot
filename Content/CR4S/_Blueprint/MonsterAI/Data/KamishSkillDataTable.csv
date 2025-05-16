@@ -1,0 +1,8 @@
+﻿,SkillName,PreMontage,SkillMontage,Damage,Cooldown,Range,Stunt
+ThunderRush,ThunderRush,/Game/Animations/PreMontage1.PreMontage1,/Game/Animations/SkillMontage1.SkillMontage1,3500,10,1000,800
+KneelSmash,KneelSmash,/Game/Animations/PreMontage2.PreMontage2,/Game/Animations/SkillMontage2.SkillMontage2,2000,10,400,300
+FlyingHammer,FlyingHammer,/Game/Animations/PreMontage3.PreMontage3,/Game/Animations/SkillMontage3.SkillMontage3,4000,10,400,600
+RetrieveHammer,RetrieveHammer,/Game/Animations/PreMontage4.PreMontage4,/Game/Animations/SkillMontage4.SkillMontage4,2000,10,400,300
+RhythmStrike,RhythmStrike,/Game/Animations/PreMontage5.PreMontage5,/Game/Animations/SkillMontage5.SkillMontage5,2000,10,0,50
+HeavyStrike,HeavyStrike,/Game/Animations/PreMontage6.PreMontage6,/Game/Animations/SkillMontage6.SkillMontage6,3000,10,0,100
+LightSwing,LightSwing,/Game/Animations/PreMontage7.PreMontage7,/Game/Animations/SkillMontage7.SkillMontage7,2000,10,0,50
