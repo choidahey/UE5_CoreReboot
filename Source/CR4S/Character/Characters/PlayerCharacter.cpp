@@ -6,6 +6,7 @@
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
+#include "Gimmick/Components/InteractionComponent.h"
 #include "Utility/AlsVector.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
@@ -19,6 +20,8 @@ APlayerCharacter::APlayerCharacter()
 	Combat=CreateDefaultSubobject<UCombatComponent>(FName{TEXTVIEW("Combat")});
 
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
+
+	Interaction=CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
 }
 
 void APlayerCharacter::NotifyControllerChanged()

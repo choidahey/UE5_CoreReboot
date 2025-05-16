@@ -6,6 +6,7 @@
 #include "AlsCharacter.h"
 #include "PlayerCharacter.generated.h"
 
+class UInteractionComponent;
 class UPlayerCharacterStatusComponent;
 class UCombatComponent;
 struct FInputActionValue;
@@ -67,6 +68,9 @@ protected:
 	TObjectPtr<UCombatComponent> Combat;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UPlayerCharacterStatusComponent> Status;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UInteractionComponent> Interaction;
+	
 #pragma endregion
 
 #pragma region InputActions
