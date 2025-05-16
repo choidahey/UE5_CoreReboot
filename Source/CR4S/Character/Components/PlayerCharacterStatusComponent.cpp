@@ -3,6 +3,8 @@
 
 #include "PlayerCharacterStatusComponent.h"
 
+#include "Character/Characters/PlayerCharacter.h"
+
 
 // Sets default values for this component's properties
 UPlayerCharacterStatusComponent::UPlayerCharacterStatusComponent()
@@ -11,7 +13,7 @@ UPlayerCharacterStatusComponent::UPlayerCharacterStatusComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	
 }
 
 
@@ -19,9 +21,13 @@ UPlayerCharacterStatusComponent::UPlayerCharacterStatusComponent()
 void UPlayerCharacterStatusComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
 	
+	OwningCharacter=Cast<APlayerCharacter>(GetOwner());
+
+	if (StatusData)
+	{
+		Status=StatusData->StatsData;
+	}
 }
 
 

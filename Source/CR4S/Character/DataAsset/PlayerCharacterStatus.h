@@ -12,17 +12,17 @@ struct CR4S_API FPlayerCharacterStats
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Health{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Hunger{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Stamina{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ColdThreshold{30};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HeatThreshold{40};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Temperature{36};
 	
 };
@@ -33,7 +33,7 @@ class CR4S_API UPlayerCharacterStatus : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	FPlayerCharacterStats Status;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FPlayerCharacterStats StatsData;
 	
 };
