@@ -14,7 +14,6 @@ void UMonsterAnimComponent::Initialize(USkeletalMeshComponent* InMesh)
 		return;
 	}
 
-	MeshComp = InMesh;
 	AnimInstance = InMesh->GetAnimInstance();
 
 	if (!AnimInstance.IsValid())
@@ -55,12 +54,6 @@ void UMonsterAnimComponent::StopAllMontages()
 	}
 
 	AnimInstance->StopAllMontages(0.2f);
-}
-
-void UMonsterAnimComponent::PlayAttackMontage()
-{
-	UE_LOG(LogTemp, Log, TEXT("[%s] PlayAttackMontage"), *MyHeader);
-	PlayMontange(AttackMontage);
 }
 
 void UMonsterAnimComponent::PlayDeathMontage()

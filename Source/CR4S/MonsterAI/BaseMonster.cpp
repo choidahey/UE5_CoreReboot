@@ -13,10 +13,10 @@ ABaseMonster::ABaseMonster()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Initialize Components
-	AttributeComp = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
-	SkillComp = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
-	StateComp = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
-	AnimComp = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
+	AttributeComponent = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
+	SkillComponent = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
+	StateComponent = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
+	AnimComponent = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
 
 	AIControllerClass = ABaseMonsterAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -27,25 +27,25 @@ void ABaseMonster::BeginPlay()
 	Super::BeginPlay();
 
 	// Bind OnDeath delegate
-	if (AttributeComp)
+	if (AttributeComponent)
 	{
-		AttributeComp->InitializeMonsterAttribute(MonsterID);
-		AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
+		AttributeComponent->InitializeMonsterAttribute(MonsterID);
+		AttributeComponent->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
 	}
 
-	if (SkillComp)
+	if (SkillComponent)
 	{
-		SkillComp->InitializeMonsterSkills(MonsterID);
+		SkillComponent->InitializeMonsterSkills(MonsterID);
 	}
 
-	if (StateComp)
+	if (StateComponent)
 	{
-		StateComp->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
+		StateComponent->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
 	}
 
-	if (AnimComp)
+	if (AnimComponent)
 	{
-		AnimComp->Initialize(GetMesh());
+		AnimComponent->Initialize(GetMesh());
 	}
 }
 
@@ -58,9 +58,9 @@ void ABaseMonster::Tick(float DeltaTime)
 		return;
 	}
 
-	if (StateComp->IsInState(EMonsterState::Idle))
+	if (StateComponent->IsInState(EMonsterState::Idle))
 	{
-		float TotalIdleTime = StateComp->GetStateDuration(EMonsterState::Idle);
+		float TotalIdleTime = StateComponent->GetStateDuration(EMonsterState::Idle);
 		if (TotalIdleTime > 10.f)
 		{
 			//AnimComp->PlayIdleBoredAnimation();
@@ -76,39 +76,39 @@ void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (!AttributeComp || IsDead())
+	if (!AttributeComponent || IsDead())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TakeDamage - AttributeComponent is null or Monster is already dead!"));
 		return 0.0f;
 	}
 
 	// Apply damage via AttributeComponent
-	AttributeComp->ApplyDamage(DamageAmount);
+	AttributeComponent->ApplyDamage(DamageAmount);
 
 	return DamageAmount;
 }
 
 void ABaseMonster::PlayPreMontage(int32 SkillIndex)
 {
-	if (SkillComp)
+	if (SkillComponent)
 	{
-		SkillComp->PlayPreMontage(SkillIndex);
+		SkillComponent->PlayPreMontage(SkillIndex);
 	}
 }
 
 void ABaseMonster::UseSkill(int32 SkillIndex)
 {
-	if (SkillComp)
+	if (SkillComponent)
 	{
-		SkillComp->UseSkill(SkillIndex);
+		SkillComponent->UseSkill(SkillIndex);
 	}
 }
 
 void ABaseMonster::Die()
 {
-	if (StateComp)
+	if (StateComponent)
 	{
-		StateComp->SetState(EMonsterState::Dead);
+		StateComponent->SetState(EMonsterState::Dead);
 	}
 
 	// Update Blackboard
@@ -121,15 +121,15 @@ void ABaseMonster::Die()
 	}
 
 	// Play Death Montage
-	if (AnimComp)
+	if (AnimComponent)
 	{
-		AnimComp->PlayDeathMontage();
+		AnimComponent->PlayDeathMontage();
 	}
 }
 
 bool ABaseMonster::IsDead() const
 {
-	return AttributeComp && AttributeComp->IsDead();
+	return AttributeComponent && AttributeComponent->IsDead();
 }
 
 void ABaseMonster::HandleDeath()
