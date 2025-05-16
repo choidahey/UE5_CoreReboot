@@ -15,4 +15,5 @@ struct FMonsterSkillData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Damage = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Cooldown = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Range = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Stun = 0.f;
 };

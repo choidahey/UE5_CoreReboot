@@ -1,4 +1,4 @@
-,SkillName,PreMontage,SkillMontage,Damage,Cooldown,Range
-Skill1,Skill1,/Game/Animations/PreMontage1.PreMontage1,/Game/Animations/SkillMontage1.SkillMontage1,10,1,5
-Skill2,Skill2,/Game/Animations/PreMontage2.PreMontage2,/Game/Animations/SkillMontage2.SkillMontage2,10,2,5
-Skill3,Skill3,/Game/Animations/PreMontage3.PreMontage3,/Game/Animations/SkillMontage3.SkillMontage3,10,3,5
+,SkillName,PreMontage,SkillMontage,Damage,Cooldown,Range,Stun
+Skill1,Skill1,/Game/Animations/PreMontage1.PreMontage1,/Game/Animations/SkillMontage1.SkillMontage1,10,1,5,10
+Skill2,Skill2,/Game/Animations/PreMontage2.PreMontage2,/Game/Animations/SkillMontage2.SkillMontage2,10,2,5,10
+Skill3,Skill3,/Game/Animations/PreMontage3.PreMontage3,/Game/Animations/SkillMontage3.SkillMontage3,10,3,5,10
