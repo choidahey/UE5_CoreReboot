@@ -2,11 +2,14 @@
 #include "AlsCameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Character/CharacterController.h"
 #include "Character/Components/CombatComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Gimmick/Components/InteractionComponent.h"
+#include "UI/InGame/InGameWidget.h"
+#include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
@@ -22,6 +25,24 @@ APlayerCharacter::APlayerCharacter()
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
 
 	Interaction=CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
+}
+
+void APlayerCharacter::InitializeWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.AddUObject(InGameWidget,&UInGameWidget::UpdateHPWidget);
+				Status->OnHungerChanged.AddUObject(InGameWidget,&UInGameWidget::UpdateHungerWidget);
+				Status->OnStaminaChanged.AddUObject(InGameWidget,&UInGameWidget::UpdateStaminaWidget);
+
+				InGameWidget->InitializeWidget(Status);
+			}
+		}
+	}
 }
 
 void APlayerCharacter::NotifyControllerChanged()
@@ -54,6 +75,14 @@ void APlayerCharacter::NotifyControllerChanged()
 	}
 
 	Super::NotifyControllerChanged();
+}
+
+void APlayerCharacter::BeginPlay()
+{
+	//Binding Delegate Functions and Set up Widget
+	InitializeWidgets();
+	
+	Super::BeginPlay();
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)

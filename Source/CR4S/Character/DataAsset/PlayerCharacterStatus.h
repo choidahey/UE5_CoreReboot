@@ -12,18 +12,28 @@ struct CR4S_API FPlayerCharacterStats
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
-	float Health{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
-	float Hunger{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
-	float Stamina{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
-	float ColdThreshold{30};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
-	float HeatThreshold{40};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerCharacter")
-	float Temperature{36};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxHealth{4000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Health{4000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxHunger{100};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Hunger{100};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxStamina{10000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Stamina{10000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 AttackPower{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Armor{50};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ColdThreshold{-20};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 HeatThreshold{30};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 HumidityThreshold{100};
 	
 };
 
@@ -33,7 +43,7 @@ class CR4S_API UPlayerCharacterStatus : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	FPlayerCharacterStats Status;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FPlayerCharacterStats StatsData;
 	
 };
