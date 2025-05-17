@@ -50,7 +50,7 @@ protected:
 	AEnvironmentManager* EnvironmentManager;
 
 	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
-	int32 WorldTimeMultiplier = 10;
+	int32 WorldTimeMultiplier = 12;
 	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
 	int32 DayLength = 10;
 	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
