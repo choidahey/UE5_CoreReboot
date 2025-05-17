@@ -8,7 +8,7 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Gimmick/Components/InteractionComponent.h"
-#include "UI/InGame/InGameWidget.h"
+#include "UI/InGame/DefaultInGameWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
 
@@ -33,11 +33,11 @@ void APlayerCharacter::InitializeWidgets()
 	{
 		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
 		{
-			if (UInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.AddUObject(InGameWidget,&UInGameWidget::UpdateHPWidget);
-				Status->OnHungerChanged.AddUObject(InGameWidget,&UInGameWidget::UpdateHungerWidget);
-				Status->OnStaminaChanged.AddUObject(InGameWidget,&UInGameWidget::UpdateStaminaWidget);
+				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
+				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
+				Status->OnStaminaChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStaminaWidget);
 
 				InGameWidget->InitializeWidget(Status);
 			}

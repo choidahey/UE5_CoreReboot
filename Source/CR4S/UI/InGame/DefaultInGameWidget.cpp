@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "InGameWidget.h"
+#include "DefaultInGameWidget.h"
 
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/CharacterStatusWidget.h"
 
-void UInGameWidget::InitializeWidget(UPlayerCharacterStatusComponent* InComponent)
+void UDefaultInGameWidget::InitializeWidget(UPlayerCharacterStatusComponent* InComponent)
 {
 	float Percentage=FMath::Clamp(static_cast<float>(InComponent->GetMaxHP())/InComponent->GetCurrentHP(), 0.f, 1.f);
 	UpdateHPWidget(Percentage);
@@ -18,12 +18,12 @@ void UInGameWidget::InitializeWidget(UPlayerCharacterStatusComponent* InComponen
 	UpdateStaminaWidget(Percentage);
 }
 
-void UInGameWidget::NativeConstruct()
+void UDefaultInGameWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 }
 
-void UInGameWidget::UpdateHPWidget(const float InPercentage)
+void UDefaultInGameWidget::UpdateHPWidget(const float InPercentage)
 {
 	if (StatusWidget)
 	{
@@ -31,7 +31,7 @@ void UInGameWidget::UpdateHPWidget(const float InPercentage)
 	}
 }
 
-void UInGameWidget::UpdateHungerWidget(const float InPercentage)
+void UDefaultInGameWidget::UpdateHungerWidget(const float InPercentage)
 {
 	if (StatusWidget)
 	{
@@ -39,7 +39,7 @@ void UInGameWidget::UpdateHungerWidget(const float InPercentage)
 	}
 }
 
-void UInGameWidget::UpdateStaminaWidget(const float InPercentage)
+void UDefaultInGameWidget::UpdateStaminaWidget(const float InPercentage)
 {
 	if (StatusWidget)
 	{

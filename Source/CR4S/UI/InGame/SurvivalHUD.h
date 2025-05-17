@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InGameWidget.h"
+#include "DefaultInGameWidget.h"
 #include "TimeDisplayWidget.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
@@ -15,7 +15,7 @@ class CR4S_API ASurvivalHUD : public AHUD
 
 public:
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE UInGameWidget* GetInGameWidget() const { return InGameWidget; }
+	FORCEINLINE UDefaultInGameWidget* GetInGameWidget() const { return InGameWidget; }
 #pragma region WidgetSetting
 public:
 	template<typename TWidget>
@@ -42,7 +42,7 @@ protected:
     TSubclassOf<UTimeDisplayWidget> TimeDisplayWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI")
-	TSubclassOf<UInGameWidget> InGameWidgetClass;
+	TSubclassOf<UDefaultInGameWidget> InGameWidgetClass;
 #pragma endregion
 	
 private:
@@ -54,7 +54,7 @@ protected:
 	UTimeDisplayWidget* TimeDisplayWidget;
 
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category="UI")
-	TObjectPtr<UInGameWidget> InGameWidget;
+	TObjectPtr<UDefaultInGameWidget> InGameWidget;
 #pragma endregion
 	
 };

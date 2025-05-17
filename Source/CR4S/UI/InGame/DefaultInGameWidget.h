@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InGameWidget.generated.h"
+#include "DefaultInGameWidget.generated.h"
 
 class UCharacterStatusWidget;
 class UPlayerCharacterStatusComponent;
@@ -12,7 +12,7 @@ class UPlayerCharacterStatusComponent;
  * 
  */
 UCLASS()
-class CR4S_API UInGameWidget : public UUserWidget
+class CR4S_API UDefaultInGameWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

@@ -6,7 +6,7 @@ void ASurvivalHUD::BeginPlay()
 {
     Super::BeginPlay();
 
-    InGameWidget=CreateAndAddWidget<UInGameWidget>(InGameWidgetClass,0,ESlateVisibility::Visible);
+    InGameWidget=CreateAndAddWidget<UDefaultInGameWidget>(InGameWidgetClass,0,ESlateVisibility::Visible);
     TimeDisplayWidget=CreateAndAddWidget<UTimeDisplayWidget>(TimeDisplayWidgetClass,0,ESlateVisibility::Visible);
     // if (TimeDisplayWidgetClass)
     // {
