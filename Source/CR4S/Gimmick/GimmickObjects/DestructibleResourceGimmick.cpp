@@ -137,7 +137,15 @@ void ADestructibleResourceGimmick::GetResourceItem() const
 	{
 		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
 		{
-			FAddItemResult Result = InventorySystem->AddItem(FInventoryItem(RowName, Count));
+			const FBaseItemData* ItemData = ItemGimmickSubsystem->FindItemData(RowName);
+			if (!ItemData)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s is not found in ItemData"), *RowName.ToString());
+				continue;
+			}
+
+			const FAddItemResult Result
+				= InventorySystem->AddItem(FInventoryItem(0, RowName, ItemData->Icon.Get(), Count));
 
 			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
 			       , Result.Success, Result.AddedCount, Result.RemainingCount);

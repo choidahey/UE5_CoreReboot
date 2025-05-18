@@ -6,7 +6,6 @@
 
 #include "ItemGimmickSubsystem.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDataTablesReady);
 
 UCLASS()
 class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
@@ -18,13 +17,18 @@ class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
 public:
 	UItemGimmickSubsystem();
 
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
+	
 #pragma endregion
 
 #pragma region DataTable Load
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem")
+	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Load")
 	void LoadDataTableAsync();
+
+	UTexture2D* LoadIcon(const TSoftObjectPtr<UTexture2D>& IconRef);
 	
 private:
 	void OnDataTableLoaded(TSoftObjectPtr<UDataTable>& DataTable, bool& bIsDataTableLoaded, const FString& DataTableName) const;
@@ -34,6 +38,11 @@ private:
 	
 	void CheckAllDataTableLoaded() const;
 	
+	void UnloadAllDataTables();
+
+	FSoftObjectPath DefaultItemDataTablePath;
+	FSoftObjectPath DefaultGimmickDataTablePath;
+	
 	UPROPERTY()
 	TSoftObjectPtr<UDataTable> ItemDataTable;
 	UPROPERTY()
@@ -41,18 +50,21 @@ private:
 	
 	bool bIsItemDataTableLoaded;
 	bool bIsGimmickDataTableLoaded;
+
+	TSet<FSoftObjectPath> LoadedPaths;
 	
 #pragma endregion
 
 #pragma region DataTable Find
 
 public:
+	TArray<FName> GetItemDataRowNames() const;
 	const FBaseItemData* FindItemData(const FName& RowName) const;
 	const FBaseGimmickData* FindGimmickData(const FName& RowName) const;
 	
 private:
 	template<typename RowType>
-	const RowType* FindRow(const TSoftObjectPtr<UDataTable>& DataTable, const FName& RowName, const FString& Context) const
+	const RowType* FindRowFromDataTable(const TSoftObjectPtr<UDataTable>& DataTable, const FName& RowName, const FString& Context) const
 	{
 		if (DataTable.IsValid() && IsValid(DataTable.Get()))
 		{
@@ -71,13 +83,14 @@ private:
 
 public:
 	UFUNCTION(BlueprintPure, Category = "ItemGimmickSubsystem")
-	ABaseGimmick* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation) const;
+	ABaseGimmick* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation);
 
 #pragma endregion
 
 #pragma region Delegate
 
 public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDataTablesReady);
 	FOnDataTablesReady OnDataTablesReady;
 	
 #pragma endregion

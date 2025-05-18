@@ -3,7 +3,8 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/InventoryWidget.h"
+#include "Inventory/UI/InventoryWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 
 UInventorySystemComponent::UInventorySystemComponent()
@@ -18,6 +19,11 @@ void UInventorySystemComponent::BeginPlay()
 
 	InventoryItems.SetNum(MaxInventorySlot);
 
+	for (int32 Index = 0; Index < MaxInventorySlot; ++Index)
+	{
+		InventoryItems[Index].SlotIndex = Index;
+	}
+
 	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
 	if (IsValid(GameInstance))
 	{
@@ -25,6 +31,12 @@ void UInventorySystemComponent::BeginPlay()
 	}
 
 	CreateInventoryWidget();
+
+	const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (IsValid(OwnerPawn))
+	{
+		OwnerPlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+	}
 }
 
 FAddItemResult UInventorySystemComponent::AddItem(const FInventoryItem& InInventoryItem)
@@ -53,17 +65,15 @@ FAddItemResult UInventorySystemComponent::AddItem(const FInventoryItem& InInvent
 
 	GetInventoryItemsAndEmptySlots(InInventoryItem.RowName, SameItems, EmptySlots);
 
-	TArray<int32> ChangedItemSlots;
+	TSet<int32> ChangedItemSlots;
 
 	// Try to stack items with existing ones of the same type
-	for (int32 Index = 0; Index < SameItems.Num(); ++Index)
+	for (FInventoryItem* SameInventoryItem : SameItems)
 	{
 		if (RemainingCount <= 0)
 		{
 			break;
 		}
-
-		FInventoryItem* SameInventoryItem = SameItems[Index];
 
 		if (SameInventoryItem->Count < ItemData->MaxStack)
 		{
@@ -74,34 +84,43 @@ FAddItemResult UInventorySystemComponent::AddItem(const FInventoryItem& InInvent
 			RemainingCount -= ActualAddCount;
 			Result.AddedCount += ActualAddCount;
 
-			ChangedItemSlots.AddUnique(Index);
+			ChangedItemSlots.Add(SameInventoryItem->SlotIndex);
 		}
 	}
 
 	// If there are still items remaining, put them in empty slots
 	if (RemainingCount > 0)
 	{
-		for (int32 Index = 0; Index < EmptySlots.Num(); ++Index)
+		for (FInventoryItem* EmptyInventoryItem : EmptySlots)
 		{
 			if (RemainingCount <= 0)
 			{
 				break;
 			}
 
-			FInventoryItem* EmptyInventoryItem = EmptySlots[Index];
-
 			EmptyInventoryItem->RowName = InInventoryItem.RowName;
+			if (ItemData->Icon.IsValid())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Icon is valid"));
+				EmptyInventoryItem->Icon = ItemData->Icon.Get();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Icon is invalid"));
+				EmptyInventoryItem->Icon = ItemGimmickSubsystem->LoadIcon(ItemData->Icon);
+			}
+
 			EmptyInventoryItem->Count = FMath::Min(RemainingCount, ItemData->MaxStack);
 			RemainingCount -= EmptyInventoryItem->Count;
 			Result.AddedCount += EmptyInventoryItem->Count;
 
-			ChangedItemSlots.AddUnique(Index);
+			ChangedItemSlots.Add(EmptyInventoryItem->SlotIndex);
 		}
 	}
 
 	Result.RemainingCount = RemainingCount;
 
-	NotifyItemSlotsChanged(ChangedItemSlots);
+	NotifyItemSlotsChanged(ChangedItemSlots.Array());
 
 	// If there are still remaining items, spawn them in the world
 	if (RemainingCount > 0 && IsValid(ItemGimmickSubsystem))
@@ -120,7 +139,7 @@ void UInventorySystemComponent::GetInventoryItemsAndEmptySlots(
 	OutSameItems.Empty();
 	OutEmptySlots.Empty();
 
-	for (auto& Item : InventoryItems)
+	for (FInventoryItem& Item : InventoryItems)
 	{
 		if (Item.Count == 0)
 		{
@@ -158,8 +177,10 @@ void UInventorySystemComponent::SpawnRemainingItems(const FName& ItemRowName, co
 	}
 }
 
-bool UInventorySystemComponent::SwapItemIndex(const int32 FromIndex, const int32 ToIndex)
+bool UInventorySystemComponent::SwapItems(const int32 FromIndex, const int32 ToIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Try to swap items from %d to %d"), FromIndex, ToIndex);
+
 	if (!InventoryItems.IsValidIndex(FromIndex))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("FromIndex is invalid"));
@@ -173,12 +194,72 @@ bool UInventorySystemComponent::SwapItemIndex(const int32 FromIndex, const int32
 	}
 
 	const FInventoryItem TempItem = InventoryItems[FromIndex];
+
 	InventoryItems[FromIndex] = InventoryItems[ToIndex];
 	InventoryItems[ToIndex] = TempItem;
 
 	NotifyItemSlotsChanged({FromIndex, ToIndex});
 
 	return true;
+}
+
+void UInventorySystemComponent::MergeItems(const int32 FromIndex, const int32 ToIndex)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Try to merge items from %d to %d"), FromIndex, ToIndex);
+
+	if (!InventoryItems.IsValidIndex(FromIndex))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FromIndex is invalid"));
+		return;
+	}
+
+	if (!InventoryItems.IsValidIndex(ToIndex))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ToIndex is invalid"));
+		return;
+	}
+
+	FInventoryItem& FromItem = InventoryItems[FromIndex];
+	FInventoryItem& ToItem = InventoryItems[ToIndex];
+
+	const FBaseItemData* ItemData = FindItemDataFromDataTable(FromItem.RowName);
+	if (!ItemData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemData is invalid"));
+		return;
+	}
+
+	if (ToItem.Count < ItemData->MaxStack)
+	{
+		const int32 CanAddCount = ItemData->MaxStack - ToItem.Count;
+		const int32 ActualAddCount = FMath::Min(CanAddCount, FromItem.Count);
+
+		ToItem.Count += ActualAddCount;
+		FromItem.Count -= ActualAddCount;
+	}
+
+	NotifyItemSlotsChanged({FromIndex, ToIndex});
+}
+
+const FBaseItemData* UInventorySystemComponent::FindItemDataFromDataTable(const FName& RowName) const
+{
+	if (!IsValid(ItemGimmickSubsystem))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
+		return nullptr;
+	}
+
+	return ItemGimmickSubsystem->FindItemData(RowName);
+}
+
+const FInventoryItem* UInventorySystemComponent::GetItemDataByIndex(const int32 Index) const
+{
+	if (!InventoryItems.IsValidIndex(Index))
+	{
+		return nullptr;
+	}
+
+	return &InventoryItems[Index];
 }
 
 void UInventorySystemComponent::RemoveItemAt(const int32 Index)
@@ -193,19 +274,116 @@ void UInventorySystemComponent::RemoveItemAt(const int32 Index)
 	NotifyItemSlotChanged(Index);
 }
 
+void UInventorySystemComponent::SortInventoryItems()
+{
+    if (!IsValid(ItemGimmickSubsystem))
+    {
+       UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
+       return;
+    }
+	
+    const int32 OriginalSize = InventoryItems.Num();
+	
+    TMap<FName, FInventoryItem> CombinedMap;
+    CombinedMap.Reserve(InventoryItems.Num());
+
+    for (const FInventoryItem& Item : InventoryItems)
+    {
+       if (Item.Count == 0)
+       {
+          continue;
+       }
+       
+       if (FInventoryItem* Existing = CombinedMap.Find(Item.RowName))
+       {
+          Existing->Count += Item.Count;
+       }
+       else
+       {
+          CombinedMap.Add(Item.RowName, Item);
+       }
+    }
+	
+    TArray<FInventoryItem> NewItems;
+    NewItems.Reserve(OriginalSize);
+	
+    for (const FName& RowName : ItemGimmickSubsystem->GetItemDataRowNames())
+    {
+       const FInventoryItem* BaseItem = CombinedMap.Find(RowName);
+       if (!BaseItem)
+       {
+          continue;
+       }
+
+       int32 TotalCount = BaseItem->Count;
+
+       const FBaseItemData* ItemData = FindItemDataFromDataTable(RowName);
+       if (!ItemData)
+       {
+          continue;
+       }
+    	
+       while (TotalCount > 0 && NewItems.Num() < OriginalSize)
+       {
+          FInventoryItem SlotItem = *BaseItem;
+          SlotItem.Count = FMath::Min(TotalCount, ItemData->MaxStack);
+          NewItems.Add(SlotItem);
+          TotalCount -= SlotItem.Count;
+       }
+    }
+	
+    while (NewItems.Num() < OriginalSize)
+    {
+       FInventoryItem EmptyItem;
+       EmptyItem.RowName = "";
+       EmptyItem.Count = 0;
+       NewItems.Add(EmptyItem);
+    }
+	
+    TArray<int32> ChangedItemSlots;
+    ChangedItemSlots.Reserve(OriginalSize);
+
+    for (int32 Index = 0; Index < OriginalSize; ++Index)
+    {
+       const FInventoryItem& OldItem = InventoryItems[Index];
+       const FInventoryItem& NewItem = NewItems[Index];
+
+       if (OldItem.RowName != NewItem.RowName || OldItem.Count != NewItem.Count)
+       {
+          ChangedItemSlots.Add(Index);
+       }
+    }
+	
+    InventoryItems = MoveTemp(NewItems);
+	
+    NotifyItemSlotsChanged(ChangedItemSlots);
+}
+
 void UInventorySystemComponent::OpenInventory()
 {
-	if (IsValid(InventoryWidgetInstance))
+	if (IsValid(InventoryWidgetInstance) && IsValid(OwnerPlayerController))
 	{
-		InventoryWidgetInstance->AddToViewport();
+		OwnerPlayerController->SetShowMouseCursor(true);
+
+		if (!InventoryWidgetInstance->IsInViewport())
+		{
+			InventoryWidgetInstance->AddToViewport();
+			OwnerPlayerController->SetInputMode(FInputModeUIOnly());
+		}
 	}
 }
 
 void UInventorySystemComponent::CloseInventory()
 {
-	if (IsValid(InventoryWidgetInstance))
+	if (IsValid(InventoryWidgetInstance) && IsValid(OwnerPlayerController))
 	{
-		InventoryWidgetInstance->RemoveFromParent();
+		OwnerPlayerController->SetShowMouseCursor(false);
+
+		if (InventoryWidgetInstance->IsInViewport())
+		{
+			InventoryWidgetInstance->RemoveFromParent();
+			OwnerPlayerController->SetInputMode(FInputModeGameOnly());
+		}
 	}
 }
 
@@ -231,6 +409,7 @@ void UInventorySystemComponent::CreateInventoryWidget()
 	}
 
 	InventoryWidgetInstance = CreateWidget<UInventoryWidget>(PlayerController, InventoryWidgetClass);
+	InventoryWidgetInstance->InitInventoryWidget(this, MaxInventorySlot);
 }
 
 void UInventorySystemComponent::NotifyItemSlotChanged(const int32 ItemSlotIndex) const
@@ -239,25 +418,18 @@ void UInventorySystemComponent::NotifyItemSlotChanged(const int32 ItemSlotIndex)
 	{
 		if (OnItemSlotChanged.IsBound())
 		{
-			OnItemSlotChanged.Broadcast(ItemSlotIndex);
+			OnItemSlotChanged.Broadcast(ItemSlotIndex
+			                            , InventoryItems[ItemSlotIndex].RowName
+			                            , InventoryItems[ItemSlotIndex].Icon
+			                            , InventoryItems[ItemSlotIndex].Count);
 		}
 	}
 }
 
 void UInventorySystemComponent::NotifyItemSlotsChanged(const TArray<int32>& ChangedItemSlots) const
 {
-	if (ChangedItemSlots.Num() > InventoryItems.Num() / 2)
+	for (const int32 ItemSlotIndex : ChangedItemSlots)
 	{
-		if (OnInventoryChanged.IsBound())
-		{
-			OnInventoryChanged.Broadcast();
-		}
-	}
-	else
-	{
-		for (const int32 ItemSlotIndex : ChangedItemSlots)
-		{
-			NotifyItemSlotChanged(ItemSlotIndex);
-		}
+		NotifyItemSlotChanged(ItemSlotIndex);
 	}
 }
