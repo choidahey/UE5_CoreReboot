@@ -25,6 +25,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 #pragma endregion
 
@@ -40,7 +41,13 @@ public:
 	bool IsSkillReady(int32 Index) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	const FMonsterSkillData GetSkillData(int32 Index) const;
+	float GetSkillRange(int32 Index) const;
+
+	UFUNCTION(BlueprintCallable)
+	const FMonsterSkillData& GetCurrentSkillData() const;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Monster|Skill")
+	int32 CurrentSkillIndex = INDEX_NONE;
 
 #pragma endregion
 
