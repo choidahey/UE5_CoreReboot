@@ -12,3 +12,9 @@ struct FAIKeys
 	static const FName SearchState;
 	static const FName IsDead;
 };
+
+struct FSeasonBossAIKeys : public FAIKeys
+{
+	static const FName InitializeTargetLocation;
+	static const FName NearestHouseLocation;
+};

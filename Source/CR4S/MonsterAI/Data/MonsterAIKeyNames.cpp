@@ -7,3 +7,6 @@ const FName FAIKeys::CanHearPlayer = TEXT("CanHearPlayer");
 const FName FAIKeys::LastHeardLocation = TEXT("LastHeardLocation");
 const FName FAIKeys::SearchState = TEXT("SearchState");
 const FName FAIKeys::IsDead = TEXT("IsDead");
+
+const FName FSeasonBossAIKeys::InitializeTargetLocation = TEXT("InitializeTargetLocation");
+const FName FSeasonBossAIKeys::NearestHouseLocation = TEXT("NearestHouseLocation");
