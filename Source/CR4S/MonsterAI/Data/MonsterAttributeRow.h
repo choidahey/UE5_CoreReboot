@@ -14,5 +14,11 @@ struct FMonsterAttributeRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackRange = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackSpeed = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float MoveSpeed = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly) TSoftObjectPtr<UDataTable> SkillDataTable = nullptr;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float MaxStun = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunDamageMultiplier = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunChargeStartDelay = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunRecoveryMin = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunRecoveryMax = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunRecoveryRampUpTime = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) TSoftObjectPtr<UDataTable> SkillDataTable = nullptr;
 };

@@ -6,6 +6,7 @@
 #include "AlsCharacter.h"
 #include "PlayerCharacter.generated.h"
 
+class UInteractionComponent;
 class UPlayerCharacterStatusComponent;
 class UCombatComponent;
 struct FInputActionValue;
@@ -21,11 +22,17 @@ class CR4S_API APlayerCharacter : public AAlsCharacter
 public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
+
+#pragma region Widget
+	void InitializeWidgets();
+#pragma endregion
+	
 #pragma region Overrides
 public:
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation) override;
 	virtual void NotifyControllerChanged() override;
 protected:
+	virtual void BeginPlay() override;
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& ViewInfo) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
 #pragma endregion
@@ -67,6 +74,9 @@ protected:
 	TObjectPtr<UCombatComponent> Combat;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UPlayerCharacterStatusComponent> Status;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UInteractionComponent> Interaction;
+	
 #pragma endregion
 
 #pragma region InputActions

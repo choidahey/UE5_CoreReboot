@@ -7,6 +7,7 @@
 #include "CombatComponent.generated.h"
 
 
+class UPlayerCharacterStatus;
 class APlayerCharacter;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))

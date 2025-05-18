@@ -25,23 +25,19 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	UAnimMontage* AttackMontage;
+	TObjectPtr<UAnimMontage> DeathMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	UAnimMontage* DeathMontage;
+	TObjectPtr<UAnimMontage> HitReactMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	UAnimMontage* HitReactMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	UAnimMontage* StunnedMontage;
+	TObjectPtr<UAnimMontage> StunnedMontage;
 
 #pragma endregion
 
 #pragma region Cached References
 
 protected:
-	TWeakObjectPtr<USkeletalMeshComponent> MeshComp;
 	TWeakObjectPtr<UAnimInstance> AnimInstance;
 
 #pragma endregion
@@ -53,7 +49,6 @@ public:
 	void StopAllMontages();
 
 	/* Explicit Play Calls */
-	void PlayAttackMontage();
 	void PlayDeathMontage();
 	void PlayHitReactMontage();
 	void PlayStunnedMontage();

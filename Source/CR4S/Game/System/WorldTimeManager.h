@@ -49,4 +49,6 @@ private:
 	int32 SeasonLength = 30; // Number of Days in a Season
 	FWorldTimeData CurrentTimeData;
 	int64 TotalPlayTime = 0; // Total Play Time in Seconds
+
+	void UpdateTimeWidget();
 };
