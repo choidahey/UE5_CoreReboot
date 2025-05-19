@@ -57,7 +57,7 @@ void ABaseAnimal::LoadStats()
             }
             else
             {
-                UE_LOG(LogTemp, Error, TEXT("Animal Stats Load Fail"));
+                UE_LOG(LogTemp, Warning, TEXT("Animal Stats Load Fail"));
             }
         });
     }
