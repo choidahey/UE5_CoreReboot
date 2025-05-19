@@ -15,3 +15,7 @@ const FName FRegionBossAIKeys::BaseCampLocation = TEXT("BaseCampLocation");
 const FName FRegionBossAIKeys::SkillIndex = TEXT("SkillIndex");
 const FName FRegionBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
 const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
+
+// Season Boss AI Key
+const FName FSeasonBossAIKeys::InitializeTargetLocation = TEXT("InitializeTargetLocation");
+const FName FSeasonBossAIKeys::NearestHouseLocation = TEXT("NearestHouseLocation");

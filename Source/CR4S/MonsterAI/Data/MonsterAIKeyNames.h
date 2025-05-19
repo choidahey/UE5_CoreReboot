@@ -21,3 +21,9 @@ struct FRegionBossAIKeys : public FAIKeys
 	static const FName CurrentPhase;
 	static const FName ShouldReturn;
 };
+
+struct FSeasonBossAIKeys : public FAIKeys
+{
+	static const FName InitializeTargetLocation;
+	static const FName NearestHouseLocation;
+};
