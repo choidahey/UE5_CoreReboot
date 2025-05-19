@@ -1,34 +1,54 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/GimmickObjects/BaseGimmick/CompleteGimmick.h"
+#include "Gimmick/GimmickObjects/DestructibleResourceGimmick.h"
+
 #include "DoorGimmick.generated.h"
 
+class UInteractableComponent;
+
 UCLASS()
-class CR4S_API ADoorGimmick : public ACompleteGimmick
+class CR4S_API ADoorGimmick : public ADestructibleResourceGimmick
 {
 	GENERATED_BODY()
 
 
-#pragma region ACompleteGimmick Override
+#pragma region ABaseBuildingGimmick Override
 
 public:
 	ADoorGimmick();
-
+	
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-
-protected:
-	virtual void OnGimmickDestroy() override;
-	virtual void OnGimmickInteracted() override;
 	
 #pragma endregion
 
-#pragma region Door
+#pragma region UInteractableComponent
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Gimmick|Components")
+	FORCEINLINE UInteractableComponent* GetInteractableComponent() const { return InteractableComponent; }
+
+protected:
+	UFUNCTION()
+	virtual void OnGimmickInteracted();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UInteractableComponent> InteractableComponent;
 
 private:
 	void UpdateInteractionText() const;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	FText InteractionTextOpen;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	FText InteractionTextClose;
+
+#pragma endregion
+	
+#pragma region Door
+
+private:
 	UPROPERTY(VisibleAnywhere, Category = "Door")
 	bool bIsMoving;
 	
@@ -46,16 +66,6 @@ private:
 	FRotator ClosedRotation;
 	FRotator OpenRotation;
 	FRotator TargetRotation;
-	
-#pragma endregion
-
-#pragma region Interaction
-
-private:
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	FText InteractionTextOpen;
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	FText InteractionTextClose;
 	
 #pragma endregion
 };

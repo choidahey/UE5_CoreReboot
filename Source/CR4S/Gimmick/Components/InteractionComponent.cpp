@@ -165,15 +165,10 @@ bool UInteractionComponent::TryDetectProcess()
 				return false;
 			}
 
-			UActorComponent* ActorComponent = DetectedActor->GetComponentByClass(
-				UInteractableComponent::StaticClass());
-			if (IsValid(ActorComponent))
+			DetectedInteractableComponent = DetectedActor->FindComponentByClass<UInteractableComponent>();
+			if (IsValid(DetectedInteractableComponent))
 			{
-				DetectedInteractableComponent = Cast<UInteractableComponent>(ActorComponent);
-				if (IsValid(DetectedInteractableComponent))
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 	}

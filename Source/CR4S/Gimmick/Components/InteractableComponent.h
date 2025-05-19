@@ -4,8 +4,6 @@
 #include "Components/ActorComponent.h"
 #include "InteractableComponent.generated.h"
 
-DECLARE_DELEGATE(FOnTryInteract);
-
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UInteractableComponent : public UActorComponent
 {
@@ -16,7 +14,20 @@ class CR4S_API UInteractableComponent : public UActorComponent
 public:
 	UInteractableComponent();
 
+#if WITH_EDITOR
+	virtual void OnComponentCreated() override;
+	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	
 	virtual void BeginPlay() override;
+	
+#pragma endregion
+
+#pragma region Initialize
+
+private:
+	void UpdateTraceBlocking() const;
 	
 #pragma endregion
 	
@@ -32,6 +43,9 @@ public:
 	FORCEINLINE void SetInteractionText(const FText& InInteractionText) { InteractionText = InInteractionText; }
 	
 private:
+	UPROPERTY(EditAnywhere, Category = "Interaction")
+	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	FText InteractionText;
 	
@@ -66,6 +80,7 @@ private:
 #pragma region Delegate
 
 public:
+	DECLARE_DELEGATE(FOnTryInteract);
 	FOnTryInteract OnTryInteract;
 	
 #pragma endregion
