@@ -27,11 +27,11 @@ struct FBaseItemData : public FBaseDataInfo
 	GENERATED_BODY()
 
 	FBaseItemData()
-		: MaxStack(0)
+		: MaxStack(1)
 	{
 	}
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"))
 	int32 MaxStack;
 };
 

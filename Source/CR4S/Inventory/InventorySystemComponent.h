@@ -78,14 +78,18 @@ public:
 
 public:
 	FAddItemResult AddItem(const FInventoryItem& InInventoryItem);
-	void RemoveItemAt(const int32 Index);
+	/**
+	 * - If `RemoveCount` > 0: decreases the item count in that slot by `RemoveCount`.
+	 * - If `RemoveCount` == 0 (default): clears the slot entirely (sets count to zero).
+	 */
+	void RemoveItemAtIndex(const int32 Index, const int32 RemoveCount = 0);
 	UFUNCTION()
 	void SortInventoryItems();
 	bool SwapItems(const int32 FromIndex, const int32 ToIndex);
 	void MergeItems(const int32 FromIndex, const int32 ToIndex);
 
 	const FInventoryItem* GetItemDataByIndex(const int32 Index) const;
-	
+
 private:
 	void GetInventoryItemsAndEmptySlots(const FName& InRowName,
 	                                    TArray<FInventoryItem*>& OutSameItems,

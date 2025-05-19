@@ -4,7 +4,6 @@
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/UI/InventoryWidget.h"
-#include "Kismet/GameplayStatics.h"
 
 
 UInventorySystemComponent::UInventorySystemComponent()
@@ -262,7 +261,7 @@ const FInventoryItem* UInventorySystemComponent::GetItemDataByIndex(const int32 
 	return &InventoryItems[Index];
 }
 
-void UInventorySystemComponent::RemoveItemAt(const int32 Index)
+void UInventorySystemComponent::RemoveItemAtIndex(const int32 Index, const int32 RemoveCount)
 {
 	if (!InventoryItems.IsValidIndex(Index))
 	{
@@ -270,7 +269,15 @@ void UInventorySystemComponent::RemoveItemAt(const int32 Index)
 		return;
 	}
 
-	InventoryItems[Index].Count = 0;
+	if (RemoveCount <= 0)
+	{
+		InventoryItems[Index].Count = 0;
+	}
+	else
+	{
+		InventoryItems[Index].Count = FMath::Max(0, InventoryItems[Index].Count - RemoveCount);		
+	}
+	
 	NotifyItemSlotChanged(Index);
 }
 
