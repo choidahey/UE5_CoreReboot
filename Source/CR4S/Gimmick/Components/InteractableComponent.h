@@ -36,6 +36,8 @@ private:
 public:
 	void TryInteract(const APlayerController* PlayerController) const;
 
+	void DetectionStateChanged(APlayerController* DetectingPlayerController, const bool bIsDetected) const;
+	
 	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Interaction")
 	FORCEINLINE FText GetInteractionText() const { return InteractionText; }
 
@@ -80,6 +82,9 @@ private:
 #pragma region Delegate
 
 public:
+	DECLARE_DELEGATE_TwoParams(FOnDetectionStateChanged, APlayerController*, const bool);
+	FOnDetectionStateChanged OnDetectionStateChanged;
+	
 	DECLARE_DELEGATE(FOnTryInteract);
 	FOnTryInteract OnTryInteract;
 	

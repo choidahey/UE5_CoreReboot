@@ -111,12 +111,12 @@ void UInteractionComponent::UpdateDetectProcess()
 
 	if (IsValid(BeforeComponent) && (BeforeComponent != DetectedInteractableComponent || !bIsDetected))
 	{
-		BeforeComponent->SetHighlight(false);
+		BeforeComponent->DetectionStateChanged(nullptr, false);
 	}
 
 	if (bIsDetected && IsValid(DetectedInteractableComponent))
 	{
-		DetectedInteractableComponent->SetHighlight(true);
+		DetectedInteractableComponent->DetectionStateChanged(OwnerPlayerController, true);
 		ShowInteractionWidget();
 	}
 	else

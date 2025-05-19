@@ -90,6 +90,8 @@ public:
 
 	const FInventoryItem* GetItemDataByIndex(const int32 Index) const;
 
+	FORCEINLINE FName GetCurrentHeldItemName() const { return CurrentHeldItemName; }
+
 private:
 	void GetInventoryItemsAndEmptySlots(const FName& InRowName,
 	                                    TArray<FInventoryItem*>& OutSameItems,
@@ -106,6 +108,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
+
+	UPROPERTY(EditAnywhere, Category = "InventorySystem")
+	FName CurrentHeldItemName;
 
 #pragma endregion
 

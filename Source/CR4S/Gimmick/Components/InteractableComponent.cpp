@@ -69,6 +69,14 @@ void UInteractableComponent::TryInteract(const APlayerController* PlayerControll
 	}
 }
 
+void UInteractableComponent::DetectionStateChanged(APlayerController* DetectingPlayerController,
+                                                   const bool bIsDetected) const
+{
+	SetHighlight(bIsDetected);
+
+	OnDetectionStateChanged.ExecuteIfBound(DetectingPlayerController, bIsDetected);
+}
+
 void UInteractableComponent::InitHighlightMaterial()
 {
 	const ABaseGimmick* OwnerGimmick = Cast<ABaseGimmick>(GetOwner());

@@ -13,7 +13,7 @@ class CR4S_API ADoorGimmick : public ADestructibleResourceGimmick
 	GENERATED_BODY()
 
 
-#pragma region ABaseBuildingGimmick Override
+#pragma region ADestructibleResourceGimmick Override
 
 public:
 	ADoorGimmick();
