@@ -9,6 +9,15 @@ struct FAIKeys
 	static const FName LastSeenLocation;
 	static const FName CanHearPlayer;
 	static const FName LastHeardLocation;
-	static const FName SearchState;
+	static const FName CurrentState;
+	static const FName LastHitTime;
 	static const FName IsDead;
+};
+
+struct FRegionBossAIKeys : public FAIKeys
+{
+	static const FName BaseCampLocation;
+	static const FName SkillIndex;
+	static const FName CurrentPhase;
+	static const FName ShouldReturn;
 };

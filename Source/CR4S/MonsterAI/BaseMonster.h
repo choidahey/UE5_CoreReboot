@@ -40,7 +40,7 @@ public:
 
 #pragma region BaseMonster Components
  
-public:
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
 

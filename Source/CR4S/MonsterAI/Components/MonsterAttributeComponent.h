@@ -36,7 +36,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	FORCEINLINE float GetCurrentHP() const { return CurrentHP; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	FMonsterAttributeRow GetMonsterAttribute() const { return CurrentAttribute; }
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FMonsterAttributeRow CurrentAttribute;
 

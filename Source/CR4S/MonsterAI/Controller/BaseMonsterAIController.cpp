@@ -4,6 +4,7 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "CR4S/MonsterAI/BaseMonster.h"
 #include "CR4S/MonsterAI/Components/MonsterPerceptionComponent.h"
+#include "CR4S/MonsterAI/Components/MonsterAttributeComponent.h"
 #include "CR4S/MonsterAI/Data/MonsterAIKeyNames.h"
 
 ABaseMonsterAIController::ABaseMonsterAIController()
@@ -36,9 +37,19 @@ void ABaseMonsterAIController::OnPossess(APawn* InPawn)
 
 		if (UBehaviorTree* BT = Monster->BehaviorTree)
 		{
-			UseBlackboard(BT->BlackboardAsset, BlackboardComp);
+			UBlackboardComponent* RawBBComp = BlackboardComp.Get();
+			UseBlackboard(BT->BlackboardAsset, RawBBComp);
 			RunBehaviorTree(BT);
 		}
+	}
+}
+
+void ABaseMonsterAIController::SetupPerceptionFromMonster(ABaseMonster* Monster)
+{
+	if (UMonsterAttributeComponent* AttributeComp = Monster->FindComponentByClass<UMonsterAttributeComponent>())
+	{
+		PerceptionComp->ApplySightConfigFromAttribute(AttributeComp->GetMonsterAttribute());
+		UE_LOG(LogTemp, Log, TEXT("[%s] SetupPerceptionFromMonster"), *MyHeader);
 	}
 }
 

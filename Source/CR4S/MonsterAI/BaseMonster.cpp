@@ -10,7 +10,7 @@
 ABaseMonster::ABaseMonster()
 	: MyHeader(TEXT("BaseMonster"))
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Initialize Components
 	AttributeComponent = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
@@ -47,25 +47,17 @@ void ABaseMonster::BeginPlay()
 	{
 		AnimComponent->Initialize(GetMesh());
 	}
+
+	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		AIC->SetupPerceptionFromMonster(this);
+	}
 }
 
 void ABaseMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsDead())
-	{
-		return;
-	}
-
-	if (StateComponent->IsInState(EMonsterState::Idle))
-	{
-		float TotalIdleTime = StateComponent->GetStateDuration(EMonsterState::Idle);
-		if (TotalIdleTime > 10.f)
-		{
-			//AnimComp->PlayIdleBoredAnimation();
-		}
-	}
 }
 
 void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
