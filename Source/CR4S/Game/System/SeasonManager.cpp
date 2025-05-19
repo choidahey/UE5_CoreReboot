@@ -46,6 +46,7 @@ void USeasonManager::ChangeToNextSeason()
 void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 {
 	CurrentSeason = NewSeason;
+	UE_LOG(LogTemp, Warning, TEXT("Current Season changed to: %s"), *UEnum::GetValueAsString(NewSeason));
 
 	HandleSeasonChange(NewSeason);
 }
