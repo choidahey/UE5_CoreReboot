@@ -2,6 +2,8 @@
 
 
 #include "CombatComponent.h"
+
+#include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -12,7 +14,8 @@ UCombatComponent::UCombatComponent():
 	bInputEnable(true),
 	bWeaponTrace(false),
 	PreviousTopLocation(FVector()),
-	PreviousBottomLocation(FVector())
+	PreviousBottomLocation(FVector()),
+	CurrentInputQueue(EInputType::None)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -23,7 +26,7 @@ UCombatComponent::UCombatComponent():
 
 void UCombatComponent::Input_OnAttack()
 {
-	if (!bInputEnable) return;
+	if (!CheckInputQueue(EInputType::Attack)) return;
 	OwningCharacter->PlayAnimMontage(AttackMontage);
 }
 
@@ -31,7 +34,7 @@ void UCombatComponent::PerformWeaponTrace()
 {
 	if (!bWeaponTrace) return;
 	UStaticMeshComponent* Weapon=OwningCharacter->GetOverlayStaticMesh();
-	if (Weapon) return;
+	if (!Weapon) return;
 	//Socket Location
 	FVector CurrentTop=Weapon->GetSocketLocation("Top");
 	FVector CurrentBottom=Weapon->GetSocketLocation("Bottom");
@@ -91,6 +94,10 @@ void UCombatComponent::PerformWeaponTrace()
 void UCombatComponent::SetInputEnable(bool Enable)
 {
 	bInputEnable=Enable;
+	if (Enable)
+	{
+		ExecuteInputQueue();
+	}
 }
 
 void UCombatComponent::SetWeaponTrace(bool Trace)
@@ -105,6 +112,46 @@ void UCombatComponent::SetWeaponTrace(bool Trace)
 	
 }
 
+void UCombatComponent::SetInputQueue(EInputType Input)
+{
+	CurrentInputQueue=Input;
+
+	if (BufferClearTimerHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(BufferClearTimerHandle);
+	}
+	GetWorld()->GetTimerManager().SetTimer(
+		BufferClearTimerHandle,
+		this,
+		&UCombatComponent::ClearInputQueue,
+		1.f,
+		false
+	);
+}
+
+bool UCombatComponent::CheckInputQueue(EInputType Input)
+{
+	if (bInputEnable) return true;
+
+	SetInputQueue(Input);
+	return false;
+}
+
+void UCombatComponent::ExecuteInputQueue()
+{
+	switch (CurrentInputQueue)
+	{
+	case EInputType::None:
+		
+		break;
+	case EInputType::Attack:
+		Input_OnAttack();
+		break;
+	default:
+		break;
+	}
+}
+
 
 // Called when the game starts
 void UCombatComponent::BeginPlay()
@@ -113,6 +160,12 @@ void UCombatComponent::BeginPlay()
 	
 	OwningCharacter=Cast<APlayerCharacter>(GetOwner());
 	
+}
+
+void UCombatComponent::ClearInputQueue()
+{
+	CurrentInputQueue=EInputType::None;
+	BufferClearTimerHandle.Invalidate();
 }
 
 
