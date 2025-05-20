@@ -27,11 +27,11 @@ struct FBaseItemData : public FBaseDataInfo
 	GENERATED_BODY()
 
 	FBaseItemData()
-		: MaxStack(0)
+		: MaxStack(1)
 	{
 	}
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "1"))
 	int32 MaxStack;
 };
 
@@ -47,7 +47,7 @@ struct FResourceItemData
 
 	UPROPERTY(EditAnywhere)
 	FName RowName;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
 	int32 Count;
 };
 
@@ -65,6 +65,6 @@ struct FBaseGimmickData : public FBaseDataInfo
 	TSoftClassPtr<class ABaseGimmick> GimmickClass;
 	UPROPERTY(EditAnywhere)
 	TArray<FResourceItemData> ResourceItemDataList;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0"))
 	float GimmickMaxHealth;
 };

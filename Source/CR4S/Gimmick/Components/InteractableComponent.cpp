@@ -1,13 +1,14 @@
 ﻿#include "InteractableComponent.h"
 
-#include "Gimmick/GimmickObjects/BaseGimmick/BaseGimmick.h"
+#include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 UInteractableComponent::UInteractableComponent()
-	: DefaultHighlightColor(FColor::Green)
+	: InteractionTraceChannel(ECC_GameTraceChannel1)
+	  , DefaultHighlightColor(FColor::Green)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	InteractionText = NSLOCTEXT("InteractableComponent", "InteractionText", "Default Interaction Text");
+	InteractionText = FText::FromString(TEXT("Default Interaction Text"));
 
 	HighlightOpacityParamName = TEXT("HighlightOpacity");
 	HighlightColorParamName = TEXT("HighlightColor");
@@ -17,8 +18,28 @@ void UInteractableComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UpdateTraceBlocking();
+
 	InitHighlightMaterial();
 }
+
+void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewResponse) const
+{
+	const AActor* Owner = GetOwner();
+	if (IsValid(Owner))
+	{
+		TArray<UMeshComponent*> MeshComponents;
+		Owner->GetComponents<UMeshComponent>(MeshComponents);
+		for (UMeshComponent* MeshComp : MeshComponents)
+		{
+			if (IsValid(MeshComp))
+			{
+				MeshComp->SetCollisionResponseToChannel(InteractionTraceChannel, NewResponse);
+			}
+		}
+	}
+}
+
 
 void UInteractableComponent::TryInteract(const APlayerController* PlayerController) const
 {
@@ -28,44 +49,52 @@ void UInteractableComponent::TryInteract(const APlayerController* PlayerControll
 	}
 }
 
+void UInteractableComponent::DetectionStateChanged(APlayerController* DetectingPlayerController,
+                                                   const bool bIsDetected) const
+{
+	SetHighlight(bIsDetected);
+
+	OnDetectionStateChanged.ExecuteIfBound(DetectingPlayerController, bIsDetected);
+}
+
 void UInteractableComponent::InitHighlightMaterial()
 {
-	const ABaseGimmick* OwnerGimmick = Cast<ABaseGimmick>(GetOwner());
-	if (IsValid(OwnerGimmick))
+	const AActor* Owner = GetOwner();
+	if (!IsValid(Owner))
 	{
-		UStaticMeshComponent* StaticMeshComponent = OwnerGimmick->GetGimmickMeshComponent();
-		if (IsValid(StaticMeshComponent))
-		{
-			HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
-			StaticMeshComponent->SetOverlayMaterial(HighlightMaterialInstance);
-
-			SetHighlight(false);
-			ChangeHighlightColor(DefaultHighlightColor);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("StaticMeshComponent is invalid"));
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Owner is invalid"));
+		return;
 	}
-	else
+
+	TArray<UMeshComponent*> MeshComponents;
+	Owner->GetComponents<UMeshComponent>(MeshComponents);
+	HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
+
+	if (!IsValid(HighlightMaterialInstance))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OwnerGimmick is invalid"));
+		UE_LOG(LogTemp, Warning, TEXT("HighlightMaterialInstance is invalid"));
+		return;
+	}
+
+	SetHighlight(false);
+	ChangeHighlightColor(DefaultHighlightColor);
+
+	for (UMeshComponent* MeshComp : MeshComponents)
+	{
+		if (IsValid(MeshComp))
+		{
+			MeshComp->SetOverlayMaterial(HighlightMaterialInstance);
+		}
 	}
 }
 
 void UInteractableComponent::SetHighlight(const bool bIsDetected) const
 {
-	if (IsValid(HighlightMaterialInstance))
-	{
-		const float Opacity = bIsDetected ? 1.f : 0.f;
-		HighlightMaterialInstance->SetScalarParameterValue(HighlightOpacityParamName, Opacity);
-	}
+	const float Opacity = bIsDetected ? 1.f : 0.f;
+	HighlightMaterialInstance->SetScalarParameterValue(HighlightOpacityParamName, Opacity);
 }
 
 void UInteractableComponent::ChangeHighlightColor(const FColor& InHighlightColor) const
 {
-	if (IsValid(HighlightMaterialInstance))
-	{
-		HighlightMaterialInstance->SetVectorParameterValue(HighlightColorParamName, InHighlightColor);
-	}
+	HighlightMaterialInstance->SetVectorParameterValue(HighlightColorParamName, InHighlightColor);
 }

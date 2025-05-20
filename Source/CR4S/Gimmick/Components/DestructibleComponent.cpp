@@ -1,10 +1,11 @@
 ﻿#include "DestructibleComponent.h"
 
-#include "Kismet/KismetSystemLibrary.h"
+#include "Character/CharacterController.h"
 
 UDestructibleComponent::UDestructibleComponent()
 	: MaxHealth(100.f)
 	  , CurrentHealth(100.f)
+	  , HitRecoveryTime(0.2f)
 	  , bCanTakeDamage(true)
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -24,9 +25,11 @@ void UDestructibleComponent::TakeDamage(AController* DamageCauserController, con
 	}
 
 	bCanTakeDamage = false;
-	
-	const APlayerController* PlayerController = Cast<APlayerController>(DamageCauserController);
-	if (IsValid(PlayerController))
+
+	LastDamageCauserController = DamageCauserController;
+
+	const ACharacterController* CharacterController = Cast<ACharacterController>(LastDamageCauserController);
+	if (IsValid(CharacterController))
 	{
 		CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
 
@@ -44,18 +47,18 @@ void UDestructibleComponent::TakeDamage(AController* DamageCauserController, con
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s is not PlayerController"), *DamageCauserController->GetName());
 	}
-	
+
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
-	TimerHandle,
-	[&]()
-	{
-		if (IsValid(this))
+		TimerHandle,
+		[&]()
 		{
-			bCanTakeDamage = true;
-		}
-	},
-	0.2f,
-	false
+			if (IsValid(this))
+			{
+				bCanTakeDamage = true;
+			}
+		},
+		HitRecoveryTime,
+		false
 	);
 }
