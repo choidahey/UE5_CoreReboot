@@ -27,6 +27,17 @@ void APlanterBoxGimmick::BeginPlay()
 	}
 }
 
+void APlanterBoxGimmick::OnGimmickDestroy()
+{
+	if (IsValid(PlantedGimmick))
+	{
+		PlantedGimmick->Destroy();
+		PlantedGimmick = nullptr;
+	}
+	
+	Super::OnGimmickDestroy();
+}
+
 void APlanterBoxGimmick::OnGimmickInteracted()
 {
 	if (!IsValid(InteractableComponent))

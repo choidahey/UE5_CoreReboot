@@ -20,8 +20,10 @@ public:
 
 	virtual void BeginPlay() override;
 
-#pragma endregion
+	virtual void OnGimmickDestroy() override;
 
+#pragma endregion
+	
 #pragma region UInteractableComponent
 
 public:
