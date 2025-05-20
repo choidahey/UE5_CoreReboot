@@ -32,9 +32,6 @@ protected:
 #pragma region Skill Usage
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void PlayPreMontage(int32 Index);
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
 	void UseSkill(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")

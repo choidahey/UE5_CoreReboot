@@ -60,7 +60,6 @@ TArray<FMonsterSkillData> UMonsterDataSubsystem::GetMonsterSkillData(const FName
     {
         if (!Row) continue;
         FMonsterSkillData Copy = *Row;
-        if (Copy.PreMontage.IsValid())  Copy.PreMontage.LoadSynchronous();
         if (Copy.SkillMontage.IsValid()) Copy.SkillMontage.LoadSynchronous();
         SkillDatas.Add(MoveTemp(Copy));
     }

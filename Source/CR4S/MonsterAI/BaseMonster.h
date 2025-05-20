@@ -67,9 +67,6 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void PlayPreMontage(int32 SkillIndex);
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
 	virtual void UseSkill(int32 SkillIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
@@ -80,7 +77,6 @@ public:
 #pragma region Monster Behavior - Death
 
 public:
-
 	virtual void Die();
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")

@@ -43,7 +43,6 @@ void UMonsterPerceptionComponent::ApplySightConfigFromAttribute(const FMonsterAt
 	OnTargetPerceptionUpdated.AddDynamic(this, &UMonsterPerceptionComponent::OnUpdatePerception);
 	RequestStimuliListenerUpdate();
 
-	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] Sight Radius = %.0f, LoseRadius = %.0f, SightAngle = %.0f"),
 		*MyHeader,
 		SightConfig->SightRadius,
@@ -64,8 +63,6 @@ void UMonsterPerceptionComponent::ApplySightConfigFromAttribute(const FMonsterAt
 
 void UMonsterPerceptionComponent::OnUpdatePerception(AActor* Actor, FAIStimulus Stimulus)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception"));
-
 	const bool bIsDetected = Stimulus.WasSuccessfullySensed();
 	const FName PlayerTag = TEXT("Player");
 
@@ -79,11 +76,6 @@ void UMonsterPerceptionComponent::OnUpdatePerception(AActor* Actor, FAIStimulus 
 	{
 		OnPlayerLost.Broadcast(Actor);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception: %s | Type: %s | Success: %s"),
-		*Actor->GetName(),
-		*Stimulus.Type.Name.ToString(),
-		Stimulus.WasSuccessfullySensed() ? TEXT("YES") : TEXT("NO"));
 }
 
 AActor* UMonsterPerceptionComponent::FindTaggedActorInSense(const TSubclassOf<UAISense> SenseClass, const FName& Tag) const

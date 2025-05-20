@@ -63,19 +63,6 @@ void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 	}
 }
 
-void UMonsterSkillComponent::PlayPreMontage(int32 Index)
-{
-	const FMonsterSkillData& Skill = SkillList[Index];
-
-	if (Skill.PreMontage.IsValid())
-	{
-		if (UAnimInstance* Anim = GetAnimInstance())
-		{
-			Anim->Montage_Play(Skill.PreMontage.Get());
-		}
-	}
-}
-
 void UMonsterSkillComponent::UseSkill(int32 Index)
 {
 	if (IsSkillReady(Index) == false)
