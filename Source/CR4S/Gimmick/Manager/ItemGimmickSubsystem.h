@@ -79,11 +79,20 @@ private:
 	
 #pragma endregion
 	
-#pragma region DataTable Spawn
+#pragma region Gimmick Spawn
 
 public:
-	UFUNCTION(BlueprintPure, Category = "ItemGimmickSubsystem")
-	ABaseGimmick* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation);
+	template<typename GimmickClass>
+	GimmickClass* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation)
+	{
+		ABaseGimmick* BaseGimmick = SpawnGimmick(RowName, SpawnLocation);
+		GimmickClass* Gimmick = Cast<GimmickClass>(BaseGimmick);
+
+		return Gimmick;
+	}
+
+private:
+	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation);
 
 #pragma endregion
 

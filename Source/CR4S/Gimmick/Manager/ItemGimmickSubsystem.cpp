@@ -156,7 +156,7 @@ const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowN
 	return FindRowFromDataTable<FBaseGimmickData>(GimmickDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
-ABaseGimmick* UItemGimmickSubsystem::SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation)
+ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation)
 {
 	if (!GimmickDataTable.IsValid())
 	{
