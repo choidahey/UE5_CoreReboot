@@ -37,24 +37,12 @@ void UMonsterStateComponent::SetState(EMonsterState NewState)
 {
 	if (NewState == CurrentState)
 	{
-		// NOTICE :: Test Log
-		UE_LOG(LogTemp, Log, TEXT("[%s] SetState : CurrentState is already %s."),
-			*MyHeader,
-			*UEnum::GetValueAsString(CurrentState)
-		);
 		return;
 	}
 
 	PreviousState = CurrentState;
 	CurrentState = NewState;
 	StateElapsedTime = 0.f;
-
-	// NOTICE :: Test Log
-	UE_LOG(LogTemp, Log, TEXT("[%s] SetState : MonsterState changes from %s to %s."),
-		*MyHeader,
-		*UEnum::GetValueAsString(PreviousState),
-		*UEnum::GetValueAsString(CurrentState)
-	);
 
 	// Broadcast delegate when state changes
 	OnStateChanged.Broadcast(PreviousState, CurrentState);

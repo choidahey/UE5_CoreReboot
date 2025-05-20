@@ -70,7 +70,10 @@ public:
 	void PlayPreMontage(int32 SkillIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void UseSkill(int32 SkillIndex);
+	virtual void UseSkill(int32 SkillIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	virtual int32 SelectSkillIndex();
 
 #pragma endregion
 
@@ -94,8 +97,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
 	FName MonsterID;
 
+	UFUNCTION(BlueprintCallable, Category = "Monster|Attribute")
+	FORCEINLINE UMonsterAttributeComponent* GetAttributeComponent() const { return AttributeComponent; }
+
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
 	FORCEINLINE UMonsterSkillComponent* GetSkillComponent() const { return SkillComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|State")
+	FORCEINLINE UMonsterStateComponent* GetStateComponent() const { return StateComponent; }
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Anim")
+	FORCEINLINE UMonsterAnimComponent* GetAnimComponent() const { return AnimComponent; }
 
 #pragma endregion
 

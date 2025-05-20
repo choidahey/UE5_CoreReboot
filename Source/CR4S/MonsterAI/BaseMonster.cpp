@@ -1,6 +1,7 @@
 #include "BaseMonster.h"
 #include "Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Components/MonsterAttributeComponent.h"
 #include "Components/MonsterSkillComponent.h"
 #include "Components/MonsterStateComponent.h"
@@ -96,6 +97,11 @@ void ABaseMonster::UseSkill(int32 SkillIndex)
 	}
 }
 
+int32 ABaseMonster::SelectSkillIndex()
+{
+	return 0;
+}
+
 void ABaseMonster::Die()
 {
 	if (StateComponent)
@@ -138,6 +144,14 @@ void ABaseMonster::HandleDeath()
 
 void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)
 {
+	if (auto* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		if (auto* BB = AIC->GetBlackboardComponent())
+		{
+			BB->SetValueAsInt(FAIKeys::CurrentState, static_cast<int32>(Current));
+		}
+	}
+
 	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] OnMonsterStateChanged : State changed from %s to %s."),
 		*MyHeader,

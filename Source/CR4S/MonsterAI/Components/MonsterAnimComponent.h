@@ -45,6 +45,7 @@ protected:
 #pragma region Montage Controls
 public:
 	void PlayMontange(UAnimMontage* Montage);
+	bool IsAnyMontagePlaying() const;
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	void StopAllMontages();
 
