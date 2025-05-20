@@ -7,6 +7,8 @@ UItemGimmickSubsystem::UItemGimmickSubsystem()
 	: ItemDataTable(nullptr)
 	  , GimmickDataTable(nullptr)
 {
+	ItemDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_ItemData.DT_ItemData"));
+	GimmickDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData"));
 }
 
 TArray<FName> UItemGimmickSubsystem::GetItemDataRowNames() const
@@ -32,15 +34,8 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 		return nullptr;
 	}
 
-	const UDataTable* LoadedTable = GimmickDataTable.Get();
-	if (!IsValid(LoadedTable))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable is invalid"));
-		return nullptr;
-	}
-
 	const FBaseGimmickData* GimmickData
-		= LoadedTable->FindRow<FBaseGimmickData>(RowName, FString(TEXT("Load Gimmick Data")));
+		= GimmickDataTable->FindRow<FBaseGimmickData>(RowName, FString(TEXT("Load Gimmick Data")));
 	if (!GimmickData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GimmickData is invalid"));
