@@ -7,6 +7,9 @@
 #include "HelperBotStatsSubsystem.h"
 #include "../Gimmick/Components/InteractableComponent.h"
 
+/**
+ * 
+ */
 ABaseHelperBot::ABaseHelperBot()
 {
 	PrimaryActorTick.bCanEverTick = true;
