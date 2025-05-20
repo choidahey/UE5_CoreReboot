@@ -22,10 +22,12 @@ public:
 #pragma region Attack
 public:
 	void Input_OnAttack();
+	void PerformWeaponTrace();
 #pragma endregion
 
 #pragma region InputState
 	void SetInputEnable(bool Enable);
+	void SetWeaponTrace(bool Trace);
 #pragma endregion
 	
 #pragma region OverrideFunctions
@@ -51,5 +53,10 @@ protected:
 
 #pragma region Cached
 	uint8 bInputEnable:1;
+	uint8 bWeaponTrace:1;
+	FVector PreviousTopLocation;
+	FVector PreviousBottomLocation;
+	UPROPERTY()
+	TSet<AActor*> AlreadyDamagedActors;
 #pragma endregion
 };

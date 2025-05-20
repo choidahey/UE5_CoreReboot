@@ -20,6 +20,12 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(GetMesh());
 	Camera->SetRelativeRotation_Direct({0.0f, 90.0f, 0.0f});
 
+	OverlaySkeletalMesh=CreateDefaultSubobject<USkeletalMeshComponent>(FName{TEXTVIEW("OverlaySkeletalMesh")});
+	OverlaySkeletalMesh->SetupAttachment(GetMesh());
+	
+	OverlayStaticMesh=CreateDefaultSubobject<UStaticMeshComponent>(FName{TEXTVIEW("OverlayStaticMesh")});
+	OverlayStaticMesh->SetupAttachment(GetMesh());
+	
 	Combat=CreateDefaultSubobject<UCombatComponent>(FName{TEXTVIEW("Combat")});
 
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
@@ -75,6 +81,13 @@ void APlayerCharacter::NotifyControllerChanged()
 	}
 
 	Super::NotifyControllerChanged();
+}
+
+float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	Status->AddCurrentHP(static_cast<int>(-DamageAmount));
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
 void APlayerCharacter::BeginPlay()

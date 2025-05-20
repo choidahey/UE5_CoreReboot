@@ -2,7 +2,6 @@
 
 
 #include "DefaultInGameWidget.h"
-
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/CharacterStatusWidget.h"
 
