@@ -8,4 +8,7 @@ UCLASS()
 class CR4S_API AHiemsFrostBossMonster : public ASeasonBossMonster
 {
 	GENERATED_BODY()
+
+public:
+	AHiemsFrostBossMonster();
 };

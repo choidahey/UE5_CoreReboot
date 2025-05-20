@@ -17,7 +17,7 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Chase")
-	float AcceptanceRadius;;
+	float AcceptanceRadius;
 
 private:
 	FAIRequestID MoveRequestID;
