@@ -4,9 +4,9 @@
 #include "Inventory/InventorySystemComponent.h"
 
 AGrowableGimmick::AGrowableGimmick()
-	: DetectingPlayerController(nullptr),
+	: HarvestText(FText::FromString(TEXT("수확 하기"))),
+	  DetectingPlayerController(nullptr),
 	  bIsDetected(false),
-	  HarvestText(FText::FromString(TEXT("수확 하기"))),
 	  bIsHarvestable(false),
 	  GrowthPercentPerInterval(10.f),
 	  IntervalSeconds(5.f),
@@ -112,6 +112,8 @@ void AGrowableGimmick::OnGimmickInteracted()
 			
 			if (Result.Success)
 			{
+				OnHarvest.ExecuteIfBound();
+				
 				Destroy();
 			}
 		}
@@ -154,7 +156,7 @@ void AGrowableGimmick::GrowthStageChanged(const int32 NewGrowthStage)
 		const FVector NewScale = FVector(GrowthStageScale[NewGrowthStage]);
 		GimmickMeshComponent->SetRelativeScale3D(NewScale);
 		
-		if (NewGrowthStage == GrowthStageThresholds.Num() - 1)
+		if (NewGrowthStage == GrowthStageThresholds.Num())
 		{
 			GetWorldTimerManager().ClearTimer(GrowthTimerHandle);
 			bIsHarvestable = true;
@@ -208,9 +210,9 @@ int32 AGrowableGimmick::CalculateGrowthStage() const
 	{
 		if (CurrentGrowthPercent >= GrowthStageThresholds[Index])
 		{
-			return Index;
+			return Index + 1;
 		}
 	}
 	
-	return -1;
+	return 0;
 }

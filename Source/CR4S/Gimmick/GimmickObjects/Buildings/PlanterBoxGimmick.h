@@ -4,6 +4,7 @@
 #include "Gimmick/GimmickObjects/DestructibleResourceGimmick.h"
 #include "PlanterBoxGimmick.generated.h"
 
+class AGrowableGimmick;
 struct FBaseItemData;
 class UInteractableComponent;
 
@@ -49,15 +50,16 @@ private:
 #pragma region Farming
 
 private:
-	bool IsHeldItemSeed() const;
+	UFUNCTION()
+	void OnHarvest();
 	
-#pragma endregion
-	
-#pragma region Delegate
+	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	TObjectPtr<USceneComponent> SpawnPoint;
 
-public:
-	DECLARE_DELEGATE_OneParam(FOnGrowthStageChanged, int32);
-	FOnGrowthStageChanged OnGrowthStageChanged;
+	UPROPERTY()
+	TObjectPtr<AGrowableGimmick> PlantedGimmick;
+	
+	bool IsHeldItemSeed() const;
 	
 #pragma endregion
 	

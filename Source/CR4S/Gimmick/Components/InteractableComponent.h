@@ -39,7 +39,7 @@ public:
 	FORCEINLINE void SetInteractionText(const FText& InInteractionText) { InteractionText = InInteractionText; }
 	
 private:
-	UPROPERTY(EditAnywhere, Category = "Interaction")
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")

@@ -1,10 +1,8 @@
 ﻿#include "InteractableComponent.h"
 
-#include "Gimmick/GimmickObjects/BaseGimmick.h"
-
 UInteractableComponent::UInteractableComponent()
-	: InteractionTraceChannel(ECC_GameTraceChannel1)
-	  , DefaultHighlightColor(FColor::Green)
+	: InteractionTraceChannel(ECC_GameTraceChannel1),
+	  DefaultHighlightColor(FColor::Green)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 

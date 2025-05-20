@@ -1,18 +1,19 @@
 ﻿#include "PlanterBoxGimmick.h"
 
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Gimmick/GimmickObjects/Farming/GrowableGimmick.h"
+#include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventorySystemComponent.h"
 
 APlanterBoxGimmick::APlanterBoxGimmick()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
-	if (IsValid(InteractableComponent))
-	{
-		InteractableComponent->SetInteractionText(FText::FromString(TEXT("심기 가능")));
-	}
+
+	SpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint"));
+	SpawnPoint->SetupAttachment(RootComponent);
+	SpawnPoint->SetMobility(EComponentMobility::Movable);
 }
 
 void APlanterBoxGimmick::BeginPlay()
@@ -42,8 +43,22 @@ void APlanterBoxGimmick::OnGimmickInteracted()
 
 	if (IsHeldItemSeed())
 	{
-		
-		return;
+		UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
+		if (IsValid(ItemGimmickSubsystem))
+		{
+			PlantedGimmick
+				= ItemGimmickSubsystem->SpawnGimmickByRowName<AGrowableGimmick>(TEXT("Crop"), SpawnPoint->GetComponentLocation());
+
+			if (!IsValid(PlantedGimmick))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Gimmick is not valid"));
+				return;
+			}
+
+			PlantedGimmick->OnHarvest.BindUObject(this, &ThisClass::OnHarvest);
+
+			InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
+		}
 	}
 }
 
@@ -54,6 +69,12 @@ void APlanterBoxGimmick::OnDetectionStateChanged(APlayerController* InDetectingP
 	bIsDetected = bInIsDetected;
 }
 
+void APlanterBoxGimmick::OnHarvest()
+{
+	PlantedGimmick = nullptr;
+	InteractableComponent->UpdateTraceBlocking(ECR_Block);
+}
+
 bool APlanterBoxGimmick::IsHeldItemSeed() const
 {
 	if (!IsValid(DetectingPlayerController) || !bIsDetected)
@@ -62,8 +83,15 @@ bool APlanterBoxGimmick::IsHeldItemSeed() const
 		return false;
 	}
 
+	const APawn* DetectingPawn = DetectingPlayerController->GetPawn();
+	if (!IsValid(DetectingPawn))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter is not valid"));
+		return false;
+	}
+	
 	const UInventorySystemComponent* InventorySystem
-		= DetectingPlayerController->FindComponentByClass<UInventorySystemComponent>();
+		= DetectingPawn->FindComponentByClass<UInventorySystemComponent>();
 
 	if (!IsValid(InventorySystem))
 	{
