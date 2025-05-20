@@ -29,49 +29,47 @@ void ABaseAnimal::LoadStats()
 {
     if (auto* Subsys = GetGameInstance()->GetSubsystem<UAnimalStatsSubsystem>())
     {
-        Subsys->GetStatsRowAsync(RowName, [this](const FAnimalStatsRow* Row)
+        const FAnimalStatsRow* Row = Subsys->GetStatsRow(RowName);
+        if (Row)
         {
-            if (Row)
+            StatsRow = Row;
+            CurrentStats = *Row;
+            bStatsReady = true;
+
+            const UEnum* EnumPtr = StaticEnum<EAnimalBehavior>();
+            if (EnumPtr)
             {
-                StatsRow = Row;
-                CurrentStats = *Row;
-                bStatsReady = true;
+                BehaviorTypeEnum = static_cast<EAnimalBehavior>(
+                    EnumPtr->GetValueByName(FName(*Row->BehaviorType))
+                );
+            }
 
-                const UEnum* EnumPtr = StaticEnum<EAnimalBehavior>();
-                if (EnumPtr)
-                {
-                    BehaviorTypeEnum = static_cast<EAnimalBehavior>(
-                        EnumPtr->GetValueByName(FName(*Row->BehaviorType))
-                    );
-                }
+            if (GetCharacterMovement())
+            {
+                GetCharacterMovement()->MaxWalkSpeed = CurrentStats.WalkSpeed;
+                GetCharacterMovement()->MaxAcceleration = 2048.f;
+                GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
+                GetCharacterMovement()->GroundFriction = 8.f;
+            }
 
-                if (GetCharacterMovement())
+            if (AAIController* AIController = Cast<AAIController>(GetController()))
+            {
+                if (AAnimalAIController* AnimalAI = Cast<AAnimalAIController>(AIController))
                 {
-                    GetCharacterMovement()->MaxWalkSpeed = CurrentStats.WalkSpeed;
-                    GetCharacterMovement()->MaxAcceleration = 2048.f;
-                    GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
-                    GetCharacterMovement()->GroundFriction = 8.f;
-                }
+                    AnimalAI->ApplyPerceptionStats(CurrentStats);
 
-                if (AAIController* AIController = Cast<AAIController>(GetController()))
-                {
-                    if (AAnimalAIController* AnimalAI = Cast<AAnimalAIController>(AIController))
+                    if (UBehaviorTree* BTAsset = AnimalAI->GetBehaviorTreeAsset())
                     {
-                        AnimalAI->ApplyPerceptionStats(CurrentStats);
-                        
-                        if (UBehaviorTree* BTAsset = AnimalAI->GetBehaviorTreeAsset())
-                        {
-                            AnimalAI->RunBehaviorTree(BTAsset);
-                            SetAnimalState(EAnimalState::Patrol);
-                        }
+                        AnimalAI->RunBehaviorTree(BTAsset);
+                        SetAnimalState(EAnimalState::Patrol);
                     }
                 }
             }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Animal Stats Load Fail"));
-            }
-        });
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Animal Stats Load Fail"));
+        }
     }
 }
 

@@ -142,6 +142,17 @@ void AAnimalAIController::Tick(float DeltaSeconds)
         Animal->GetActorLocation(),
         Animal->CurrentTarget->GetActorLocation()
     );
+    if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
+    {
+        if (TargetAnimal->CurrentState == EAnimalState::Dead)
+        {
+            Animal->ClearTarget();
+            BlackboardComponent->ClearValue(TEXT("TargetActor"));
+            Animal->SetAnimalState(EAnimalState::Patrol);
+            return;
+        }
+    }
+
     if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive && Animal->CurrentState == EAnimalState::Chase)
     {
         if (Distance <= Stats->AttackRange)

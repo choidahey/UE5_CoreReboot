@@ -24,7 +24,7 @@ EBTNodeResult::Type UBTTask_AnimalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 void UBTTask_AnimalAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!Animal || Animal->CurrentState == EAnimalState::Dead)
+	if (!IsValid(Animal) || Animal->IsActorBeingDestroyed())
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;

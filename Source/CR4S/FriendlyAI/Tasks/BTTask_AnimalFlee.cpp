@@ -74,7 +74,7 @@ void UBTTask_AnimalFlee::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 		return;
 	}
 	
-	if (!Animal || !IsValid(TargetToFlee) || Animal->CurrentState == EAnimalState::Dead)
+	if (!IsValid(Animal) || Animal->IsActorBeingDestroyed() || !IsValid(TargetToFlee))
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
