@@ -4,9 +4,8 @@
 #include "../UI/InGame/HelperBotStateManagerWidget.h"
 #include "Controller/HelperBotAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HelperBotStatsSubsystem.h"
 #include "../Gimmick/Components/InteractableComponent.h"
-
-
 
 ABaseHelperBot::ABaseHelperBot()
 {
@@ -17,6 +16,8 @@ void ABaseHelperBot::BeginPlay()
 {
 	Super::BeginPlay();
 
+	LoadStats();
+	
 	if (InteractableComp)
 	{
 		InteractableComp->SetInteractionText(FText::FromString("MySon"));
@@ -26,6 +27,31 @@ void ABaseHelperBot::BeginPlay()
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
 		MoveComp->SetAvoidanceEnabled(true);
+	}
+}
+
+void ABaseHelperBot::LoadStats()
+{
+	if (UHelperBotStatsSubsystem* Subsys = GetGameInstance()->GetSubsystem<UHelperBotStatsSubsystem>())
+	{
+		Subsys->GetStatsRowAsync(RowName, [this](const FHelperBotStatsRow* Row)
+		{
+			if (!Row)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[HelperBot] Stats Load Failed"));
+				return;
+			}
+
+			CurrentStats = *Row;
+
+			if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+			{
+				MoveComp->MaxWalkSpeed = CurrentStats.WalkSpeed;
+				MoveComp->JumpZVelocity = CurrentStats.JumpHeight;
+			}
+
+			CurrentHealth = CurrentStats.MaxHealth;
+		});
 	}
 }
 
