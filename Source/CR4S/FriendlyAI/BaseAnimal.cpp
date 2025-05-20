@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "../Gimmick/Components/InteractableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AnimalStatsSubsystem.h"
 
@@ -12,6 +13,9 @@ ABaseAnimal::ABaseAnimal()
     PrimaryActorTick.bCanEverTick = true;
     StunValue     = 0.f;
     CurrentTarget = nullptr;
+
+    InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+    InteractableComponent->SetActive(false);
 }
 
 void ABaseAnimal::BeginPlay()
@@ -121,28 +125,21 @@ void ABaseAnimal::PerformAttack()
     {
         AActor* HitActor = EachHit.GetActor();
         if (!HitActor || HitActor == this) continue;
-        
-        if (HitActor != CurrentTarget) continue;
 
-        if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(HitActor))
+        if (HitActor == CurrentTarget)
         {
-            if (HitAnimal->CurrentState == EAnimalState::Dead)
+            if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(HitActor))
             {
-                continue;
+                if (HitAnimal->CurrentState == EAnimalState::Dead)
+                {
+                    continue;
+                }
             }
+
+            float Damage = CurrentStats.AttackDamage;
+            UGameplayStatics::ApplyDamage(HitActor, Damage, GetController(), this, nullptr);
+            break;
         }
-
-        float Damage = CurrentStats.AttackDamage;
-
-        UGameplayStatics::ApplyDamage(
-            HitActor,
-            Damage,
-            GetController(),
-            this,
-            nullptr
-        );
-
-        break;
     }
 }
 
@@ -159,7 +156,19 @@ void ABaseAnimal::ApplyStun(float Amount)
     {
         UE_LOG(LogTemp, Log,
             TEXT("[%s] stun"), *GetClass()->GetName());
-        Die();
+        
+        SetAnimalState(EAnimalState::Stun);
+        bIsStunned = true;
+        GetWorldTimerManager().SetTimer(StunRecoverTimer, this, &ABaseAnimal::RecoverFromStun, StatsRow->StunDuration, false);
+    }
+}
+
+void ABaseAnimal::RecoverFromStun()
+{
+    if (CurrentState == EAnimalState::Stun)
+    {
+        bIsStunned = false;
+        SetAnimalState(EAnimalState::Patrol);
     }
 }
 
@@ -193,6 +202,13 @@ void ABaseAnimal::Die()
 void ABaseAnimal::SetAnimalState(EAnimalState NewState)
 {
     CurrentState = NewState;
+    
+    if (USkeletalMeshComponent* Skeletal = GetMesh())
+    {
+        const bool bEnableInteraction = (NewState == EAnimalState::Stun || NewState == EAnimalState::Dead);
+        Skeletal->SetCollisionResponseToChannel(ECC_GameTraceChannel1, bEnableInteraction ? ECR_Block : ECR_Ignore);
+    }
+    
     AAIController* AIController = Cast<AAIController>(Controller);
     if (AIController)
     {

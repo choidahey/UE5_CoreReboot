@@ -69,8 +69,13 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
                 {
                     return;
                 }
-            }
 
+                if (SensedAnimal->RowName == Animal->RowName)
+                {
+                    return;
+                }
+            }
+            
             BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
             Animal->CurrentTarget = Actor;
 
