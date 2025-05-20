@@ -3,7 +3,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "HelperBotState.h"
+#include "../UI/InGame/HelperBotStateManagerWidget.h"
 #include "BaseHelperBot.generated.h"
+
+class UInteractableComponent;
 
 UCLASS()
 class CR4S_API ABaseHelperBot : public ACharacter
@@ -16,17 +19,22 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
+	UPROPERTY()
+	UMaterialInstanceDynamic* HighlightMaterialInstance;
+
+public:
 	virtual void Tick(float DeltaTime) override;
-	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	EHelperBotState GetBotState() const { return CurrentState; }
-	
-	void SetBotState(EHelperBotState NewState);
-	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EHelperBotState CurrentState;
+	TObjectPtr<UInteractableComponent> InteractableComp;
 
+	UFUNCTION()
+	void HandleInteract();
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UHelperBotStateManagerWidget> StateUIClass;
+
+	UHelperBotStateManagerWidget* StateUIInstance;
 };

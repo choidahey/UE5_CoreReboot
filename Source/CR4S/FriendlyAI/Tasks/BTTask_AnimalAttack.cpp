@@ -30,6 +30,18 @@ void UBTTask_AnimalAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
 		return;
 	}
 
+	if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
+	{
+		if (TargetAnimal->CurrentState == EAnimalState::Dead)
+		{
+			Animal->ClearTarget();
+			OwnerComp.GetBlackboardComponent()->ClearValue(TEXT("TargetActor"));
+			Animal->SetAnimalState(EAnimalState::Patrol);
+			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+			return;
+		}
+	}
+
 	UAnimInstance* Anim = Animal->GetMesh()->GetAnimInstance();
 	if (!Anim || !Anim->Montage_IsPlaying(Animal->AttackMontage))
 	{

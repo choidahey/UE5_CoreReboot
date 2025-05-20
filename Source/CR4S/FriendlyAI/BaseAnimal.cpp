@@ -2,7 +2,8 @@
 #include "AIController.h"
 #include "Controller/AnimalAIController.h"
 #include "Kismet/GameplayStatics.h"
-#include "Navigation/PathFollowingComponent.h"  
+#include "Navigation/PathFollowingComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AnimalStatsSubsystem.h"
 
@@ -121,9 +122,11 @@ void ABaseAnimal::PerformAttack()
         AActor* HitActor = EachHit.GetActor();
         if (!HitActor || HitActor == this) continue;
         
+        if (HitActor != CurrentTarget) continue;
+
         if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(HitActor))
         {
-            if (HitAnimal->RowName == this->RowName)
+            if (HitAnimal->CurrentState == EAnimalState::Dead)
             {
                 continue;
             }
@@ -165,6 +168,7 @@ void ABaseAnimal::Die()
     if (CurrentState == EAnimalState::Dead) return;
     
     SetAnimalState(EAnimalState::Dead);
+    
     OnDied.Broadcast();
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
@@ -178,6 +182,9 @@ void ABaseAnimal::Die()
     UE_LOG(LogTemp, Log,
         TEXT("[%s] Die"), *GetClass()->GetName());
 
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    
     GetMesh()->SetSimulatePhysics(true);
     GetCharacterMovement()->Deactivate();
     SetLifeSpan(10.f);
