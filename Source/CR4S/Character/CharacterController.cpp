@@ -2,6 +2,7 @@
 
 
 #include "CharacterController.h"
+#include "Game/System/TimeCheatManager.h"
 
 ACharacterController::ACharacterController():
 	DefaultMappingContext(nullptr),
@@ -10,4 +11,5 @@ ACharacterController::ACharacterController():
 	JumpAction(nullptr),
 	SprintAction(nullptr)
 {
+	CheatClass = UTimeCheatManager::StaticClass();
 }

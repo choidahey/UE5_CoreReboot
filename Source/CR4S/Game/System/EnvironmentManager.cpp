@@ -1,23 +1,66 @@
 #include "Game/System/EnvironmentManager.h"
+#include "Engine/DataAsset.h"
+#include "Game/System/SeasonType.h"
 
 AEnvironmentManager::AEnvironmentManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
+	PrimaryActorTick.bCanEverTick = false;
 }
 
-// Called when the game starts or when spawned
 void AEnvironmentManager::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    // Load Weather if there is Save
+
+    //For NewGame, Season Starts with Bountiful Season
 }
 
-// Called every frame
-void AEnvironmentManager::Tick(float DeltaTime)
+void AEnvironmentManager::SetWeatherByName(const FString& WeatherName, float TransitionTime)
 {
-	Super::Tick(DeltaTime);
+    FString AssetPath = FString::Printf(TEXT("/Game/UltraDynamicSky/Blueprints/Weather_Effects/Weather_Presets/%s.%s"), *WeatherName, *WeatherName);
 
+    UObject* LoadedObject = StaticLoadObject(UDataAsset::StaticClass(), nullptr, *AssetPath);
+
+    if (UDataAsset* WeatherAsset = Cast<UDataAsset>(LoadedObject))
+    {
+        UE_LOG(LogTemp, Log, TEXT("Weather preset loaded: %s"), *WeatherName);
+        SetWeather(WeatherAsset, TransitionTime);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to load weather preset: %s"), *AssetPath);
+    }
 }
 
+void AEnvironmentManager::SetWeatherBySeason(ESeasonType Season, float TransitionTime)
+{
+    UDataAsset* SelectedPreset = nullptr;
+
+    switch (Season)
+    {
+    case ESeasonType::BountifulSeason:
+        SelectedPreset = BountifulSeasonPreset;
+        break;
+    case ESeasonType::FrostSeason:
+        SelectedPreset = FrostSeasonPreset;
+        break;
+    case ESeasonType::RainySeason:
+        SelectedPreset = RainySeasonPreset;
+        break;
+    case ESeasonType::DrySeason:
+        SelectedPreset = DrySeasonPreset;
+        break;
+    default:
+        UE_LOG(LogTemp, Warning, TEXT("SetWeatherBySeason: Unknown season type"));
+        return;
+    }
+
+    if (SelectedPreset)
+    {
+        SetWeather(SelectedPreset, TransitionTime);
+        UE_LOG(LogTemp, Log, TEXT("SetWeatherBySeason: Weather set for season %s"), *UEnum::GetValueAsString(Season));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("SetWeatherBySeason: Preset is not assigned for season %s"), *UEnum::GetValueAsString(Season));
+    }
+}
