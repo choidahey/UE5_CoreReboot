@@ -7,43 +7,23 @@ UInteractableComponent::UInteractableComponent()
 	  , DefaultHighlightColor(FColor::Green)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
-	InteractionText = NSLOCTEXT("InteractableComponent", "InteractionText", "Default Interaction Text");
+
+	InteractionText = FText::FromString(TEXT("Default Interaction Text"));
 
 	HighlightOpacityParamName = TEXT("HighlightOpacity");
 	HighlightColorParamName = TEXT("HighlightColor");
 }
 
-#if WITH_EDITOR
-void UInteractableComponent::OnComponentCreated()
-{
-	Super::OnComponentCreated();
-	UpdateTraceBlocking();
-}
-
-void UInteractableComponent::PostLoad()
-{
-	Super::PostLoad();
-	UpdateTraceBlocking();
-	
-}
-
-void UInteractableComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-	UpdateTraceBlocking();
-	
-}
-#endif
-
 void UInteractableComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UpdateTraceBlocking();
+
 	InitHighlightMaterial();
 }
 
-void UInteractableComponent::UpdateTraceBlocking() const
+void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewResponse) const
 {
 	const AActor* Owner = GetOwner();
 	if (IsValid(Owner))
@@ -54,7 +34,7 @@ void UInteractableComponent::UpdateTraceBlocking() const
 		{
 			if (IsValid(MeshComp))
 			{
-				MeshComp->SetCollisionResponseToChannel(InteractionTraceChannel, ECR_Block);
+				MeshComp->SetCollisionResponseToChannel(InteractionTraceChannel, NewResponse);
 			}
 		}
 	}
@@ -79,42 +59,42 @@ void UInteractableComponent::DetectionStateChanged(APlayerController* DetectingP
 
 void UInteractableComponent::InitHighlightMaterial()
 {
-	const ABaseGimmick* OwnerGimmick = Cast<ABaseGimmick>(GetOwner());
-	if (IsValid(OwnerGimmick))
+	const AActor* Owner = GetOwner();
+	if (!IsValid(Owner))
 	{
-		UStaticMeshComponent* StaticMeshComponent = OwnerGimmick->GetGimmickMeshComponent();
-		if (IsValid(StaticMeshComponent))
-		{
-			HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
-			StaticMeshComponent->SetOverlayMaterial(HighlightMaterialInstance);
-
-			SetHighlight(false);
-			ChangeHighlightColor(DefaultHighlightColor);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("StaticMeshComponent is invalid"));
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Owner is invalid"));
+		return;
 	}
-	else
+
+	TArray<UMeshComponent*> MeshComponents;
+	Owner->GetComponents<UMeshComponent>(MeshComponents);
+	HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
+
+	if (!IsValid(HighlightMaterialInstance))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OwnerGimmick is invalid"));
+		UE_LOG(LogTemp, Warning, TEXT("HighlightMaterialInstance is invalid"));
+		return;
+	}
+
+	SetHighlight(false);
+	ChangeHighlightColor(DefaultHighlightColor);
+
+	for (UMeshComponent* MeshComp : MeshComponents)
+	{
+		if (IsValid(MeshComp))
+		{
+			MeshComp->SetOverlayMaterial(HighlightMaterialInstance);
+		}
 	}
 }
 
 void UInteractableComponent::SetHighlight(const bool bIsDetected) const
 {
-	if (IsValid(HighlightMaterialInstance))
-	{
-		const float Opacity = bIsDetected ? 1.f : 0.f;
-		HighlightMaterialInstance->SetScalarParameterValue(HighlightOpacityParamName, Opacity);
-	}
+	const float Opacity = bIsDetected ? 1.f : 0.f;
+	HighlightMaterialInstance->SetScalarParameterValue(HighlightOpacityParamName, Opacity);
 }
 
 void UInteractableComponent::ChangeHighlightColor(const FColor& InHighlightColor) const
 {
-	if (IsValid(HighlightMaterialInstance))
-	{
-		HighlightMaterialInstance->SetVectorParameterValue(HighlightColorParamName, InHighlightColor);
-	}
+	HighlightMaterialInstance->SetVectorParameterValue(HighlightColorParamName, InHighlightColor);
 }

@@ -13,12 +13,6 @@ class CR4S_API UInteractableComponent : public UActorComponent
 
 public:
 	UInteractableComponent();
-
-#if WITH_EDITOR
-	virtual void OnComponentCreated() override;
-	virtual void PostLoad() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
 	
 	virtual void BeginPlay() override;
 	
@@ -26,8 +20,8 @@ public:
 
 #pragma region Initialize
 
-private:
-	void UpdateTraceBlocking() const;
+public:
+	void UpdateTraceBlocking(const ECollisionResponse NewResponse = ECR_Block) const;
 	
 #pragma endregion
 	
