@@ -140,9 +140,9 @@ bool UInteractionComponent::TryDetectProcess()
 
 		FHitResult HitResult;
 		const bool bHit = OwnerPlayerController->GetHitResultAtScreenPosition(
-			ScreenCenter, ECC_GameTraceChannel1, false, HitResult);
+			ScreenCenter, InteractionTraceChannel, false, HitResult);
 
-		DetectedActor = HitResult.GetActor();;
+		DetectedActor = HitResult.GetActor();
 		if (bHit && IsValid(DetectedActor))
 		{
 			const FVector HitPoint = HitResult.ImpactPoint;
