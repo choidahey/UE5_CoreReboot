@@ -19,5 +19,8 @@ struct FHelperBotStatsRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxHealth = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WoodDamagePerSecond = 0.f;
 	
 };

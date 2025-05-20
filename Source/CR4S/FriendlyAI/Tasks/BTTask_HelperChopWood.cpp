@@ -3,38 +3,54 @@
 #include "GameFramework/Actor.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
-#include "DestructibleInterface.h"
+#include "../BaseHelperBot.h"
 
 UBTTask_HelperChopWood::UBTTask_HelperChopWood()
 {
 	NodeName = TEXT("HelperChopWood");
 }
 
-EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(
-	UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory
-)
+EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-	if (!BlackboardComp)
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB) return EBTNodeResult::Failed;
+
+	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(ResourceTargetKey.SelectedKeyName));
+	if (!TargetActor) return EBTNodeResult::Failed;
+
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	if (Helper)
 	{
-		return EBTNodeResult::Failed;
+		CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
 	}
 
-	AActor* TargetActor = Cast<AActor>(
-	BlackboardComp->GetValueAsObject(ResourceTargetKey.SelectedKeyName)
-);
-	if (!TargetActor)
-	{
-		return EBTNodeResult::Failed;
-	}
-		
-	// const float DamageAmount = 10.f;
-	// APawn* HelperBotPawn = Cast<APawn>(OwnerComp.GetAIOwner()->GetPawn());
-	// AController* HelperBotController = OwnerComp.GetAIOwner();
-	//
-	// UGameplayStatics::ApplyDamage(TargetActor, DamageAmount, HelperBotController, HelperBotPawn, UDamageType::StaticClass());
+	CachedTarget = TargetActor;
+	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
 
-	TargetActor->Destroy();
+	return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
+}
+
+void UBTTask_HelperChopWood::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+	if (!CachedTarget || !CachedHelper)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
+
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	if (!Helper)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
+
+	const float DamageThisFrame = CachedDamagePerSecond * DeltaSeconds;
+	UGameplayStatics::ApplyDamage(CachedTarget, DamageThisFrame, Helper->GetController(), Helper, nullptr);
 	
-	return EBTNodeResult::Succeeded;
+	if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed())
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
 }

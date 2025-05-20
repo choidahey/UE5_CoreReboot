@@ -76,4 +76,15 @@ protected:
 	UMaterialInstanceDynamic* HighlightMaterialInstance = nullptr;
 	
 #pragma endregion
+
+#pragma region Getters
+	
+public:
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetWoodDamagePerSecond() const { return CurrentStats.WoodDamagePerSecond; }
+
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+#pragma endregion
+	
 };

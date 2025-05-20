@@ -10,6 +10,10 @@
 ABaseHelperBot::ABaseHelperBot()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
+	InteractableComp->SetInteractionText(FText::FromString("MySon"));
+	InteractableComp->OnTryInteract.BindUObject(this, &ABaseHelperBot::HandleInteract);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -17,12 +21,6 @@ void ABaseHelperBot::BeginPlay()
 	Super::BeginPlay();
 
 	LoadStats();
-	
-	if (InteractableComp)
-	{
-		InteractableComp->SetInteractionText(FText::FromString("MySon"));
-		InteractableComp->OnTryInteract.BindUObject(this, &ABaseHelperBot::HandleInteract);
-	}
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
