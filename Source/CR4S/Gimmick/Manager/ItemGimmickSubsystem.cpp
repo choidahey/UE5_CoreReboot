@@ -17,14 +17,30 @@ UItemGimmickSubsystem::UItemGimmickSubsystem()
 
 void UItemGimmickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection);
 	
+#if WITH_EDITOR
+	if (!ItemDataTable.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Start ItemDataTable loading..."));
+		ItemDataTable = ItemDataTable.LoadSynchronous();
+		UE_LOG(LogTemp, Warning, TEXT("End ItemDataTable load"));
+	}
+
+	if (!GimmickDataTable.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Start GimmickDataTable loading..."));
+		GimmickDataTable = GimmickDataTable.LoadSynchronous();
+		UE_LOG(LogTemp, Warning, TEXT("End GimmickDataTable load"));
+	}
+#endif
+	
+	Super::Initialize(Collection);
 }
 
 void UItemGimmickSubsystem::Deinitialize()
 {
 	UnloadAllDataTables();
-	
+
 	Super::Deinitialize();
 }
 
@@ -32,7 +48,7 @@ void UItemGimmickSubsystem::LoadDataTableAsync()
 {
 	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
 
-	if (ItemDataTable.ToSoftObjectPath().IsValid())
+	if (!ItemDataTable.IsValid() && ItemDataTable.ToSoftObjectPath().IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Start ItemDataTable loading..."));
 		StreamableManager.RequestAsyncLoad(
@@ -45,7 +61,7 @@ void UItemGimmickSubsystem::LoadDataTableAsync()
 		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable ReferencePath is invalid"));
 	}
 
-	if (GimmickDataTable.ToSoftObjectPath().IsValid())
+	if (!GimmickDataTable.IsValid() && GimmickDataTable.ToSoftObjectPath().IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Start GimmickDataTable loading..."));
 		StreamableManager.RequestAsyncLoad(
@@ -178,7 +194,7 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 		UE_LOG(LogTemp, Warning, TEXT("GimmickData is invalid"));
 		return nullptr;
 	}
-	
+
 	UClass* GimmickClass = GimmickData->GimmickClass.Get();
 	if (!IsValid(GimmickClass))
 	{
