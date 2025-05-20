@@ -22,15 +22,20 @@ struct FInventoryItem
 	{
 	}
 
-	FInventoryItem(const int32 InSlotIndex
-	               , const FName& InRowName
+	FInventoryItem(const FName& InRowName
 	               , UTexture2D* InIcon
 	               , const int32 InCount)
-		: SlotIndex(InSlotIndex)
+		: SlotIndex(0)
 		  , RowName(InRowName)
 		  , Icon(InIcon)
 		  , Count(InCount)
 	{
+	}
+
+	void SwapItem(FInventoryItem& Other)
+	{
+		Swap(SlotIndex, Other.SlotIndex);
+		Swap(*this, Other);
 	}
 
 	UPROPERTY()

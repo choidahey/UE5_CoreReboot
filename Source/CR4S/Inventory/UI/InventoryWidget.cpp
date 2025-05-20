@@ -33,5 +33,6 @@ void UInventoryWidget::SetItemWidget(const int32 SlotIndex, const FName& RowName
 	if (InventorySlotWidgets.IsValidIndex(SlotIndex))
 	{
 		InventorySlotWidgets[SlotIndex]->SetItem(ItemIcon, ItemCount);
+		UE_LOG(LogTemp, Warning, TEXT("SlotIndex: %d / ItemCount: %d"), SlotIndex, ItemCount);
 	}
 }

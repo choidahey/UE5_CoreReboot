@@ -145,7 +145,7 @@ void ADestructibleResourceGimmick::GetResourceItem() const
 			}
 
 			const FAddItemResult Result
-				= InventorySystem->AddItem(FInventoryItem(0, RowName, ItemData->Icon.Get(), Count));
+				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Icon.Get(), Count));
 
 			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
 			       , Result.Success, Result.AddedCount, Result.RemainingCount);

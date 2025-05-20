@@ -192,10 +192,7 @@ bool UInventorySystemComponent::SwapItems(const int32 FromIndex, const int32 ToI
 		return false;
 	}
 
-	const FInventoryItem TempItem = InventoryItems[FromIndex];
-
-	InventoryItems[FromIndex] = InventoryItems[ToIndex];
-	InventoryItems[ToIndex] = TempItem;
+	InventoryItems[FromIndex].SwapItem(InventoryItems[ToIndex]);
 
 	NotifyItemSlotsChanged({FromIndex, ToIndex});
 
