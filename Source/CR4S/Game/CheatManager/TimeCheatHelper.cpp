@@ -1,8 +1,8 @@
-#include "Game/System/TimeCheatManager.h"
+#include "Game/CheatManager/TimeCheatHelper.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Kismet/GameplayStatics.h"
 
-void UTimeCheatManager::AddMinute(int32 Amount)
+void UTimeCheatHelper::AddMinute(int32 Amount)
 {
     if (UWorld* World = GetWorld())
     {
@@ -14,7 +14,7 @@ void UTimeCheatManager::AddMinute(int32 Amount)
     }
 }
 
-void UTimeCheatManager::AddDay(int32 Amount)
+void UTimeCheatHelper::AddDay(int32 Amount)
 {
     if (UWorld* World = GetWorld())
     {

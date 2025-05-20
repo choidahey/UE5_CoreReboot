@@ -1,7 +1,5 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CharacterController.h"
+#include "Game/CheatManager/C4CheatManager.h"
 
 ACharacterController::ACharacterController():
 	DefaultMappingContext(nullptr),
@@ -10,4 +8,5 @@ ACharacterController::ACharacterController():
 	JumpAction(nullptr),
 	SprintAction(nullptr)
 {
+	CheatClass = UC4CheatManager::StaticClass();
 }

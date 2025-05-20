@@ -5,9 +5,6 @@
 
 #include "DestructibleComponent.generated.h"
 
-DECLARE_DELEGATE(FOnDestry);
-DECLARE_DELEGATE_TwoParams(FOnTakeDamage, float, float);
-
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UDestructibleComponent : public UActorComponent
 {
@@ -30,9 +27,6 @@ public:
 #pragma region Health
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Health")
-	void TakeDamage(AController* DamageCauserController, float DamageAmount);
-
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 	FORCEINLINE bool IsDestructed() const { return CurrentHealth <= 0.0f; }
@@ -49,15 +43,34 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Health")
 	float CurrentHealth;
 
-	UPROPERTY(VisibleAnywhere, Category = "Health")
+#pragma endregion
+
+#pragma region Hit
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Hit")
+	void TakeDamage(AController* DamageCauserController, float DamageAmount);
+
+	FORCEINLINE AController* GetLastDamageCauserController() const { return LastDamageCauserController; }
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Hit", meta = (ClampMin = "0.0"))
+	float HitRecoveryTime;
+
+	UPROPERTY(VisibleAnywhere, Category = "Hit")
 	bool bCanTakeDamage;
+
+	UPROPERTY(VisibleAnywhere, Category = "Hit")
+	TObjectPtr<AController> LastDamageCauserController;
 
 #pragma endregion
 
 #pragma region Delegate
 
 public:
+	DECLARE_DELEGATE_TwoParams(FOnTakeDamage, float, float);
 	FOnTakeDamage OnTakeDamage;
+	DECLARE_DELEGATE(FOnDestry);
 	FOnDestry OnDestroy;
 
 #pragma endregion
