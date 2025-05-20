@@ -1,7 +1,5 @@
 ﻿#include "DestructibleComponent.h"
 
-#include "Character/CharacterController.h"
-
 UDestructibleComponent::UDestructibleComponent()
 	: MaxHealth(100.f)
 	  , CurrentHealth(100.f)

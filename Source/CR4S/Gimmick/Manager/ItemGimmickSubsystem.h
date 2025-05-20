@@ -16,42 +16,6 @@ class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
 
 public:
 	UItemGimmickSubsystem();
-
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	virtual void Deinitialize() override;
-	
-#pragma endregion
-
-#pragma region DataTable Load
-
-public:
-	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Load")
-	void LoadDataTableAsync();
-
-	UTexture2D* LoadIcon(const TSoftObjectPtr<UTexture2D>& IconRef);
-	
-private:
-	void OnDataTableLoaded(TSoftObjectPtr<UDataTable>& DataTable, bool& bIsDataTableLoaded, const FString& DataTableName) const;
-	
-	void OnItemDataTableLoaded();
-	void OnGimmickDataTableLoaded();
-	
-	void CheckAllDataTableLoaded() const;
-	
-	void UnloadAllDataTables();
-
-	FSoftObjectPath DefaultItemDataTablePath;
-	FSoftObjectPath DefaultGimmickDataTablePath;
-	
-	UPROPERTY()
-	TSoftObjectPtr<UDataTable> ItemDataTable;
-	UPROPERTY()
-	TSoftObjectPtr<UDataTable> GimmickDataTable;
-	
-	bool bIsItemDataTableLoaded;
-	bool bIsGimmickDataTableLoaded;
-
-	TSet<FSoftObjectPath> LoadedPaths;
 	
 #pragma endregion
 
@@ -76,6 +40,11 @@ private:
 		
 		return nullptr;
 	}
+
+	UPROPERTY()
+	TObjectPtr<UDataTable> ItemDataTable;
+	UPROPERTY()
+	TObjectPtr<UDataTable> GimmickDataTable;
 	
 #pragma endregion
 	
@@ -92,15 +61,7 @@ public:
 	}
 
 private:
-	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation);
+	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation) const;
 
-#pragma endregion
-
-#pragma region Delegate
-
-public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDataTablesReady);
-	FOnDataTablesReady OnDataTablesReady;
-	
 #pragma endregion
 };
