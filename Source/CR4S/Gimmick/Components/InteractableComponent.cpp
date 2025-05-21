@@ -39,20 +39,17 @@ void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewRes
 }
 
 
-void UInteractableComponent::TryInteract(const APlayerController* PlayerController) const
+void UInteractableComponent::TryInteract(AController* Controller) const
 {
-	if (IsValid(PlayerController))
-	{
-		OnTryInteract.ExecuteIfBound();
-	}
+	OnTryInteract.ExecuteIfBound(Controller);
 }
 
-void UInteractableComponent::DetectionStateChanged(APlayerController* DetectingPlayerController,
+void UInteractableComponent::DetectionStateChanged(AController* DetectingController,
                                                    const bool bIsDetected) const
 {
 	SetHighlight(bIsDetected);
 
-	OnDetectionStateChanged.ExecuteIfBound(DetectingPlayerController, bIsDetected);
+	OnDetectionStateChanged.ExecuteIfBound(DetectingController, bIsDetected);
 }
 
 void UInteractableComponent::InitHighlightMaterial()

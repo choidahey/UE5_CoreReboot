@@ -5,7 +5,7 @@
 
 AGrowableGimmick::AGrowableGimmick()
 	: HarvestText(FText::FromString(TEXT("수확 하기"))),
-	  DetectingPlayerController(nullptr),
+	  DetectingController(nullptr),
 	  bIsDetected(false),
 	  bIsHarvestable(false),
 	  GrowthPercentPerInterval(10.f),
@@ -51,7 +51,7 @@ void AGrowableGimmick::BeginPlay()
 	}
 }
 
-void AGrowableGimmick::OnGimmickInteracted()
+void AGrowableGimmick::OnGimmickInteracted(AController* Controller)
 {
 	if (!IsValid(InteractableComponent))
 	{
@@ -59,9 +59,9 @@ void AGrowableGimmick::OnGimmickInteracted()
 		return;
 	}
 
-	if (!IsValid(DetectingPlayerController))
+	if (!IsValid(DetectingController))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DetectingPlayerController is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("DetectingController is not valid"));
 		return;
 	}
 
@@ -71,10 +71,10 @@ void AGrowableGimmick::OnGimmickInteracted()
 		return;
 	}
 
-	const APawn* DetectingPawn = DetectingPlayerController->GetPawn();
+	const APawn* DetectingPawn = DetectingController->GetPawn();
 	if (!IsValid(DetectingPawn))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("DetectingPawn is not valid"));
 		return;
 	}
 
@@ -120,12 +120,12 @@ void AGrowableGimmick::OnGimmickInteracted()
 	}
 }
 
-void AGrowableGimmick::OnDetectionStateChanged(APlayerController* InDetectingPlayerController, const bool bInIsDetected)
+void AGrowableGimmick::OnDetectionStateChanged(AController* InDetectingController, const bool bInIsDetected)
 {
-	DetectingPlayerController = InDetectingPlayerController;
+	DetectingController = InDetectingController;
 	bIsDetected = bInIsDetected;
 
-	if (IsValid(DetectingPlayerController) && bIsDetected)
+	if (Cast<APlayerController>(DetectingController) && bIsDetected)
 	{
 		UpdateInteractionText();
 	}
@@ -166,14 +166,14 @@ void AGrowableGimmick::GrowthStageChanged(const int32 NewGrowthStage)
 
 bool AGrowableGimmick::IsHeldItemSeed() const
 {
-	if (!IsValid(DetectingPlayerController) || !bIsDetected)
+	if (!IsValid(DetectingController) || !bIsDetected)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DetectingPlayerController is not valid or bIsDetected is false"));
+		UE_LOG(LogTemp, Warning, TEXT("DetectingController is not valid or bIsDetected is false"));
 		return false;
 	}
 
 	const UInventorySystemComponent* InventorySystem
-		= DetectingPlayerController->FindComponentByClass<UInventorySystemComponent>();
+		= DetectingController->FindComponentByClass<UInventorySystemComponent>();
 
 	if (!IsValid(InventorySystem))
 	{
@@ -188,7 +188,7 @@ void AGrowableGimmick::Grow()
 {
 	CurrentGrowthPercent = FMath::Clamp(CurrentGrowthPercent + GrowthPercentPerInterval, 0.f, MaxGrowthPercent);
 
-	if (IsValid(DetectingPlayerController) && bIsDetected)
+	if (Cast<APlayerController>(DetectingController) && bIsDetected)
 	{
 		UpdateInteractionText();
 	}

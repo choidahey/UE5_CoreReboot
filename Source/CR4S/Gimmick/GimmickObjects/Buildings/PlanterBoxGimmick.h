@@ -32,17 +32,17 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickInteracted();
+	virtual void OnGimmickInteracted(AController* Controller);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 
 private:
 	UFUNCTION()
-	void OnDetectionStateChanged(APlayerController* InDetectingPlayerController, bool bInIsDetected);
+	void OnDetectionStateChanged(AController* InDetectingController, bool bInIsDetected);
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	APlayerController* DetectingPlayerController;
+	AController* DetectingController;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
 	bool bIsDetected;

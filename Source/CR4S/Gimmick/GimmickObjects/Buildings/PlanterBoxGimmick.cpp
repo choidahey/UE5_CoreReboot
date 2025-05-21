@@ -38,15 +38,21 @@ void APlanterBoxGimmick::OnGimmickDestroy()
 	Super::OnGimmickDestroy();
 }
 
-void APlanterBoxGimmick::OnGimmickInteracted()
+void APlanterBoxGimmick::OnGimmickInteracted(AController* Controller)
 {
+	if (!IsValid(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Controller is not valid"));
+		return;
+	}
+	
 	if (!IsValid(InteractableComponent))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("InteractableComponent is not valid"));
 		return;
 	}
 
-	if (!IsValid(DetectingPlayerController))
+	if (!IsValid(DetectingController))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DetectingPlayerController is not valid"));
 		return;
@@ -73,10 +79,10 @@ void APlanterBoxGimmick::OnGimmickInteracted()
 	}
 }
 
-void APlanterBoxGimmick::OnDetectionStateChanged(APlayerController* InDetectingPlayerController,
+void APlanterBoxGimmick::OnDetectionStateChanged(AController* InDetectingController,
                                                  const bool bInIsDetected)
 {
-	DetectingPlayerController = InDetectingPlayerController;
+	DetectingController = InDetectingController;
 	bIsDetected = bInIsDetected;
 }
 
@@ -88,13 +94,13 @@ void APlanterBoxGimmick::OnHarvest()
 
 bool APlanterBoxGimmick::IsHeldItemSeed() const
 {
-	if (!IsValid(DetectingPlayerController) || !bIsDetected)
+	if (!IsValid(DetectingController) || !bIsDetected)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DetectingPlayerController is not valid or bIsDetected is false"));
 		return false;
 	}
 
-	const APawn* DetectingPawn = DetectingPlayerController->GetPawn();
+	const APawn* DetectingPawn = DetectingController->GetPawn();
 	if (!IsValid(DetectingPawn))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter is not valid"));
