@@ -18,6 +18,10 @@ class CR4S_API ACharacterController : public APlayerController
 public:
 	ACharacterController();
 
+protected:
+	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;	
+
 #pragma region IMC
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))

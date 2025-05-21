@@ -15,7 +15,7 @@
 AModularRobot::AModularRobot()
 {
 	//Set Tick
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -60,19 +60,34 @@ void AModularRobot::BeginPlay()
 
 void AModularRobot::NotifyControllerChanged()
 {
-	Super::NotifyControllerChanged();
-
-	// Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	const auto* PreviousPlayer{Cast<APlayerController>(PreviousController)};
+	if (IsValid(PreviousPlayer))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		auto* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PreviousPlayer->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
 		{
-			if (ACharacterController* MyController = Cast<ACharacterController>(PlayerController))
-			{
-				Subsystem->AddMappingContext(MyController->DefaultMappingContext, 0);
-			}
+			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
+
+	auto* NewPlayer{Cast<APlayerController>(GetController())};
+	if (IsValid(NewPlayer))
+	{
+		NewPlayer->InputYawScale_DEPRECATED = 1.0f;
+		NewPlayer->InputPitchScale_DEPRECATED = 1.0f;
+		NewPlayer->InputRollScale_DEPRECATED = 1.0f;
+
+		auto* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(NewPlayer->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
+		{
+			FModifyContextOptions Options;
+			Options.bNotifyUserSettings = true;
+
+			InputSubsystem->AddMappingContext(InputMappingContext, 0, Options);
+		}
+	}
+
+	Super::NotifyControllerChanged();
 }
 
 // Called every frame
@@ -150,20 +165,16 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		if (ACharacterController* MyController=Cast<ACharacterController>(GetController()))
 		{
 			// Moving
-			EnhancedInputComponent->BindAction(MyController->MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Move);
+			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Move);
 			//Looking
-			EnhancedInputComponent->BindAction(MyController->LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Look);
+			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Look);
 			//Sprinting
-			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::StartSprint);
-			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Completed, this, &AModularRobot::StopSprint);
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::StartSprint);
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AModularRobot::StopSprint);
 			// Jumping
-			EnhancedInputComponent->BindAction(MyController->JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-			EnhancedInputComponent->BindAction(MyController->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Jump);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::StopJumping);
 		}
-	}
-	else
-	{
-		//UE_LOG(LogTemp, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 

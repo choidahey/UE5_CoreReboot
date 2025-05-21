@@ -11,3 +11,17 @@ ACharacterController::ACharacterController():
 	SprintAction(nullptr)
 {
 }
+
+void ACharacterController::BeginPlay()
+{
+	SetInputMode(FInputModeGameOnly());
+	bShowMouseCursor = false;
+	Super::BeginPlay();
+}
+
+void ACharacterController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	//Bind Actions related UI
+}

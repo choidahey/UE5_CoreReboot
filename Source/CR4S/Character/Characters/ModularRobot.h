@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class UInputAction;
+class UInputMappingContext;
 class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
@@ -48,6 +50,30 @@ protected:
 	void StopSprint(const FInputActionValue& Value);
 #pragma endregion
 
+#pragma region InputActions
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputMappingContext> InputMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> MoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> DashAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> AttackAction;
+#pragma endregion
+	
 #pragma region Components
 private:
 	// === Components ===
