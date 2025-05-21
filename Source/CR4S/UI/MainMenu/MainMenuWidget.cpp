@@ -6,7 +6,6 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 
-
 void UMainMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -143,7 +142,12 @@ void UMainMenuWidget::OnSettingsButtonClicked()
 {
 	if (SettingsWidgetInstance)
 	{
-		SettingsWidgetInstance->AddToViewport(10);
+		if (!SettingsWidgetInstance->IsInViewport())
+		{
+			SettingsWidgetInstance->AddToViewport();
+		}
+		
+		SettingsWidgetInstance->HandleOpenWindow();
 	}
 }
 
