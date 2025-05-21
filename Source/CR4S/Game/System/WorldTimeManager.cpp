@@ -1,7 +1,8 @@
 #include "Game/System/WorldTimeManager.h"
 #include "Game/System/SeasonManager.h"
-
+#include "Game/System/EnvironmentManager.h"
 #include "UI/InGame/SurvivalHUD.h"
+#include "Kismet/GameplayStatics.h"
 
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -36,8 +37,16 @@ void UWorldTimeManager::OnPostWorldInit(UWorld* World, const UWorld::Initializat
 {
 	if (World == GetWorld())
 	{
-		World->GetTimerManager().SetTimer(TimeUpdateHandle, this, &UWorldTimeManager::UpdateTime, 1.0f, true);
-		UE_LOG(LogTemp, Warning, TEXT("WorldTimeManager: Timer started"));
+		if (!World->GetTimerManager().IsTimerActive(TimeUpdateHandle))
+		{
+			World->GetTimerManager().SetTimer(TimeUpdateHandle, this, &UWorldTimeManager::UpdateTime, 1.0f / WorldTimeMultiplier, true);
+		}
+	}
+
+	EnvironmentManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(World, AEnvironmentManager::StaticClass()));
+	if (!EnvironmentManager)
+	{
+		UE_LOG(LogTemp, Error, TEXT("WorldTimeManager: EnvironmentManager not found"));
 	}
 }
 
@@ -71,6 +80,7 @@ void UWorldTimeManager::UpdateTime()
 	}
 
 	UpdateTimeWidget();
+	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
 }
 
 void UWorldTimeManager::PauseTime()
@@ -147,6 +157,7 @@ void UWorldTimeManager::ModifyTime(int32 Day, int32 Minute)
 	}
 
 	UpdateTimeWidget();
+	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
 }
 
 void UWorldTimeManager::UpdateTimeWidget()
@@ -160,4 +171,17 @@ void UWorldTimeManager::UpdateTimeWidget()
 	if (!InGameHUD) return;
 
 	InGameHUD->SetTime(GetCurrentTimeData());
+}
+
+void UWorldTimeManager::AdvanceSkyTime(int32 Min, int32 Sec)
+{
+	if (!EnvironmentManager) {return;}
+
+	const int32 TotalSecondsInDay = DayLength * 60;
+	const int32 CurrentSeconds = Min * 60 + Sec;
+
+	const float TimeRatio = static_cast<float>(CurrentSeconds) / static_cast<float>(TotalSecondsInDay);
+	const int32 TimeOfDay = FMath::Clamp(static_cast<int32>(TimeRatio * 2400.0f), 0, 2400);
+
+	EnvironmentManager->SetSkyTime(TimeOfDay);
 }

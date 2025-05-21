@@ -3,20 +3,35 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 #include "Gimmick/Data/BaseDataInfo.h"
-#include "Gimmick/GimmickObjects/BaseGimmick/BaseGimmick.h"
+#include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
-	: ItemDataTable(FSoftObjectPath(TEXT("/Game/CR4S/_Data/Item/DT_ItemData.DT_ItemData")))
-	  , GimmickDataTable(FSoftObjectPath(TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData")))
+	: DefaultItemDataTablePath(TEXT("/Game/CR4S/_Data/Item/DT_ItemData.DT_ItemData"))
+	  , DefaultGimmickDataTablePath(TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData"))
+	  , ItemDataTable(DefaultItemDataTablePath)
+	  , GimmickDataTable(DefaultGimmickDataTablePath)
 	  , bIsItemDataTableLoaded(false)
 	  , bIsGimmickDataTableLoaded(false)
 {
 }
 
+void UItemGimmickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	
+}
+
+void UItemGimmickSubsystem::Deinitialize()
+{
+	UnloadAllDataTables();
+	
+	Super::Deinitialize();
+}
+
 void UItemGimmickSubsystem::LoadDataTableAsync()
 {
 	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
-	
+
 	if (ItemDataTable.ToSoftObjectPath().IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Start ItemDataTable loading..."));
@@ -44,6 +59,53 @@ void UItemGimmickSubsystem::LoadDataTableAsync()
 	}
 }
 
+UTexture2D* UItemGimmickSubsystem::LoadIcon(const TSoftObjectPtr<UTexture2D>& IconRef)
+{
+	if (!IconRef.ToSoftObjectPath().IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("IconRefPath is invalid"));
+		return nullptr;
+	}
+
+	UTexture2D* LoadedIcon = IconRef.LoadSynchronous();
+	if (IsValid(LoadedIcon))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Icon loaded successfully!"));
+		LoadedPaths.Add(IconRef.ToSoftObjectPath());
+	}
+
+	return LoadedIcon;
+}
+
+void UItemGimmickSubsystem::UnloadAllDataTables()
+{
+	// Unload ItemDataTable
+	if (ItemDataTable.IsValid())
+	{
+		const FSoftObjectPath ItemDataTablePath = ItemDataTable.ToSoftObjectPath();
+		UAssetManager::GetStreamableManager().Unload(ItemDataTablePath);
+		ItemDataTable = nullptr;
+		ItemDataTable = DefaultItemDataTablePath;
+	}
+
+	// Unload GimmickDataTable
+	if (GimmickDataTable.IsValid())
+	{
+		const FSoftObjectPath GimmickDataTablePath = GimmickDataTable.ToSoftObjectPath();
+		UAssetManager::GetStreamableManager().Unload(GimmickDataTablePath);
+		GimmickDataTable = nullptr;
+		GimmickDataTable = DefaultGimmickDataTablePath;
+	}
+
+	// Unload all loaded paths
+	for (const FSoftObjectPath& LoadedPath : LoadedPaths)
+	{
+		UAssetManager::GetStreamableManager().Unload(LoadedPath);
+	}
+
+	LoadedPaths.Empty();
+}
+
 void UItemGimmickSubsystem::OnDataTableLoaded(TSoftObjectPtr<UDataTable>& DataTable,
                                               bool& bIsDataTableLoaded, const FString& DataTableName) const
 {
@@ -57,7 +119,7 @@ void UItemGimmickSubsystem::OnDataTableLoaded(TSoftObjectPtr<UDataTable>& DataTa
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("%s loaded failed!"), *DataTableName);
+		UE_LOG(LogTemp, Warning, TEXT("%s loaded failed!"), *DataTableName);
 	}
 }
 
@@ -79,55 +141,70 @@ void UItemGimmickSubsystem::CheckAllDataTableLoaded() const
 	}
 }
 
+TArray<FName> UItemGimmickSubsystem::GetItemDataRowNames() const
+{
+	return ItemDataTable.IsValid() ? ItemDataTable->GetRowNames() : TArray<FName>();
+}
+
 const FBaseItemData* UItemGimmickSubsystem::FindItemData(const FName& RowName) const
 {
-	return FindRow<FBaseItemData>(ItemDataTable, RowName, TEXT("Load Item Data"));
+	return FindRowFromDataTable<FBaseItemData>(ItemDataTable, RowName, TEXT("Load Item Data"));
 }
 
 const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowName) const
 {
-	return FindRow<FBaseGimmickData>(GimmickDataTable, RowName, TEXT("Load Gimmick Data"));
+	return FindRowFromDataTable<FBaseGimmickData>(GimmickDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
-bool UItemGimmickSubsystem::SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation) const
+ABaseGimmick* UItemGimmickSubsystem::SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation)
 {
-	if (GimmickDataTable.IsValid())
+	if (!GimmickDataTable.IsValid())
 	{
-		const UDataTable* LoadedTable = GimmickDataTable.Get();
-		if (IsValid(LoadedTable))
-		{
-			const FBaseGimmickData* GimmickData = LoadedTable->FindRow<FBaseGimmickData>(
-				RowName, FString(TEXT("Load Gimmick Data")));
-			if (GimmickData)
-			{
-				UClass* Class = GimmickData->GimmickClass.LoadSynchronous();
-
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.SpawnCollisionHandlingOverride =
-					ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-				const ABaseGimmick* Gimmick = GetWorld()->SpawnActor<ABaseGimmick>(
-					Class, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-				if (IsValid(Gimmick))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Gimmick spawned successfully!"));
-					return true;
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("Gimmick spawned failed!"));
-				}
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("LoadedTable is invalid"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("GimmickDataTable is invalid"));
+		UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable is invalid"));
+		return nullptr;
 	}
 
-	return false;
+	const UDataTable* LoadedTable = GimmickDataTable.Get();
+	if (!IsValid(LoadedTable))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable is invalid"));
+		return nullptr;
+	}
+
+	const FBaseGimmickData* GimmickData
+		= LoadedTable->FindRow<FBaseGimmickData>(RowName, FString(TEXT("Load Gimmick Data")));
+	if (!GimmickData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GimmickData is invalid"));
+		return nullptr;
+	}
+	
+	UClass* GimmickClass = GimmickData->GimmickClass.Get();
+	if (!IsValid(GimmickClass))
+	{
+		GimmickClass = GimmickData->GimmickClass.LoadSynchronous();
+	}
+
+	if (!IsValid(GimmickClass))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GimmickClass is invalid"));
+		return nullptr;
+	}
+
+	LoadedPaths.Add(GimmickData->GimmickClass.ToSoftObjectPath());
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	ABaseGimmick* Gimmick
+		= GetWorld()->SpawnActor<ABaseGimmick>(GimmickClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+	if (!IsValid(Gimmick))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Gimmick is invalid"));
+		return nullptr;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Gimmick spawned successfully!"));
+	return Gimmick;
 }
