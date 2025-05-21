@@ -23,9 +23,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
-	TSoftObjectPtr<UDataTable> MonsterAttributeTablePtr = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
-	UDataTable* MonsterAttributeTable = nullptr;
+	TObjectPtr<UDataTable> MonsterAttributeTable = nullptr;
 #pragma endregion
 
 #pragma region SkillData
@@ -35,9 +33,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
-	UDataTable* MonsterSkillTable = nullptr;
-
-	//TMap<FName, TArray<FMonsterSkillData>> CacheSkillData;
+	TObjectPtr<UDataTable> MonsterSkillTable = nullptr;
 #pragma endregion
 
 private:

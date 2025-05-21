@@ -3,6 +3,9 @@
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "GameFramework/Pawn.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
+#include "MonsterAI/BaseMonster.h"
+#include "MonsterAI/MonsterAIHelper.h"
 
 UBTTaskNode_ChasePlayerDynamic::UBTTaskNode_ChasePlayerDynamic()
 	: AcceptanceRadius(100.f)
@@ -17,6 +20,10 @@ EBTNodeResult::Type UBTTaskNode_ChasePlayerDynamic::ExecuteTask(UBehaviorTreeCom
 	APawn* TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (!AIC || !TargetPlayer) return EBTNodeResult::Failed;
 
+	ABaseMonster* MonsterCharacter = MonsterAIHelper::GetControlledMonster(OwnerComp);
+	UMonsterStateComponent* StateComp = MonsterCharacter->GetStateComponent();
+
+	StateComp->SetState(EMonsterState::Chase);
 	MoveRequestID = AIC->MoveToActor(TargetPlayer, AcceptanceRadius, false);
 
 	return EBTNodeResult::InProgress;

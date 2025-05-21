@@ -6,6 +6,7 @@
 #include "MonsterSkillComponent.generated.h"
 
 class USkillDataSubsystem;
+class AHiemsIceSpike;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterSkillComponent : public UActorComponent
@@ -67,7 +68,7 @@ protected:
 	TArray<FTimerHandle> SkillCooldownTimers;
 
 #pragma endregion
-		
+
 private:
 	FString MyHeader;
 

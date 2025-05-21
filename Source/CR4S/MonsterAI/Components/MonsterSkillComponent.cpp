@@ -76,11 +76,11 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 	const FMonsterSkillData& Skill = SkillList[Index];
 	CurrentSkillIndex = Index;
 
-	if (Skill.SkillMontage.IsValid())
+	if (IsValid(Skill.SkillMontage))
 	{
 		if (UAnimInstance* Anim = GetAnimInstance())
 		{
-			Anim->Montage_Play(Skill.SkillMontage.Get());
+			Anim->Montage_Play(Skill.SkillMontage);
 		}
 	}
 

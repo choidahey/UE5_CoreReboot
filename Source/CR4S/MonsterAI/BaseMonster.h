@@ -82,6 +82,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	bool IsDead() const;
 
+	UFUNCTION()
+	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
 	bool bIsDead = false;

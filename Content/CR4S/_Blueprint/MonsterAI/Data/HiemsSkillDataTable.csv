@@ -1,3 +1,3 @@
-﻿,SkillName,PreMontage,SkillMontage,Damage,Cooldown,Range,Stunt
-WeakAttack,WeakAttack,/Game/Animations/PreMontage1.PreMontage1,/Game/Animations/SkillMontage1.SkillMontage1,3500,10,1000,800
-StrongAttack,StrongAttack,/Game/Animations/PreMontage2.PreMontage2,/Game/Animations/SkillMontage2.SkillMontage2,2000,10,400,300
+﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt
+StrongAttack,StrongAttack,/Game/DarkElementalBundle02/Animation/AM_HiemsStrongAttack.AM_HiemsStrongAttack,3500,10,1000,800
+WeakAttack,WeakAttack,/Game/DarkElementalBundle02/Animation/AM_HiemsWeakAttack.AM_HiemsWeakAttack,2000,10,400,300

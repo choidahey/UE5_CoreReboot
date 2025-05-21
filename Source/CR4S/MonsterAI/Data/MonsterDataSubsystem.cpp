@@ -3,16 +3,28 @@
 #include "CR4S/MonsterAI/Data/MonsterSkillData.h"
 
 UMonsterDataSubsystem::UMonsterDataSubsystem()
-	: MonsterAttributeTablePtr(FSoftObjectPath(TEXT("/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable.MonsterAttributeDataTable")))
-    , MyHeader(TEXT("MonsterDataSubsyetem"))
+	: MyHeader(TEXT("MonsterDataSubsyetem"))
 {
+    static ConstructorHelpers::FObjectFinder<UDataTable> MonsterAttributeDataTablePath(
+        TEXT("DataTable'/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable."
+            "MonsterAttributeDataTable'"));
+
+    if (MonsterAttributeDataTablePath.Succeeded())
+    {
+        MonsterAttributeTable = MonsterAttributeDataTablePath.Object;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[%s] Failed to find MonsterAttributeDataTable Path"), *MyHeader);
+    }
+
 }
 
 void UMonsterDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection);
+    Super::Initialize(Collection);
 
-	MonsterAttributeTable = MonsterAttributeTablePtr.LoadSynchronous();
+    UE_LOG(LogTemp, Log, TEXT("[%s] Loaded Attribute DataTable: %s"), *MyHeader, *MonsterAttributeTable->GetName());
 }
 
 FMonsterAttributeRow* UMonsterDataSubsystem::GetMonsterAttributeData(const FName MonsterID) const
@@ -38,19 +50,11 @@ TArray<FMonsterSkillData> UMonsterDataSubsystem::GetMonsterSkillData(const FName
         return SkillDatas;
     }
 
-    FSoftObjectPath SkillPath = MonsterAttributeRow->SkillDataTable.ToSoftObjectPath();
-    if (!SkillPath.IsValid())
-    {
-        UE_LOG(LogTemp, Warning,
-            TEXT("[%s] SkillDataTable path invalid for %s"), *MyHeader, *MonsterID.ToString());
-        return SkillDatas;
-    }
-
-    UDataTable* SkillTable = Cast<UDataTable>(SkillPath.TryLoad());
+    UDataTable* SkillTable = MonsterAttributeRow->SkillDataTable;
     if (!SkillTable)
     {
-        UE_LOG(LogTemp, Error,
-            TEXT("[%s] Failed to load SkillDataTable at %s"), *MyHeader, *SkillPath.ToString());
+        UE_LOG(LogTemp, Warning,
+            TEXT("[%s] SkillDataTable is null for %s"), *MyHeader, *MonsterID.ToString());
         return SkillDatas;
     }
 
@@ -58,10 +62,10 @@ TArray<FMonsterSkillData> UMonsterDataSubsystem::GetMonsterSkillData(const FName
     SkillTable->GetAllRows<FMonsterSkillData>(TEXT("GetMonsterSkillData"), SkillRows);
     for (FMonsterSkillData* Row : SkillRows)
     {
-        if (!Row) continue;
-        FMonsterSkillData Copy = *Row;
-        if (Copy.SkillMontage.IsValid()) Copy.SkillMontage.LoadSynchronous();
-        SkillDatas.Add(MoveTemp(Copy));
+        if (Row)
+        {
+            SkillDatas.Add(*Row);
+        }
     }
 
     UE_LOG(LogTemp, Log, TEXT("[%s] Success Loaded %d skills for %s"), *MyHeader, SkillDatas.Num(), *MonsterID.ToString());

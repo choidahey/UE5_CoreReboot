@@ -25,5 +25,5 @@ struct FMonsterAttributeRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float LoseSightRadius = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float PeripheralVisionAngleDegrees = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float HearingRange = 0.f;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite) TSoftObjectPtr<UDataTable> SkillDataTable = nullptr;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) TObjectPtr<UDataTable> SkillDataTable = nullptr;
 };
