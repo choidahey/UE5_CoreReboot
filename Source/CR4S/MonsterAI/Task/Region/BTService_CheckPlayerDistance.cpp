@@ -13,30 +13,26 @@ UBTService_CheckPlayerDistance::UBTService_CheckPlayerDistance()
 
 void UBTService_CheckPlayerDistance::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	ABaseMonster* Monster = MonsterAIHelper::GetControlledMonster(OwnerComp);
+	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
-	AActor* Target = BB ? Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName)) : nullptr;
-	if (!Monster || !Target)
-	{
-		return;
-	}
+	AActor* Target = BlackboardComp ? Cast<AActor>(BlackboardComp->GetValueAsObject(TargetActorKey.SelectedKeyName)) : nullptr;
+	if (!Monster || !Target) return;
 
 	const float Distance = FVector::DistSquared(Target->GetActorLocation(), Monster->GetActorLocation());
 	const FMonsterAttributeRow& Attribute = Monster->GetAttributeComponent()->GetMonsterAttribute();
 
 	if (UMonsterStateComponent* StateComp = Monster->GetStateComponent())
 	{
-		const EMonsterState CurrentState = StateComp->GetCurrentState();
-		if (CurrentState == EMonsterState::Idle && Distance <= FMath::Square(Attribute.SightRadius))
+		if (StateComp->IsInState(EMonsterState::Idle) && Distance <= FMath::Square(Attribute.SightRadius))
 		{
 			StateComp->SetState(EMonsterState::Alert);
 		}
-		else if (CurrentState == EMonsterState::Alert && Distance > FMath::Square(Attribute.SightRadius))
+		else if (StateComp->IsInState(EMonsterState::Alert) && Distance > FMath::Square(Attribute.SightRadius))
 		{
 			StateComp->SetState(EMonsterState::Idle);
 		}
-		else if(CurrentState == EMonsterState::Alert && Distance <= FMath::Square(Attribute.CombatRadius))
+		else if(StateComp->IsInState(EMonsterState::Alert) && Distance <= FMath::Square(Attribute.CombatRadius))
 		{
 			StateComp->SetState(EMonsterState::Combat);
 		}

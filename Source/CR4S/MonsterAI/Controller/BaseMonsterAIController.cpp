@@ -94,7 +94,6 @@ void ABaseMonsterAIController::OnTargetDetected(AActor* DetectedActor)
 
 	BlackboardComp->SetValueAsObject(FAIKeys::TargetActor, DetectedActor);
 	BlackboardComp->SetValueAsBool(FAIKeys::CanSeePlayer, true);
-	UE_LOG(LogTemp, Log, TEXT("[%s] OnTargetDetected : %s is detected."), *MyHeader, *DetectedActor->GetName());
 }
 
 void ABaseMonsterAIController::OnTargetLost(AActor* LostActor)

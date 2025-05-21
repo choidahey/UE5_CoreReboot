@@ -1,49 +1,37 @@
 #include "MonsterAI/Task/Region/BTService_CheckCombatZoneExit.h"
 #include "MonsterAI/BaseMonster.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
-#include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "NavigationSystem.h"
-#include "AIController.h"
 #include "MonsterAI/MonsterAIHelper.h"
-
-UBTService_CheckCombatZoneExit::UBTService_CheckCombatZoneExit()
-{
-	NodeName = TEXT("CheckCombatZoneExit");
-	Interval = 1.0f;
-}
 
 void UBTService_CheckCombatZoneExit::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	ABaseMonster* Monster = MonsterAIHelper::GetControlledMonster(OwnerComp);
-	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
-	if (!Monster || !BB)
-	{
-		return;
-	}
-
-	const UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(Monster->GetWorld());
-	if (!NavSystem)
-	{
-		return;
-	}
-
-	const FMonsterAttributeRow& Attribute = Monster->GetAttributeComponent()->GetMonsterAttribute();
-
-	FNavLocation Dummy;
-	const bool bMonsterOnNavMesh = NavSystem->ProjectPointToNavigation(Monster->GetActorLocation(), Dummy);
-	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FName("TargetActor")));
-	const bool bTargetOnNavMesh = Target ? NavSystem->ProjectPointToNavigation(Target->GetActorLocation(), Dummy) : false;
-
+	if (!Monster || !BlackboardComp) return;
+	
+	AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor));
+	if (!Target) return;
 
 	if (UMonsterStateComponent* StateComp = Monster->GetStateComponent())
 	{
-		if (StateComp->IsInState(EMonsterState::Combat) && (!bMonsterOnNavMesh || !bTargetOnNavMesh))
+		if (!StateComp->IsInState(EMonsterState::Combat)) return;
+			
+		const FVector PlayerLocation = Target->GetActorLocation();
+
+		FNavLocation Dummy;
+		const UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(Monster->GetWorld());
+		if (!NavSystem) return;
+
+		if (!NavSystem->ProjectPointToNavigation(PlayerLocation, Dummy, FVector(50, 50, 100)))
 		{
 			StateComp->SetState(EMonsterState::Return);
-			UE_LOG(LogTemp, Warning, TEXT("[NavMeshExit] Monster left NavMesh, returning."));
+			BlackboardComp->SetValueAsBool(FAIKeys::CanSeePlayer, false);
+
+			UE_LOG(LogTemp, Warning, TEXT("[NavMeshExit] Player left NavMesh, returning."));
 		}
 	}
-
 }

@@ -11,7 +11,7 @@ class CR4S_API ARegionBossMonster : public ABaseMonster
 {
 	GENERATED_BODY()
 
-#pragma region Constructor
+#pragma region Constructor & Override
 
 public:
 	ARegionBossMonster();
@@ -35,21 +35,10 @@ protected:
 #pragma region Return to BaseCamp
 public:
 	FORCEINLINE FVector GetBaseCampLocation() const { return BaseCampLocation;  }
+	FORCEINLINE void SetBaseCampLocation(const FVector& Loc) { BaseCampLocation = Loc; }
 
 public:
 	FVector BaseCampLocation;
-
-#pragma endregion
-
-#pragma region Bored Montages
-
-protected:
-	UFUNCTION()
-	void OnIdleBoredNotify();
-
-private:
-	UPROPERTY(EditDefaultsOnly, Category = "Animation|Idle")
-	TArray<TObjectPtr<UAnimMontage>> IdleBoredMontages;
 
 #pragma endregion
 
