@@ -11,6 +11,6 @@ class CR4S_API UAnimNotify_DeathCleanup : public UAnimNotify
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
-	void SpawnDeathEffect(AActor* Actor);
+	//void SpawnDeathEffect(AActor* Actor);
 
 };
