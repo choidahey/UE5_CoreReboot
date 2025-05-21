@@ -6,7 +6,9 @@
 #include "Components/MonsterSkillComponent.h"
 #include "Components/MonsterStateComponent.h"
 #include "Components/MonsterAnimComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Data/MonsterAIKeyNames.h" 
+#include "GameFramework/CharacterMovementComponent.h"
 
 ABaseMonster::ABaseMonster()
 	: MyHeader(TEXT("BaseMonster"))
@@ -96,25 +98,7 @@ int32 ABaseMonster::SelectSkillIndex()
 
 void ABaseMonster::Die()
 {
-	if (StateComponent)
-	{
-		StateComponent->SetState(EMonsterState::Dead);
-	}
-
-	// Update Blackboard
-	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
-	{
-		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
-		{
-			BB->SetValueAsBool(FAIKeys::IsDead, true);
-		}
-	}
-
-	// Play Death Montage
-	if (AnimComponent)
-	{
-		AnimComponent->PlayDeathMontage();
-	}
+	
 }
 
 bool ABaseMonster::IsDead() const
@@ -131,8 +115,48 @@ void ABaseMonster::HandleDeath()
 	}
 
 	bIsDead = true;
-	Die();
+	StateComponent->SetState(EMonsterState::Dead);
+
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		MoveComp->DisableMovement();
+
+	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		AIC->StopMovement();
+
+		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
+			BB->SetValueAsBool(FAIKeys::IsDead, true);
+	}
+
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (AnimComponent)
+	{
+		AnimComponent->PlayDeathMontage();
+	}
+
+	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	{
+		if (UAnimMontage* DeathMontage = AnimComponent->GetDeathMontage())
+		{
+			FOnMontageEnded EndDel;
+			EndDel.BindUObject(this, &ABaseMonster::OnDeathMontageEnded);
+			AnimInst->Montage_SetEndDelegate(EndDel, DeathMontage);
+		}
+	}
 }
+
+void ABaseMonster::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (bInterrupted)
+		return;
+
+	SetLifeSpan(4.f);
+}
+
 
 void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)
 {

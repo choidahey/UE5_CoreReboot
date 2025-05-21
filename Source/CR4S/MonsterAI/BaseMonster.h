@@ -77,11 +77,13 @@ public:
 #pragma region Monster Behavior - Death
 
 public:
-
 	virtual void Die();
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	bool IsDead() const;
+
+	UFUNCTION()
+	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")

@@ -7,6 +7,7 @@
 
 class USkillDataSubsystem;
 class UCapsuleComponent;
+class AHiemsIceSpike;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterSkillComponent : public UActorComponent

@@ -6,15 +6,15 @@
 UENUM(BlueprintType)
 enum class EMonsterState : uint8
 {
-    Idle        UMETA(DisplayName = "Idle"),
-    Patrol      UMETA(DisplayName = "Patrol"),
-    Chase       UMETA(DisplayName = "Chase"),
-    Alert       UMETA(DisplayName = "Alert"),
-    Combat      UMETA(DisplayName = "Combat"),
-    Return      UMETA(DisplayName = "Return"),
-    Attack      UMETA(DisplayName = "Attack"),
-    Hit         UMETA(DisplayName = "Hit"),
-    Casting     UMETA(DisplayName = "Casting"),
-    Stunned     UMETA(DisplayName = "Stunned"),
-    Dead        UMETA(DisplayName = "Dead")
+    Idle        = 0  UMETA(DisplayName = "Idle"),
+    Patrol      = 1  UMETA(DisplayName = "Patrol"),
+    Chase       = 2  UMETA(DisplayName = "Chase"),
+    Alert       = 3  UMETA(DisplayName = "Alert"),
+    Combat      = 4  UMETA(DisplayName = "Combat"),
+    Return      = 5  UMETA(DisplayName = "Return"),
+    Attack      = 6  UMETA(DisplayName = "Attack"),
+    Hit         = 7  UMETA(DisplayName = "Hit"),
+    Casting     = 8  UMETA(DisplayName = "Casting"),
+    Stunned     = 9  UMETA(DisplayName = "Stunned"),
+    Dead        = 10 UMETA(DisplayName = "Dead")
 };

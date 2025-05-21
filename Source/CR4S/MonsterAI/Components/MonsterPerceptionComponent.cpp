@@ -43,7 +43,6 @@ void UMonsterPerceptionComponent::ApplySightConfigFromAttribute(const FMonsterAt
 	OnTargetPerceptionUpdated.AddDynamic(this, &UMonsterPerceptionComponent::OnUpdatePerception);
 	RequestStimuliListenerUpdate();
 
-	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] Sight Radius = %.0f, LoseRadius = %.0f, SightAngle = %.0f"),
 		*MyHeader,
 		SightConfig->SightRadius,

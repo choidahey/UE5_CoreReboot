@@ -19,6 +19,8 @@ public:
 	/* Bind to SkeletalMesh & AnimInstance */
 	void Initialize(USkeletalMeshComponent* InMesh);
 
+	FORCEINLINE TObjectPtr<UAnimMontage> GetDeathMontage() const { return DeathMontage; }
+
 #pragma endregion
 
 #pragma region Montage References
