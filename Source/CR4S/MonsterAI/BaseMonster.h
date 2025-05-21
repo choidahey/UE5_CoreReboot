@@ -67,9 +67,6 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void PlayPreMontage(int32 SkillIndex);
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
 	virtual void UseSkill(int32 SkillIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")

@@ -22,6 +22,17 @@ protected:
 
 #pragma endregion
 
+#pragma region Monster Event Handler
+
+protected:
+	/* Called when target is detected via perception */
+	virtual void OnTargetDetected(AActor* DetectedActor) override;
+
+	/* Called when target is lost via perception */
+	virtual void OnTargetLost(AActor* LostActor) override;
+
+#pragma endregion
+
 private:
 	FString MyHeader;
 

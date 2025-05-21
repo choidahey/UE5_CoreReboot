@@ -1,5 +1,6 @@
 #include "MonsterSkillComponent.h"
 #include "CR4S/MonsterAI/Data/MonsterDataSubsystem.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/Character.h"
@@ -14,6 +15,28 @@ UMonsterSkillComponent::UMonsterSkillComponent()
 void UMonsterSkillComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (const AActor* Owner = GetOwner())
+	{
+		TArray<UCapsuleComponent*> CapsuleComps;
+		GetOwner()->GetComponents<UCapsuleComponent>(CapsuleComps);
+
+		for (UCapsuleComponent* Comp : CapsuleComps)
+		{
+			if (Comp->ComponentHasTag("WeaponCollider"))
+			{
+				WeaponColliders.Add(Comp);
+				Comp->OnComponentBeginOverlap.AddDynamic(this, &UMonsterSkillComponent::OnAttackHit);
+				UE_LOG(LogTemp, Warning, TEXT("[SkillComp] BeginPlay : Bind Overlap function with WeaponCollider."));
+			}
+			else if (Comp->ComponentHasTag("BodyCollider"))
+			{
+				BodyColliders.Add(Comp);
+				Comp->OnComponentBeginOverlap.AddDynamic(this, &UMonsterSkillComponent::OnAttackHit);
+				UE_LOG(LogTemp, Warning, TEXT("[SkillComp] BeginPlay : Bind Overlap function with BodyCollider."));
+			}
+		}
+	}
 }
 
 void UMonsterSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -39,7 +62,29 @@ void UMonsterSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 {
-	if (const UMonsterDataSubsystem* Subsys = GetWorld()->GetGameInstance()->GetSubsystem<UMonsterDataSubsystem>())
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] World is null in InitializeMonsterSkills"), *MyHeader);
+		return;
+	}
+
+	UGameInstance* GI = World->GetGameInstance();
+	if (!GI)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] GameInstance is null in InitializeMonsterSkills"), *MyHeader);
+		return;
+	}
+
+	auto* Subsys = GI->GetSubsystem<UMonsterDataSubsystem>();
+	if (!Subsys)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] UMonsterDataSubsystem is null"), *MyHeader);
+		return;
+	}
+
+	// if (const UMonsterDataSubsystem* Subsys = GetWorld()->GetGameInstance()->GetSubsystem<UMonsterDataSubsystem>())
+	if (Subsys)
 	{
 		SkillList.Empty();
 		bSkillReady.Empty();
@@ -60,19 +105,6 @@ void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills : %d skills loaded from MonsterSkillTable."), *MyHeader, SkillList.Num());
-	}
-}
-
-void UMonsterSkillComponent::PlayPreMontage(int32 Index)
-{
-	const FMonsterSkillData& Skill = SkillList[Index];
-
-	if (Skill.PreMontage.IsValid())
-	{
-		if (UAnimInstance* Anim = GetAnimInstance())
-		{
-			Anim->Montage_Play(Skill.PreMontage.Get());
-		}
 	}
 }
 
@@ -141,4 +173,69 @@ void UMonsterSkillComponent::ResetCooldown(int32 Index)
 		UE_LOG(LogTemp, Log, TEXT("[%s] ResetCooldown : Use skill %d."), *MyHeader, Index);
 		bSkillReady[Index] = true;
 	}
+}
+
+void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable, int32 InSkillIndex)
+{
+	CurrentSkillIndex = InSkillIndex;
+	const FMonsterSkillData& Skill = SkillList[CurrentSkillIndex];
+
+	if (Skill.bUseWeaponCollision && !WeaponColliders.IsEmpty())
+	{
+		for (UCapsuleComponent* Collider : WeaponColliders)
+		{
+			Collider->SetCollisionEnabled(bEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+		}
+	}
+
+	if (Skill.bUseBodyCollision && !BodyColliders.IsEmpty())
+	{
+		for (UCapsuleComponent* Collider : WeaponColliders)
+		{
+			Collider->SetCollisionEnabled(bEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+		}
+	}
+
+	if (bEnable)
+	{
+		AlreadyHitActors.Empty();
+	}
+}
+
+void UMonsterSkillComponent::OnAttackHit(
+	UPrimitiveComponent* HitComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
+{
+	if (!bIsAttackActive || !OtherActor || OtherActor == GetOwner())
+	{
+		return;
+	}
+
+	const FMonsterSkillData& CurrentSkillData = SkillList[CurrentSkillIndex];
+
+	if (!CurrentSkillData.bAllowMultipleHits && AlreadyHitActors.Contains(OtherActor))
+	{
+		return;
+	}
+
+	float Damage = CurrentSkillData.Damage;
+	if (WeaponColliders.Contains(HitComp) && CurrentSkillData.bUseWeaponCollision)
+	{
+		Damage = CurrentSkillData.Damage;
+	}
+	else if (BodyColliders.Contains(HitComp) && CurrentSkillData.bUseBodyCollision)
+	{
+		Damage *= CurrentSkillData.BodyDamage;
+	}
+	else
+	{
+		return;
+	}
+
+	UGameplayStatics::ApplyDamage(OtherActor, Damage, GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+	AlreadyHitActors.Add(OtherActor);
 }

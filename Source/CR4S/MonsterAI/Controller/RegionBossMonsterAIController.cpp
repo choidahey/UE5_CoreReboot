@@ -15,10 +15,24 @@ void ARegionBossMonsterAIController::OnPossess(APawn* InPawn)
 
 	if (ARegionBossMonster* RegionBoss = Cast<ARegionBossMonster>(InPawn))
 	{
+		if (UMonsterStateComponent* StateComp = RegionBoss->GetStateComponent())
+		{
+			StateComp->SetState(EMonsterState::Idle);
+		}
+
 		if (Blackboard)
 		{
 			Blackboard->SetValueAsVector(FRegionBossAIKeys::BaseCampLocation, RegionBoss->GetBaseCampLocation());
-			Blackboard->SetValueAsInt(FRegionBossAIKeys::CurrentState, static_cast<int32>(EMonsterState::Idle));
 		}
 	}
+}
+
+void ARegionBossMonsterAIController::OnTargetDetected(AActor* DetectedActor)
+{
+	Super::OnTargetDetected(DetectedActor);
+
+}
+
+void ARegionBossMonsterAIController::OnTargetLost(AActor* LostActor)
+{
 }

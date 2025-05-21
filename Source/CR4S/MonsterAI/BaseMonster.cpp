@@ -81,14 +81,6 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return DamageAmount;
 }
 
-void ABaseMonster::PlayPreMontage(int32 SkillIndex)
-{
-	if (SkillComponent)
-	{
-		SkillComponent->PlayPreMontage(SkillIndex);
-	}
-}
-
 void ABaseMonster::UseSkill(int32 SkillIndex)
 {
 	if (SkillComponent)

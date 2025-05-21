@@ -3,27 +3,27 @@
 #include "CR4S/MonsterAI/Data/MonsterSkillData.h"
 
 UMonsterDataSubsystem::UMonsterDataSubsystem()
-	: MonsterAttributeTablePtr(FSoftObjectPath(TEXT("/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable.MonsterAttributeDataTable")))
+    : MonsterAttributeTablePtr(FSoftObjectPath(TEXT("/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable.MonsterAttributeDataTable")))
     , MyHeader(TEXT("MonsterDataSubsyetem"))
 {
 }
 
 void UMonsterDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection);
+    Super::Initialize(Collection);
 
-	MonsterAttributeTable = MonsterAttributeTablePtr.LoadSynchronous();
+    MonsterAttributeTable = MonsterAttributeTablePtr.LoadSynchronous();
 }
 
 FMonsterAttributeRow* UMonsterDataSubsystem::GetMonsterAttributeData(const FName MonsterID) const
 {
-	if (!MonsterAttributeTable || !MonsterID.IsValid())
-	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] Invalid MonsterAttributeTable or MonsterID"), *MyHeader);
-		return nullptr;
-	}
+    if (!MonsterAttributeTable || !MonsterID.IsValid())
+    {
+        UE_LOG(LogTemp, Log, TEXT("[%s] Invalid MonsterAttributeTable or MonsterID"), *MyHeader);
+        return nullptr;
+    }
 
-	return MonsterAttributeTable->FindRow<FMonsterAttributeRow>(MonsterID, TEXT("Fail GetMonsterAttributeData"));
+    return MonsterAttributeTable->FindRow<FMonsterAttributeRow>(MonsterID, TEXT("Fail GetMonsterAttributeData"));
 }
 
 TArray<FMonsterSkillData> UMonsterDataSubsystem::GetMonsterSkillData(const FName MonsterID) const
@@ -60,7 +60,6 @@ TArray<FMonsterSkillData> UMonsterDataSubsystem::GetMonsterSkillData(const FName
     {
         if (!Row) continue;
         FMonsterSkillData Copy = *Row;
-        if (Copy.PreMontage.IsValid())  Copy.PreMontage.LoadSynchronous();
         if (Copy.SkillMontage.IsValid()) Copy.SkillMontage.LoadSynchronous();
         SkillDatas.Add(MoveTemp(Copy));
     }
