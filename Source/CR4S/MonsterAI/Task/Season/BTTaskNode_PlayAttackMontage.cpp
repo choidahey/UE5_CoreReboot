@@ -35,9 +35,8 @@ EBTNodeResult::Type UBTTaskNode_PlayAttackMontage::ExecuteTask(UBehaviorTreeComp
 	if (!AnimInstance)
 		return EBTNodeResult::Failed;
 
-	
-	// 현재 쿨이 돌아있는 스킬 인덱스 가져옴
-	// 스킬 조건 체크
+	// TODO :: Get Ready Skill Index
+	// TODO :: Check Skill Condition
 
 	StateComp->SetState(EMonsterState::Attack);
 	SkillComp->UseSkill(SkillComp->CurrentSkillIndex);
