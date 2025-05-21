@@ -9,4 +9,6 @@ class CR4S_API AC4SurvivalGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+
 };

@@ -2,6 +2,7 @@
 
 #include "DefaultInGameWidget.h"
 #include "TimeDisplayWidget.h"
+#include "PauseWidget.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "Game/System/WorldTimeManager.h"
@@ -40,21 +41,34 @@ public:
 protected:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UTimeDisplayWidget> TimeDisplayWidgetClass;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UI")
 	TSubclassOf<UDefaultInGameWidget> InGameWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
+	TSubclassOf<UPauseWidget> PauseWidgetClass;
 #pragma endregion
-	
-private:
-	virtual void BeginPlay() override;
-	
+
 #pragma region WidgetInstance
 protected:
+	//Move to InGameWidget 
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category="UI")
 	UTimeDisplayWidget* TimeDisplayWidget;
-
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category="UI")
 	TObjectPtr<UDefaultInGameWidget> InGameWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UPauseWidget> PauseWidget;
 #pragma endregion
-	
+
+#pragma region ToggleWidget
+public:
+	UFUNCTION(BlueprintCallable) //for prototype
+	void HandlePauseToggle();
+
+	void ToggleWidget(UUserWidget* Widget);
+	void HideWidget(UUserWidget* TargetWidget = nullptr); //Function To Hide Currently Visible Widget Window
+
+	UPROPERTY()
+	TArray<UUserWidget*> ActiveWidgets;
+#pragma endregion
+private:
+	virtual void BeginPlay() override;
 };
