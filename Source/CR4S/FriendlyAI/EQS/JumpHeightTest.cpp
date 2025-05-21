@@ -1,10 +1,12 @@
 #include "JumpHeightTest.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
-#include "AIController.h"
 #include "EnvironmentQuery/Items/EnvQueryItemType_Point.h"
+#include "AIController.h"
 #include "GameFramework/Pawn.h"
-#include "../Controller/HelperBotAIController.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
 
 UJumpHeightTest::UJumpHeightTest()
 {
@@ -17,30 +19,55 @@ UJumpHeightTest::UJumpHeightTest()
 
 void UJumpHeightTest::RunTest(FEnvQueryInstance& QueryInstance) const
 {
-	UObject* Querier = QueryInstance.Owner.Get();
-	if (!Querier)
+	UObject* QuerierObj = QueryInstance.Owner.Get();
+	AAIController* AICon = Cast<AAIController>(QuerierObj);
+	if (!AICon)
 	{
 		return;
 	}
-	
-	float MaxJumpHeightValue = MaxJumpHeight;
 
-	FVector QuerierLocation = FVector::ZeroVector;
-
-	if (const AAIController* AICon = Cast<AAIController>(Querier))
+	UWorld* World = AICon->GetWorld();
+	if (!World)
 	{
-		if (const APawn* Pawn = AICon->GetPawn())
-		{
-			QuerierLocation = Pawn->GetActorLocation();
-		}
+		return;
 	}
+
+	APawn* Pawn = AICon->GetPawn();
+	if (!Pawn)
+	{
+		return;
+	}
+
+	// 중력과 초기 속도 계산
+	const float Gravity = FMath::Abs(World->GetGravityZ());
+	const float InitialVz = FMath::Sqrt(2.f * Gravity * MaxJumpHeight);
+	const float FlightTime = (2.f * InitialVz) / Gravity;
+
+	// 최대 수평 이동 거리 계산
+	float MaxHorizontalDistance = 0.f;
+	if (const UCharacterMovementComponent* MoveComp = Pawn->FindComponentByClass<UCharacterMovementComponent>())
+	{
+		MaxHorizontalDistance = MoveComp->MaxWalkSpeed * FlightTime;
+	}
+
+	const FVector StartLoc = Pawn->GetActorLocation();
 
 	for (FEnvQueryInstance::FItemIterator It(this, QueryInstance); It; ++It)
 	{
-		FVector ItemLocation = GetItemLocation(QueryInstance, It.GetIndex());
-		float HeightDifference = FMath::Abs(ItemLocation.Z - QuerierLocation.Z);
-		bool bPass = HeightDifference <= MaxJumpHeightValue;
+		const FVector ItemLoc = GetItemLocation(QueryInstance, It.GetIndex());
+		const float DeltaZ = FMath::Abs(ItemLoc.Z - StartLoc.Z);
+		const float DeltaXY = FVector2D(ItemLoc - StartLoc).Size();
+		const bool bPass = (DeltaZ <= MaxJumpHeight) && (DeltaXY <= MaxHorizontalDistance);
+		
+		if (bPass)
+		{
+			DrawDebugCapsule(World, ItemLoc, 10.f, 5.f, FQuat::Identity, FColor::Green, false, 1.f);
+		}
+		else
+		{
+			DrawDebugCapsule(World, ItemLoc, 10.f, 5.f, FQuat::Identity, FColor::Red, false, 1.f);
+		}
 
-		It.SetScore(TestPurpose, FilterType, bPass ? 1.f : 0.f, 0.f, MaxJumpHeightValue);
+		It.SetScore(TestPurpose, FilterType, bPass ? 1.f : 0.f, 0.f, MaxJumpHeight);
 	}
 }
