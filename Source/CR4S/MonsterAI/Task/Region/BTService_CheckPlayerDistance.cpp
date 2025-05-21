@@ -2,6 +2,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/MonsterAIHelper.h"
 
 UBTService_CheckPlayerDistance::UBTService_CheckPlayerDistance()
@@ -13,27 +14,31 @@ UBTService_CheckPlayerDistance::UBTService_CheckPlayerDistance()
 void UBTService_CheckPlayerDistance::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (!BB)
-	{
-		return;
-	}
-
-	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName));
 	ABaseMonster* Monster = MonsterAIHelper::GetControlledMonster(OwnerComp);
-	if (!Target || !Monster)
+
+	AActor* Target = BB ? Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName)) : nullptr;
+	if (!Monster || !Target)
 	{
 		return;
 	}
 
 	const float Distance = FVector::DistSquared(Target->GetActorLocation(), Monster->GetActorLocation());
 	const FMonsterAttributeRow& Attribute = Monster->GetAttributeComponent()->GetMonsterAttribute();
-	
-	if (Distance <= Attribute.CombatRadius * Attribute.CombatRadius)
+
+	if (UMonsterStateComponent* StateComp = Monster->GetStateComponent())
 	{
-		BB->SetValueAsInt(NextStateKey.SelectedKeyName, (int32)EMonsterState::Combat);
-	}
-	else if (Distance <= Attribute.SightRadius * Attribute.SightRadius)
-	{
-		BB->SetValueAsInt(NextStateKey.SelectedKeyName, (int32)EMonsterState::Alert);
+		const EMonsterState CurrentState = StateComp->GetCurrentState();
+		if (CurrentState == EMonsterState::Idle && Distance <= FMath::Square(Attribute.SightRadius))
+		{
+			StateComp->SetState(EMonsterState::Alert);
+		}
+		else if (CurrentState == EMonsterState::Alert && Distance > FMath::Square(Attribute.SightRadius))
+		{
+			StateComp->SetState(EMonsterState::Idle);
+		}
+		else if(CurrentState == EMonsterState::Alert && Distance <= FMath::Square(Attribute.CombatRadius))
+		{
+			StateComp->SetState(EMonsterState::Combat);
+		}
 	}
 }
