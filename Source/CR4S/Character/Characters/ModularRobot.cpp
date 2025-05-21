@@ -4,11 +4,13 @@
 #include "ModularRobot.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Gimmick/Components/InteractableComponent.h"
 
 
 // Sets default values
@@ -19,6 +21,16 @@ AModularRobot::AModularRobot()
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+
+	//Set Mesh option
+	if (IsValid(GetMesh()))
+	{
+		GetMesh()->SetRelativeLocation_Direct({0.0f, 0.0f, -92.0f});
+		GetMesh()->SetRelativeRotation_Direct({0.0f, -90.0f, 0.0f});
+
+		GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickMontagesWhenNotRendered;
+		GetMesh()->bEnableUpdateRateOptimizations = false;
+	}
 	
 	// Don't rotate when the controller rotates.
 	bUseControllerRotationPitch = false;
@@ -49,13 +61,43 @@ AModularRobot::AModularRobot()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	//InteractableComponent
+	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
+}
+
+void AModularRobot::TryChangePossess(const APlayerController* InController)
+{
+	APlayerController* CurrentController=const_cast<APlayerController*>(InController);
+	if (!IsValid(CurrentController)) return;
+
+	APlayerCharacter* PreviousCharacter=Cast<APlayerCharacter>(CurrentController->GetPawn());
+	if (IsValid(PreviousCharacter))
+	{
+		PreviousCharacter->SetActorEnableCollision(false);
+		PreviousCharacter->SetActorTickEnabled(false);
+
+		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,true);
+		PreviousCharacter->AttachToComponent(
+			GetMesh(),
+			AttachRule,
+			FName("cockpit")
+		);
+	}
+	CurrentController->UnPossess();
+
+	CurrentController->Possess(this);
 }
 
 // Called when the game starts or when spawned
 void AModularRobot::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (InteractComp)
+	{
+		InteractComp->OnChangeCharacter.BindUObject(this,&AModularRobot::TryChangePossess);
+	}
 }
 
 void AModularRobot::NotifyControllerChanged()

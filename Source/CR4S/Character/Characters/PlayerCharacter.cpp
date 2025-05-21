@@ -139,6 +139,20 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 	}
 }
 
+void APlayerCharacter::UnPossessed()
+{
+	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		UEnhancedInputLocalPlayerSubsystem* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
+		{
+			InputSubsystem->RemoveMappingContext(InputMappingContext);
+		}
+	}
+	
+	Super::UnPossessed();
+}
+
 void APlayerCharacter::Input_OnLookMouse(const FInputActionValue& ActionValue)
 {
 	const FVector2f Value{ActionValue.Get<FVector2D>()};

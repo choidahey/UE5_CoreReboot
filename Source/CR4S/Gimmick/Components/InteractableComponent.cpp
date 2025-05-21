@@ -25,6 +25,7 @@ void UInteractableComponent::TryInteract(const APlayerController* PlayerControll
 	if (IsValid(PlayerController))
 	{
 		OnTryInteract.ExecuteIfBound();
+		OnChangeCharacter.ExecuteIfBound(PlayerController);
 	}
 }
 

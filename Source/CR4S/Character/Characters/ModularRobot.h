@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class UInteractableComponent;
 class UInputAction;
 class UInputMappingContext;
 class USpringArmComponent;
@@ -20,12 +21,17 @@ class CR4S_API AModularRobot : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AModularRobot();
+	
+#pragma region ChangePossess
+	void TryChangePossess(const APlayerController* InController);
+#pragma endregion
+	
 #pragma region OverrideFunctions
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -81,5 +87,7 @@ private:
 	TObjectPtr<USpringArmComponent> CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInteractableComponent> InteractComp;
 #pragma endregion
 };

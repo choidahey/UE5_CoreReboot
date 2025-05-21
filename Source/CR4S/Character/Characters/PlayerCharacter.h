@@ -40,6 +40,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& ViewInfo) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
+	virtual void UnPossessed() override;
 #pragma endregion
 	
 #pragma region InputFunction

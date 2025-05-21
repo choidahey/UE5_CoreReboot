@@ -4,11 +4,7 @@
 #include "CharacterController.h"
 
 ACharacterController::ACharacterController():
-	DefaultMappingContext(nullptr),
-	MoveAction(nullptr),
-	LookAction(nullptr),
-	JumpAction(nullptr),
-	SprintAction(nullptr)
+	MenuAction(nullptr)
 {
 }
 

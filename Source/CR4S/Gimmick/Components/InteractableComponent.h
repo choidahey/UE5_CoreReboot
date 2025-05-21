@@ -5,6 +5,7 @@
 #include "InteractableComponent.generated.h"
 
 DECLARE_DELEGATE(FOnTryInteract);
+DECLARE_DELEGATE_OneParam(FOnChangeCharacter, const APlayerController*);
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UInteractableComponent : public UActorComponent
@@ -67,6 +68,6 @@ private:
 
 public:
 	FOnTryInteract OnTryInteract;
-	
+	FOnChangeCharacter OnChangeCharacter;
 #pragma endregion
 };
