@@ -1,7 +1,5 @@
 ﻿#include "DestructibleComponent.h"
 
-#include "Character/CharacterController.h"
-
 UDestructibleComponent::UDestructibleComponent()
 	: MaxHealth(100.f)
 	  , CurrentHealth(100.f)
@@ -28,24 +26,16 @@ void UDestructibleComponent::TakeDamage(AController* DamageCauserController, con
 
 	LastDamageCauserController = DamageCauserController;
 
-	const ACharacterController* CharacterController = Cast<ACharacterController>(LastDamageCauserController);
-	if (IsValid(CharacterController))
+	CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
+
+	if (OnTakeDamage.IsBound())
 	{
-		CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
-
-		if (OnTakeDamage.IsBound())
-		{
-			OnTakeDamage.ExecuteIfBound(DamageAmount, CurrentHealth);
-		}
-
-		if (IsDestructed())
-		{
-			OnDestroy.ExecuteIfBound();
-		}
+		OnTakeDamage.ExecuteIfBound(DamageAmount, CurrentHealth);
 	}
-	else
+
+	if (IsDestructed())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s is not PlayerController"), *DamageCauserController->GetName());
+		OnDestroy.ExecuteIfBound();
 	}
 
 	FTimerHandle TimerHandle;
