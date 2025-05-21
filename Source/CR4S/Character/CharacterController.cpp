@@ -1,11 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "CharacterController.h"
+#include "Game/CheatManager/C4CheatManager.h"
 
 ACharacterController::ACharacterController():
 	MenuAction(nullptr)
 {
+	CheatClass = UC4CheatManager::StaticClass();
 }
 
 void ACharacterController::BeginPlay()
