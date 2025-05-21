@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class APlayerCharacter;
 class UInteractableComponent;
 class UInputAction;
 class UInputMappingContext;
@@ -23,7 +24,9 @@ public:
 	AModularRobot();
 	
 #pragma region ChangePossess
-	void TryChangePossess(AController* InController);
+	void MountRobot(AController* InController);
+	UFUNCTION(BlueprintCallable)
+	void UnMountRobot();
 #pragma endregion
 	
 #pragma region OverrideFunctions
@@ -79,6 +82,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> AttackAction;
 #pragma endregion
+
+#pragma region MountOffset
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
+	FVector UnMountLocation;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	FName MountSocketName;
+#pragma endregion
 	
 #pragma region Components
 private:
@@ -89,5 +100,9 @@ private:
 	TObjectPtr<UCameraComponent> FollowCamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
+#pragma endregion
+
+#pragma region Cached
+	TObjectPtr<APlayerCharacter> MountedCharacter; 
 #pragma endregion
 };

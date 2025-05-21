@@ -14,7 +14,9 @@
 
 
 // Sets default values
-AModularRobot::AModularRobot()
+AModularRobot::AModularRobot():
+	UnMountLocation(FVector(-200.f,0.f,0.f)),
+	MountSocketName("cockpit")
 {
 	//Set Tick
 	PrimaryActorTick.bCanEverTick = false;
@@ -66,13 +68,14 @@ AModularRobot::AModularRobot()
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 }
 
-void AModularRobot::TryChangePossess(AController* InController)
+void AModularRobot::MountRobot(AController* InController)
 {
 	if (!IsValid(InController)) return;
 
 	ACharacter* PreviousCharacter=Cast<ACharacter>(InController->GetPawn());
 	if (IsValid(PreviousCharacter))
 	{
+		MountedCharacter=Cast<APlayerCharacter>(PreviousCharacter);
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
 
@@ -80,12 +83,37 @@ void AModularRobot::TryChangePossess(AController* InController)
 		PreviousCharacter->AttachToComponent(
 			GetMesh(),
 			AttachRule,
-			FName("cockpit")
+			MountSocketName
 		);
 	}
 	InController->UnPossess();
-
 	InController->Possess(this);
+}
+
+void AModularRobot::UnMountRobot()
+{
+	ACharacter* NextCharacter=MountedCharacter.Get();
+	if (IsValid(NextCharacter))
+	{
+		NextCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		
+		FVector UnMountOffset=GetActorForwardVector()*UnMountLocation;
+		FVector DropLocation=GetActorLocation()+UnMountOffset;
+		NextCharacter->TeleportTo(DropLocation,NextCharacter->GetActorRotation(),false,true);
+		
+		NextCharacter->SetActorEnableCollision(true);
+		NextCharacter->SetActorTickEnabled(true);
+	}
+
+	if (AController* CurrentController=GetController())
+	{
+		CurrentController->UnPossess();
+		if (IsValid(NextCharacter))
+		{
+			CurrentController->Possess(NextCharacter);
+		}
+	}
+	MountedCharacter=nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -95,7 +123,7 @@ void AModularRobot::BeginPlay()
 
 	if (InteractComp)
 	{
-		InteractComp->OnTryInteract.BindUObject(this,&AModularRobot::TryChangePossess);
+		InteractComp->OnTryInteract.BindUObject(this,&AModularRobot::MountRobot);
 	}
 }
 
