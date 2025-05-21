@@ -66,12 +66,11 @@ AModularRobot::AModularRobot()
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 }
 
-void AModularRobot::TryChangePossess(const APlayerController* InController)
+void AModularRobot::TryChangePossess(AController* InController)
 {
-	APlayerController* CurrentController=const_cast<APlayerController*>(InController);
-	if (!IsValid(CurrentController)) return;
+	if (!IsValid(InController)) return;
 
-	APlayerCharacter* PreviousCharacter=Cast<APlayerCharacter>(CurrentController->GetPawn());
+	ACharacter* PreviousCharacter=Cast<ACharacter>(InController->GetPawn());
 	if (IsValid(PreviousCharacter))
 	{
 		PreviousCharacter->SetActorEnableCollision(false);
@@ -84,9 +83,9 @@ void AModularRobot::TryChangePossess(const APlayerController* InController)
 			FName("cockpit")
 		);
 	}
-	CurrentController->UnPossess();
+	InController->UnPossess();
 
-	CurrentController->Possess(this);
+	InController->Possess(this);
 }
 
 // Called when the game starts or when spawned
@@ -96,7 +95,7 @@ void AModularRobot::BeginPlay()
 
 	if (InteractComp)
 	{
-		InteractComp->OnChangeCharacter.BindUObject(this,&AModularRobot::TryChangePossess);
+		InteractComp->OnTryInteract.BindUObject(this,&AModularRobot::TryChangePossess);
 	}
 }
 

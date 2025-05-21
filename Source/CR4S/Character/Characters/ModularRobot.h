@@ -23,7 +23,7 @@ public:
 	AModularRobot();
 	
 #pragma region ChangePossess
-	void TryChangePossess(const APlayerController* InController);
+	void TryChangePossess(AController* InController);
 #pragma endregion
 	
 #pragma region OverrideFunctions
