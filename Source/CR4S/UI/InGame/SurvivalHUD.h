@@ -64,10 +64,7 @@ public:
 	void HandlePauseToggle();
 
 	void ToggleWidget(UUserWidget* Widget);
-	void HideWidget(UUserWidget* TargetWidget = nullptr); //Function To Hide Currently Visible Widget Window
 
-	UPROPERTY()
-	TArray<UUserWidget*> ActiveWidgets;
 #pragma endregion
 private:
 	virtual void BeginPlay() override;

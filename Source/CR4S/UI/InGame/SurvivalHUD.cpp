@@ -59,37 +59,10 @@ void ASurvivalHUD::ToggleWidget(UUserWidget* Widget)
 
     if (bIsVisible)
     {
-        HideWidget(Widget);
+        Widget->SetVisibility(ESlateVisibility::Collapsed);
     }
     else
     {
         Widget->SetVisibility(ESlateVisibility::Visible);
-        ActiveWidgets.Add(Widget);
     }
 }
-
-void ASurvivalHUD::HideWidget(UUserWidget* TargetWidget)
-{
-    if (TargetWidget)
-    {
-        if (ActiveWidgets.Contains(TargetWidget) && TargetWidget->GetVisibility() == ESlateVisibility::Visible)
-        {
-            TargetWidget->SetVisibility(ESlateVisibility::Collapsed);
-            ActiveWidgets.Remove(TargetWidget);
-        }
-    }
-    else
-    {
-        if (ActiveWidgets.Num() > 0)
-        {
-            UUserWidget* LastWindow = ActiveWidgets.Last();
-            if (LastWindow && LastWindow->GetVisibility() == ESlateVisibility::Visible)
-            {
-                LastWindow->SetVisibility(ESlateVisibility::Collapsed);
-            }
-
-            ActiveWidgets.Pop();
-        }
-    }
-}
-
