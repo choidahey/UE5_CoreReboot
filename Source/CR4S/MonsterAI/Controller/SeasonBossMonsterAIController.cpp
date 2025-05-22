@@ -7,6 +7,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "MonsterAI/Manager/SeasonBossCheatManager.h"
+
+ASeasonBossMonsterAIController::ASeasonBossMonsterAIController()
+	: MyHeader(TEXT("SeasonBossAIController"))
+{
+}
 
 void ASeasonBossMonsterAIController::OnPossess(APawn* InPawn)
 {
@@ -77,6 +83,17 @@ FVector ASeasonBossMonsterAIController::GetNearestHouseLocation(const FVector& P
 	}
 
 	return NearestActor->GetActorLocation();
+}
+
+void ASeasonBossMonsterAIController::KillSeasonBoss(const FString MonsterID)
+{
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (auto* Cheat = Cast<USeasonBossCheatManager>(PC->CheatManager))
+		{
+			Cheat->KillMonster(MonsterID);
+		}
+	}
 }
 
 
