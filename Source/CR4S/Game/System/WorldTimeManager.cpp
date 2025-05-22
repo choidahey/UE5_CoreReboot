@@ -80,6 +80,7 @@ void UWorldTimeManager::UpdateTime()
 	}
 
 	UpdateTimeWidget();
+	OnWorldTimeUpdated.Broadcast(TotalPlayTime);
 	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
 }
 
@@ -156,7 +157,9 @@ void UWorldTimeManager::ModifyTime(int32 Day, int32 Minute)
 		}
 	}
 
+
 	UpdateTimeWidget();
+	OnWorldTimeUpdated.Broadcast(TotalPlayTime);
 	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
 }
 
@@ -170,7 +173,7 @@ void UWorldTimeManager::UpdateTimeWidget()
 	ASurvivalHUD* InGameHUD = Cast<ASurvivalHUD>(PC->GetHUD());
 	if (!InGameHUD) return;
 
-	InGameHUD->SetTime(GetCurrentTimeData());
+	InGameHUD->GetInGameWidget()->UpdateTimeWidget(GetCurrentTimeData());
 }
 
 void UWorldTimeManager::AdvanceSkyTime(int32 Min, int32 Sec)

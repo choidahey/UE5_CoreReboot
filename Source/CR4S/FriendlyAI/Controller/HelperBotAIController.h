@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "../HelperBotState.h"
+#include "EnvironmentQuery/EnvQueryTypes.h"
+#include "EnvironmentQuery/EnvQueryInstanceBlueprintWrapper.h"
 #include "HelperBotAIController.generated.h"
 
 class UBehaviorTree;
@@ -19,10 +21,13 @@ public:
 	virtual void BeginPlay() override;
 	
 	void SetBotState(EHelperBotState NewState);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float JumpHeight = 300.f;
 
 protected:
 	void RunBotLogic();
-
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UBehaviorTree* BehaviorTreeAsset;
@@ -32,4 +37,11 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly)
 	FName StateKeyName = TEXT("HelperBotState");
+
+	
+public:
+	void RunEQSQuery();
+
+protected:
+	void OnEQSQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 };

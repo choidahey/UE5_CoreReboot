@@ -20,7 +20,24 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 
 	AActor* TargetActor = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
 	if (!TargetActor) return EBTNodeResult::Failed;
+	
+	if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(TargetActor))
+	{
+		if (TargetAnimal->RowName == Animal->RowName || TargetAnimal->CurrentState == EAnimalState::Dead)
+		{
 
+			Animal->ClearTarget();
+			if (UBlackboardComponent* BB = Controller->GetBlackboardComponent())
+			{
+				BB->ClearValue(TEXT("TargetActor"));
+			}
+
+			Animal->SetAnimalState(EAnimalState::Patrol);
+
+			return EBTNodeResult::Failed;
+		}
+	}
+	
 	TargetToChase = TargetActor;
 
 	const FVector TargetLocation = TargetActor->GetActorLocation();
@@ -48,6 +65,16 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		return;
 	}
 
+	if (!IsValid(TargetToChase) || (Cast<ABaseAnimal>(TargetToChase) && Cast<ABaseAnimal>(TargetToChase)->CurrentState == EAnimalState::Dead))
+	{
+		if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+		{
+			BB->ClearValue(TEXT("TargetActor"));
+		}
+		Animal->ClearTarget();
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
 		
 	const FVector SelfLocation = Animal->GetActorLocation();
 	const FVector TargetLocation = TargetToChase->GetActorLocation();

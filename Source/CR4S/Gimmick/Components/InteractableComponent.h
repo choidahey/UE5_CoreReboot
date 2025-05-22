@@ -28,9 +28,9 @@ public:
 #pragma region Interaction
 
 public:
-	void TryInteract(const APlayerController* PlayerController) const;
+	void TryInteract(AController* Controller) const;
 
-	void DetectionStateChanged(APlayerController* DetectingPlayerController, const bool bIsDetected) const;
+	void DetectionStateChanged(AController* DetectingController, const bool bIsDetected) const;
 	
 	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Interaction")
 	FORCEINLINE FText GetInteractionText() const { return InteractionText; }
@@ -39,7 +39,7 @@ public:
 	FORCEINLINE void SetInteractionText(const FText& InInteractionText) { InteractionText = InInteractionText; }
 	
 private:
-	UPROPERTY(EditAnywhere, Category = "Interaction")
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
@@ -76,11 +76,10 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DELEGATE_TwoParams(FOnDetectionStateChanged, APlayerController*, const bool);
+	DECLARE_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, const bool);
 	FOnDetectionStateChanged OnDetectionStateChanged;
 	
-	DECLARE_DELEGATE(FOnTryInteract);
+	DECLARE_DELEGATE_OneParam(FOnTryInteract, AController*);
 	FOnTryInteract OnTryInteract;
-	
 #pragma endregion
 };
