@@ -10,21 +10,16 @@ ACharacterController::ACharacterController():
 	SprintAction(nullptr)
 {
 	CheatClass = UC4CheatManager::StaticClass();
-	PrimaryActorTick.bTickEvenWhenPaused = true;
 }
 
-void ACharacterController::HandleTogglePauseMenu()
+void ACharacterController::OnPauseRequested()
 {
     UE_LOG(LogTemp, Log, TEXT("HandleTogglePauseMenu() called."));
 
     ASurvivalHUD* InGameHUD = Cast<ASurvivalHUD>(GetHUD());
-    if (InGameHUD)
-    {
-        UE_LOG(LogTemp, Log, TEXT("Successfully cast to ASurvivalHUD. Toggling pause menu."));
-        InGameHUD->HandlePauseToggle();
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Failed to cast HUD to ASurvivalHUD."));
-    }
+	if (InGameHUD)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Successfully cast to ASurvivalHUD. Toggling pause menu."));
+		InGameHUD->HandlePauseToggle();
+	}
 }

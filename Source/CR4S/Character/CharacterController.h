@@ -33,6 +33,6 @@ public:
 
 #pragma region Direct Key Binding Handle Function
 	UFUNCTION(BlueprintCallable)
-	void HandleTogglePauseMenu();
+	void OnPauseRequested();
 #pragma endregion
 };

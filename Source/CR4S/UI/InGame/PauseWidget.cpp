@@ -1,5 +1,6 @@
 #include "UI/InGame/PauseWidget.h"
 #include "Components/Button.h"
+#include "Game/GameMode/C4SurvivalGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 void UPauseWidget::NativeConstruct()
@@ -26,7 +27,6 @@ void UPauseWidget::OnResumeButtonClicked()
 	{
 		OnResumeRequested.Execute();
 	}
-
 }
 
 void UPauseWidget::OnSettingsButtonClicked()
@@ -36,5 +36,9 @@ void UPauseWidget::OnSettingsButtonClicked()
 
 void UPauseWidget::OnToMenuButtonClicked()
 {
-	UGameplayStatics::OpenLevel(this, FName("MenuLevel"));
+	AC4SurvivalGameMode* GM = Cast<AC4SurvivalGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		GM->ReturnToMenu();
+	}
 }

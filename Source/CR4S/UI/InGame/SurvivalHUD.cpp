@@ -19,6 +19,11 @@ void ASurvivalHUD::SetTime(FWorldTimeData CurrentTimeData)
     TimeDisplayWidget->UpdateTime(CurrentTimeData.Day, CurrentTimeData.Minute, CurrentTimeData.Second);
 }
 
+void ASurvivalHUD::PlayEndingSequence()
+{
+    EndingWidget = CreateAndAddWidget<UEndingSummaryWidget>(EndingSummaryWidgetClass, 11, ESlateVisibility::Visible);
+}
+
 void ASurvivalHUD::HandlePauseToggle()
 {
     const bool bIsVisible = PauseWidget->GetVisibility() == ESlateVisibility::Visible;

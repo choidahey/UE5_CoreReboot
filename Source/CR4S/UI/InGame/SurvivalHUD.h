@@ -3,6 +3,7 @@
 #include "DefaultInGameWidget.h"
 #include "TimeDisplayWidget.h"
 #include "PauseWidget.h"
+#include "EndingSummaryWidget.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "Game/System/WorldTimeManager.h"
@@ -34,8 +35,7 @@ public:
 		}
 		return Widget;
 	}
-	
-	void SetTime(FWorldTimeData CurrentTimeData);
+
 #pragma endregion
 #pragma region WidgetClass
 protected:
@@ -45,6 +45,9 @@ protected:
 	TSubclassOf<UDefaultInGameWidget> InGameWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
 	TSubclassOf<UPauseWidget> PauseWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UEndingSummaryWidget> EndingSummaryWidgetClass;
+
 #pragma endregion
 
 #pragma region WidgetInstance
@@ -56,6 +59,9 @@ protected:
 	TObjectPtr<UDefaultInGameWidget> InGameWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UPauseWidget> PauseWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UEndingSummaryWidget> EndingWidget;
+
 #pragma endregion
 
 #pragma region ToggleWidget
@@ -66,6 +72,12 @@ public:
 	void ToggleWidget(UUserWidget* Widget);
 
 #pragma endregion
+
+#pragma region WidgetFunctions
+public:
+	void SetTime(FWorldTimeData CurrentTimeData);
+	void PlayEndingSequence();
+
 private:
 	virtual void BeginPlay() override;
 };

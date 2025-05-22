@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "C4SurvivalGameMode.generated.h"
 
@@ -10,5 +9,12 @@ class CR4S_API AC4SurvivalGameMode : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	void ReturnToMenu();
+
+protected:
+	UFUNCTION(BlueprintCallable)
+	void EndGameSequence();
+
+private:
 
 };
