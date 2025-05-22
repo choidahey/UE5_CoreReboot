@@ -37,13 +37,11 @@ void UJumpHeightTest::RunTest(FEnvQueryInstance& QueryInstance) const
 	{
 		return;
 	}
-
-	// 중력과 초기 속도 계산
+	
 	const float Gravity = FMath::Abs(World->GetGravityZ());
 	const float InitialVz = FMath::Sqrt(2.f * Gravity * MaxJumpHeight);
 	const float FlightTime = (2.f * InitialVz) / Gravity;
-
-	// 최대 수평 이동 거리 계산
+	
 	float MaxHorizontalDistance = 0.f;
 	if (const UCharacterMovementComponent* MoveComp = Pawn->FindComponentByClass<UCharacterMovementComponent>())
 	{
