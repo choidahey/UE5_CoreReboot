@@ -170,7 +170,7 @@ void UWorldTimeManager::UpdateTimeWidget()
 	ASurvivalHUD* InGameHUD = Cast<ASurvivalHUD>(PC->GetHUD());
 	if (!InGameHUD) return;
 
-	InGameHUD->SetTime(GetCurrentTimeData());
+	InGameHUD->GetInGameWidget()->UpdateTimeWidget(GetCurrentTimeData());
 }
 
 void UWorldTimeManager::AdvanceSkyTime(int32 Min, int32 Sec)

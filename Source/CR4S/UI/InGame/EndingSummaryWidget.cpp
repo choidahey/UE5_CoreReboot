@@ -24,7 +24,6 @@ void UEndingSummaryWidget::SetEndingSummaryText()
 
     if (FFileHelper::LoadFileToString(FileData, *FilePath))
     {
-        UE_LOG(LogTemp, Log, TEXT("Loaded: %s"), *FileData);
         EndingSummaryText->SetText(FText::FromString(FileData));
     }
 }
