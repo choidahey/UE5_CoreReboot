@@ -98,4 +98,12 @@ public:
 	void PlayAttackMontage();
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UInteractableComponent> InteractableComponent;
+
+	FTimerHandle StunRecoverTimer;
+	bool bIsStunned = false;
+
+	void RecoverFromStun();
 };

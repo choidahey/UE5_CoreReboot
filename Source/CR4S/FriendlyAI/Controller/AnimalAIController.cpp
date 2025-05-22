@@ -34,6 +34,15 @@ void AAnimalAIController::OnPossess(APawn* InPawn)
         AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
             this, &AAnimalAIController::OnTargetPerceptionUpdated
         );
+        
+        if (BehaviorTreeAsset && BlackboardComponent && BehaviorTreeComponent)
+        {
+            BlackboardComponent->InitializeBlackboard(
+                *BehaviorTreeAsset->BlackboardAsset);
+            BehaviorTreeComponent->StartTree(*BehaviorTreeAsset);
+        }
+        
+        Animal->SetAnimalState(EAnimalState::Patrol);
     }
 }
 
@@ -54,6 +63,19 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
     {
         if (Stimulus.WasSuccessfullySensed())
         {
+            if (ABaseAnimal* SensedAnimal = Cast<ABaseAnimal>(Actor))
+            {
+                if (SensedAnimal->CurrentState == EAnimalState::Dead)
+                {
+                    return;
+                }
+
+                if (SensedAnimal->RowName == Animal->RowName)
+                {
+                    return;
+                }
+            }
+            
             BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
             Animal->CurrentTarget = Actor;
 
@@ -120,6 +142,17 @@ void AAnimalAIController::Tick(float DeltaSeconds)
         Animal->GetActorLocation(),
         Animal->CurrentTarget->GetActorLocation()
     );
+    if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
+    {
+        if (TargetAnimal->CurrentState == EAnimalState::Dead)
+        {
+            Animal->ClearTarget();
+            BlackboardComponent->ClearValue(TEXT("TargetActor"));
+            Animal->SetAnimalState(EAnimalState::Patrol);
+            return;
+        }
+    }
+
     if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive && Animal->CurrentState == EAnimalState::Chase)
     {
         if (Distance <= Stats->AttackRange)

@@ -6,7 +6,7 @@ UENUM(BlueprintType)
 enum class EHelperBotState : uint8
 {
 	Idle,
-	Chopping,
+	ChopWood,
 	Mining,
 	Gathering,
 	Following,
