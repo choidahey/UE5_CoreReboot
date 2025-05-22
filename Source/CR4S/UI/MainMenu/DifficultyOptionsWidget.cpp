@@ -1,34 +1,36 @@
 #include "UI/MainMenu/DifficultyOptionsWidget.h"
 #include "UI/Common/LoadingWidget.h"
+#include "UI/Common/BaseWindowWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Button.h"
 
 void UDifficultyOptionsWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	if (BackButton)
+	
+	if (!WindowWidget->OnApplyClicked.IsAlreadyBound(this, &UDifficultyOptionsWidget::HandleOpenLevel))
 	{
-		BackButton->OnClicked.AddUniqueDynamic(this, &UDifficultyOptionsWidget::OnBackButtonClicked);
-	}
-	if (ApplyStartButton)
-	{
-		ApplyStartButton->OnClicked.AddUniqueDynamic(this, &UDifficultyOptionsWidget::OnApplyStartButtonClicked);
+		WindowWidget->OnApplyClicked.AddDynamic(this, &UDifficultyOptionsWidget::HandleOpenLevel);
 	}
 
-	if (!LoadingWidgetInstance && LoadingWidgetClass)
+	if (!WindowWidget->OnBackClicked.IsAlreadyBound(this, &UDifficultyOptionsWidget::HandleCloseWindow))
 	{
-		LoadingWidgetInstance = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
+		WindowWidget->OnBackClicked.AddDynamic(this, &UDifficultyOptionsWidget::HandleCloseWindow);
 	}
 }
 
-void UDifficultyOptionsWidget::OnBackButtonClicked()
+void UDifficultyOptionsWidget::HandleCloseWindow()
 {
 	RemoveFromParent();
 }
 
-void UDifficultyOptionsWidget::OnApplyStartButtonClicked()
+void UDifficultyOptionsWidget::HandleOpenLevel()
 {
+	if (!LoadingWidgetInstance && LoadingWidgetClass)
+	{
+		LoadingWidgetInstance = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
+	}	
+
 	LoadingWidgetInstance->AddToViewport(10);
 
 	// OpenLevel after 0.5 sec Delay, for Prototype
@@ -41,6 +43,7 @@ void UDifficultyOptionsWidget::OnApplyStartButtonClicked()
 		false
 	);
 }
+
 
 void UDifficultyOptionsWidget::OpenSurvivalLevel()
 {

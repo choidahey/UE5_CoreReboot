@@ -53,8 +53,14 @@ void ADoorGimmick::Tick(const float DeltaSeconds)
 	}
 }
 
-void ADoorGimmick::OnGimmickInteracted()
+void ADoorGimmick::OnGimmickInteracted(AController* Controller)
 {
+	if (!IsValid(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Controller is not valid"));
+		return;
+	}
+	
 	if (!bIsMoving)
 	{
 		bNextStateIsOpen = !bIsOpen;

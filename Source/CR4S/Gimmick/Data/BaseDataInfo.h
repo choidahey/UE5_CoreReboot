@@ -18,7 +18,7 @@ struct FBaseDataInfo : public FTableRowBase
 	UPROPERTY(EditAnywhere)
 	FText Description;
 	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UTexture2D> Icon;
+	TObjectPtr<UTexture2D> Icon;
 };
 
 USTRUCT(BlueprintType)
@@ -62,7 +62,7 @@ struct FBaseGimmickData : public FBaseDataInfo
 	}
 
 	UPROPERTY(EditAnywhere)
-	TSoftClassPtr<class ABaseGimmick> GimmickClass;
+	TSubclassOf<class ABaseGimmick> GimmickClass;
 	UPROPERTY(EditAnywhere)
 	TArray<FResourceItemData> ResourceItemDataList;
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0"))

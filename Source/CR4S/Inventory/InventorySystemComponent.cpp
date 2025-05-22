@@ -1,7 +1,6 @@
 ﻿#include "InventorySystemComponent.h"
 
 #include "Character/Characters/PlayerCharacter.h"
-#include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/UI/InventoryWidget.h"
 
@@ -98,17 +97,7 @@ FAddItemResult UInventorySystemComponent::AddItem(const FInventoryItem& InInvent
 			}
 
 			EmptyInventoryItem->RowName = InInventoryItem.RowName;
-			if (ItemData->Icon.IsValid())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Icon is valid"));
-				EmptyInventoryItem->Icon = ItemData->Icon.Get();
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Icon is invalid"));
-				EmptyInventoryItem->Icon = ItemGimmickSubsystem->LoadIcon(ItemData->Icon);
-			}
-
+			EmptyInventoryItem->Icon = ItemData->Icon;
 			EmptyInventoryItem->Count = FMath::Min(RemainingCount, ItemData->MaxStack);
 			RemainingCount -= EmptyInventoryItem->Count;
 			Result.AddedCount += EmptyInventoryItem->Count;
@@ -153,27 +142,29 @@ void UInventorySystemComponent::GetInventoryItemsAndEmptySlots(
 
 void UInventorySystemComponent::SpawnRemainingItems(const FName& ItemRowName, const int32 Count) const
 {
-	if (Count <= 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Count is invalid"));
-		return;
-	}
-
-	if (!IsValid(ItemGimmickSubsystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
-		return;
-	}
-
-	FVector SpawnLocation = GetOwner()->GetActorLocation();
-
-	SpawnLocation.X += FMath::RandRange(-100.0f, 100.0f);
-	SpawnLocation.Y += FMath::RandRange(-100.0f, 100.0f);
-
-	ABaseGimmick* SpawnedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName(ItemRowName, SpawnLocation);
-	if (IsValid(SpawnedGimmick))
-	{
-	}
+	UE_LOG(LogTemp, Warning, TEXT("Try to spawn %d items of %s"), Count, *ItemRowName.ToString());
+	
+	// if (Count <= 0)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("Count is invalid"));
+	// 	return;
+	// }
+	//
+	// if (!IsValid(ItemGimmickSubsystem))
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
+	// 	return;
+	// }
+	//
+	// FVector SpawnLocation = GetOwner()->GetActorLocation();
+	//
+	// SpawnLocation.X += FMath::RandRange(-100.0f, 100.0f);
+	// SpawnLocation.Y += FMath::RandRange(-100.0f, 100.0f);
+	//
+	// ABaseGimmick* SpawnedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName(ItemRowName, SpawnLocation);
+	// if (IsValid(SpawnedGimmick))
+	// {
+	// }
 }
 
 bool UInventorySystemComponent::SwapItems(const int32 FromIndex, const int32 ToIndex)

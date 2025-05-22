@@ -20,6 +20,12 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(GetMesh());
 	Camera->SetRelativeRotation_Direct({0.0f, 90.0f, 0.0f});
 
+	OverlaySkeletalMesh=CreateDefaultSubobject<USkeletalMeshComponent>(FName{TEXTVIEW("OverlaySkeletalMesh")});
+	OverlaySkeletalMesh->SetupAttachment(GetMesh());
+	
+	OverlayStaticMesh=CreateDefaultSubobject<UStaticMeshComponent>(FName{TEXTVIEW("OverlayStaticMesh")});
+	OverlayStaticMesh->SetupAttachment(GetMesh());
+	
 	Combat=CreateDefaultSubobject<UCombatComponent>(FName{TEXTVIEW("Combat")});
 
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
@@ -77,6 +83,13 @@ void APlayerCharacter::NotifyControllerChanged()
 	Super::NotifyControllerChanged();
 }
 
+float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	Status->AddCurrentHP(static_cast<int>(-DamageAmount));
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
 void APlayerCharacter::BeginPlay()
 {
 	//Binding Delegate Functions and Set up Widget
@@ -124,6 +137,20 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,Combat.Get(),&UCombatComponent::Input_OnAttack);
 	}
+}
+
+void APlayerCharacter::UnPossessed()
+{
+	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		UEnhancedInputLocalPlayerSubsystem* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
+		{
+			InputSubsystem->RemoveMappingContext(InputMappingContext);
+		}
+	}
+	
+	Super::UnPossessed();
 }
 
 void APlayerCharacter::Input_OnLookMouse(const FInputActionValue& ActionValue)
