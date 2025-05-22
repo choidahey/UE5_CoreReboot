@@ -22,9 +22,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BossAI")
 	FVector GetNearestHouseLocation(const FVector& PlayerLocation) const;
 
-	UFUNCTION(exec)
-	void KillSeasonBoss(const FString MonsterID);
-
 private:
 	FString MyHeader;
 };
