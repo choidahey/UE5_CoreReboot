@@ -19,3 +19,4 @@ const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
 // Season Boss AI Key
 const FName FSeasonBossAIKeys::InitializeTargetLocation = TEXT("InitializeTargetLocation");
 const FName FSeasonBossAIKeys::NearestHouseLocation = TEXT("NearestHouseLocation");
+const FName FSeasonBossAIKeys::bIsAttackRange = TEXT("bIsAttackRange");
