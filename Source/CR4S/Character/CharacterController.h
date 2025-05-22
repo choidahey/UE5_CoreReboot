@@ -31,4 +31,9 @@ protected:
 	TObjectPtr<UInputAction> MenuAction;
 	
 #pragma endregion
+
+#pragma region Direct Key Binding Handle Function
+	UFUNCTION(BlueprintCallable)
+	void OnPauseRequested();
+#pragma endregion
 };

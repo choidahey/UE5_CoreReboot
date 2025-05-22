@@ -1,17 +1,35 @@
 #include "UI/MainMenu/SettingsWidget.h"
+#include "UI/Common/BaseWindowWidget.h"
 #include "Components/Button.h"
 
 void USettingsWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (ExitButton)
+	if (!WindowWidget->OnBackClicked.IsAlreadyBound(this, &USettingsWidget::HandleCloseWindow))
 	{
-		ExitButton->OnClicked.AddUniqueDynamic(this, &USettingsWidget::OnExitButtonClicked);
+		WindowWidget->OnBackClicked.AddDynamic(this, &USettingsWidget::HandleCloseWindow);
 	}
 }
 
-void USettingsWidget::OnExitButtonClicked()
+void USettingsWidget::HandleOpenWindow()
 {
-	RemoveFromParent();
+	SetVisibility(ESlateVisibility::Visible);
+	PlayAnimation(FadeIn);
+}
+
+void USettingsWidget::HandleCloseWindow()
+{
+	PlayAnimation(FadeOut);
+
+	FTimerHandle HideTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		HideTimerHandle,
+		[this]()
+		{
+			SetVisibility(ESlateVisibility::Collapsed);
+		},
+		0.3f,
+		false
+	);
 }
