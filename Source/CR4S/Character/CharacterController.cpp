@@ -1,15 +1,24 @@
 #include "CharacterController.h"
 #include "Game/CheatManager/C4CheatManager.h"
-#include "UI/InGame/SurvivalHUD.h"
 
 ACharacterController::ACharacterController():
-	DefaultMappingContext(nullptr),
-	MoveAction(nullptr),
-	LookAction(nullptr),
-	JumpAction(nullptr),
-	SprintAction(nullptr)
+	MenuAction(nullptr)
 {
 	CheatClass = UC4CheatManager::StaticClass();
+}
+
+void ACharacterController::BeginPlay()
+{
+	SetInputMode(FInputModeGameOnly());
+	bShowMouseCursor = false;
+	Super::BeginPlay();
+}
+
+void ACharacterController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	//Bind Actions related UI
 }
 
 void ACharacterController::OnPauseRequested()
