@@ -1,10 +1,13 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "DefaultInGameWidget.h"
 
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/CharacterStatusWidget.h"
+#include "UI/InGame/TimeDisplayWidget.h"
+
+void UDefaultInGameWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+}
 
 void UDefaultInGameWidget::InitializeWidget(UPlayerCharacterStatusComponent* InComponent)
 {
@@ -16,11 +19,6 @@ void UDefaultInGameWidget::InitializeWidget(UPlayerCharacterStatusComponent* InC
 	
 	Percentage=FMath::Clamp(static_cast<float>(InComponent->GetMaxStamina())/InComponent->GetCurrentStamina(), 0.f, 1.f);
 	UpdateStaminaWidget(Percentage);
-}
-
-void UDefaultInGameWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
 }
 
 void UDefaultInGameWidget::UpdateHPWidget(const float InPercentage)
@@ -44,6 +42,14 @@ void UDefaultInGameWidget::UpdateStaminaWidget(const float InPercentage)
 	if (StatusWidget)
 	{
 		StatusWidget->UpdateStamina(InPercentage);
+	}
+}
+
+void UDefaultInGameWidget::UpdateTimeWidget(FWorldTimeData CurrentTimeData)
+{
+	if (TimeDisplayWidget)
+	{
+		TimeDisplayWidget->UpdateTime(CurrentTimeData.Day, CurrentTimeData.Minute, CurrentTimeData.Second);
 	}
 }
 

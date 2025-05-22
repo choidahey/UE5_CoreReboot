@@ -4,18 +4,26 @@
 #include "SettingsWidget.generated.h"
 
 class UButton;
+class UBaseWindowWidget;
 
 UCLASS()
 class CR4S_API USettingsWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UFUNCTION()
+	void HandleCloseWindow();
+	UFUNCTION()
+	void HandleOpenWindow();
+
 protected:
 	virtual void NativeConstruct() override;
 
-	UFUNCTION()
-	void OnExitButtonClicked();
-
 	UPROPERTY(meta = (BindWidget))
-	UButton* ExitButton;
+	UBaseWindowWidget* WindowWidget;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* FadeIn;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* FadeOut;
 };
