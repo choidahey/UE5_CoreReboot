@@ -94,18 +94,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
 	FName MonsterID;
 
-	UFUNCTION(BlueprintCallable, Category = "Monster|Attribute")
-	FORCEINLINE UMonsterAttributeComponent* GetAttributeComponent() const { return AttributeComponent; }
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	FORCEINLINE UMonsterSkillComponent* GetSkillComponent() const { return SkillComponent; }
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|State")
-	FORCEINLINE UMonsterStateComponent* GetStateComponent() const { return StateComponent; }
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Anim")
-	FORCEINLINE UMonsterAnimComponent* GetAnimComponent() const { return AnimComponent; }
-
 #pragma endregion
 
 #pragma region Monster Event Handler

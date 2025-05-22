@@ -11,12 +11,12 @@ UBTTask_MoveToBaseCampLocation::UBTTask_MoveToBaseCampLocation()
 EBTNodeResult::Type UBTTask_MoveToBaseCampLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     ABaseMonster* Monster = MonsterAIHelper::GetControlledMonster(OwnerComp);
-    if (!Monster || !Monster->GetAnimComponent() || !ReturnMontage)
+    if (!Monster || !Monster->FindComponentByClass<UMonsterAnimComponent>() || !ReturnMontage)
     {
         return EBTNodeResult::Failed;
     }
 
-    if (UMonsterAnimComponent* AnimComp = Monster->GetAnimComponent())
+    if (UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>())
     {
         AnimComp->PlayMontange(ReturnMontage);
     }

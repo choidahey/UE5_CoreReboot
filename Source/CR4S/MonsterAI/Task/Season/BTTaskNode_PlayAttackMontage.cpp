@@ -19,8 +19,8 @@ UBTTaskNode_PlayAttackMontage::UBTTaskNode_PlayAttackMontage()
 EBTNodeResult::Type UBTTaskNode_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	ABaseMonster* MonsterCharacter = MonsterAIHelper::GetControlledMonster(OwnerComp);
-	UMonsterSkillComponent* SkillComp = MonsterCharacter->GetSkillComponent();
-	UMonsterStateComponent* StateComp = MonsterCharacter->GetStateComponent();
+	UMonsterSkillComponent* SkillComp = MonsterCharacter->FindComponentByClass<UMonsterSkillComponent>();
+	UMonsterStateComponent* StateComp = MonsterCharacter->FindComponentByClass<UMonsterStateComponent>();
 
 	USkeletalMeshComponent* SkeletalMeshComp = MonsterCharacter->GetMesh();
 	if (!SkeletalMeshComp)

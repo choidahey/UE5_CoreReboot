@@ -15,7 +15,7 @@ void ARegionBossMonsterAIController::OnPossess(APawn* InPawn)
 
 	if (ARegionBossMonster* RegionBoss = Cast<ARegionBossMonster>(InPawn))
 	{
-		if (UMonsterStateComponent* StateComp = RegionBoss->GetStateComponent())
+		if (UMonsterStateComponent* StateComp = RegionBoss->FindComponentByClass<UMonsterStateComponent>())
 		{
 			StateComp->SetState(EMonsterState::Idle);
 		}

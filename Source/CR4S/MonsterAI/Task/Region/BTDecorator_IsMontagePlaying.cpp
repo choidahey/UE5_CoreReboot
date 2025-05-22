@@ -16,7 +16,7 @@ bool UBTDecorator_IsMontagePlaying::CalculateRawConditionValue(UBehaviorTreeComp
 		return false;
 	}
 
-	if (const UMonsterAnimComponent* AnimComp = Monster->GetAnimComponent())
+	if (const UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>())
 	{
 		const bool bIsPlaying = AnimComp->IsAnyMontagePlaying();
 		return bIsPlaying == bShouldBePlaying;
