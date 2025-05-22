@@ -30,7 +30,7 @@ public:
 	
 protected:
 	UFUNCTION()
-	void HandleInteract();
+	void HandleInteract(AController* InteractingController);
 	
 #pragma endregion
 

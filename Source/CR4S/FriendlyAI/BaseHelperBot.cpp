@@ -66,7 +66,7 @@ void ABaseHelperBot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ABaseHelperBot::HandleInteract()
+void ABaseHelperBot::HandleInteract(AController* InteractingController)
 {
 	if (StateUIInstance && StateUIInstance->IsInViewport())
 	{
