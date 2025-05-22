@@ -11,4 +11,7 @@ class CR4S_API AHiemsFrostBossMonster : public ASeasonBossMonster
 
 public:
 	AHiemsFrostBossMonster();
+
+private:
+	FString MyHeader;
 };

@@ -1,3 +1,7 @@
-﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt
-StrongAttack,StrongAttack,/Game/DarkElementalBundle02/Animation/AM_HiemsStrongAttack.AM_HiemsStrongAttack,3500,10,1000,800
-WeakAttack,WeakAttack,/Game/DarkElementalBundle02/Animation/AM_HiemsWeakAttack.AM_HiemsWeakAttack,2000,10,400,300
+﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
+IceSpike,IceSpike,/Game/DarkElementalBundle02/Animation/Attack/AM_IceSpikeAttack.AM_IceSpikeAttack,2000,5,0,600,0,0,0,0,0
+ColdFairy,ColdFairy,/Game/DarkElementalBundle02/Animation/Attack/AM_ColdFairyAttack.AM_ColdFairyAttack,1000,0,0,200,0,0,0,0,0
+Blizzard,Blizzard,/Game/DarkElementalBundle02/Animation/Attack/AM_BlizzardAttack.AM_BlizzardAttack,3500,15,400,600,0,0,0,0,0
+ColdBeam,ColdBeam,/Game/DarkElementalBundle02/Animation/Attack/AM_ColdBeamAttack.AM_ColdBeamAttack,2000,20,600,500,0,0,0,0,0
+IcicleWaves,IcicleWaves,/Game/DarkElementalBundle02/Animation/Attack/AM_IcicleWavesAttack.AM_IcicleWavesAttack,1000,20,400,300,0,0,0,0,0
+IceRoad,IceRoad,,1800,5,500,300,0,0,0,0,0
