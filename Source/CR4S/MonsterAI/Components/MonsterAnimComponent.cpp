@@ -34,6 +34,11 @@ void UMonsterAnimComponent::PlayMontange(UAnimMontage* Montage)
 	AnimInstance->Montage_Play(Montage, 1.f);
 }
 
+bool UMonsterAnimComponent::IsAnyMontagePlaying() const
+{
+	return AnimInstance.IsValid() && AnimInstance->IsAnyMontagePlaying();
+}
+
 bool UMonsterAnimComponent::IsPlayingMontage(UAnimMontage* Montage) const
 {
 	if (!Montage || !AnimInstance.IsValid())

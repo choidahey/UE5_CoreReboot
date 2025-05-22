@@ -1,16 +1,19 @@
 #include "BaseMonster.h"
 #include "Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Components/MonsterAttributeComponent.h"
 #include "Components/MonsterSkillComponent.h"
 #include "Components/MonsterStateComponent.h"
 #include "Components/MonsterAnimComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Data/MonsterAIKeyNames.h" 
+#include "GameFramework/CharacterMovementComponent.h"
 
 ABaseMonster::ABaseMonster()
 	: MyHeader(TEXT("BaseMonster"))
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Initialize Components
 	AttributeComponent = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
@@ -33,11 +36,6 @@ void ABaseMonster::BeginPlay()
 		AttributeComponent->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
 	}
 
-	if (SkillComponent)
-	{
-		SkillComponent->InitializeMonsterSkills(MonsterID);
-	}
-
 	if (StateComponent)
 	{
 		StateComponent->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
@@ -47,25 +45,17 @@ void ABaseMonster::BeginPlay()
 	{
 		AnimComponent->Initialize(GetMesh());
 	}
+
+	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		AIC->SetupPerceptionFromMonster(this);
+	}
 }
 
 void ABaseMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsDead())
-	{
-		return;
-	}
-
-	if (StateComponent->IsInState(EMonsterState::Idle))
-	{
-		float TotalIdleTime = StateComponent->GetStateDuration(EMonsterState::Idle);
-		if (TotalIdleTime > 10.f)
-		{
-			//AnimComp->PlayIdleBoredAnimation();
-		}
-	}
 }
 
 void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -88,14 +78,6 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return DamageAmount;
 }
 
-void ABaseMonster::PlayPreMontage(int32 SkillIndex)
-{
-	if (SkillComponent)
-	{
-		SkillComponent->PlayPreMontage(SkillIndex);
-	}
-}
-
 void ABaseMonster::UseSkill(int32 SkillIndex)
 {
 	if (SkillComponent)
@@ -104,27 +86,9 @@ void ABaseMonster::UseSkill(int32 SkillIndex)
 	}
 }
 
-void ABaseMonster::Die()
+int32 ABaseMonster::SelectSkillIndex()
 {
-	if (StateComponent)
-	{
-		StateComponent->SetState(EMonsterState::Dead);
-	}
-
-	// Update Blackboard
-	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
-	{
-		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
-		{
-			BB->SetValueAsBool(FAIKeys::IsDead, true);
-		}
-	}
-
-	// Play Death Montage
-	if (AnimComponent)
-	{
-		AnimComponent->PlayDeathMontage();
-	}
+	return 0;
 }
 
 bool ABaseMonster::IsDead() const
@@ -141,11 +105,59 @@ void ABaseMonster::HandleDeath()
 	}
 
 	bIsDead = true;
-	Die();
+	StateComponent->SetState(EMonsterState::Dead);
+
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		MoveComp->DisableMovement();
+
+	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		AIC->StopMovement();
+
+		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
+			BB->SetValueAsBool(FAIKeys::IsDead, true);
+	}
+
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (AnimComponent)
+	{
+		AnimComponent->PlayDeathMontage();
+	}
+
+	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	{
+		if (UAnimMontage* DeathMontage = AnimComponent->GetDeathMontage())
+		{
+			FOnMontageEnded EndDel;
+			EndDel.BindUObject(this, &ABaseMonster::OnDeathMontageEnded);
+			AnimInst->Montage_SetEndDelegate(EndDel, DeathMontage);
+		}
+	}
 }
+
+void ABaseMonster::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (bInterrupted)
+		return;
+
+	SetLifeSpan(4.f);
+}
+
 
 void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)
 {
+	if (auto* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		if (auto* BB = AIC->GetBlackboardComponent())
+		{
+			BB->SetValueAsInt(FAIKeys::CurrentState, static_cast<int32>(Current));
+		}
+	}
+
 	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] OnMonsterStateChanged : State changed from %s to %s."),
 		*MyHeader,
