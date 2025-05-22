@@ -9,10 +9,10 @@ const FName FAIKeys::LastHeardLocation = TEXT("LastHeardLocation");
 const FName FAIKeys::CurrentState = TEXT("CurrentState");
 const FName FAIKeys::LastHitTime = TEXT("LastHitTime");
 const FName FAIKeys::IsDead = TEXT("IsDead");
+const FName FAIKeys::SkillIndex = TEXT("SkillIndex");
 
 // Region Boss AI Key
 const FName FRegionBossAIKeys::BaseCampLocation = TEXT("BaseCampLocation");
-const FName FRegionBossAIKeys::SkillIndex = TEXT("SkillIndex");
 const FName FRegionBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
 const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
 

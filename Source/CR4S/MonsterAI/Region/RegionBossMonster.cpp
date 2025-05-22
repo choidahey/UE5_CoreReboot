@@ -1,5 +1,5 @@
 #include "RegionBossMonster.h"
-#include "CR4S/MonsterAI/Components/MonsterStateComponent.h"
+#include "MonsterAI/Controller/RegionBossMonsterAIController.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NavigationInvokerComponent.h"
 

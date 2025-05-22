@@ -12,12 +12,12 @@ struct FAIKeys
 	static const FName CurrentState;
 	static const FName LastHitTime;
 	static const FName IsDead;
+	static const FName SkillIndex;
 };
 
 struct FRegionBossAIKeys : public FAIKeys
 {
 	static const FName BaseCampLocation;
-	static const FName SkillIndex;
 	static const FName CurrentPhase;
 	static const FName ShouldReturn;
 };

@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
 	float GetSkillRange(int32 Index) const;
 
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	TArray<int32> GetAvailableSkillIndices() const;
+
 	UFUNCTION(BlueprintCallable)
 	const FMonsterSkillData& GetCurrentSkillData() const;
 

@@ -1,5 +1,6 @@
 #include "MonsterSkillComponent.h"
-#include "CR4S/MonsterAI/Data/MonsterDataSubsystem.h"
+#include "MonsterAI/Data/MonsterDataSubsystem.h"
+#include "MonsterAI/BaseMonster.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
@@ -15,6 +16,11 @@ UMonsterSkillComponent::UMonsterSkillComponent()
 void UMonsterSkillComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (const ABaseMonster* Monster = Cast<ABaseMonster>(GetOwner()))
+	{
+		InitializeMonsterSkills(Monster->MonsterID);
+	}
 
 	if (const AActor* Owner = GetOwner())
 	{
@@ -62,29 +68,14 @@ void UMonsterSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 {
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] World is null in InitializeMonsterSkills"), *MyHeader);
-		return;
-	}
+	// TEST LOG
+	UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills Called"), *MyHeader);
+	UE_LOG(LogTemp, Warning, TEXT("  - This: %s @%p"), *GetName(), this);
+	UE_LOG(LogTemp, Warning, TEXT("  - Owner: %s @%p"), *GetNameSafe(GetOwner()), GetOwner());
+	UE_LOG(LogTemp, Warning, TEXT("  - World: %s"), *GetNameSafe(GetWorld()));
+	UE_LOG(LogTemp, Warning, TEXT("  - MonsterID: %s"), *MonsterID.ToString());
 
-	UGameInstance* GI = World->GetGameInstance();
-	if (!GI)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] GameInstance is null in InitializeMonsterSkills"), *MyHeader);
-		return;
-	}
-
-	auto* Subsys = GI->GetSubsystem<UMonsterDataSubsystem>();
-	if (!Subsys)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] UMonsterDataSubsystem is null"), *MyHeader);
-		return;
-	}
-
-	// if (const UMonsterDataSubsystem* Subsys = GetWorld()->GetGameInstance()->GetSubsystem<UMonsterDataSubsystem>())
-	if (Subsys)
+	if (const UMonsterDataSubsystem* Subsys = GetWorld()->GetGameInstance()->GetSubsystem<UMonsterDataSubsystem>())
 	{
 		SkillList.Empty();
 		bSkillReady.Empty();
@@ -105,6 +96,20 @@ void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills : %d skills loaded from MonsterSkillTable."), *MyHeader, SkillList.Num());
+
+
+		for (int32 i = 0; i < SkillList.Num(); ++i)
+		{
+			const FMonsterSkillData& Skill = SkillList[i];
+			UE_LOG(LogTemp, Log,
+				TEXT("%s : Damage = %.1f  Cooldown = %.1f  Range = %.1f / bSkillReday = %d"),
+				*Skill.SkillName.ToString(),
+				Skill.Damage,
+				Skill.Cooldown,
+				Skill.Range,
+				(bSkillReady[i] ? 1 : 0)
+			);
+		}
 	}
 }
 
@@ -150,6 +155,21 @@ float UMonsterSkillComponent::GetSkillRange(int32 Index) const
 	return SkillList.IsValidIndex(Index) ? SkillList[Index].Range : 0.f;
 }
 
+TArray<int32> UMonsterSkillComponent::GetAvailableSkillIndices() const
+{
+	TArray<int32> SkillIndices;
+	for (int32 i = 0; i < SkillList.Num(); ++i)
+	{
+		UE_LOG(LogTemp, Log, TEXT("%s : bSkillReday = %d"), *SkillList[i].SkillName.ToString(), (bSkillReady[i] ? 1 : 0));
+
+		if (bSkillReady.IsValidIndex(i) && bSkillReady[i])
+		{
+			SkillIndices.Add(i);
+		}
+	}
+	return SkillIndices;
+}
+
 const FMonsterSkillData& UMonsterSkillComponent::GetCurrentSkillData() const
 {
 	static const FMonsterSkillData Empty;
@@ -170,7 +190,7 @@ void UMonsterSkillComponent::ResetCooldown(int32 Index)
 {
 	if (bSkillReady.IsValidIndex(Index))
 	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] ResetCooldown : Use skill %d."), *MyHeader, Index);
+		UE_LOG(LogTemp, Log, TEXT("[%s] ResetCooldown : Reset skill cooldown : %d."), *MyHeader, Index);
 		bSkillReady[Index] = true;
 	}
 }

@@ -36,11 +36,6 @@ void ABaseMonster::BeginPlay()
 		AttributeComponent->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
 	}
 
-	if (SkillComponent)
-	{
-		SkillComponent->InitializeMonsterSkills(MonsterID);
-	}
-
 	if (StateComponent)
 	{
 		StateComponent->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
