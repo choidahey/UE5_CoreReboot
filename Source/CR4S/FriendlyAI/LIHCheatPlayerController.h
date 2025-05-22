@@ -2,7 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "../UI/InGame/HelperBotStateManagerWidget.h"
 #include "LIHCheatPlayerController.generated.h"
+
+class UHelperBotStateManagerWidget;
 
 UCLASS()
 class CR4S_API ALIHCheatPlayerController : public APlayerController
@@ -29,4 +32,12 @@ public:
 
 	UFUNCTION(Exec)
 	void CMD_ChangeHelperBotState(EHelperBotState NewState);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Cheat")
+	TSubclassOf<UHelperBotStateManagerWidget> CheatWidgetClass;
+
+	UHelperBotStateManagerWidget* CheatWidgetInstance;
+
+	UFUNCTION(Exec)
+	void CMD_ToggleHelperBotUI();
 };

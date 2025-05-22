@@ -1,5 +1,6 @@
 #include "CharacterController.h"
 #include "Game/CheatManager/C4CheatManager.h"
+#include "UI/InGame/SurvivalHUD.h"
 
 ACharacterController::ACharacterController():
 	MenuAction(nullptr)

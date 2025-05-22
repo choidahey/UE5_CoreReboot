@@ -126,3 +126,31 @@ void ALIHCheatPlayerController::CMD_ChangeHelperBotState(EHelperBotState NewStat
         }
     }
 }
+
+void ALIHCheatPlayerController::CMD_ToggleHelperBotUI()
+{
+    if (CheatWidgetInstance && CheatWidgetInstance->IsInViewport())
+    {
+        CheatWidgetInstance->RemoveFromParent();
+        CheatWidgetInstance = nullptr;
+        SetInputMode(FInputModeGameOnly());
+        bShowMouseCursor = false;
+        return;
+    }
+    
+    for (TActorIterator<ABaseHelperBot> It(GetWorld()); It; ++It)
+    {
+        if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(It->GetController()))
+        {
+            CheatWidgetInstance = CreateWidget<UHelperBotStateManagerWidget>(this, CheatWidgetClass);
+            if (CheatWidgetInstance)
+            {
+                CheatWidgetInstance->InitializeWithController(BotAI);
+                CheatWidgetInstance->AddToViewport();
+                SetInputMode(FInputModeGameAndUI());
+                bShowMouseCursor = true;
+            }
+            break;
+        }
+    }
+}
