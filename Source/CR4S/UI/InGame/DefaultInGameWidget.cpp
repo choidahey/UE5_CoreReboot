@@ -1,5 +1,4 @@
 #include "DefaultInGameWidget.h"
-
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/CharacterStatusWidget.h"
 #include "UI/InGame/TimeDisplayWidget.h"

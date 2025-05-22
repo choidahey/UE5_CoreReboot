@@ -63,7 +63,9 @@ void ADestructibleResourceGimmick::OnGimmickTakeDamage(const float DamageAmount,
 
 void ADestructibleResourceGimmick::OnGimmickDestroy()
 {
-	if (IsValid(GimmickMeshComponent))
+	if (IsValid(GimmickMeshComponent)
+		&& IsValid(GeometryCollectionComponent)
+		&& IsValid(GeometryCollectionComponent->GetRestCollection()))
 	{
 		GimmickMeshComponent->SetVisibility(false);
 		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);

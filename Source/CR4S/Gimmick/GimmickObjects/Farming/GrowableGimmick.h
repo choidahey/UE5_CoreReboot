@@ -28,26 +28,26 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickInteracted();
+	virtual void OnGimmickInteracted(AController* Controller);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UInteractableComponent> InteractableComponent;
-
+	
 private:
 	UFUNCTION()
-	void OnDetectionStateChanged(APlayerController* InDetectingPlayerController, bool bInIsDetected);
+	void OnDetectionStateChanged(AController* InDetectingController, bool bInIsDetected);
 	void UpdateInteractionText() const;
-
-	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	APlayerController* DetectingPlayerController;
-
-	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	bool bIsDetected;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	FText HarvestText;
 
 	FText DefaultInteractionText;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Interaction")
+	AController* DetectingController;
+	UPROPERTY(VisibleAnywhere, Category = "Interaction")
+	bool bIsDetected;
+	
 
 #pragma endregion
 	
@@ -87,11 +87,12 @@ private:
 	FTimerHandle GrowthTimerHandle;
 	
 #pragma endregion
-	
-#pragma region Data
+
+#pragma region Delegate
 
 public:
-	
+	DECLARE_DELEGATE(FOnHarvest)
+	FOnHarvest OnHarvest;
 	
 #pragma endregion
 };

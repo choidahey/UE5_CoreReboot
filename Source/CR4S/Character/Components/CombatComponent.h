@@ -10,6 +10,13 @@
 class UPlayerCharacterStatus;
 class APlayerCharacter;
 
+UENUM(BlueprintType)
+enum class EInputType : uint8
+{
+	None	UMETA(DisplayName = "None"),
+	Attack	UMETA(DisplayName = "Attack")
+};
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UCombatComponent : public UActorComponent
 {
@@ -22,10 +29,15 @@ public:
 #pragma region Attack
 public:
 	void Input_OnAttack();
+	void PerformWeaponTrace();
 #pragma endregion
 
-#pragma region InputState
+#pragma region Input
 	void SetInputEnable(bool Enable);
+	void SetWeaponTrace(bool Trace);
+	void SetInputQueue(EInputType Input);
+	bool CheckInputQueue(EInputType Input);
+	void ExecuteInputQueue();
 #pragma endregion
 	
 #pragma region OverrideFunctions
@@ -51,5 +63,20 @@ protected:
 
 #pragma region Cached
 	uint8 bInputEnable:1;
+	uint8 bWeaponTrace:1;
+	FVector PreviousTopLocation;
+	FVector PreviousBottomLocation;
+	UPROPERTY()
+	TSet<AActor*> AlreadyDamagedActors;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Input")
+	EInputType CurrentInputQueue;
+#pragma endregion
+
+#pragma region Buffer
+private:
+	void ClearInputQueue();
+	
+	FTimerHandle BufferClearTimerHandle;
 #pragma endregion
 };
+
