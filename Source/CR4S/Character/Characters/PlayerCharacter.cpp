@@ -12,6 +12,9 @@
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
 
+#include "NavigationInvokerComponent.h"
+
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
 APlayerCharacter::APlayerCharacter()
@@ -25,6 +28,13 @@ APlayerCharacter::APlayerCharacter()
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
 
 	Interaction=CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
+
+
+	NavGenerationRadius = 2000.0f;
+	NavRemovalRadius = 2500.0f;
+
+	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
 }
 
 void APlayerCharacter::InitializeWidgets()
