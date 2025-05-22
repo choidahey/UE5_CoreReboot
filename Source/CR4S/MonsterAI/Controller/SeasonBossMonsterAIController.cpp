@@ -26,6 +26,20 @@ void ASeasonBossMonsterAIController::BeginPlay()
 	}
 }
 
+void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if (AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor)))
+	{
+		SetFocus(Target);
+	}
+	else
+	{
+		ClearFocus(EAIFocusPriority::Gameplay);
+	}
+}
+
 FVector ASeasonBossMonsterAIController::GetPlayerInitialLocation() const
 {
 	ACharacter* TargetPlayer = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);

@@ -77,8 +77,6 @@ public:
 #pragma region Monster Behavior - Death
 
 public:
-	virtual void Die();
-
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	bool IsDead() const;
 

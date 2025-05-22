@@ -91,11 +91,6 @@ int32 ABaseMonster::SelectSkillIndex()
 	return 0;
 }
 
-void ABaseMonster::Die()
-{
-	
-}
-
 bool ABaseMonster::IsDead() const
 {
 	return AttributeComponent && AttributeComponent->IsDead();

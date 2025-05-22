@@ -10,15 +10,6 @@ UAnimNotify_IceSpikeAttack::UAnimNotify_IceSpikeAttack()
 
 void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	/*AActor* Owner = MeshComp->GetOwner();
-	if (!MeshComp || !Owner) return;
-
-	if (UMonsterSkillComponent* SkillComp = Owner->FindComponentByClass<UMonsterSkillComponent>())
-	{
-		SkillComp->HandleAnimNotify(NotifyID);
-	}*/
-	Super::Notify(MeshComp, Animation);
-
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!OwnerPawn)
 	{
@@ -36,5 +27,3 @@ void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 
 	UE_LOG(LogTemp, Log, TEXT("[%s] UseSkill HiemsStrongAttack!"), *MyHeader);
 }
-
-// 스킬 호출
