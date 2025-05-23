@@ -3,10 +3,8 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Engine/DataTable.h"
-#include "Engine/StreamableManager.h"
 #include "Data/AnimalStatsRow.h"
 #include "AnimalStatsSubsystem.generated.h"
-
 
 UCLASS()
 class CR4S_API UAnimalStatsSubsystem : public UGameInstanceSubsystem
@@ -16,19 +14,14 @@ class CR4S_API UAnimalStatsSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	void GetStatsRowAsync(FName RowName, TFunction<void(const FAnimalStatsRow*)> Callback);
-
 	const FAnimalStatsRow* GetStatsRow(FName RowName) const;
 
 private:
-	UPROPERTY(EditDefaultsOnly)
-	TSoftObjectPtr<UDataTable> StatsDataTableSoft;
-
-	UPROPERTY(Transient)
-	mutable UDataTable* StatsDataTable = nullptr;
+	UPROPERTY()
+	UDataTable* StatsDataTable = nullptr;
 
 	UPROPERTY()
-	TMap<FName, FAnimalStatsRow> StatsCache;
+	mutable TMap<FName, FAnimalStatsRow> StatsCache;
 
-	FStreamableManager StreamableManager;
+	const FString LogHeader = TEXT("AnimalStatsSubsystem");
 };

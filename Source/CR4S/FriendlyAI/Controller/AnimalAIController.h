@@ -24,6 +24,8 @@ public:
 	
 	void ApplyPerceptionStats(const FAnimalStatsRow& Stats);
 
+	UBehaviorTree* GetBehaviorTreeAsset() const { return BehaviorTreeAsset; }
+
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	

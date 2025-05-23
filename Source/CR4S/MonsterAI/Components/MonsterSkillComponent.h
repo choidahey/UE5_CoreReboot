@@ -6,6 +6,8 @@
 #include "MonsterSkillComponent.generated.h"
 
 class USkillDataSubsystem;
+class UCapsuleComponent;
+class AHiemsIceSpike;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterSkillComponent : public UActorComponent
@@ -32,9 +34,6 @@ protected:
 #pragma region Skill Usage
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void PlayPreMontage(int32 Index);
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
 	void UseSkill(int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
@@ -42,6 +41,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
 	float GetSkillRange(int32 Index) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	TArray<int32> GetAvailableSkillIndices() const;
 
 	UFUNCTION(BlueprintCallable)
 	const FMonsterSkillData& GetCurrentSkillData() const;
@@ -68,6 +70,37 @@ public:
 
 protected:
 	TArray<FTimerHandle> SkillCooldownTimers;
+
+#pragma endregion
+
+
+#pragma region Skill Collision Settings
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
+	void SetAttackCollisionEnabled(bool bEnable, int32 InSkillIndex);
+
+	UFUNCTION()
+	void OnAttackHit(
+		UPrimitiveComponent* HitComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
+	TArray<TObjectPtr<UCapsuleComponent>> WeaponColliders;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
+	TArray<TObjectPtr<UCapsuleComponent>> BodyColliders;
+
+	UPROPERTY()
+	TSet<AActor*> AlreadyHitActors;
+
+private:
+	bool bIsAttackActive = false;
 
 #pragma endregion
 		

@@ -19,6 +19,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
 #pragma endregion
 	
 #pragma region UDestructibleComponent

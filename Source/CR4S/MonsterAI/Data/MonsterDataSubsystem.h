@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Engine/DataTable.h"
 #include "CR4S/MonsterAI/Data/MonsterAttributeRow.h"
 #include "CR4S/MonsterAI/Data/MonsterSkillData.h"
 #include "MonsterDataSubsystem.generated.h"
@@ -13,27 +14,28 @@ class CR4S_API UMonsterDataSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 	
 public:
+	UMonsterDataSubsystem();
+
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 #pragma region AttributeData
-	FMonsterAttributeRow* GetMonsterAttributeData(FName MonsterID) const;
+	FMonsterAttributeRow* GetMonsterAttributeData(const FName MonsterID) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
-	TSoftObjectPtr<UDataTable> MonsterAttributeTable;
+	TObjectPtr<UDataTable> MonsterAttributeTable = nullptr;
 #pragma endregion
 
 #pragma region SkillData
 public:
-	const TArray<FMonsterSkillData>& GetMonsterSkillData(FName MonsterID) const;
+	UFUNCTION(BlueprintCallable, Category = "Monster Data")
+	TArray<FMonsterSkillData> GetMonsterSkillData(const FName MonsterID) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Data")
-	UDataTable* MonsterSkillTable = nullptr;
-
-	TMap<FName, TArray<FMonsterSkillData>> CacheSkillData;
+	TObjectPtr<UDataTable> MonsterSkillTable = nullptr;
+#pragma endregion
 
 private:
-	void CacheMonsterSkillData();
-#pragma endregion
+	FString MyHeader;
 };
