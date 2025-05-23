@@ -1,7 +1,7 @@
 ﻿#include "PlanterBoxGimmick.h"
 
 #include "Gimmick/Components/InteractableComponent.h"
-#include "Gimmick/GimmickObjects/Farming/GrowableGimmick.h"
+#include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventorySystemComponent.h"
 
@@ -64,7 +64,7 @@ void APlanterBoxGimmick::OnGimmickInteracted(AController* Controller)
 		if (IsValid(ItemGimmickSubsystem))
 		{
 			PlantedGimmick
-				= ItemGimmickSubsystem->SpawnGimmickByRowName<AGrowableGimmick>(TEXT("Crop"), SpawnPoint->GetComponentLocation());
+				= ItemGimmickSubsystem->SpawnGimmickByRowName<ACropsGimmick>(TEXT("Crop"), SpawnPoint->GetComponentLocation());
 
 			if (!IsValid(PlantedGimmick))
 			{

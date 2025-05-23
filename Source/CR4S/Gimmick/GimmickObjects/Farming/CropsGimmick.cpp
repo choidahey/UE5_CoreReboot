@@ -1,9 +1,9 @@
-﻿#include "GrowableGimmick.h"
+﻿#include "CropsGimmick.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventorySystemComponent.h"
 
-AGrowableGimmick::AGrowableGimmick()
+ACropsGimmick::ACropsGimmick()
 	: HarvestText(FText::FromString(TEXT("수확 하기"))),
 	  DetectingController(nullptr),
 	  bIsDetected(false),
@@ -19,7 +19,7 @@ AGrowableGimmick::AGrowableGimmick()
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 }
 
-void AGrowableGimmick::BeginPlay()
+void ACropsGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -51,7 +51,7 @@ void AGrowableGimmick::BeginPlay()
 	}
 }
 
-void AGrowableGimmick::OnGimmickInteracted(AController* Controller)
+void ACropsGimmick::OnGimmickInteracted(AController* Controller)
 {
 	if (!IsValid(InteractableComponent))
 	{
@@ -97,7 +97,7 @@ void AGrowableGimmick::OnGimmickInteracted(AController* Controller)
 	{
 		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
 		{
-			const FBaseItemData* ItemData = ItemGimmickSubsystem->FindItemData(RowName);
+			const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
 			if (!ItemData)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("%s is not found in ItemData"), *RowName.ToString());
@@ -105,7 +105,7 @@ void AGrowableGimmick::OnGimmickInteracted(AController* Controller)
 			}
 
 			const FAddItemResult Result
-				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Icon.Get(), Count));
+				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Info.Icon, Count));
 
 			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
 				   , Result.Success, Result.AddedCount, Result.RemainingCount);
@@ -120,7 +120,7 @@ void AGrowableGimmick::OnGimmickInteracted(AController* Controller)
 	}
 }
 
-void AGrowableGimmick::OnDetectionStateChanged(AController* InDetectingController, const bool bInIsDetected)
+void ACropsGimmick::OnDetectionStateChanged(AController* InDetectingController, const bool bInIsDetected)
 {
 	DetectingController = InDetectingController;
 	bIsDetected = bInIsDetected;
@@ -131,7 +131,7 @@ void AGrowableGimmick::OnDetectionStateChanged(AController* InDetectingControlle
 	}
 }
 
-void AGrowableGimmick::UpdateInteractionText() const
+void ACropsGimmick::UpdateInteractionText() const
 {
 	if (IsValid(InteractableComponent))
 	{
@@ -149,7 +149,7 @@ void AGrowableGimmick::UpdateInteractionText() const
 	}
 }
 
-void AGrowableGimmick::GrowthStageChanged(const int32 NewGrowthStage)
+void ACropsGimmick::GrowthStageChanged(const int32 NewGrowthStage)
 {
 	if (IsValid(GimmickMeshComponent) && GrowthStageScale.IsValidIndex(NewGrowthStage))
 	{
@@ -164,7 +164,7 @@ void AGrowableGimmick::GrowthStageChanged(const int32 NewGrowthStage)
 	}
 }
 
-bool AGrowableGimmick::IsHeldItemSeed() const
+bool ACropsGimmick::IsHeldItemSeed() const
 {
 	if (!IsValid(DetectingController) || !bIsDetected)
 	{
@@ -184,7 +184,7 @@ bool AGrowableGimmick::IsHeldItemSeed() const
 	return InventorySystem->GetCurrentHeldItemName() == FName("Seed");
 }
 
-void AGrowableGimmick::Grow()
+void ACropsGimmick::Grow()
 {
 	CurrentGrowthPercent = FMath::Clamp(CurrentGrowthPercent + GrowthPercentPerInterval, 0.f, MaxGrowthPercent);
 
@@ -204,7 +204,7 @@ void AGrowableGimmick::Grow()
 	}
 }
 
-int32 AGrowableGimmick::CalculateGrowthStage() const
+int32 ACropsGimmick::CalculateGrowthStage() const
 {
 	for (int32 Index = GrowthStageThresholds.Num() - 1; Index >= 0; Index--)
 	{

@@ -4,8 +4,7 @@
 #include "Gimmick/GimmickObjects/DestructibleResourceGimmick.h"
 #include "PlanterBoxGimmick.generated.h"
 
-class AGrowableGimmick;
-struct FBaseItemData;
+class ACropsGimmick;
 class UInteractableComponent;
 
 UCLASS()
@@ -59,7 +58,7 @@ private:
 	TObjectPtr<USceneComponent> SpawnPoint;
 
 	UPROPERTY()
-	TObjectPtr<AGrowableGimmick> PlantedGimmick;
+	TObjectPtr<ACropsGimmick> PlantedGimmick;
 	
 	bool IsHeldItemSeed() const;
 	

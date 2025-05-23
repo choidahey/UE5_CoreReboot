@@ -1,29 +1,28 @@
 ﻿#include "ItemGimmickSubsystem.h"
 
-#include "Gimmick/Data/BaseDataInfo.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
-	: ItemDataTable(nullptr)
+	: ItemInfoDataTable(nullptr)
 	  , GimmickDataTable(nullptr)
 {
-	ItemDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_ItemData.DT_ItemData"));
+	ItemInfoDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_ItemInfoData.DT_ItemInfoData"));
 	GimmickDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData"));
 }
 
 TArray<FName> UItemGimmickSubsystem::GetItemDataRowNames() const
 {
-	return IsValid(ItemDataTable) ? ItemDataTable->GetRowNames() : TArray<FName>();
+	return IsValid(ItemInfoDataTable) ? ItemInfoDataTable->GetRowNames() : TArray<FName>();
 }
 
-const FBaseItemData* UItemGimmickSubsystem::FindItemData(const FName& RowName) const
+const FItemInfoData* UItemGimmickSubsystem::FindItemInfoData(const FName& RowName) const
 {
-	return FindRowFromDataTable<FBaseItemData>(ItemDataTable, RowName, TEXT("Load Item Data"));
+	return FindDataFromDataTable<FItemInfoData>(ItemInfoDataTable, RowName, TEXT("Load Item Data"));
 }
 
 const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowName) const
 {
-	return FindRowFromDataTable<FBaseGimmickData>(GimmickDataTable, RowName, TEXT("Load Gimmick Data"));
+	return FindDataFromDataTable<FBaseGimmickData>(GimmickDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
 ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation) const

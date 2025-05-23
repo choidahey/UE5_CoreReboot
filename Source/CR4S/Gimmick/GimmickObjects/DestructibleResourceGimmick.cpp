@@ -1,7 +1,5 @@
 ﻿#include "DestructibleResourceGimmick.h"
 
-#include "Character/CharacterController.h"
-#include "Character/Characters/PlayerCharacter.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
@@ -147,7 +145,7 @@ void ADestructibleResourceGimmick::GetResourceItem() const
 	{
 		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
 		{
-			const FBaseItemData* ItemData = ItemGimmickSubsystem->FindItemData(RowName);
+			const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
 			if (!ItemData)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("%s is not found in ItemData"), *RowName.ToString());
@@ -155,7 +153,7 @@ void ADestructibleResourceGimmick::GetResourceItem() const
 			}
 
 			const FAddItemResult Result
-				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Icon.Get(), Count));
+				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Info.Icon, Count));
 
 			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
 			       , Result.Success, Result.AddedCount, Result.RemainingCount);

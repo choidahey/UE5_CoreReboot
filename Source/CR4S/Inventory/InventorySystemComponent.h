@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Gimmick/Data/ItemData.h"
 
 #include "InventorySystemComponent.generated.h"
 
-struct FBaseItemData;
 class UItemGimmickSubsystem;
 class UInventoryWidget;
 
@@ -103,7 +103,7 @@ private:
 	                                    TArray<FInventoryItem*>& OutEmptySlots);
 	void SpawnRemainingItems(const FName& ItemRowName, const int32 Count) const;
 
-	const FBaseItemData* FindItemDataFromDataTable(const FName& RowName) const;
+	const FItemInfoData* FindItemDataFromDataTable(const FName& RowName) const;
 
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem", meta = (ClampMin = "1"))
 	int32 MaxInventorySlot;

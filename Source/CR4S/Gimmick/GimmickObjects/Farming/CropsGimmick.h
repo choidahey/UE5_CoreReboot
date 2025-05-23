@@ -2,19 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
-#include "GrowableGimmick.generated.h"
+#include "CropsGimmick.generated.h"
 
 class UInteractableComponent;
 
 UCLASS()
-class CR4S_API AGrowableGimmick : public ABaseGimmick
+class CR4S_API ACropsGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()
 
 #pragma region ABaseGimmick Override
 	
 public:
-	AGrowableGimmick();
+	ACropsGimmick();
 
 	virtual void BeginPlay() override;
 

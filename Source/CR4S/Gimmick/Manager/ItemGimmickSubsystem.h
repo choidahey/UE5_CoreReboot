@@ -1,11 +1,14 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/Data/BaseDataInfo.h"
+#include "Gimmick/Data/GimmickData.h"
+#include "Gimmick/Data/ItemData.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 
 #include "ItemGimmickSubsystem.generated.h"
 
+
+class ABaseGimmick;
 
 UCLASS()
 class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
@@ -23,16 +26,16 @@ public:
 
 public:
 	TArray<FName> GetItemDataRowNames() const;
-	const FBaseItemData* FindItemData(const FName& RowName) const;
+	const FItemInfoData* FindItemInfoData(const FName& RowName) const;
 	const FBaseGimmickData* FindGimmickData(const FName& RowName) const;
 	
 private:
-	template<typename RowType>
-	const RowType* FindRowFromDataTable(const TSoftObjectPtr<UDataTable>& DataTable, const FName& RowName, const FString& Context) const
+	template<typename RowStruct>
+	const RowStruct* FindDataFromDataTable(const TSoftObjectPtr<UDataTable>& DataTable, const FName& RowName, const FString& Context) const
 	{
 		if (DataTable.IsValid() && IsValid(DataTable.Get()))
 		{
-			if (const RowType* Row = DataTable->FindRow<RowType>(RowName, Context))
+			if (const RowStruct* Row = DataTable->FindRow<RowStruct>(RowName, Context))
 			{
 				return Row;
 			}
@@ -42,7 +45,7 @@ private:
 	}
 
 	UPROPERTY()
-	TObjectPtr<UDataTable> ItemDataTable;
+	TObjectPtr<UDataTable> ItemInfoDataTable;
 	UPROPERTY()
 	TObjectPtr<UDataTable> GimmickDataTable;
 	

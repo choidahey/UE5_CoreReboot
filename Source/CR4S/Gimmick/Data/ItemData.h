@@ -77,7 +77,7 @@ struct FSeedItemData : public FTableRowBase
 	FDataTableRowHandle PlantGimmickData;
 };
 
-USTRUCT(BluprintType)
+USTRUCT(BlueprintType)
 struct FResistanceEffect
 {
 	GENERATED_BODY()
@@ -94,7 +94,7 @@ struct FResistanceEffect
 	int32 Duration;
 };
 
-USTRUCT(BluprintType)
+USTRUCT(BlueprintType)
 struct FConsumableItemData : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -128,7 +128,7 @@ struct FConsumableItemData : public FTableRowBase
 	int32 ShelfLife;
 };
 
-USTRUCT(BluprintType)
+USTRUCT(BlueprintType)
 struct FHarvestedMaterial
 {
 	GENERATED_BODY()

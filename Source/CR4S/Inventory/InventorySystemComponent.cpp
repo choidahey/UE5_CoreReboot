@@ -48,7 +48,7 @@ FAddItemResult UInventorySystemComponent::AddItem(const FInventoryItem& InInvent
 		return Result;
 	}
 
-	const FBaseItemData* ItemData = ItemGimmickSubsystem->FindItemData(InInventoryItem.RowName);
+	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(InInventoryItem.RowName);
 	if (!ItemData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemData is invalid"));
@@ -73,9 +73,9 @@ FAddItemResult UInventorySystemComponent::AddItem(const FInventoryItem& InInvent
 			break;
 		}
 
-		if (SameInventoryItem->Count < ItemData->MaxStack)
+		if (SameInventoryItem->Count < ItemData->MaxStackCount)
 		{
-			const int32 CanAddCount = ItemData->MaxStack - SameInventoryItem->Count;
+			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItem->Count;
 			const int32 ActualAddCount = FMath::Min(CanAddCount, RemainingCount);
 
 			SameInventoryItem->Count += ActualAddCount;
@@ -97,8 +97,8 @@ FAddItemResult UInventorySystemComponent::AddItem(const FInventoryItem& InInvent
 			}
 
 			EmptyInventoryItem->RowName = InInventoryItem.RowName;
-			EmptyInventoryItem->Icon = ItemData->Icon;
-			EmptyInventoryItem->Count = FMath::Min(RemainingCount, ItemData->MaxStack);
+			EmptyInventoryItem->Icon = ItemData->Info.Icon;
+			EmptyInventoryItem->Count = FMath::Min(RemainingCount, ItemData->MaxStackCount);
 			RemainingCount -= EmptyInventoryItem->Count;
 			Result.AddedCount += EmptyInventoryItem->Count;
 
@@ -209,16 +209,16 @@ void UInventorySystemComponent::MergeItems(const int32 FromIndex, const int32 To
 	FInventoryItem& FromItem = InventoryItems[FromIndex];
 	FInventoryItem& ToItem = InventoryItems[ToIndex];
 
-	const FBaseItemData* ItemData = FindItemDataFromDataTable(FromItem.RowName);
+	const FItemInfoData* ItemData = FindItemDataFromDataTable(FromItem.RowName);
 	if (!ItemData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemData is invalid"));
 		return;
 	}
 
-	if (ToItem.Count < ItemData->MaxStack)
+	if (ToItem.Count < ItemData->MaxStackCount)
 	{
-		const int32 CanAddCount = ItemData->MaxStack - ToItem.Count;
+		const int32 CanAddCount = ItemData->MaxStackCount - ToItem.Count;
 		const int32 ActualAddCount = FMath::Min(CanAddCount, FromItem.Count);
 
 		ToItem.Count += ActualAddCount;
@@ -228,7 +228,7 @@ void UInventorySystemComponent::MergeItems(const int32 FromIndex, const int32 To
 	NotifyItemSlotsChanged({FromIndex, ToIndex});
 }
 
-const FBaseItemData* UInventorySystemComponent::FindItemDataFromDataTable(const FName& RowName) const
+const FItemInfoData* UInventorySystemComponent::FindItemDataFromDataTable(const FName& RowName) const
 {
 	if (!IsValid(ItemGimmickSubsystem))
 	{
@@ -236,7 +236,7 @@ const FBaseItemData* UInventorySystemComponent::FindItemDataFromDataTable(const 
 		return nullptr;
 	}
 
-	return ItemGimmickSubsystem->FindItemData(RowName);
+	return ItemGimmickSubsystem->FindItemInfoData(RowName);
 }
 
 const FInventoryItem* UInventorySystemComponent::GetItemDataByIndex(const int32 Index) const
@@ -312,7 +312,7 @@ void UInventorySystemComponent::SortInventoryItems()
 
        int32 TotalCount = BaseItem->Count;
 
-       const FBaseItemData* ItemData = FindItemDataFromDataTable(RowName);
+       const FItemInfoData* ItemData = FindItemDataFromDataTable(RowName);
        if (!ItemData)
        {
           continue;
@@ -321,7 +321,7 @@ void UInventorySystemComponent::SortInventoryItems()
        while (TotalCount > 0 && NewItems.Num() < OriginalSize)
        {
           FInventoryItem SlotItem = *BaseItem;
-          SlotItem.Count = FMath::Min(TotalCount, ItemData->MaxStack);
+          SlotItem.Count = FMath::Min(TotalCount, ItemData->MaxStackCount);
           NewItems.Add(SlotItem);
           TotalCount -= SlotItem.Count;
        }
