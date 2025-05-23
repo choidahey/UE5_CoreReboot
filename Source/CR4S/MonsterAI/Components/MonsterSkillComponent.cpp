@@ -68,13 +68,6 @@ void UMonsterSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 {
-	// TEST LOG
-	UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills Called"), *MyHeader);
-	UE_LOG(LogTemp, Warning, TEXT("  - This: %s @%p"), *GetName(), this);
-	UE_LOG(LogTemp, Warning, TEXT("  - Owner: %s @%p"), *GetNameSafe(GetOwner()), GetOwner());
-	UE_LOG(LogTemp, Warning, TEXT("  - World: %s"), *GetNameSafe(GetWorld()));
-	UE_LOG(LogTemp, Warning, TEXT("  - MonsterID: %s"), *MonsterID.ToString());
-
 	if (const UMonsterDataSubsystem* Subsys = GetWorld()->GetGameInstance()->GetSubsystem<UMonsterDataSubsystem>())
 	{
 		SkillList.Empty();
@@ -96,20 +89,6 @@ void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[%s] InitializeMonsterSkills : %d skills loaded from MonsterSkillTable."), *MyHeader, SkillList.Num());
-
-
-		for (int32 i = 0; i < SkillList.Num(); ++i)
-		{
-			const FMonsterSkillData& Skill = SkillList[i];
-			UE_LOG(LogTemp, Log,
-				TEXT("%s : Damage = %.1f  Cooldown = %.1f  Range = %.1f / bSkillReday = %d"),
-				*Skill.SkillName.ToString(),
-				Skill.Damage,
-				Skill.Cooldown,
-				Skill.Range,
-				(bSkillReady[i] ? 1 : 0)
-			);
-		}
 	}
 }
 

@@ -21,7 +21,7 @@ EBTNodeResult::Type UBTTaskNode_ChasePlayerDynamic::ExecuteTask(UBehaviorTreeCom
 	if (!AIC || !TargetPlayer) return EBTNodeResult::Failed;
 
 	ABaseMonster* MonsterCharacter = MonsterAIHelper::GetControlledMonster(OwnerComp);
-	UMonsterStateComponent* StateComp = MonsterCharacter->GetStateComponent();
+	UMonsterStateComponent* StateComp = MonsterCharacter->FindComponentByClass<UMonsterStateComponent>();
 
 	StateComp->SetState(EMonsterState::Chase);
 	MoveRequestID = AIC->MoveToActor(TargetPlayer, AcceptanceRadius, false);

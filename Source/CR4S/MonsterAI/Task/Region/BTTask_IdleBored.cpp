@@ -18,7 +18,7 @@ EBTNodeResult::Type UBTTask_IdleBored::ExecuteTask(UBehaviorTreeComponent& Owner
 		return EBTNodeResult::Failed;
 	}
 
-	if (UMonsterAnimComponent* AnimComp = Monster->GetAnimComponent())
+	if (UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>())
 	{
 		if (AnimComp->IsAnyMontagePlaying())
 		{

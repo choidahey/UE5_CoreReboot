@@ -20,7 +20,7 @@ EBTNodeResult::Type UBTTask_DeathSequence::ExecuteTask(UBehaviorTreeComponent& O
     }
 
     // Play Death Montage
-    if (UMonsterAnimComponent* AnimComp = Monster->GetAnimComponent())
+    if (UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>())
     {
         AnimComp->PlayDeathMontage();
     }
