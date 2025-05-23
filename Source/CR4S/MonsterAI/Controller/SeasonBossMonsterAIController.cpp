@@ -8,6 +8,11 @@
 #include "GameFramework/Pawn.h"
 #include "Character/Characters/PlayerCharacter.h"
 
+ASeasonBossMonsterAIController::ASeasonBossMonsterAIController()
+	: MyHeader(TEXT("SeasonBossAIController"))
+{
+}
+
 void ASeasonBossMonsterAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -78,5 +83,3 @@ FVector ASeasonBossMonsterAIController::GetNearestHouseLocation(const FVector& P
 
 	return NearestActor->GetActorLocation();
 }
-
-

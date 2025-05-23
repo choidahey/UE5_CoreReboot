@@ -28,7 +28,7 @@ void UAnimNotify_ReturnToBaseCamp::Notify(USkeletalMeshComponent* MeshComp, UAni
 		StateComp->SetState(EMonsterState::Idle);	
 	}
 
-	if (UMonsterAttributeComponent* AttrComp = Monster->GetAttributeComponent())
+	if (UMonsterAttributeComponent* AttrComp = Monster->FindComponentByClass<UMonsterAttributeComponent>())
 	{
 		AttrComp->RecoverToFull();
 	}

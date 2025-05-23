@@ -20,9 +20,9 @@ void UBTService_CheckPlayerDistance::TickNode(UBehaviorTreeComponent& OwnerComp,
 	if (!Monster || !Target) return;
 
 	const float Distance = FVector::DistSquared(Target->GetActorLocation(), Monster->GetActorLocation());
-	const FMonsterAttributeRow& Attribute = Monster->GetAttributeComponent()->GetMonsterAttribute();
+	const FMonsterAttributeRow& Attribute = Monster->FindComponentByClass<UMonsterAttributeComponent>()->GetMonsterAttribute();
 
-	if (UMonsterStateComponent* StateComp = Monster->GetStateComponent())
+	if (UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>())
 	{
 		if (StateComp->IsInState(EMonsterState::Idle) && Distance <= FMath::Square(Attribute.SightRadius))
 		{
