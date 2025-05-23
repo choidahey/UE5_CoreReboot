@@ -6,6 +6,7 @@
 #include "AlsCharacter.h"
 #include "PlayerCharacter.generated.h"
 
+class UInteractionComponent;
 class UPlayerCharacterStatusComponent;
 class UCombatComponent;
 struct FInputActionValue;
@@ -21,13 +22,25 @@ class CR4S_API APlayerCharacter : public AAlsCharacter
 public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
+
+#pragma region Get
+	FORCEINLINE UStaticMeshComponent* GetOverlayStaticMesh() { return OverlayStaticMesh; }
+#pragma endregion
+	
+#pragma region Widget
+	void InitializeWidgets();
+#pragma endregion
+	
 #pragma region Overrides
 public:
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation) override;
 	virtual void NotifyControllerChanged() override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 protected:
+	virtual void BeginPlay() override;
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& ViewInfo) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
+	virtual void UnPossessed() override;
 #pragma endregion
 	
 #pragma region InputFunction
@@ -67,6 +80,12 @@ protected:
 	TObjectPtr<UCombatComponent> Combat;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UPlayerCharacterStatusComponent> Status;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UInteractionComponent> Interaction;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<USkeletalMeshComponent> OverlaySkeletalMesh;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UStaticMeshComponent> OverlayStaticMesh;
 #pragma endregion
 
 #pragma region InputActions
@@ -132,4 +151,20 @@ protected:
 	float LookRightRate{240.0f};
 #pragma endregion
 	
+
+
+#pragma region Navigation Invokers
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Component")
+	float NavGenerationRadius;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Component")
+	float NavRemovalRadius;
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	TObjectPtr<class UNavigationInvokerComponent> NavInvoker;
+
+#pragma endregion
+
 };

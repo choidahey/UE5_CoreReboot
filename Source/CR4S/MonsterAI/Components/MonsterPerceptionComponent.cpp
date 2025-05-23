@@ -1,5 +1,5 @@
 #include "CR4S/MonsterAI/Components/MonsterPerceptionComponent.h"
-#include "Perception/AIPerceptionComponent.h"
+#include "CR4S/MonsterAI/Data/MonsterAttributeRow.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Engine/World.h"
@@ -9,24 +9,7 @@ UMonsterPerceptionComponent::UMonsterPerceptionComponent()
 	: MyHeader(TEXT("MonsterPercComp"))
 {
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	SightConfig->SightRadius = 2000.0f;
-	SightConfig->LoseSightRadius = 3000.0f;
-	SightConfig->PeripheralVisionAngleDegrees = 90.0f;
-	
-	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-
-	ConfigureSense(*SightConfig);
-
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
-	HearingConfig->HearingRange = 1500.0f;
-
-	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
-	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
-	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
-
-	ConfigureSense(*HearingConfig);
 
 	SetDominantSense(UAISense_Sight::StaticClass());
 }
@@ -34,11 +17,32 @@ UMonsterPerceptionComponent::UMonsterPerceptionComponent()
 void UMonsterPerceptionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+}
+
+void UMonsterPerceptionComponent::ApplySightConfigFromAttribute(const FMonsterAttributeRow& Data)
+{
+	SightConfig->SightRadius = Data.SightRadius;
+	SightConfig->LoseSightRadius = Data.LoseSightRadius;
+	SightConfig->PeripheralVisionAngleDegrees = Data.PeripheralVisionAngleDegrees;
+
+	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+	ConfigureSense(*SightConfig);
+
+	HearingConfig->HearingRange = Data.HearingRange;
+
+	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+	HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+	ConfigureSense(*HearingConfig);
+
 	OnTargetPerceptionUpdated.AddDynamic(this, &UMonsterPerceptionComponent::OnUpdatePerception);
 	RequestStimuliListenerUpdate();
 
-	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] Sight Radius = %.0f, LoseRadius = %.0f, SightAngle = %.0f"),
 		*MyHeader,
 		SightConfig->SightRadius,
@@ -49,18 +53,16 @@ void UMonsterPerceptionComponent::BeginPlay()
 		*MyHeader,
 		HearingConfig->HearingRange);
 
-    UAISense_Hearing::ReportNoiseEvent(
-       GetWorld(),
-       GetOwner()->GetActorLocation(),
-       1.0f,
-       GetOwner()
-    );
+	UAISense_Hearing::ReportNoiseEvent(
+		GetWorld(),
+		GetOwner()->GetActorLocation(),
+		1.0f,
+		GetOwner()
+	);
 }
 
 void UMonsterPerceptionComponent::OnUpdatePerception(AActor* Actor, FAIStimulus Stimulus)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception"));
-
 	const bool bIsDetected = Stimulus.WasSuccessfullySensed();
 	const FName PlayerTag = TEXT("Player");
 
@@ -74,11 +76,6 @@ void UMonsterPerceptionComponent::OnUpdatePerception(AActor* Actor, FAIStimulus 
 	{
 		OnPlayerLost.Broadcast(Actor);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[PercComp] OnUpdatePerception: %s | Type: %s | Success: %s"),
-		*Actor->GetName(),
-		*Stimulus.Type.Name.ToString(),
-		Stimulus.WasSuccessfullySensed() ? TEXT("YES") : TEXT("NO"));
 }
 
 AActor* UMonsterPerceptionComponent::FindTaggedActorInSense(const TSubclassOf<UAISense> SenseClass, const FName& Tag) const

@@ -5,6 +5,8 @@
 #include "Game/System/SeasonType.h"
 #include "SeasonManager.generated.h"
 
+class AEnvironmentManager;
+
 UCLASS()
 class CR4S_API USeasonManager : public UWorldSubsystem
 {
@@ -20,10 +22,14 @@ public:
 
 protected:
 	void LoadSeason();
+	void OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS);
+
+	UPROPERTY(Transient)
+	AEnvironmentManager* EnvironmentManager;
 
 private:
 	void HandleSeasonChange(ESeasonType NewSeason);
 
-	ESeasonType CurrentSeason = ESeasonType::None;
+	ESeasonType CurrentSeason = ESeasonType::BountifulSeason;
 	
 };

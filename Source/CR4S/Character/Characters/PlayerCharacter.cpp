@@ -2,11 +2,18 @@
 #include "AlsCameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Character/CharacterController.h"
 #include "Character/Components/CombatComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
+#include "Gimmick/Components/InteractionComponent.h"
+#include "UI/InGame/DefaultInGameWidget.h"
+#include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
+
+#include "NavigationInvokerComponent.h"
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
@@ -16,9 +23,42 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(GetMesh());
 	Camera->SetRelativeRotation_Direct({0.0f, 90.0f, 0.0f});
 
+	OverlaySkeletalMesh=CreateDefaultSubobject<USkeletalMeshComponent>(FName{TEXTVIEW("OverlaySkeletalMesh")});
+	OverlaySkeletalMesh->SetupAttachment(GetMesh());
+	
+	OverlayStaticMesh=CreateDefaultSubobject<UStaticMeshComponent>(FName{TEXTVIEW("OverlayStaticMesh")});
+	OverlayStaticMesh->SetupAttachment(GetMesh());
+	
 	Combat=CreateDefaultSubobject<UCombatComponent>(FName{TEXTVIEW("Combat")});
 
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
+
+	Interaction=CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
+
+
+	NavGenerationRadius = 2000.0f;
+	NavRemovalRadius = 2500.0f;
+
+	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
+}
+
+void APlayerCharacter::InitializeWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
+				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
+				Status->OnStaminaChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStaminaWidget);
+
+				InGameWidget->InitializeWidget(Status);
+			}
+		}
+	}
 }
 
 void APlayerCharacter::NotifyControllerChanged()
@@ -51,6 +91,21 @@ void APlayerCharacter::NotifyControllerChanged()
 	}
 
 	Super::NotifyControllerChanged();
+}
+
+float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	Status->AddCurrentHP(static_cast<int>(-DamageAmount));
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void APlayerCharacter::BeginPlay()
+{
+	//Binding Delegate Functions and Set up Widget
+	InitializeWidgets();
+	
+	Super::BeginPlay();
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -92,6 +147,20 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,Combat.Get(),&UCombatComponent::Input_OnAttack);
 	}
+}
+
+void APlayerCharacter::UnPossessed()
+{
+	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		UEnhancedInputLocalPlayerSubsystem* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
+		{
+			InputSubsystem->RemoveMappingContext(InputMappingContext);
+		}
+	}
+	
+	Super::UnPossessed();
 }
 
 void APlayerCharacter::Input_OnLookMouse(const FInputActionValue& ActionValue)

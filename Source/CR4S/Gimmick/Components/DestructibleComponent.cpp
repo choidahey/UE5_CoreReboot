@@ -1,10 +1,9 @@
 ﻿#include "DestructibleComponent.h"
 
-#include "Kismet/KismetSystemLibrary.h"
-
 UDestructibleComponent::UDestructibleComponent()
 	: MaxHealth(100.f)
 	  , CurrentHealth(100.f)
+	  , HitRecoveryTime(0.2f)
 	  , bCanTakeDamage(true)
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -16,7 +15,7 @@ void UDestructibleComponent::InitComponent(const float InMaxHealth)
 	CurrentHealth = InMaxHealth;
 }
 
-void UDestructibleComponent::TakeDamage(AController* DamageCauserController, const float DamageAmount)
+void UDestructibleComponent::TakeDamage(AActor* DamageCauser, const float DamageAmount)
 {
 	if (!bCanTakeDamage || IsDestructed())
 	{
@@ -24,38 +23,32 @@ void UDestructibleComponent::TakeDamage(AController* DamageCauserController, con
 	}
 
 	bCanTakeDamage = false;
-	
-	const APlayerController* PlayerController = Cast<APlayerController>(DamageCauserController);
-	if (IsValid(PlayerController))
-	{
-		CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
 
-		if (OnTakeDamage.IsBound())
-		{
-			OnTakeDamage.ExecuteIfBound(DamageAmount, CurrentHealth);
-		}
+	LastDamageCauser = DamageCauser;
 
-		if (IsDestructed())
-		{
-			OnDestroy.ExecuteIfBound();
-		}
-	}
-	else
+	CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
+
+	if (OnTakeDamage.IsBound())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s is not PlayerController"), *DamageCauserController->GetName());
+		OnTakeDamage.ExecuteIfBound(DamageAmount, CurrentHealth);
 	}
-	
+
+	if (IsDestructed())
+	{
+		OnDestroy.ExecuteIfBound();
+	}
+
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
-	TimerHandle,
-	[&]()
-	{
-		if (IsValid(this))
+		TimerHandle,
+		[&]()
 		{
-			bCanTakeDamage = true;
-		}
-	},
-	0.2f,
-	false
+			if (IsValid(this))
+			{
+				bCanTakeDamage = true;
+			}
+		},
+		HitRecoveryTime,
+		false
 	);
 }

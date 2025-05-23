@@ -40,18 +40,18 @@ public:
 
 #pragma region BaseMonster Components
  
-public:
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterAttributeComponent* AttributeComp;
+	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterSkillComponent* SkillComp;
+	TObjectPtr<UMonsterSkillComponent> SkillComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterStateComponent* StateComp;
+	TObjectPtr<UMonsterStateComponent> StateComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterAnimComponent* AnimComp;
+	TObjectPtr<UMonsterAnimComponent> AnimComponent;
 
 #pragma endregion
 
@@ -59,7 +59,7 @@ public:
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|AI")
-	UBehaviorTree* BehaviorTree;
+	TObjectPtr<UBehaviorTree> BehaviorTree;
 
 #pragma endregion
 
@@ -67,21 +67,21 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void PlayPreMontage(int32 SkillIndex);
+	virtual void UseSkill(int32 SkillIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void UseSkill(int32 SkillIndex);
+	virtual int32 SelectSkillIndex();
 
 #pragma endregion
 
 #pragma region Monster Behavior - Death
 
 public:
-
-	virtual void Die();
-
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	bool IsDead() const;
+
+	UFUNCTION()
+	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
@@ -93,9 +93,6 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
 	FName MonsterID;
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	UMonsterSkillComponent* GetSkillComponent() const { return SkillComp; }
 
 #pragma endregion
 

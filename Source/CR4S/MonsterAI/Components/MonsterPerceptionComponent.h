@@ -6,6 +6,7 @@
 
 class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
+struct FMonsterAttributeRow;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActorPerceptionSignature, AActor*, Actor);
 
@@ -16,6 +17,7 @@ class CR4S_API UMonsterPerceptionComponent : public UAIPerceptionComponent
 	
 public:
 	UMonsterPerceptionComponent();
+	void ApplySightConfigFromAttribute(const FMonsterAttributeRow& Data);
 
 	UPROPERTY(BlueprintAssignable, Category = "Perception")
 	FOnActorPerceptionSignature OnPlayerDetected;
@@ -35,9 +37,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, Category = "Perception")
-	UAISenseConfig_Sight* SightConfig;
+	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 	UPROPERTY(EditAnywhere, Category = "Perception")
-	UAISenseConfig_Hearing* HearingConfig;
+	TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
 
 private:
 	AActor* FindTaggedActorInSense(const TSubclassOf<UAISense> SenseClass, const FName& Tag) const;

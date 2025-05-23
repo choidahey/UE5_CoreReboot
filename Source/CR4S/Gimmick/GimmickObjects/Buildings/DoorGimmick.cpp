@@ -3,7 +3,9 @@
 #include "Gimmick/Components/InteractableComponent.h"
 
 ADoorGimmick::ADoorGimmick()
-	: bIsMoving(false)
+	: InteractionTextOpen(FText::FromString(TEXT("Open")))
+	  , InteractionTextClose(FText::FromString(TEXT("Close")))
+	  , bIsMoving(false)
 	  , bIsOpen(false)
 	  , bNextStateIsOpen(false)
 	  , OpenAngle(90.f)
@@ -11,16 +13,21 @@ ADoorGimmick::ADoorGimmick()
 	  , ClosedRotation(FRotator::ZeroRotator)
 	  , OpenRotation(FRotator::ZeroRotator)
 	  , TargetRotation()
-	  , InteractionTextOpen(NSLOCTEXT("Gimmick", "Door_Open", "Open"))
-	  , InteractionTextClose(NSLOCTEXT("Gimmick", "Door_Close", "Close"))
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 }
 
 void ADoorGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (IsValid(InteractableComponent))
+	{
+		InteractableComponent->OnTryInteract.BindUObject(this, &ThisClass::OnGimmickInteracted);
+	}
+	
 	ClosedRotation = GetActorRotation();
 	OpenRotation = FRotator(ClosedRotation.Pitch, ClosedRotation.Yaw + OpenAngle, ClosedRotation.Roll);
 
@@ -46,17 +53,14 @@ void ADoorGimmick::Tick(const float DeltaSeconds)
 	}
 }
 
-void ADoorGimmick::OnGimmickDestroy()
+void ADoorGimmick::OnGimmickInteracted(AController* Controller)
 {
-	UE_LOG(LogTemp, Warning, TEXT("DoorGimmick is destroyed"));
-
-	Super::OnGimmickDestroy();
-}
-
-void ADoorGimmick::OnGimmickInteracted()
-{
-	Super::OnGimmickInteracted();
-
+	if (!IsValid(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Controller is not valid"));
+		return;
+	}
+	
 	if (!bIsMoving)
 	{
 		bNextStateIsOpen = !bIsOpen;
@@ -76,6 +80,9 @@ void ADoorGimmick::OnGimmickInteracted()
 
 void ADoorGimmick::UpdateInteractionText() const
 {
-	const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
-	InteractableComponent->SetInteractionText(bNextWillOpen ? InteractionTextOpen : InteractionTextClose);
+	if (InteractableComponent)
+	{
+		const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
+		InteractableComponent->SetInteractionText(bNextWillOpen ? InteractionTextOpen : InteractionTextClose);
+	}
 }

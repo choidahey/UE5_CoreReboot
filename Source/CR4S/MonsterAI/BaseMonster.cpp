@@ -1,22 +1,25 @@
 #include "BaseMonster.h"
 #include "Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Components/MonsterAttributeComponent.h"
 #include "Components/MonsterSkillComponent.h"
 #include "Components/MonsterStateComponent.h"
 #include "Components/MonsterAnimComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Data/MonsterAIKeyNames.h" 
+#include "GameFramework/CharacterMovementComponent.h"
 
 ABaseMonster::ABaseMonster()
 	: MyHeader(TEXT("BaseMonster"))
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Initialize Components
-	AttributeComp = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
-	SkillComp = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
-	StateComp = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
-	AnimComp = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
+	AttributeComponent = CreateDefaultSubobject<UMonsterAttributeComponent>(TEXT("AttributeComp"));
+	SkillComponent = CreateDefaultSubobject<UMonsterSkillComponent>(TEXT("SkillComp"));
+	StateComponent = CreateDefaultSubobject<UMonsterStateComponent>(TEXT("StateComp"));
+	AnimComponent = CreateDefaultSubobject<UMonsterAnimComponent>(TEXT("AnimComp"));
 
 	AIControllerClass = ABaseMonsterAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -27,25 +30,25 @@ void ABaseMonster::BeginPlay()
 	Super::BeginPlay();
 
 	// Bind OnDeath delegate
-	if (AttributeComp)
+	if (AttributeComponent)
 	{
-		AttributeComp->InitializeMonsterAttribute(MonsterID);
-		AttributeComp->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
+		AttributeComponent->InitializeMonsterAttribute(MonsterID);
+		AttributeComponent->OnDeath.AddDynamic(this, &ABaseMonster::HandleDeath);
 	}
 
-	if (SkillComp)
+	if (StateComponent)
 	{
-		SkillComp->InitializeMonsterSkills(MonsterID);
+		StateComponent->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
 	}
 
-	if (StateComp)
+	if (AnimComponent)
 	{
-		StateComp->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
+		AnimComponent->Initialize(GetMesh());
 	}
 
-	if (AnimComp)
+	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
 	{
-		AnimComp->Initialize(GetMesh());
+		AIC->SetupPerceptionFromMonster(this);
 	}
 }
 
@@ -53,19 +56,6 @@ void ABaseMonster::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsDead())
-	{
-		return;
-	}
-
-	if (StateComp->IsInState(EMonsterState::Idle))
-	{
-		float TotalIdleTime = StateComp->GetStateDuration(EMonsterState::Idle);
-		if (TotalIdleTime > 10.f)
-		{
-			//AnimComp->PlayIdleBoredAnimation();
-		}
-	}
 }
 
 void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -76,60 +66,34 @@ void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	if (!AttributeComp || IsDead())
+	if (!AttributeComponent || IsDead())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TakeDamage - AttributeComponent is null or Monster is already dead!"));
 		return 0.0f;
 	}
 
 	// Apply damage via AttributeComponent
-	AttributeComp->ApplyDamage(DamageAmount);
+	AttributeComponent->ApplyDamage(DamageAmount);
 
 	return DamageAmount;
 }
 
-void ABaseMonster::PlayPreMontage(int32 SkillIndex)
-{
-	if (SkillComp)
-	{
-		SkillComp->PlayPreMontage(SkillIndex);
-	}
-}
-
 void ABaseMonster::UseSkill(int32 SkillIndex)
 {
-	if (SkillComp)
+	if (SkillComponent)
 	{
-		SkillComp->UseSkill(SkillIndex);
+		SkillComponent->UseSkill(SkillIndex);
 	}
 }
 
-void ABaseMonster::Die()
+int32 ABaseMonster::SelectSkillIndex()
 {
-	if (StateComp)
-	{
-		StateComp->SetState(EMonsterState::Dead);
-	}
-
-	// Update Blackboard
-	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
-	{
-		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
-		{
-			BB->SetValueAsBool(FAIKeys::IsDead, true);
-		}
-	}
-
-	// Play Death Montage
-	if (AnimComp)
-	{
-		AnimComp->PlayDeathMontage();
-	}
+	return 0;
 }
 
 bool ABaseMonster::IsDead() const
 {
-	return AttributeComp && AttributeComp->IsDead();
+	return AttributeComponent && AttributeComponent->IsDead();
 }
 
 void ABaseMonster::HandleDeath()
@@ -141,11 +105,59 @@ void ABaseMonster::HandleDeath()
 	}
 
 	bIsDead = true;
-	Die();
+	StateComponent->SetState(EMonsterState::Dead);
+
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		MoveComp->DisableMovement();
+
+	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		AIC->StopMovement();
+
+		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
+			BB->SetValueAsBool(FAIKeys::IsDead, true);
+	}
+
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (AnimComponent)
+	{
+		AnimComponent->PlayDeathMontage();
+	}
+
+	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	{
+		if (UAnimMontage* DeathMontage = AnimComponent->GetDeathMontage())
+		{
+			FOnMontageEnded EndDel;
+			EndDel.BindUObject(this, &ABaseMonster::OnDeathMontageEnded);
+			AnimInst->Montage_SetEndDelegate(EndDel, DeathMontage);
+		}
+	}
 }
+
+void ABaseMonster::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (bInterrupted)
+		return;
+
+	SetLifeSpan(4.f);
+}
+
 
 void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)
 {
+	if (auto* AIC = Cast<ABaseMonsterAIController>(GetController()))
+	{
+		if (auto* BB = AIC->GetBlackboardComponent())
+		{
+			BB->SetValueAsInt(FAIKeys::CurrentState, static_cast<int32>(Current));
+		}
+	}
+
 	// NOTICE :: Test Log
 	UE_LOG(LogTemp, Log, TEXT("[%s] OnMonsterStateChanged : State changed from %s to %s."),
 		*MyHeader,

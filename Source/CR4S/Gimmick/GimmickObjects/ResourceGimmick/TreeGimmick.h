@@ -1,11 +1,14 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/GimmickObjects/BaseGimmick/DestructibleGimmick.h"
+#include "Gimmick/GimmickObjects/BaseGimmick.h"
+
 #include "TreeGimmick.generated.h"
 
+class UDestructibleComponent;
+
 UCLASS()
-class CR4S_API ATreeGimmick : public ADestructibleGimmick
+class CR4S_API ATreeGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()
 
@@ -16,22 +19,44 @@ public:
 
 	virtual void BeginPlay() override;
 	
-	virtual void OnGimmickTakeDamage(float DamageAmount, float CurrentHealth) override;
-	virtual void OnGimmickDestroy() override;
-	
 #pragma endregion
 
-#pragma region Components
+#pragma region UDestructibleComponent
+
+public:
+	UFUNCTION(BlueprintPure, Category = "ATreeGimmick|Components")
+	FORCEINLINE UDestructibleComponent* GetDestructibleComponent() const { return DestructibleComponent; }
+
+	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
+
+protected:
+	UFUNCTION()
+	virtual void OnGimmickTakeDamage(float DamageAmount, float CurrentHealth);
+	UFUNCTION()
+	virtual void OnGimmickDestroy();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
-	TObjectPtr<UStaticMeshComponent> TrunkMeshComponent;
+	void DelayedDestroy();
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	bool bIsActorDestroyOnDestroyAction;
+
+	FTimerHandle DestroyTimerHandle;
+	
+	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
+	float DestroyDelay;
+
 #pragma endregion
 
 #pragma region Destroy
 	
 private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UStaticMeshComponent> TrunkMeshComponent;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
 	float StumpHealth;
 	
@@ -52,7 +77,6 @@ private:
 	float ShakeDuration;
 	UPROPERTY(EditDefaultsOnly, Category = "Shake")
 	float ShakeInterval;
-	/** 떨림 강도 */
 	UPROPERTY(EditDefaultsOnly, Category = "Shake")
 	float ShakeIntensity;
 

@@ -12,12 +12,6 @@ void UMonsterAttributeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// NOTICE :: Test Call
-	FName MonsterID = TEXT("MonsterTest1");
-	InitializeMonsterAttribute(MonsterID);
-
-	ApplyDamage(30.0f);
-	UE_LOG(LogTemp, Log, TEXT("[%s] After Damage HP: %.2f / %.2f"), *MyHeader, CurrentHP, CurrentAttribute.MaxHP);
 }
 
 void UMonsterAttributeComponent::InitializeMonsterAttribute(const FName MonsterID)

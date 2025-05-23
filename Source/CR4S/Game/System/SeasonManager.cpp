@@ -1,5 +1,7 @@
 #include "Game/System/SeasonManager.h"
 #include "Game/System/SeasonType.h"
+#include "Game/System/EnvironmentManager.h"
+#include "Kismet/GameplayStatics.h"
 
 bool USeasonManager::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -17,21 +19,32 @@ void USeasonManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	UE_LOG(LogTemp, Warning, TEXT("SeasonManager: Initialize called"));
-	
-	LoadSeason();
+
+	FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &USeasonManager::OnPostWorldInit);
+}
+
+void USeasonManager::OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS)
+{
+	EnvironmentManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(World, AEnvironmentManager::StaticClass()));
+	if (!EnvironmentManager)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: EnvironmentManager not found"));
+	}
+
 }
 
 void USeasonManager::LoadSeason()
 {
 	// if Saved Data Exists, Load Season Data
 	// else Set Default Season
+	UE_LOG(LogTemp, Warning, TEXT("Loading Season"));
 	SetCurrentSeason(ESeasonType::BountifulSeason);
 }
 
 void USeasonManager::ChangeToNextSeason()
 {
 	int32 CurrentSeasonInt = static_cast<int32>(CurrentSeason);
-	int32 NextSeasonInt = (CurrentSeasonInt + 1) % (static_cast<int32>(ESeasonType::FrostSeason) + 1);
+	int32 NextSeasonInt = (CurrentSeasonInt + 1) % (static_cast<int32>(ESeasonType::DrySeason) + 1);
 
 	ESeasonType NextSeason = static_cast<ESeasonType>(NextSeasonInt);
 	if (NextSeason == ESeasonType::None)
@@ -46,7 +59,9 @@ void USeasonManager::ChangeToNextSeason()
 void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 {
 	CurrentSeason = NewSeason;
-	UE_LOG(LogTemp, Error, TEXT("Current Season changed to: %s"), *UEnum::GetValueAsString(NewSeason));
+	UE_LOG(LogTemp, Warning, TEXT("Current Season changed to: %s"), *UEnum::GetValueAsString(NewSeason));
+
+	EnvironmentManager->SetWeatherBySeason(NewSeason);
 
 	HandleSeasonChange(NewSeason);
 }
