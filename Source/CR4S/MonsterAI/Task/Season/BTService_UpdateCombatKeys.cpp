@@ -35,7 +35,6 @@ void UBTService_UpdateCombatKeys::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 
 	BB->SetValueAsFloat(CurrentDistance.SelectedKeyName, Distance);
 	BB->SetValueAsBool(bIsAttackRange.SelectedKeyName, bInAttackRange);
-	UE_LOG(LogTemp, Log, TEXT("[UpdateCombatKeys] CurrentDistance %2.f"), Distance);
 
 	if (auto* StateComp = Pawn->FindComponentByClass<UMonsterStateComponent>())
 	{
