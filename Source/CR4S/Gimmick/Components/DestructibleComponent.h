@@ -68,9 +68,9 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DELEGATE_TwoParams(FOnTakeDamage, float, float);
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnTakeDamage, float, DamageAmount, float, CurrentHealth);
 	FOnTakeDamage OnTakeDamage;
-	DECLARE_DELEGATE(FOnDestry);
+	DECLARE_DYNAMIC_DELEGATE(FOnDestry);
 	FOnDestry OnDestroy;
 
 #pragma endregion

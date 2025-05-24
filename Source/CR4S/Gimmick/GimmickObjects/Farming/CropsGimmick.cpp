@@ -25,8 +25,8 @@ void ACropsGimmick::BeginPlay()
 
 	if (IsValid(InteractableComponent))
 	{
-		InteractableComponent->OnDetectionStateChanged.BindUObject(this, &ThisClass::OnDetectionStateChanged);
-		InteractableComponent->OnTryInteract.BindUObject(this, &ThisClass::OnGimmickInteracted);
+		InteractableComponent->OnDetectionStateChanged.BindDynamic(this, &ThisClass::OnDetectionStateChanged);
+		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
 
 		DefaultInteractionText = InteractableComponent->GetInteractionText();
 	}
@@ -97,15 +97,8 @@ void ACropsGimmick::OnGimmickInteracted(AController* Controller)
 	{
 		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
 		{
-			const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-			if (!ItemData)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s is not found in ItemData"), *RowName.ToString());
-				continue;
-			}
-
 			const FAddItemResult Result
-				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Info.Icon, Count));
+				= InventorySystem->AddItem(RowName, Count);
 
 			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
 				   , Result.Success, Result.AddedCount, Result.RemainingCount);

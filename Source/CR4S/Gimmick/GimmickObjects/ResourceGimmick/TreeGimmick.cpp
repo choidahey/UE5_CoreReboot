@@ -30,8 +30,8 @@ void ATreeGimmick::BeginPlay()
 
 	if (IsValid(DestructibleComponent))
 	{
-		DestructibleComponent->OnTakeDamage.BindUObject(this, &ThisClass::OnGimmickTakeDamage);
-		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroy);
+		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
+		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
 
 		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
 		if (IsValid(GimmickSubsystem))

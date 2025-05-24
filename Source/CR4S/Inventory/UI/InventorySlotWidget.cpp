@@ -1,32 +1,39 @@
 ﻿#include "InventorySlotWidget.h"
 
+#include "CR4S.h"
 #include "InventoryDummySlotWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
 #include "Components/Image.h"
-#include "Components/TextBlock.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 bool UInventorySlotWidget::Initialize()
 {
-	SlotIndex = 0;
-	
+	CurrentItem = nullptr;
 	return Super::Initialize();
 }
 
-void UInventorySlotWidget::InitWidget(UInventorySystemComponent* InInventorySystemComponent, const int32 InSlotIndex)
+void UInventorySlotWidget::InitWidget(UInventorySystemComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem)
 {
-	SlotIndex = InSlotIndex;
 	InventorySystemComponent = InInventorySystemComponent;
-
-	if (const FInventoryItem* Item = InventorySystemComponent->GetItemDataByIndex(SlotIndex))
-	{
-		SetItem(Item->Icon, Item->Count);
-	}
+	CurrentItem = NewItem;
 }
 
 FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	UE_LOG(LogTemp, Warning, TEXT("NativeOnMouseButtonDown: %d"), SlotIndex);
+	if (!IsValid(CurrentItem))
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
+		return FReply::Unhandled();
+	}
+
+	if (!CurrentItem->HasItemData())
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem has no item data"));
+		return FReply::Unhandled();
+	}
+		
+	UE_LOG(LogTemp, Warning, TEXT("NativeOnMouseButtonDown: %d"), CurrentItem->GetSlotIndex());
 	
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
@@ -41,20 +48,20 @@ void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, con
 {
 	UE_LOG(LogTemp, Warning, TEXT("NativeOnDragDetected"));
 
+	if (!IsValid(CurrentItem))
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
+		return;
+	}
+	
 	if (IsValid(DummySlotWidgetClass))
 	{
 		UDragDropOperation* DragOperation = NewObject<UDragDropOperation>();
 		DragOperation->Payload = this;
 		
 		UInventoryDummySlotWidget* DummySlotWidgetInstance = CreateWidget<UInventoryDummySlotWidget>(GetWorld(), DummySlotWidgetClass);
-		const FInventoryItem* Item = InventorySystemComponent->GetItemDataByIndex(SlotIndex);
-		if (!Item)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Slot %d Item is invalid"), SlotIndex);
-			return;
-		}
 		
-		DummySlotWidgetInstance->SetDummy(Item->Icon, Item->Count);
+		DummySlotWidgetInstance->SetDummy(CurrentItem->GetIcon(), CurrentItem->GetCurrentStackCount());
 	
 		DragOperation->DefaultDragVisual = DummySlotWidgetInstance;
 		
@@ -71,48 +78,56 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 {
 	UE_LOG(LogTemp, Warning, TEXT("NativeOnDrop"));
 
-	const UInventorySlotWidget* FromSlot = Cast<UInventorySlotWidget>(InOperation->Payload);
-	if (IsValid(FromSlot))
+	if (!IsValid(CurrentItem))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FromSlot: %d, SlotIndex: %d"), FromSlot->SlotIndex, SlotIndex);
+		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
+		return false;
+	}
+
+	const UInventorySlotWidget* FromSlot = Cast<UInventorySlotWidget>(InOperation->Payload);
+	if (!IsValid(FromSlot))
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("FromSlot is invalid"));
+		return false;
+	}
+
+	UBaseInventoryItem* FromItem = FromSlot->CurrentItem;
+	if (!IsValid(FromItem))
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));
+		return false;
+	}
 		
-		if (FromSlot->SlotIndex != SlotIndex)
+	if (FromItem != CurrentItem)
+	{
+		// Same Item
+		if (FromItem->GetInventoryItemData()->RowName == CurrentItem->GetInventoryItemData()->RowName)
 		{
-			const FInventoryItem* FromItem = InventorySystemComponent->GetItemDataByIndex(FromSlot->SlotIndex);
-			const FInventoryItem* ToItem = InventorySystemComponent->GetItemDataByIndex(SlotIndex);
-			if (FromItem && ToItem)
-			{
-				// Same Item
-				if (FromItem->RowName == ToItem->RowName)
-				{
-					InventorySystemComponent->MergeItems(FromSlot->SlotIndex, SlotIndex);
-				}
-				else
-				{
-					InventorySystemComponent->SwapItems(FromSlot->SlotIndex, SlotIndex);
-				}
-				
-				return true;
-			}
+			InventorySystemComponent->MergeItems(FromItem, CurrentItem);
 		}
+		else
+		{
+			InventorySystemComponent->SwapItems(FromItem, CurrentItem);
+		}
+				
+		return true;
 	}
 
 	return false;
 }
 
-void UInventorySlotWidget::SetItem(UTexture2D* ItemIcon, const int32 ItemCount) const
+void UInventorySlotWidget::SetItem(UBaseInventoryItem* InItem)
 {
-	// Empty Slot
-	if (ItemCount == 0)
+	CurrentItem = InItem;
+
+	if (!IsValid(CurrentItem))
 	{
-		IconImage->SetVisibility(ESlateVisibility::Hidden);
-		CountTextBorder->SetVisibility(ESlateVisibility::Hidden);
+		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
+		return;
 	}
-	else
-	{
-		IconImage->SetVisibility(ESlateVisibility::Visible);
-		CountTextBorder->SetVisibility(ESlateVisibility::Visible);
-		IconImage->SetBrushFromTexture(ItemIcon);
-		CountTextBlock->SetText(FText::AsNumber(ItemCount));
-	}
+	
+	const bool HasItem = CurrentItem->HasItemData();
+	
+	IconImage->SetVisibility(HasItem ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	CountTextBorder->SetVisibility(HasItem ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }

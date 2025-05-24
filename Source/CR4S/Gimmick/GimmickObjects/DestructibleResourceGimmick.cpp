@@ -28,8 +28,8 @@ void ADestructibleResourceGimmick::BeginPlay()
 
 	if (IsValid(DestructibleComponent))
 	{
-		DestructibleComponent->OnTakeDamage.BindUObject(this, &ThisClass::OnGimmickTakeDamage);
-		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroy);
+		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
+		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
 
 		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
 		if (IsValid(GimmickSubsystem))
@@ -145,15 +145,8 @@ void ADestructibleResourceGimmick::GetResourceItem() const
 	{
 		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
 		{
-			const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-			if (!ItemData)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s is not found in ItemData"), *RowName.ToString());
-				continue;
-			}
-
 			const FAddItemResult Result
-				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Info.Icon, Count));
+				= InventorySystem->AddItem(RowName, Count);
 
 			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
 			       , Result.Success, Result.AddedCount, Result.RemainingCount);

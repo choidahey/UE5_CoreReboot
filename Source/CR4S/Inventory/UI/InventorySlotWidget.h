@@ -27,13 +27,14 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UInventorySystemComponent* InInventorySystemComponent, const int32 InSlotIndex);
+	void InitWidget(UInventorySystemComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem);
 
 private:
 	UPROPERTY()
 	TObjectPtr<UInventorySystemComponent> InventorySystemComponent;
 
-	int32 SlotIndex;
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryItem> CurrentItem;
 	
 #pragma endregion
 	
@@ -53,7 +54,7 @@ private:
 #pragma region Item
 
 public:
-	void SetItem(UTexture2D* ItemIcon, const int32 ItemCount) const;
+	void SetItem(UBaseInventoryItem* InItem);
 	
 #pragma endregion
 	

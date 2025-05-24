@@ -76,10 +76,10 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, const bool);
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, const bool, bIsDetected);
 	FOnDetectionStateChanged OnDetectionStateChanged;
 	
-	DECLARE_DELEGATE_OneParam(FOnTryInteract, AController*);
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnTryInteract, AController*, DetectingController);
 	FOnTryInteract OnTryInteract;
 #pragma endregion
 };

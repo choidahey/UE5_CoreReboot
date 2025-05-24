@@ -22,8 +22,8 @@ void APlanterBoxGimmick::BeginPlay()
 
 	if (IsValid(InteractableComponent))
 	{
-		InteractableComponent->OnDetectionStateChanged.BindUObject(this, &ThisClass::OnDetectionStateChanged);
-		InteractableComponent->OnTryInteract.BindUObject(this, &ThisClass::OnGimmickInteracted);
+		InteractableComponent->OnDetectionStateChanged.BindDynamic(this, &ThisClass::OnDetectionStateChanged);
+		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
 }
 
@@ -72,7 +72,7 @@ void APlanterBoxGimmick::OnGimmickInteracted(AController* Controller)
 				return;
 			}
 
-			PlantedGimmick->OnHarvest.BindUObject(this, &ThisClass::OnHarvest);
+			PlantedGimmick->OnHarvest.BindDynamic(this, &ThisClass::OnHarvest);
 
 			InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
 		}

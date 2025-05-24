@@ -64,24 +64,24 @@ private:
 	void Grow();
 	int32 CalculateGrowthStage() const;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	bool bIsHarvestable;
 
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float GrowthPercentPerInterval;
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float IntervalSeconds;
-	UPROPERTY(EditDefaultsOnly, Category = "Farming")
+	UPROPERTY(EditDefaultsOnly, Category = "Grow")
 	TArray<float> GrowthStageThresholds;
-	UPROPERTY(EditDefaultsOnly, Category = "Farming")
+	UPROPERTY(EditDefaultsOnly, Category = "Grow")
 	TArray<float> GrowthStageScale;
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	int32 PreviousGrowthStage;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float CurrentGrowthPercent;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float MaxGrowthPercent;
 	
 	FTimerHandle GrowthTimerHandle;
@@ -91,7 +91,7 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DELEGATE(FOnHarvest)
+	DECLARE_DYNAMIC_DELEGATE(FOnHarvest);
 	FOnHarvest OnHarvest;
 	
 #pragma endregion

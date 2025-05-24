@@ -25,7 +25,7 @@ void ADoorGimmick::BeginPlay()
 
 	if (IsValid(InteractableComponent))
 	{
-		InteractableComponent->OnTryInteract.BindUObject(this, &ThisClass::OnGimmickInteracted);
+		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
 	
 	ClosedRotation = GetActorRotation();
