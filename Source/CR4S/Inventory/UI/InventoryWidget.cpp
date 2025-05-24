@@ -39,6 +39,5 @@ void UInventoryWidget::SetItemWidget(UBaseInventoryItem* Item)
 	if (InventorySlotWidgets.IsValidIndex(SlotIndex))
 	{
 		InventorySlotWidgets[SlotIndex]->SetItem(Item);
-		UE_LOG(LogTemp, Warning, TEXT("SlotIndex: %d / ItemCount: %d"), SlotIndex, Item->GetCurrentStackCount());
 	}
 }

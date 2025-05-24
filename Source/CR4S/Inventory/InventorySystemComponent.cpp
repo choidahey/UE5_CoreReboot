@@ -26,6 +26,14 @@ void UInventorySystemComponent::BeginPlay()
 		return;
 	}
 
+	InventoryItems.Reserve(MaxInventorySlot);
+	for (int32 Index = 0; Index < MaxInventorySlot; ++Index)
+	{
+		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
+		Item->InitInventoryItem(OwnerActor, Index);
+		InventoryItems.Add(Item);
+	}
+
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!IsValid(PlayerController))
 	{
@@ -39,13 +47,6 @@ void UInventorySystemComponent::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CreateInventoryWidget is failed"));
 		return;
-	}
-
-	for (int32 Index = 0; Index < MaxInventorySlot; ++Index)
-	{
-		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
-		Item->InitInventoryItem(OwnerActor, Index);
-		InventoryItems.Add(Item);
 	}
 
 	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
@@ -100,7 +101,7 @@ FAddItemResult UInventorySystemComponent::AddItem(const FName RowName, const int
 			break;
 		}
 
-		if (SameInventoryItem->GetInventoryItemData()->MaxStackCount < ItemData->MaxStackCount)
+		if (SameInventoryItem->GetCurrentStackCount() < ItemData->MaxStackCount)
 		{
 			const int32 SameInventoryItemCount = SameInventoryItem->GetCurrentStackCount();
 			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItemCount;
@@ -224,7 +225,7 @@ bool UInventorySystemComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInv
 	return true;
 }
 
-void UInventorySystemComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem)
+void UInventorySystemComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
 {
 	if (!IsValid(FromItem))
 	{
@@ -357,8 +358,8 @@ void UInventorySystemComponent::SortInventoryItems()
 			                           ActualAddCount);
 
 			RemainingCount -= ActualAddCount;
-			SlotIndex++;
 			ChangedItemSlots.Add(SlotIndex);
+			SlotIndex++;
 		}
 	}
 
@@ -370,6 +371,7 @@ void UInventorySystemComponent::OpenInventory() const
 	if (IsValid(InventoryWidgetInstance) && IsValid(SurvivalHUD))
 	{
 		SurvivalHUD->ToggleWidget(InventoryWidgetInstance);
+		SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly);
 	}
 }
 
@@ -379,6 +381,7 @@ void UInventorySystemComponent::CloseInventory()
 	if (IsValid(InventoryWidgetInstance) && IsValid(SurvivalHUD))
 	{
 		SurvivalHUD->ToggleWidget(InventoryWidgetInstance);
+		SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
 	}
 }
 
@@ -403,6 +406,8 @@ bool UInventorySystemComponent::CreateInventoryWidget()
 		UE_LOG(LogTemp, Warning, TEXT("InventoryWidgetInstance is invalid"));
 		return false;
 	}
+
+	InventoryWidgetInstance->InitInventoryWidget(this);
 
 	return true;
 }

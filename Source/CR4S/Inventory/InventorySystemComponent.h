@@ -54,7 +54,7 @@ public:
 	UFUNCTION()
 	void SortInventoryItems();
 	bool SwapItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const;
-	void MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem);
+	void MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const;
 
 	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
 

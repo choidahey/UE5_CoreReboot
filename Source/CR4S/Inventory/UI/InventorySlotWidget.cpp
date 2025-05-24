@@ -5,6 +5,7 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 bool UInventorySlotWidget::Initialize()
@@ -17,6 +18,8 @@ void UInventorySlotWidget::InitWidget(UInventorySystemComponent* InInventorySyst
 {
 	InventorySystemComponent = InInventorySystemComponent;
 	CurrentItem = NewItem;
+
+	SetItem(CurrentItem);
 }
 
 FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -125,9 +128,18 @@ void UInventorySlotWidget::SetItem(UBaseInventoryItem* InItem)
 		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
 		return;
 	}
-	
-	const bool HasItem = CurrentItem->HasItemData();
-	
-	IconImage->SetVisibility(HasItem ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	CountTextBorder->SetVisibility(HasItem ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+
+	if (CurrentItem->HasItemData())
+	{
+		IconImage->SetVisibility(ESlateVisibility::Visible);
+		CountTextBorder->SetVisibility(ESlateVisibility::Visible);
+
+		IconImage->SetBrushFromTexture(CurrentItem->GetIcon());
+		CountTextBlock->SetText(FText::AsNumber(CurrentItem->GetCurrentStackCount()));
+	}
+	else
+	{
+		IconImage->SetVisibility(ESlateVisibility::Hidden);
+		CountTextBorder->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
