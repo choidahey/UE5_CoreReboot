@@ -16,7 +16,7 @@ void UBTService_CheckCombatZoneExit::TickNode(UBehaviorTreeComponent& OwnerComp,
 	AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor));
 	if (!Target) return;
 
-	if (UMonsterStateComponent* StateComp = Monster->GetStateComponent())
+	if (UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>())
 	{
 		if (!StateComp->IsInState(EMonsterState::Combat)) return;
 			
