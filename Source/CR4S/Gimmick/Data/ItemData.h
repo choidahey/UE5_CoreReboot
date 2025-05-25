@@ -8,7 +8,7 @@
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
-	Resource UMETA(DisplayName = "재료"),
+	Resources UMETA(DisplayName = "재료"),
 	Building UMETA(DisplayName = "건축물"),
 	Tool UMETA(DisplayName = "도구"),
 	Spawn UMETA(DisplayName = "소환"),
@@ -22,7 +22,7 @@ struct FItemInfoData : public FTableRowBase
 	GENERATED_BODY()
 
 	FItemInfoData()
-		: Type(EItemType::Resource),
+		: Type(EItemType::Resources),
 		  MaxStackCount(64)
 	{
 	}

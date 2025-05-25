@@ -6,7 +6,7 @@
 #include "InventoryWidget.generated.h"
 
 class UButton;
-class UInventorySystemComponent;
+class UInventoryComponent;
 class UInventorySlotWidget;
 class UWrapBox;
 
@@ -19,7 +19,7 @@ class CR4S_API UInventoryWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryWidget|Initalize")
-	void InitInventoryWidget(UInventorySystemComponent* InventorySystemComponent);
+	void InitInventoryWidget(UInventoryComponent* InventorySystemComponent);
 	
 #pragma endregion
 	

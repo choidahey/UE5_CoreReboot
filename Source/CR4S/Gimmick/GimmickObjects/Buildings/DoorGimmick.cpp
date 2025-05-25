@@ -1,5 +1,6 @@
 ﻿#include "DoorGimmick.h"
 
+#include "CR4S.h"
 #include "Gimmick/Components/InteractableComponent.h"
 
 ADoorGimmick::ADoorGimmick()
@@ -53,11 +54,11 @@ void ADoorGimmick::Tick(const float DeltaSeconds)
 	}
 }
 
-void ADoorGimmick::OnGimmickInteracted(AController* Controller)
+void ADoorGimmick::OnGimmickInteracted(AActor* Interactor)
 {
-	if (!IsValid(Controller))
+	if (!IsValid(Interactor))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Controller is not valid"));
+		CR4S_Log(LogTemp, Warning, TEXT("Interactor is invalid"));
 		return;
 	}
 	

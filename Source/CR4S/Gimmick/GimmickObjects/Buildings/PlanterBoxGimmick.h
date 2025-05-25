@@ -1,14 +1,14 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/GimmickObjects/DestructibleResourceGimmick.h"
+#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
 #include "PlanterBoxGimmick.generated.h"
 
 class ACropsGimmick;
 class UInteractableComponent;
 
 UCLASS()
-class CR4S_API APlanterBoxGimmick : public ADestructibleResourceGimmick
+class CR4S_API APlanterBoxGimmick : public ADestructibleGimmick
 {
 	GENERATED_BODY()
 
@@ -19,7 +19,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void OnGimmickDestroy() override;
+	virtual void OnGimmickDestroy(AActor* DamageCauser) override;
 
 #pragma endregion
 	
@@ -31,17 +31,17 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickInteracted(AController* Controller);
+	virtual void OnGimmickInteracted(AActor* Interactor);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 
 private:
 	UFUNCTION()
-	void OnDetectionStateChanged(AController* InDetectingController, bool bInIsDetected);
+	void OnDetectionStateChanged(AActor* InDetectingActor, bool bInIsDetected);
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	AController* DetectingController;
+	AActor* DetectingActor;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
 	bool bIsDetected;

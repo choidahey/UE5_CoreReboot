@@ -1,11 +1,10 @@
 ﻿#include "CropsGimmick.h"
 #include "Gimmick/Components/InteractableComponent.h"
-#include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/InventorySystemComponent.h"
+#include "Inventory/InventoryComponent.h"
 
 ACropsGimmick::ACropsGimmick()
 	: HarvestText(FText::FromString(TEXT("수확 하기"))),
-	  DetectingController(nullptr),
+	  DetectingActor(nullptr),
 	  bIsDetected(false),
 	  bIsHarvestable(false),
 	  GrowthPercentPerInterval(10.f),
@@ -51,74 +50,17 @@ void ACropsGimmick::BeginPlay()
 	}
 }
 
-void ACropsGimmick::OnGimmickInteracted(AController* Controller)
+void ACropsGimmick::OnGimmickInteracted(AActor* Interactor)
 {
-	if (!IsValid(InteractableComponent))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InteractableComponent is not valid"));
-		return;
-	}
-
-	if (!IsValid(DetectingController))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DetectingController is not valid"));
-		return;
-	}
-
-	if (!bIsHarvestable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Is not harvestable"));
-		return;
-	}
-
-	const APawn* DetectingPawn = DetectingController->GetPawn();
-	if (!IsValid(DetectingPawn))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DetectingPawn is not valid"));
-		return;
-	}
-
-	UInventorySystemComponent* InventorySystem
-		= DetectingPawn->FindComponentByClass<UInventorySystemComponent>();
-	if (!IsValid(InventorySystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InventorySystem is not valid"));
-		return;
-	}
-
-	const UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-	if (!IsValid(ItemGimmickSubsystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is not valid"));
-		return;
-	}
-
-	if (const FBaseGimmickData* GimmickData = ItemGimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
-	{
-		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
-		{
-			const FAddItemResult Result
-				= InventorySystem->AddItem(RowName, Count);
-
-			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
-				   , Result.Success, Result.AddedCount, Result.RemainingCount);
-			
-			if (Result.Success)
-			{
-				OnHarvest.ExecuteIfBound();
-				
-				Destroy();
-			}
-		}
-	}
+	GetResources(Interactor);
 }
 
-void ACropsGimmick::OnDetectionStateChanged(AController* InDetectingController, const bool bInIsDetected)
+void ACropsGimmick::OnDetectionStateChanged(AActor* InDetectingActor, const bool bInIsDetected)
 {
-	DetectingController = InDetectingController;
+	DetectingActor = InDetectingActor;
 	bIsDetected = bInIsDetected;
 
-	if (Cast<APlayerController>(DetectingController) && bIsDetected)
+	if (Cast<APlayerController>(DetectingActor) && bIsDetected)
 	{
 		UpdateInteractionText();
 	}
@@ -159,14 +101,14 @@ void ACropsGimmick::GrowthStageChanged(const int32 NewGrowthStage)
 
 bool ACropsGimmick::IsHeldItemSeed() const
 {
-	if (!IsValid(DetectingController) || !bIsDetected)
+	if (!IsValid(DetectingActor) || !bIsDetected)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("DetectingController is not valid or bIsDetected is false"));
 		return false;
 	}
 
-	const UInventorySystemComponent* InventorySystem
-		= DetectingController->FindComponentByClass<UInventorySystemComponent>();
+	const UInventoryComponent* InventorySystem
+		= DetectingActor->FindComponentByClass<UInventoryComponent>();
 
 	if (!IsValid(InventorySystem))
 	{
@@ -181,7 +123,7 @@ void ACropsGimmick::Grow()
 {
 	CurrentGrowthPercent = FMath::Clamp(CurrentGrowthPercent + GrowthPercentPerInterval, 0.f, MaxGrowthPercent);
 
-	if (Cast<APlayerController>(DetectingController) && bIsDetected)
+	if (Cast<APlayerController>(DetectingActor) && bIsDetected)
 	{
 		UpdateInteractionText();
 	}

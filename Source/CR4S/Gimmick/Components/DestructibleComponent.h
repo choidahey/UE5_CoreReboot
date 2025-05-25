@@ -51,8 +51,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Hit")
 	void TakeDamage(AActor* DamageCauser, float DamageAmount);
 
-	FORCEINLINE AActor* GetLastDamageCauser() const { return LastDamageCauser; }
-
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Hit", meta = (ClampMin = "0.0"))
 	float HitRecoveryTime;
@@ -60,17 +58,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Hit")
 	bool bCanTakeDamage;
 
-	UPROPERTY(VisibleAnywhere, Category = "Hit")
-	TObjectPtr<AActor> LastDamageCauser;
-
 #pragma endregion
 
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnTakeDamage, float, DamageAmount, float, CurrentHealth);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnTakeDamage, AActor*, DamageCauser, float, DamageAmount, float, CurrentHealth);
 	FOnTakeDamage OnTakeDamage;
-	DECLARE_DYNAMIC_DELEGATE(FOnDestry);
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnDestry, AActor*, DamageCauser);
 	FOnDestry OnDestroy;
 
 #pragma endregion

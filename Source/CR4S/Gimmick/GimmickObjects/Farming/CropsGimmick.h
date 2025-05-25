@@ -28,14 +28,14 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickInteracted(AController* Controller);
+	virtual void OnGimmickInteracted(AActor* Interactor);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 	
 private:
 	UFUNCTION()
-	void OnDetectionStateChanged(AController* InDetectingController, bool bInIsDetected);
+	void OnDetectionStateChanged(AActor* InDetectingActor, bool bInIsDetected);
 	void UpdateInteractionText() const;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
@@ -44,7 +44,7 @@ private:
 	FText DefaultInteractionText;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	AController* DetectingController;
+	AActor* DetectingActor;
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
 	bool bIsDetected;
 	

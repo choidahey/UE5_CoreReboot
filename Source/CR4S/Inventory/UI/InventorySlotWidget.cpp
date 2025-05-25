@@ -14,7 +14,7 @@ bool UInventorySlotWidget::Initialize()
 	return Super::Initialize();
 }
 
-void UInventorySlotWidget::InitWidget(UInventorySystemComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem)
+void UInventorySlotWidget::InitWidget(UInventoryComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem)
 {
 	InventorySystemComponent = InInventorySystemComponent;
 	CurrentItem = NewItem;

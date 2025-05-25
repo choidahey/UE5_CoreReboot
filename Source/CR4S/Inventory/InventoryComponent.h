@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "Gimmick/Data/ItemData.h"
 
-#include "InventorySystemComponent.generated.h"
+#include "InventoryComponent.generated.h"
 
 class ASurvivalHUD;
 class UBaseInventoryItem;
@@ -29,14 +29,14 @@ struct FAddItemResult
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class CR4S_API UInventorySystemComponent : public UActorComponent
+class CR4S_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 #pragma region UActorComponent Override
 
 public:
-	UInventorySystemComponent();
+	UInventoryComponent();
 
 	virtual void BeginPlay() override;
 

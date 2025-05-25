@@ -28,9 +28,9 @@ public:
 #pragma region Interaction
 
 public:
-	void TryInteract(AController* Controller) const;
+	void TryInteract(AActor* Interactor) const;
 
-	void DetectionStateChanged(AController* DetectingController, const bool bIsDetected) const;
+	void DetectionStateChanged(AActor* DetectingActor, const bool bIsDetected) const;
 	
 	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Interaction")
 	FORCEINLINE FText GetInteractionText() const { return InteractionText; }
@@ -76,10 +76,11 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, const bool, bIsDetected);
+	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDetectionStateChanged, AActor*, DetectingActor, const bool, bIsDetected);
 	FOnDetectionStateChanged OnDetectionStateChanged;
 	
-	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnTryInteract, AController*, DetectingController);
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnTryInteract, AActor*, Interactor);
 	FOnTryInteract OnTryInteract;
+	
 #pragma endregion
 };

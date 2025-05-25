@@ -14,7 +14,7 @@ struct FInventoryItemData
 	GENERATED_BODY()
 
 	FInventoryItemData()
-		: ItemType(EItemType::Resource),
+		: ItemType(EItemType::Resources),
 		  MaxStackCount(0)
 	{
 	}

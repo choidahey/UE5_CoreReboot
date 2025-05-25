@@ -1,18 +1,18 @@
 ﻿#include "InventoryWidget.h"
 
 #include "CR4S.h"
-#include "Inventory/InventorySystemComponent.h"
+#include "Inventory/InventoryComponent.h"
 #include "Components/Button.h"
 #include "Components/WrapBox.h"
 #include "Inventory/UI/InventorySlotWidget.h"
 
-void UInventoryWidget::InitInventoryWidget(UInventorySystemComponent* InventorySystemComponent)
+void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventorySystemComponent)
 {
 	if (IsValid(InventorySystemComponent))
 	{
 		InventorySystemComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::SetItemWidget);
-		SortButton->OnClicked.AddUniqueDynamic(InventorySystemComponent, &UInventorySystemComponent::SortInventoryItems);
-		CloseButton->OnClicked.AddUniqueDynamic(InventorySystemComponent, &UInventorySystemComponent::CloseInventory);
+		SortButton->OnClicked.AddUniqueDynamic(InventorySystemComponent, &UInventoryComponent::SortInventoryItems);
+		CloseButton->OnClicked.AddUniqueDynamic(InventorySystemComponent, &UInventoryComponent::CloseInventory);
 	}
 
 	InventoryWrapBox->ClearChildren();

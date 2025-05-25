@@ -1,4 +1,4 @@
-﻿#include "InventorySystemComponent.h"
+﻿#include "InventoryComponent.h"
 
 #include "CR4S.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
@@ -7,13 +7,13 @@
 #include "UI/InGame/SurvivalHUD.h"
 
 
-UInventorySystemComponent::UInventorySystemComponent()
+UInventoryComponent::UInventoryComponent()
 	: MaxInventorySlot(30)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UInventorySystemComponent::BeginPlay()
+void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -58,7 +58,7 @@ void UInventorySystemComponent::BeginPlay()
 	CR4S_Log(LogTemp, Warning, TEXT("End"));
 }
 
-FAddItemResult UInventorySystemComponent::AddItem(const FName RowName, const int32 Count)
+FAddItemResult UInventoryComponent::AddItem(const FName RowName, const int32 Count)
 {
 	FAddItemResult Result;
 	Result.RemainingCount = 0;
@@ -142,16 +142,10 @@ FAddItemResult UInventorySystemComponent::AddItem(const FName RowName, const int
 
 	NotifyItemSlotsChanged(ChangedItemSlots.Array());
 
-	// If there are still remaining items, spawn them in the world
-	if (RemainingCount > 0 && IsValid(ItemGimmickSubsystem))
-	{
-		SpawnRemainingItems(RowName, RemainingCount);
-	}
-
 	return Result;
 }
 
-void UInventorySystemComponent::GetInventoryItemsAndEmptySlots(const FName& InRowName,
+void UInventoryComponent::GetInventoryItemsAndEmptySlots(const FName& InRowName,
                                                                TArray<UBaseInventoryItem*>& OutSameItems,
                                                                TArray<UBaseInventoryItem*>& OutEmptySlots)
 {
@@ -177,7 +171,7 @@ void UInventorySystemComponent::GetInventoryItemsAndEmptySlots(const FName& InRo
 	}
 }
 
-void UInventorySystemComponent::SpawnRemainingItems(const FName& ItemRowName, const int32 Count) const
+void UInventoryComponent::SpawnRemainingItems(const FName& ItemRowName, const int32 Count) const
 {
 	UE_LOG(LogTemp, Warning, TEXT("Try to spawn %d items of %s"), Count, *ItemRowName.ToString());
 
@@ -204,7 +198,7 @@ void UInventorySystemComponent::SpawnRemainingItems(const FName& ItemRowName, co
 	// }
 }
 
-bool UInventorySystemComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
+bool UInventoryComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
 {
 	if (!IsValid(FromItem))
 	{
@@ -225,7 +219,7 @@ bool UInventorySystemComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInv
 	return true;
 }
 
-void UInventorySystemComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
+void UInventoryComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
 {
 	if (!IsValid(FromItem))
 	{
@@ -259,7 +253,7 @@ void UInventorySystemComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseIn
 	NotifyItemSlotsChanged({FromItem->GetSlotIndex(), ToItem->GetSlotIndex()});
 }
 
-const FItemInfoData* UInventorySystemComponent::FindItemDataFromDataTable(const FName& RowName) const
+const FItemInfoData* UInventoryComponent::FindItemDataFromDataTable(const FName& RowName) const
 {
 	if (!IsValid(ItemGimmickSubsystem))
 	{
@@ -270,7 +264,7 @@ const FItemInfoData* UInventorySystemComponent::FindItemDataFromDataTable(const 
 	return ItemGimmickSubsystem->FindItemInfoData(RowName);
 }
 
-UBaseInventoryItem* UInventorySystemComponent::GetItemDataByIndex(const int32 Index) const
+UBaseInventoryItem* UInventoryComponent::GetItemDataByIndex(const int32 Index) const
 {
 	if (!InventoryItems.IsValidIndex(Index))
 	{
@@ -280,7 +274,7 @@ UBaseInventoryItem* UInventorySystemComponent::GetItemDataByIndex(const int32 In
 	return InventoryItems[Index];
 }
 
-void UInventorySystemComponent::RemoveItemAtIndex(const int32 Index, const int32 RemoveCount)
+void UInventoryComponent::RemoveItemAtIndex(const int32 Index, const int32 RemoveCount)
 {
 	if (!InventoryItems.IsValidIndex(Index))
 	{
@@ -303,7 +297,7 @@ void UInventorySystemComponent::RemoveItemAtIndex(const int32 Index, const int32
 	NotifyItemSlotChanged(Index);
 }
 
-void UInventorySystemComponent::SortInventoryItems()
+void UInventoryComponent::SortInventoryItems()
 {
 	if (!IsValid(ItemGimmickSubsystem))
 	{
@@ -366,7 +360,7 @@ void UInventorySystemComponent::SortInventoryItems()
 	NotifyItemSlotsChanged(ChangedItemSlots.Array());
 }
 
-void UInventorySystemComponent::OpenInventory() const
+void UInventoryComponent::OpenInventory() const
 {
 	if (IsValid(InventoryWidgetInstance) && IsValid(SurvivalHUD))
 	{
@@ -376,7 +370,7 @@ void UInventorySystemComponent::OpenInventory() const
 }
 
 // ReSharper disable once CppUE4BlueprintCallableFunctionMayBeConst
-void UInventorySystemComponent::CloseInventory()
+void UInventoryComponent::CloseInventory()
 {
 	if (IsValid(InventoryWidgetInstance) && IsValid(SurvivalHUD))
 	{
@@ -385,7 +379,7 @@ void UInventorySystemComponent::CloseInventory()
 	}
 }
 
-bool UInventorySystemComponent::CreateInventoryWidget()
+bool UInventoryComponent::CreateInventoryWidget()
 {
 	if (!IsValid(SurvivalHUD))
 	{
@@ -412,7 +406,7 @@ bool UInventorySystemComponent::CreateInventoryWidget()
 	return true;
 }
 
-void UInventorySystemComponent::NotifyItemSlotChanged(const int32 ItemSlotIndex) const
+void UInventoryComponent::NotifyItemSlotChanged(const int32 ItemSlotIndex) const
 {
 	if (InventoryItems.IsValidIndex(ItemSlotIndex))
 	{
@@ -423,7 +417,7 @@ void UInventorySystemComponent::NotifyItemSlotChanged(const int32 ItemSlotIndex)
 	}
 }
 
-void UInventorySystemComponent::NotifyItemSlotsChanged(const TArray<int32>& ChangedItemSlots) const
+void UInventoryComponent::NotifyItemSlotsChanged(const TArray<int32>& ChangedItemSlots) const
 {
 	for (const int32 ItemSlotIndex : ChangedItemSlots)
 	{
