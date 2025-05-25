@@ -1,6 +1,7 @@
 ﻿#include "CropsGimmick.h"
+
+#include "Character/Characters/PlayerCharacter.h"
 #include "Gimmick/Components/InteractableComponent.h"
-#include "Inventory/InventoryComponent.h"
 
 ACropsGimmick::ACropsGimmick()
 	: HarvestText(FText::FromString(TEXT("수확 하기"))),
@@ -52,7 +53,11 @@ void ACropsGimmick::BeginPlay()
 
 void ACropsGimmick::OnGimmickInteracted(AActor* Interactor)
 {
+	OnHarvest.ExecuteIfBound();
+	
 	GetResources(Interactor);
+
+	Destroy();
 }
 
 void ACropsGimmick::OnDetectionStateChanged(AActor* InDetectingActor, const bool bInIsDetected)
@@ -60,7 +65,8 @@ void ACropsGimmick::OnDetectionStateChanged(AActor* InDetectingActor, const bool
 	DetectingActor = InDetectingActor;
 	bIsDetected = bInIsDetected;
 
-	if (Cast<APlayerController>(DetectingActor) && bIsDetected)
+	const APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(DetectingActor);
+	if (IsValid(PlayerCharacter) && bIsDetected)
 	{
 		UpdateInteractionText();
 	}
@@ -97,26 +103,6 @@ void ACropsGimmick::GrowthStageChanged(const int32 NewGrowthStage)
 			bIsHarvestable = true;
 		}
 	}
-}
-
-bool ACropsGimmick::IsHeldItemSeed() const
-{
-	if (!IsValid(DetectingActor) || !bIsDetected)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DetectingController is not valid or bIsDetected is false"));
-		return false;
-	}
-
-	const UInventoryComponent* InventorySystem
-		= DetectingActor->FindComponentByClass<UInventoryComponent>();
-
-	if (!IsValid(InventorySystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InventorySystem is not valid"));
-		return false;
-	}
-
-	return InventorySystem->GetCurrentHeldItemName() == FName("Seed");
 }
 
 void ACropsGimmick::Grow()

@@ -60,7 +60,6 @@ protected:
 	virtual void GrowthStageChanged(const int32 NewGrowthStage);
 	
 private:
-	bool IsHeldItemSeed() const;
 	void Grow();
 	int32 CalculateGrowthStage() const;
 	
