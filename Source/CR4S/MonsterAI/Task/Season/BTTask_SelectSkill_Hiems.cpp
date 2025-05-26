@@ -4,12 +4,30 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/MonsterAIHelper.h"
+#include "MonsterAI/Controller/BaseMonsterAIController.h"
 
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
 	if (!CachedMonster.IsValid() || !Target) return INDEX_NONE;
 
-	const float Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+    constexpr float IceRoadForwardTreshold = 1100.f;
+    constexpr float IceRaodAwayTreshold = 500.f;
+    
+    ABaseMonsterAIController* AICon = Cast<ABaseMonsterAIController>(CachedMonster->GetController());
+    if (!AICon)
+        return INDEX_NONE;
+
+    UBlackboardComponent* BB = AICon->GetBlackboardComponent();
+
+    const float Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+
+    if (Distance >= IceRoadForwardTreshold || Distance <= IceRaodAwayTreshold)
+    {
+        const bool bToward = (Distance >= IceRoadForwardTreshold);
+        BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
+
+        return 3;
+    }
 	
 	TArray<FSkillWeight> Weights;
 	Weights.Reserve(AvailableSkills.Num());

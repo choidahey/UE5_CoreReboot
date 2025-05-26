@@ -27,4 +27,5 @@ struct FSeasonBossAIKeys : public FAIKeys
 	static const FName InitializeTargetLocation;
 	static const FName NearestHouseLocation;
 	static const FName bIsAttackRange;
+	static const FName bIsIceRoadForward;
 };
