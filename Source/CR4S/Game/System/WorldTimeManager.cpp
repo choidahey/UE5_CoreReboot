@@ -80,6 +80,7 @@ void UWorldTimeManager::UpdateTime()
 	}
 
 	UpdateTimeWidget();
+	OnWorldTimeUpdated.Broadcast(TotalPlayTime);
 	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
 }
 
@@ -156,7 +157,9 @@ void UWorldTimeManager::ModifyTime(int32 Day, int32 Minute)
 		}
 	}
 
+
 	UpdateTimeWidget();
+	OnWorldTimeUpdated.Broadcast(TotalPlayTime);
 	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
 }
 

@@ -15,7 +15,7 @@ void UDestructibleComponent::InitComponent(const float InMaxHealth)
 	CurrentHealth = InMaxHealth;
 }
 
-void UDestructibleComponent::TakeDamage(AController* DamageCauserController, const float DamageAmount)
+void UDestructibleComponent::TakeDamage(AActor* DamageCauser, const float DamageAmount)
 {
 	if (!bCanTakeDamage || IsDestructed())
 	{
@@ -24,7 +24,7 @@ void UDestructibleComponent::TakeDamage(AController* DamageCauserController, con
 
 	bCanTakeDamage = false;
 
-	LastDamageCauserController = DamageCauserController;
+	LastDamageCauser = DamageCauser;
 
 	CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
 

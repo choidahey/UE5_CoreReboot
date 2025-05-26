@@ -55,6 +55,22 @@ void ADestructibleResourceGimmick::BeginPlay()
 	}
 }
 
+float ADestructibleResourceGimmick::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	AController* EventInstigator, AActor* DamageCauser)
+{
+	const float Damage =Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (!IsValid(DestructibleComponent))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DestructibleComponent is not valid"));
+		return 0.f;
+	}
+	
+	DestructibleComponent->TakeDamage(DamageCauser, Damage);
+	
+	return Damage;
+}
+
 void ADestructibleResourceGimmick::OnGimmickTakeDamage(const float DamageAmount, const float CurrentHealth)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
@@ -105,30 +121,22 @@ void ADestructibleResourceGimmick::GetResourceItem() const
 		return;
 	}
 
-	ACharacterController* CharacterController
-		= Cast<ACharacterController>(DestructibleComponent->GetLastDamageCauserController());
-	if (!IsValid(CharacterController))
+	const AActor* DamageCauser = Cast<AActor>(DestructibleComponent->GetLastDamageCauser());
+	if (!IsValid(DamageCauser))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CharacterController is not valid"));
-		return;
-	}
-
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterController->GetPawn());
-	if (!IsValid(PlayerCharacter))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("DamageCauser is not valid"));
 		return;
 	}
 
 	UInventorySystemComponent* InventorySystem
-		= PlayerCharacter->FindComponentByClass<UInventorySystemComponent>();
+		= DamageCauser->FindComponentByClass<UInventorySystemComponent>();
 	if (!IsValid(InventorySystem))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("InventorySystem is not valid"));
 		return;
 	}
 
-	UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
+	const UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
 	if (!IsValid(ItemGimmickSubsystem))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is not valid"));

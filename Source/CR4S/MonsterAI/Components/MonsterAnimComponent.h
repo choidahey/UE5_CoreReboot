@@ -19,6 +19,8 @@ public:
 	/* Bind to SkeletalMesh & AnimInstance */
 	void Initialize(USkeletalMeshComponent* InMesh);
 
+	FORCEINLINE TObjectPtr<UAnimMontage> GetDeathMontage() const { return DeathMontage; }
+
 #pragma endregion
 
 #pragma region Montage References
@@ -45,6 +47,7 @@ protected:
 #pragma region Montage Controls
 public:
 	void PlayMontange(UAnimMontage* Montage);
+	bool IsAnyMontagePlaying() const;
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	void StopAllMontages();
 

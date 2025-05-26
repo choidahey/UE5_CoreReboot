@@ -49,9 +49,9 @@ private:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Hit")
-	void TakeDamage(AController* DamageCauserController, float DamageAmount);
+	void TakeDamage(AActor* DamageCauser, float DamageAmount);
 
-	FORCEINLINE AController* GetLastDamageCauserController() const { return LastDamageCauserController; }
+	FORCEINLINE AActor* GetLastDamageCauser() const { return LastDamageCauser; }
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Hit", meta = (ClampMin = "0.0"))
@@ -61,7 +61,7 @@ private:
 	bool bCanTakeDamage;
 
 	UPROPERTY(VisibleAnywhere, Category = "Hit")
-	TObjectPtr<AController> LastDamageCauserController;
+	TObjectPtr<AActor> LastDamageCauser;
 
 #pragma endregion
 

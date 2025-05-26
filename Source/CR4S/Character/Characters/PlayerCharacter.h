@@ -151,4 +151,20 @@ protected:
 	float LookRightRate{240.0f};
 #pragma endregion
 	
+
+
+#pragma region Navigation Invokers
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Component")
+	float NavGenerationRadius;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Component")
+	float NavRemovalRadius;
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	TObjectPtr<class UNavigationInvokerComponent> NavInvoker;
+
+#pragma endregion
+
 };
