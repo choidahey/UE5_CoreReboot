@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Inventory/InventorySystemComponent.h"
+#include "Inventory/InventoryComponent.h"
 #include "InventorySlotWidget.generated.h"
 
 class UInventoryDummySlotWidget;
 class UInventoryWidget;
-class UInventorySystemComponent;
+class UInventoryComponent;
 class UBorder;
 class UTextBlock;
 class UImage;
@@ -27,13 +27,23 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UInventorySystemComponent* InInventorySystemComponent, const int32 InSlotIndex);
+	void InitWidget(UInventoryComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem);
 
 private:
 	UPROPERTY()
-	TObjectPtr<UInventorySystemComponent> InventorySystemComponent;
+	TObjectPtr<UInventoryComponent> InventorySystemComponent;
+	
+#pragma endregion
 
-	int32 SlotIndex;
+#pragma region BindWidget
+
+private:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> IconImage;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CountTextBlock;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> CountTextBorder;
 	
 #pragma endregion
 	
@@ -53,19 +63,11 @@ private:
 #pragma region Item
 
 public:
-	void SetItem(UTexture2D* ItemIcon, const int32 ItemCount) const;
-	
-#pragma endregion
-	
-#pragma region BindWidget
+	void SetItem(UBaseInventoryItem* InItem);
 
 private:
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> IconImage;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> CountTextBlock;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBorder> CountTextBorder;
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryItem> CurrentItem;
 	
 #pragma endregion
 };
