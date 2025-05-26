@@ -1,13 +1,30 @@
 ﻿#include "ItemGimmickSubsystem.h"
 
+#include "CR4S.h"
+#include "DeveloperSettings/CR4SDataTableSettings.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
 	: ItemInfoDataTable(nullptr)
-	  , GimmickDataTable(nullptr)
+	  , GimmickInfoDataTable(nullptr)
 {
-	ItemInfoDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_ItemInfoData.DT_ItemInfoData"));
-	GimmickDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData"));
+	// ItemInfoDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_ItemInfoData.DT_ItemInfoData"));
+	// GimmickDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData"));
+}
+
+void UItemGimmickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	
+	const UCR4SDataTableSettings* Settings = GetDefault<UCR4SDataTableSettings>();
+	if (!IsValid(Settings))
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("Settings is invalid"));
+		return;
+	}
+	
+	ItemInfoDataTable = Settings->GetDataTableByName(TEXT("ItemInfoData"));
+	GimmickInfoDataTable = Settings->GetDataTableByName(TEXT("GimmickInfoData"));
 }
 
 TArray<FName> UItemGimmickSubsystem::GetItemDataRowNames() const
@@ -22,19 +39,19 @@ const FItemInfoData* UItemGimmickSubsystem::FindItemInfoData(const FName& RowNam
 
 const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowName) const
 {
-	return FindDataFromDataTable<FBaseGimmickData>(GimmickDataTable, RowName, TEXT("Load Gimmick Data"));
+	return FindDataFromDataTable<FBaseGimmickData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
 ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation) const
 {
-	if (!IsValid(GimmickDataTable))
+	if (!IsValid(GimmickInfoDataTable))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable is invalid"));
 		return nullptr;
 	}
 
 	const FBaseGimmickData* GimmickData
-		= GimmickDataTable->FindRow<FBaseGimmickData>(RowName, FString(TEXT("Load Gimmick Data")));
+		= GimmickInfoDataTable->FindRow<FBaseGimmickData>(RowName, FString(TEXT("Load Gimmick Data")));
 	if (!GimmickData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GimmickData is invalid"));

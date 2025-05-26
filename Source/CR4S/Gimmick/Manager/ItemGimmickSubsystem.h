@@ -19,6 +19,8 @@ class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
 
 public:
 	UItemGimmickSubsystem();
+
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
 #pragma endregion
 
@@ -47,7 +49,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UDataTable> ItemInfoDataTable;
 	UPROPERTY()
-	TObjectPtr<UDataTable> GimmickDataTable;
+	TObjectPtr<UDataTable> GimmickInfoDataTable;
 	
 #pragma endregion
 	
