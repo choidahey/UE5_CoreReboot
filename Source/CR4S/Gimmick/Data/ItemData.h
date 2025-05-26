@@ -43,6 +43,8 @@ struct FToolItemData : public FTableRowBase
 	GENERATED_BODY()
 
 	FToolItemData()
+		: Damage(0),
+		  StunValue(0)
 	{
 	}
 
@@ -50,6 +52,10 @@ struct FToolItemData : public FTableRowBase
 	TObjectPtr<UStaticMesh> StaticMesh;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "애니메이션 몽타주"))
 	TObjectPtr<UAnimMontage> AnimMontage;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "공격력", ClampMin = "0"))
+	int32 Damage;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "기절 수치", ClampMin = "0"))
+	int32 StunValue;
 };
 
 USTRUCT(BlueprintType)
