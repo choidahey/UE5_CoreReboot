@@ -8,10 +8,7 @@
 
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
-	if (!CachedMonster.IsValid() || !Target) return INDEX_NONE;
-
-    constexpr float IceRoadForwardTreshold = 1100.f;
-    constexpr float IceRaodAwayTreshold = 500.f;
+	if (!CachedMonster.IsValid()) return INDEX_NONE;
     
     ABaseMonsterAIController* AICon = Cast<ABaseMonsterAIController>(CachedMonster->GetController());
     if (!AICon)
@@ -19,39 +16,33 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
 
     UBlackboardComponent* BB = AICon->GetBlackboardComponent();
 
-    const float Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+    constexpr float IceRoadForwardTreshold = 1100.f;
+    constexpr float IceRoadAwayTreshold = 500.f;
 
-    if (Distance >= IceRoadForwardTreshold || Distance <= IceRaodAwayTreshold)
+    float Distance = 0.f;
+    if (Target)
+    {
+        Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+    }
+    else
+    {
+        UObject* Obj = BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor);
+        if (AActor* HouseActor = Cast<AActor>(Obj))
+        {
+            Distance = FVector::Dist(CachedMonster->GetActorLocation(), HouseActor->GetActorLocation());
+        }
+        else
+        {
+            return INDEX_NONE;
+        }
+    }
+
+    if (Distance >= IceRoadForwardTreshold || Distance <= IceRoadAwayTreshold)
     {
         const bool bToward = (Distance >= IceRoadForwardTreshold);
         BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
 
         return 3;
-    }
-	if (!CachedMonster.IsValid()) return INDEX_NONE;
-
-    const FVector MonsterLocation = CachedMonster->GetActorLocation();
-    float Distance = TNumericLimits<float>::Max();
-
-    if (Target)
-    {
-        Distance = FVector::Dist(MonsterLocation, Target->GetActorLocation());
-    }
-    else
-    {
-        if (AAIController* AIC = Cast<AAIController>(CachedMonster->GetController()))
-        {
-            if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
-            {
-                AActor* HouseActor = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-                FVector HouseLocation = HouseActor->GetActorLocation();
-                if (!HouseLocation.IsNearlyZero())
-                {
-                    Distance = FVector::Dist(MonsterLocation, HouseLocation);
-                }
-                else return INDEX_NONE;
-            }
-        }
     }
 	
 	TArray<FSkillWeight> Weights;

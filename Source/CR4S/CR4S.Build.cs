@@ -21,7 +21,7 @@ public class CR4S : ModuleRules
 			"ChaosSolverEngine",
 			"GeometryCollectionEngine",
 			"NavigationSystem",
-			"DeveloperSettings"
+			"DeveloperSettings",
 			"Niagara"
 		});
 
