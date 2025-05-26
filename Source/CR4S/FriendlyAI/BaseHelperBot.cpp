@@ -17,7 +17,6 @@ ABaseHelperBot::ABaseHelperBot()
 
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
 	InteractableComp->SetInteractionText(FText::FromString("MySon"));
-	InteractableComp->OnTryInteract.BindUObject(this, &ABaseHelperBot::HandleInteract);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -33,7 +32,8 @@ void ABaseHelperBot::BeginPlay()
 
 	if (InteractableComp)
 	{
-		InteractableComp->OnDetectionStateChanged.BindUObject(this, &ABaseHelperBot::OnDetectedChange);
+		InteractableComp->OnTryInteract.BindDynamic(this, &ABaseHelperBot::HandleInteract);
+		InteractableComp->OnDetectionStateChanged.BindDynamic(this, &ABaseHelperBot::OnDetectedChange);
 	}
 }
 
@@ -62,7 +62,7 @@ void ABaseHelperBot::LoadStats()
 	}
 }
 
-void ABaseHelperBot::OnDetectedChange(AController* DetectingController, bool bIsDetected)
+void ABaseHelperBot::OnDetectedChange(AActor* InteractableActor, bool bIsDetected)
 {
 	if (bIsDetected)
 	{
@@ -99,7 +99,7 @@ void ABaseHelperBot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ABaseHelperBot::HandleInteract(AController* InteractingController)
+void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 {
 	if (StateUIInstance && StateUIInstance->IsInViewport())
 	{
