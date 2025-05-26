@@ -68,11 +68,11 @@ AModularRobot::AModularRobot():
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 }
 
-void AModularRobot::MountRobot(AController* InController)
+void AModularRobot::MountRobot(AActor* InActor)
 {
-	if (!IsValid(InController)) return;
+	if (!IsValid(InActor)) return;
 
-	ACharacter* PreviousCharacter=Cast<ACharacter>(InController->GetPawn());
+	ACharacter* PreviousCharacter=Cast<ACharacter>(InActor);
 	if (IsValid(PreviousCharacter))
 	{
 		MountedCharacter=Cast<APlayerCharacter>(PreviousCharacter);
@@ -86,6 +86,10 @@ void AModularRobot::MountRobot(AController* InController)
 			MountSocketName
 		);
 	}
+	AController* InController=Cast<AController>(PreviousCharacter->GetController());
+	
+	if (!IsValid(InController)) return;
+	
 	InController->UnPossess();
 	InController->Possess(this);
 }
@@ -123,7 +127,7 @@ void AModularRobot::BeginPlay()
 
 	if (InteractComp)
 	{
-		InteractComp->OnTryInteract.BindUObject(this,&AModularRobot::MountRobot);
+		InteractComp->OnTryInteract.BindUFunction(this,FName("MountRobot"));
 	}
 }
 
