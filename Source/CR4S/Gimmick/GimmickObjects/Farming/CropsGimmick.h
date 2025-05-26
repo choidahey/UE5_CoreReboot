@@ -2,19 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
-#include "GrowableGimmick.generated.h"
+#include "CropsGimmick.generated.h"
 
 class UInteractableComponent;
 
 UCLASS()
-class CR4S_API AGrowableGimmick : public ABaseGimmick
+class CR4S_API ACropsGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()
 
 #pragma region ABaseGimmick Override
 	
 public:
-	AGrowableGimmick();
+	ACropsGimmick();
 
 	virtual void BeginPlay() override;
 
@@ -28,14 +28,14 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickInteracted(AController* Controller);
+	virtual void OnGimmickInteracted(AActor* Interactor);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 	
 private:
 	UFUNCTION()
-	void OnDetectionStateChanged(AController* InDetectingController, bool bInIsDetected);
+	void OnDetectionStateChanged(AActor* InDetectingActor, bool bInIsDetected);
 	void UpdateInteractionText() const;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
@@ -44,7 +44,7 @@ private:
 	FText DefaultInteractionText;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	AController* DetectingController;
+	AActor* DetectingActor;
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
 	bool bIsDetected;
 	
@@ -60,28 +60,27 @@ protected:
 	virtual void GrowthStageChanged(const int32 NewGrowthStage);
 	
 private:
-	bool IsHeldItemSeed() const;
 	void Grow();
 	int32 CalculateGrowthStage() const;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	bool bIsHarvestable;
 
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float GrowthPercentPerInterval;
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float IntervalSeconds;
-	UPROPERTY(EditDefaultsOnly, Category = "Farming")
+	UPROPERTY(EditDefaultsOnly, Category = "Grow")
 	TArray<float> GrowthStageThresholds;
-	UPROPERTY(EditDefaultsOnly, Category = "Farming")
+	UPROPERTY(EditDefaultsOnly, Category = "Grow")
 	TArray<float> GrowthStageScale;
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	int32 PreviousGrowthStage;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float CurrentGrowthPercent;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Farming")
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float MaxGrowthPercent;
 	
 	FTimerHandle GrowthTimerHandle;
@@ -91,7 +90,7 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DELEGATE(FOnHarvest)
+	DECLARE_DYNAMIC_DELEGATE(FOnHarvest);
 	FOnHarvest OnHarvest;
 	
 #pragma endregion

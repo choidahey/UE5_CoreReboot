@@ -1,13 +1,10 @@
-﻿#include "DestructibleResourceGimmick.h"
+﻿#include "DestructibleGimmick.h"
 
-#include "Character/CharacterController.h"
-#include "Character/Characters/PlayerCharacter.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/InventorySystemComponent.h"
 
-ADestructibleResourceGimmick::ADestructibleResourceGimmick()
+ADestructibleGimmick::ADestructibleGimmick()
 	: bIsActorDestroyOnDestroyAction(true)
 	  , DestroyDelay(0.f)
 {
@@ -24,14 +21,14 @@ ADestructibleResourceGimmick::ADestructibleResourceGimmick()
 	GeometryCollectionComponent->DamageThreshold.Init(0.f, 1);
 }
 
-void ADestructibleResourceGimmick::BeginPlay()
+void ADestructibleGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
 	if (IsValid(DestructibleComponent))
 	{
-		DestructibleComponent->OnTakeDamage.BindUObject(this, &ThisClass::OnGimmickTakeDamage);
-		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroy);
+		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
+		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
 
 		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
 		if (IsValid(GimmickSubsystem))
@@ -55,7 +52,7 @@ void ADestructibleResourceGimmick::BeginPlay()
 	}
 }
 
-float ADestructibleResourceGimmick::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageEvent const& DamageEvent,
 	AController* EventInstigator, AActor* DamageCauser)
 {
 	const float Damage =Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -71,14 +68,16 @@ float ADestructibleResourceGimmick::TakeDamage(float DamageAmount, struct FDamag
 	return Damage;
 }
 
-void ADestructibleResourceGimmick::OnGimmickTakeDamage(const float DamageAmount, const float CurrentHealth)
+void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount, const float CurrentHealth)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
 	       CurrentHealth);
 }
 
-void ADestructibleResourceGimmick::OnGimmickDestroy()
+void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
+	GetResources(DamageCauser);
+	
 	if (IsValid(GimmickMeshComponent)
 		&& IsValid(GeometryCollectionComponent)
 		&& IsValid(GeometryCollectionComponent->GetRestCollection()))
@@ -90,8 +89,6 @@ void ADestructibleResourceGimmick::OnGimmickDestroy()
 		GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GeometryCollectionComponent->SetSimulatePhysics(true);
 	}
-
-	GetResourceItem();
 
 	if (!bIsActorDestroyOnDestroyAction)
 	{
@@ -106,59 +103,9 @@ void ADestructibleResourceGimmick::OnGimmickDestroy()
 	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay, false);
 }
 
-void ADestructibleResourceGimmick::DelayedDestroy()
+void ADestructibleGimmick::DelayedDestroy()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
 
 	Destroy();
-}
-
-void ADestructibleResourceGimmick::GetResourceItem() const
-{
-	if (!IsValid(DestructibleComponent))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DestructibleComponent is not valid"));
-		return;
-	}
-
-	const AActor* DamageCauser = Cast<AActor>(DestructibleComponent->GetLastDamageCauser());
-	if (!IsValid(DamageCauser))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DamageCauser is not valid"));
-		return;
-	}
-
-	UInventorySystemComponent* InventorySystem
-		= DamageCauser->FindComponentByClass<UInventorySystemComponent>();
-	if (!IsValid(InventorySystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InventorySystem is not valid"));
-		return;
-	}
-
-	const UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-	if (!IsValid(ItemGimmickSubsystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is not valid"));
-		return;
-	}
-
-	if (const FBaseGimmickData* GimmickData = ItemGimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
-	{
-		for (const auto& [RowName, Count] : GimmickData->ResourceItemDataList)
-		{
-			const FBaseItemData* ItemData = ItemGimmickSubsystem->FindItemData(RowName);
-			if (!ItemData)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s is not found in ItemData"), *RowName.ToString());
-				continue;
-			}
-
-			const FAddItemResult Result
-				= InventorySystem->AddItem(FInventoryItem(RowName, ItemData->Icon.Get(), Count));
-
-			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
-			       , Result.Success, Result.AddedCount, Result.RemainingCount);
-		}
-	}
 }

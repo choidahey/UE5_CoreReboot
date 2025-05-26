@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Inventory/InventorySystemComponent.h"
+#include "Inventory/InventoryComponent.h"
 #include "InventorySlotWidget.generated.h"
 
 class UInventoryDummySlotWidget;
 class UInventoryWidget;
-class UInventorySystemComponent;
+class UInventoryComponent;
 class UBorder;
 class UTextBlock;
 class UImage;
@@ -27,13 +27,14 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UInventorySystemComponent* InInventorySystemComponent, const int32 InSlotIndex);
+	void InitWidget(UInventoryComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem);
 
 private:
 	UPROPERTY()
-	TObjectPtr<UInventorySystemComponent> InventorySystemComponent;
+	TObjectPtr<UInventoryComponent> InventorySystemComponent;
 
-	int32 SlotIndex;
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryItem> CurrentItem;
 	
 #pragma endregion
 	
@@ -53,7 +54,7 @@ private:
 #pragma region Item
 
 public:
-	void SetItem(UTexture2D* ItemIcon, const int32 ItemCount) const;
+	void SetItem(UBaseInventoryItem* InItem);
 	
 #pragma endregion
 	
