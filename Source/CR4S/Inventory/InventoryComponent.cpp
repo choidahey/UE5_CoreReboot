@@ -4,11 +4,12 @@
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/UI/InventoryWidget.h"
 #include "InventoryItem/BaseInventoryItem.h"
+#include "UI/QuickSlotBarWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 
 UInventoryComponent::UInventoryComponent()
-	: MaxInventorySlot(30)
+	: MaxInventorySlot(50)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -34,7 +35,7 @@ void UInventoryComponent::BeginPlay()
 		InventoryItems.Add(Item);
 	}
 
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	const APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!IsValid(PlayerController))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PlayerController is invalid"));
@@ -46,7 +47,11 @@ void UInventoryComponent::BeginPlay()
 	if (!CreateInventoryWidget())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CreateInventoryWidget is failed"));
-		return;
+	}
+
+	if (!CreateQuickSlotBarWidget())
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("CreateQuickSlotBarWidget is failed"));
 	}
 
 	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
@@ -74,7 +79,7 @@ FAddItemResult UInventoryComponent::AddItem(const FName RowName, const int32 Cou
 		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
 		return Result;
 	}
-	
+
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
 	if (!ItemData)
 	{
@@ -144,8 +149,8 @@ FAddItemResult UInventoryComponent::AddItem(const FName RowName, const int32 Cou
 }
 
 void UInventoryComponent::GetInventoryItemsAndEmptySlots(const FName& InRowName,
-                                                               TArray<UBaseInventoryItem*>& OutSameItems,
-                                                               TArray<UBaseInventoryItem*>& OutEmptySlots)
+                                                         TArray<UBaseInventoryItem*>& OutSameItems,
+                                                         TArray<UBaseInventoryItem*>& OutEmptySlots)
 {
 	OutSameItems.Empty();
 	OutEmptySlots.Empty();
@@ -173,16 +178,16 @@ bool UInventoryComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInventory
 {
 	if (!IsValid(FromItem))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));	
+		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));
 		return false;
 	}
 
 	if (!IsValid(ToItem))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("ToItem is invalid"));	
+		CR4S_Log(LogTemp, Warning, TEXT("ToItem is invalid"));
 		return false;
 	}
-		
+
 	FromItem->SwapData(ToItem);
 
 	NotifyItemSlotsChanged({FromItem->GetSlotIndex(), ToItem->GetSlotIndex()});
@@ -194,16 +199,16 @@ void UInventoryComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventor
 {
 	if (!IsValid(FromItem))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));	
+		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));
 		return;
 	}
 
 	if (!IsValid(ToItem))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("ToItem is invalid"));	
+		CR4S_Log(LogTemp, Warning, TEXT("ToItem is invalid"));
 		return;
 	}
-	
+
 	const FItemInfoData* ItemData = FindItemInfoDataFromDataTable(FromItem->GetInventoryItemData()->RowName);
 	if (!ItemData)
 	{
@@ -332,21 +337,35 @@ void UInventoryComponent::SortInventoryItems()
 
 void UInventoryComponent::OpenInventory() const
 {
-	if (IsValid(InventoryWidgetInstance) && IsValid(SurvivalHUD))
+	if (!ensureMsgf(IsValid(SurvivalHUD), TEXT("SurvivalHUD is invalid")) ||
+		!ensureMsgf(IsValid(InventoryWidgetInstance), TEXT("InventoryWidgetInstance is invalid")) ||
+		!ensureMsgf(InventoryWidgetInstance->GetVisibility() == ESlateVisibility::Collapsed, TEXT("InventoryWidgetInstance is not collapsed")) ||
+		!ensureMsgf(IsValid(QuickSlotBarWidgetInstance), TEXT("QuickSlotBarWidgetInstance is invalid")) ||
+		!ensureMsgf(QuickSlotBarWidgetInstance->GetVisibility() == ESlateVisibility::Visible, TEXT("QuickSlotBarWidgetInstance is not visible")))
 	{
-		SurvivalHUD->ToggleWidget(InventoryWidgetInstance);
-		SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly);
+		return;
 	}
+
+	SurvivalHUD->ToggleWidget(InventoryWidgetInstance);
+	SurvivalHUD->ToggleWidget(QuickSlotBarWidgetInstance);
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly);
 }
 
 // ReSharper disable once CppUE4BlueprintCallableFunctionMayBeConst
 void UInventoryComponent::CloseInventory()
 {
-	if (IsValid(InventoryWidgetInstance) && IsValid(SurvivalHUD))
+	if (!ensureMsgf(IsValid(SurvivalHUD), TEXT("SurvivalHUD is invalid")) ||
+		!ensureMsgf(IsValid(InventoryWidgetInstance), TEXT("InventoryWidgetInstance is invalid")) ||
+		!ensureMsgf(InventoryWidgetInstance->GetVisibility() == ESlateVisibility::Visible, TEXT("InventoryWidgetInstance is not visible")) ||
+		!ensureMsgf(IsValid(QuickSlotBarWidgetInstance), TEXT("QuickSlotBarWidgetInstance is invalid")) ||
+		!ensureMsgf(QuickSlotBarWidgetInstance->GetVisibility() == ESlateVisibility::Collapsed, TEXT("QuickSlotBarWidgetInstance is not collapsed")))
 	{
-		SurvivalHUD->ToggleWidget(InventoryWidgetInstance);
-		SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+		return;
 	}
+
+	SurvivalHUD->ToggleWidget(InventoryWidgetInstance);
+	SurvivalHUD->ToggleWidget(QuickSlotBarWidgetInstance);
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
 }
 
 bool UInventoryComponent::CreateInventoryWidget()
@@ -372,6 +391,33 @@ bool UInventoryComponent::CreateInventoryWidget()
 	}
 
 	InventoryWidgetInstance->InitInventoryWidget(this);
+
+	return true;
+}
+
+bool UInventoryComponent::CreateQuickSlotBarWidget()
+{
+	if (!IsValid(SurvivalHUD))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SurvivalHUD is invalid"));
+		return false;
+	}
+
+	if (!IsValid(QuickSlotBarWidgetClass))
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("QuickSlotBarWidgetClass is invalid"));
+		return false;
+	}
+
+	QuickSlotBarWidgetInstance = SurvivalHUD->CreateAndAddWidget(QuickSlotBarWidgetClass, 0, ESlateVisibility::Visible);
+
+	if (!IsValid(QuickSlotBarWidgetInstance))
+	{
+		CR4S_Log(LogTemp, Warning, TEXT("QuickSlotBarWidgetInstance is invalid"));
+		return false;
+	}
+
+	QuickSlotBarWidgetInstance->InitWidget(this);
 
 	return true;
 }

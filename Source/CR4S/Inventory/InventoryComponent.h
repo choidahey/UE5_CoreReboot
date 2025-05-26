@@ -6,6 +6,7 @@
 
 #include "InventoryComponent.generated.h"
 
+class UQuickSlotBarWidget;
 class ASurvivalHUD;
 class UBaseInventoryItem;
 class UItemGimmickSubsystem;
@@ -101,6 +102,18 @@ private:
 	TObjectPtr<UInventoryWidget> InventoryWidgetInstance;
 
 #pragma endregion
+
+#pragma region QuickSlotBarWidget
+
+private:
+	bool CreateQuickSlotBarWidget();
+	
+	UPROPERTY(EditDefaultsOnly, Category = "QuickSlotBarWidget")
+	TSubclassOf<UQuickSlotBarWidget> QuickSlotBarWidgetClass;
+	UPROPERTY(VisibleAnywhere, Category = "QuickSlotBarWidget")
+	TObjectPtr<UQuickSlotBarWidget> QuickSlotBarWidgetInstance;
+	
+#pragma endregion	
 
 #pragma region Delegate
 

@@ -5,10 +5,10 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "InventoryWidget.generated.h"
 
+class UVerticalBox;
 class UButton;
 class UInventoryComponent;
 class UInventorySlotWidget;
-class UWrapBox;
 
 UCLASS()
 class CR4S_API UInventoryWidget : public UUserWidget
@@ -27,7 +27,7 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UWrapBox> InventoryWrapBox;
+	TObjectPtr<UVerticalBox> InventoryBox;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> SortButton;
 	UPROPERTY(meta = (BindWidget))
@@ -40,9 +40,6 @@ private:
 private:
 	UFUNCTION()
 	void SetItemWidget(UBaseInventoryItem* Item);
-	
-	UPROPERTY(EditDefaultsOnly, Category = "ItemWidget")
-	TSubclassOf<UInventorySlotWidget> InventorySlotWidgetClass;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UInventorySlotWidget>> InventorySlotWidgets;

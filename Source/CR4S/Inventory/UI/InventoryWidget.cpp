@@ -3,7 +3,8 @@
 #include "CR4S.h"
 #include "Inventory/InventoryComponent.h"
 #include "Components/Button.h"
-#include "Components/WrapBox.h"
+#include "Components/HorizontalBox.h"
+#include "Components/VerticalBox.h"
 #include "Inventory/UI/InventorySlotWidget.h"
 
 void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventorySystemComponent)
@@ -15,15 +16,27 @@ void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventorySystemC
 		CloseButton->OnClicked.AddUniqueDynamic(InventorySystemComponent, &UInventoryComponent::CloseInventory);
 	}
 
-	InventoryWrapBox->ClearChildren();
-
-	for (int32 Index = 0; Index < InventorySystemComponent->GetMaxInventorySlot(); Index++)
+	int32 Index = 0;
+	for (UWidget* ChildWidget : InventoryBox->GetAllChildren())
 	{
-		UInventorySlotWidget* InventorySlotWidget = CreateWidget<UInventorySlotWidget>(
-			GetWorld(), InventorySlotWidgetClass);
-		InventorySlotWidget->InitWidget(InventorySystemComponent, InventorySystemComponent->GetItemDataByIndex(Index));
-		InventoryWrapBox->AddChild(InventorySlotWidget);
-		InventorySlotWidgets.Add(InventorySlotWidget);
+		const UHorizontalBox* HorizontalBox = Cast<UHorizontalBox>(ChildWidget);
+		if (IsValid(HorizontalBox))
+		{
+			for (UWidget* ChildWidget2 : HorizontalBox->GetAllChildren())
+			{
+				UInventorySlotWidget* SlotWidget = Cast<UInventorySlotWidget>(ChildWidget2);
+				if (IsValid(SlotWidget))
+				{
+					UBaseInventoryItem* Item = InventorySystemComponent->GetItemDataByIndex(Index);
+					SlotWidget->InitWidget(InventorySystemComponent, Item);
+					SetItemWidget(Item);
+					
+					InventorySlotWidgets.AddUnique(SlotWidget);
+
+					Index++;
+				}
+			}
+		}
 	}
 }
 

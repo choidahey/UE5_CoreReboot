@@ -3,25 +3,7 @@
 #include "CR4S.h"
 #include "InventoryDummySlotWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Components/Border.h"
-#include "Components/Image.h"
-#include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
-
-bool UInventorySlotWidget::Initialize()
-{
-	InventorySystemComponent = nullptr;
-	CurrentItem = nullptr;
-	return Super::Initialize();
-}
-
-void UInventorySlotWidget::InitWidget(UInventoryComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem)
-{
-	InventorySystemComponent = InInventorySystemComponent;
-	CurrentItem = NewItem;
-
-	SetItem(CurrentItem);
-}
 
 FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -83,7 +65,7 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
                                         UDragDropOperation* InOperation)
 {
 	UE_LOG(LogTemp, Warning, TEXT("NativeOnDrop"));
-
+	
 	if (!IsValid(CurrentItem))
 	{
 		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
@@ -120,29 +102,4 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	}
 
 	return false;
-}
-
-void UInventorySlotWidget::SetItem(UBaseInventoryItem* InItem)
-{
-	CurrentItem = InItem;
-
-	if (!IsValid(CurrentItem))
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
-		return;
-	}
-
-	if (CurrentItem->HasItemData())
-	{
-		IconImage->SetVisibility(ESlateVisibility::Visible);
-		CountTextBorder->SetVisibility(ESlateVisibility::Visible);
-
-		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon);
-		CountTextBlock->SetText(FText::AsNumber(CurrentItem->GetCurrentStackCount()));
-	}
-	else
-	{
-		IconImage->SetVisibility(ESlateVisibility::Hidden);
-		CountTextBorder->SetVisibility(ESlateVisibility::Hidden);
-	}
 }
