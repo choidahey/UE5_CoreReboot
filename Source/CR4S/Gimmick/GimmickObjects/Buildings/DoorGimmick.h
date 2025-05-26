@@ -1,14 +1,14 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/GimmickObjects/DestructibleResourceGimmick.h"
+#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
 
 #include "DoorGimmick.generated.h"
 
 class UInteractableComponent;
 
 UCLASS()
-class CR4S_API ADoorGimmick : public ADestructibleResourceGimmick
+class CR4S_API ADoorGimmick : public ADestructibleGimmick
 {
 	GENERATED_BODY()
 
@@ -31,7 +31,7 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickInteracted(AController* Controller);
+	virtual void OnGimmickInteracted(AActor* Interactor);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UInteractableComponent> InteractableComponent;

@@ -94,7 +94,7 @@ bool UInteractionComponent::TryStartInteraction() const
 	{
 		UE_LOG(LogTemp, Warning, TEXT("TryStartInteraction! TargetActor: %s"), *DetectedActor->GetName());
 
-		DetectedInteractableComponent->TryInteract(OwnerPlayerController);
+		DetectedInteractableComponent->TryInteract(GetOwner());
 
 		return true;
 	}
@@ -116,7 +116,7 @@ void UInteractionComponent::UpdateDetectProcess()
 
 	if (bIsDetected && IsValid(DetectedInteractableComponent))
 	{
-		DetectedInteractableComponent->DetectionStateChanged(OwnerPlayerController, true);
+		DetectedInteractableComponent->DetectionStateChanged(GetOwner(), true);
 		ShowInteractionWidget();
 	}
 	else

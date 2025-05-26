@@ -20,7 +20,13 @@ protected:
 	FBlackboardKeySelector TargetActor;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector bIsAttackRange;
+	FBlackboardKeySelector HouseActor;
+
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector bIsPlayerAttackRange;
+
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector bIsHouseAttackRange;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector CurrentDistance;

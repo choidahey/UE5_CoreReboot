@@ -3,19 +3,19 @@
 #include "CoreMinimal.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 
-#include "DestructibleResourceGimmick.generated.h"
+#include "DestructibleGimmick.generated.h"
 
 class UDestructibleComponent;
 
 UCLASS()
-class CR4S_API ADestructibleResourceGimmick : public ABaseGimmick
+class CR4S_API ADestructibleGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()
 
 #pragma region ABaseGimmick Override
 	
 public:
-	ADestructibleResourceGimmick();
+	ADestructibleGimmick();
 
 	virtual void BeginPlay() override;
 
@@ -33,19 +33,18 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickTakeDamage(float DamageAmount, float CurrentHealth);
+	virtual void OnGimmickTakeDamage(AActor* DamageCauser, float DamageAmount, float CurrentHealth);
 	UFUNCTION()
-	virtual void OnGimmickDestroy();
+	virtual void OnGimmickDestroy(AActor* DamageCauser);
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
-
+	
 private:
 	void DelayedDestroy();
-	void GetResourceItem() const;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
 	bool bIsActorDestroyOnDestroyAction;
