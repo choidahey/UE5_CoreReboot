@@ -27,8 +27,6 @@ AColdFairyActor::AColdFairyActor()
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
 	MovementComp->bAutoActivate = false;
-	//MovementComp->bIsHomingProjectile = true;
-	//MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bIsHomingProjectile = false;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->HomingAccelerationMagnitude = 5000.f;
@@ -49,7 +47,6 @@ void AColdFairyActor::BeginPlay()
 		{
 			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
 			Damage = SkillData.Damage;
-
 		}
 	}
 }
