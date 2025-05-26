@@ -46,6 +46,8 @@ struct FToolItemData : public FTableRowBase
 	{
 	}
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "스태틱 메시"))
+	TObjectPtr<UStaticMesh> StaticMesh;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "애니메이션 몽타주"))
 	TObjectPtr<UAnimMontage> AnimMontage;
 };
@@ -138,10 +140,15 @@ struct FConsumableItemData : public FTableRowBase
 	GENERATED_BODY()
 
 	FConsumableItemData()
-		: ShelfLife(0)
+		: bCanPlant(false),
+		  ShelfLife(0)
 	{
 	}
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "심기 가능 여부"))
+	bool bCanPlant;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "작물 기믹 데이터"))
+	FDataTableRowHandle CropsGimmickData;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "애니메이션 몽타주"))
 	TObjectPtr<UAnimMontage> AnimMontage;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "효과 목록"))

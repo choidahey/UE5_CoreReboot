@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/GimmickObjects/DestructibleGimmick.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "PlanterBoxGimmick.generated.h"
 
 class ACropsGimmick;
@@ -59,8 +60,6 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<ACropsGimmick> PlantedGimmick;
-	
-	bool IsHeldItemSeed() const;
 	
 #pragma endregion
 	

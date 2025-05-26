@@ -5,6 +5,7 @@
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventoryComponent.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 APlanterBoxGimmick::APlanterBoxGimmick()
 {
@@ -49,32 +50,29 @@ void APlanterBoxGimmick::OnGimmickInteracted(AActor* Interactor)
 
 	if (!IsValid(InteractableComponent))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("InteractableComponent is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("InteractableComponent is invalid"));
 		return;
 	}
 
-	if (IsHeldItemSeed())
+	UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
+	if (!IsValid(ItemGimmickSubsystem))
 	{
-		UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-		if (!IsValid(ItemGimmickSubsystem))
-		{
-			CR4S_Log(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
-			return;
-		}
-
-		PlantedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName<ACropsGimmick>(TEXT("Crops"),
-			SpawnPoint->GetComponentLocation());
-
-		if (!IsValid(PlantedGimmick))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Gimmick is not valid"));
-			return;
-		}
-
-		PlantedGimmick->OnHarvest.BindDynamic(this, &ThisClass::OnHarvest);
-
-		InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
+		CR4S_Log(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
+		return;
 	}
+
+	PlantedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName<ACropsGimmick>(TEXT("Crops"),
+		SpawnPoint->GetComponentLocation());
+
+	if (!IsValid(PlantedGimmick))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Gimmick is invalid"));
+		return;
+	}
+
+	PlantedGimmick->OnHarvest.BindDynamic(this, &ThisClass::OnHarvest);
+
+	InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
 }
 
 void APlanterBoxGimmick::OnDetectionStateChanged(AActor* InDetectingActor,
@@ -88,30 +86,4 @@ void APlanterBoxGimmick::OnHarvest()
 {
 	PlantedGimmick = nullptr;
 	InteractableComponent->UpdateTraceBlocking(ECR_Block);
-}
-
-bool APlanterBoxGimmick::IsHeldItemSeed() const
-{
-	if (!IsValid(DetectingActor))
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("DetectingActor is not valid"));
-		return false;
-	}
-
-	if (!bIsDetected)
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("bIsDetected is false"));
-		return false;
-	}
-
-	const UInventoryComponent* InventorySystem
-		= DetectingActor->FindComponentByClass<UInventoryComponent>();
-
-	if (!IsValid(InventorySystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InventorySystem is not valid"));
-		return false;
-	}
-
-	return InventorySystem->GetCurrentHeldItemName() == FName("Seed");
 }

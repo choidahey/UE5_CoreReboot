@@ -32,9 +32,18 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<UInventoryComponent> InventorySystemComponent;
+	
+#pragma endregion
 
-	UPROPERTY()
-	TObjectPtr<UBaseInventoryItem> CurrentItem;
+#pragma region BindWidget
+
+private:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> IconImage;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CountTextBlock;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBorder> CountTextBorder;
 	
 #pragma endregion
 	
@@ -55,18 +64,10 @@ private:
 
 public:
 	void SetItem(UBaseInventoryItem* InItem);
-	
-#pragma endregion
-	
-#pragma region BindWidget
 
 private:
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> IconImage;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> CountTextBlock;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBorder> CountTextBorder;
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryItem> CurrentItem;
 	
 #pragma endregion
 };

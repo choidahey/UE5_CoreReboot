@@ -76,7 +76,6 @@ FAddItemResult UInventoryComponent::AddItem(const FName RowName, const int32 Cou
 	}
 	
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-	const FInventoryItemData NewItem = FInventoryItemData(ItemData->Type, RowName, ItemData->MaxStackCount);
 	if (!ItemData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemData is invalid"));
@@ -130,8 +129,7 @@ FAddItemResult UInventoryComponent::AddItem(const FName RowName, const int32 Cou
 			Result.AddedCount += ActualAddCount;
 
 			EmptyInventoryItem->SetInventoryItemData(
-				FInventoryItemData(ItemData->Type, RowName, ItemData->MaxStackCount),
-				ItemData->Info.Icon,
+				FInventoryItemData(RowName, *ItemData),
 				ActualAddCount);
 
 			ChangedItemSlots.Add(EmptyInventoryItem->GetSlotIndex());
@@ -171,33 +169,6 @@ void UInventoryComponent::GetInventoryItemsAndEmptySlots(const FName& InRowName,
 	}
 }
 
-void UInventoryComponent::SpawnRemainingItems(const FName& ItemRowName, const int32 Count) const
-{
-	UE_LOG(LogTemp, Warning, TEXT("Try to spawn %d items of %s"), Count, *ItemRowName.ToString());
-
-	// if (Count <= 0)
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("Count is invalid"));
-	// 	return;
-	// }
-	//
-	// if (!IsValid(ItemGimmickSubsystem))
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
-	// 	return;
-	// }
-	//
-	// FVector SpawnLocation = GetOwner()->GetActorLocation();
-	//
-	// SpawnLocation.X += FMath::RandRange(-100.0f, 100.0f);
-	// SpawnLocation.Y += FMath::RandRange(-100.0f, 100.0f);
-	//
-	// ABaseGimmick* SpawnedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName(ItemRowName, SpawnLocation);
-	// if (IsValid(SpawnedGimmick))
-	// {
-	// }
-}
-
 bool UInventoryComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
 {
 	if (!IsValid(FromItem))
@@ -233,7 +204,7 @@ void UInventoryComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventor
 		return;
 	}
 	
-	const FItemInfoData* ItemData = FindItemDataFromDataTable(FromItem->GetInventoryItemData()->RowName);
+	const FItemInfoData* ItemData = FindItemInfoDataFromDataTable(FromItem->GetInventoryItemData()->RowName);
 	if (!ItemData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemData is invalid"));
@@ -253,7 +224,7 @@ void UInventoryComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventor
 	NotifyItemSlotsChanged({FromItem->GetSlotIndex(), ToItem->GetSlotIndex()});
 }
 
-const FItemInfoData* UInventoryComponent::FindItemDataFromDataTable(const FName& RowName) const
+const FItemInfoData* UInventoryComponent::FindItemInfoDataFromDataTable(const FName& RowName) const
 {
 	if (!IsValid(ItemGimmickSubsystem))
 	{
@@ -286,7 +257,7 @@ void UInventoryComponent::RemoveItemAtIndex(const int32 Index, const int32 Remov
 
 	if (RemoveCount <= 0)
 	{
-		TargetItem->SetInventoryItemData(FInventoryItemData(), nullptr, 0);
+		TargetItem->SetInventoryItemData(FInventoryItemData(), 0);
 	}
 	else
 	{
@@ -348,8 +319,7 @@ void UInventoryComponent::SortInventoryItems()
 			}
 
 			const int32 ActualAddCount = FMath::Min(RemainingCount, ItemMaxCount);
-			Item->SetInventoryItemData(FInventoryItemData(ItemData->Type, RowName, ItemMaxCount), ItemData->Info.Icon,
-			                           ActualAddCount);
+			Item->SetInventoryItemData(FInventoryItemData(RowName, *ItemData), ActualAddCount);
 
 			RemainingCount -= ActualAddCount;
 			ChangedItemSlots.Add(SlotIndex);

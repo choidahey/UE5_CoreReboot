@@ -10,6 +10,7 @@
 
 bool UInventorySlotWidget::Initialize()
 {
+	InventorySystemComponent = nullptr;
 	CurrentItem = nullptr;
 	return Super::Initialize();
 }
@@ -35,9 +36,9 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem has no item data"));
 		return FReply::Unhandled();
 	}
-		
+
 	UE_LOG(LogTemp, Warning, TEXT("NativeOnMouseButtonDown: %d"), CurrentItem->GetSlotIndex());
-	
+
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
 		return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
@@ -56,23 +57,25 @@ void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, con
 		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
 		return;
 	}
-	
+
 	if (IsValid(DummySlotWidgetClass))
 	{
 		UDragDropOperation* DragOperation = NewObject<UDragDropOperation>();
 		DragOperation->Payload = this;
-		
-		UInventoryDummySlotWidget* DummySlotWidgetInstance = CreateWidget<UInventoryDummySlotWidget>(GetWorld(), DummySlotWidgetClass);
-		
-		DummySlotWidgetInstance->SetDummy(CurrentItem->GetIcon(), CurrentItem->GetCurrentStackCount());
-	
+
+		UInventoryDummySlotWidget* DummySlotWidgetInstance = CreateWidget<UInventoryDummySlotWidget>(
+			GetWorld(), DummySlotWidgetClass);
+
+		DummySlotWidgetInstance->SetDummy(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon,
+		                                  CurrentItem->GetCurrentStackCount());
+
 		DragOperation->DefaultDragVisual = DummySlotWidgetInstance;
-		
+
 		OutOperation = DragOperation;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DummySlotWidgetClass is invalid"));		
+		UE_LOG(LogTemp, Warning, TEXT("DummySlotWidgetClass is invalid"));
 	}
 }
 
@@ -100,7 +103,7 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));
 		return false;
 	}
-		
+
 	if (FromItem != CurrentItem)
 	{
 		// Same Item
@@ -112,7 +115,7 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		{
 			InventorySystemComponent->SwapItems(FromItem, CurrentItem);
 		}
-				
+
 		return true;
 	}
 
@@ -134,7 +137,7 @@ void UInventorySlotWidget::SetItem(UBaseInventoryItem* InItem)
 		IconImage->SetVisibility(ESlateVisibility::Visible);
 		CountTextBorder->SetVisibility(ESlateVisibility::Visible);
 
-		IconImage->SetBrushFromTexture(CurrentItem->GetIcon());
+		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon);
 		CountTextBlock->SetText(FText::AsNumber(CurrentItem->GetCurrentStackCount()));
 	}
 	else

@@ -59,7 +59,6 @@ public:
 	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
 
 	FORCEINLINE int32 GetMaxInventorySlot() const { return MaxInventorySlot; }
-	FORCEINLINE FName GetCurrentHeldItemName() const { return CurrentHeldItemName; }
 
 protected:
 	int32 MaxInventorySlot;
@@ -68,18 +67,14 @@ private:
 	void GetInventoryItemsAndEmptySlots(const FName& InRowName,
 	                                    TArray<UBaseInventoryItem*>& OutSameItems,
 	                                    TArray<UBaseInventoryItem*>& OutEmptySlots);
-	void SpawnRemainingItems(const FName& ItemRowName, const int32 Count) const;
 
-	const FItemInfoData* FindItemDataFromDataTable(const FName& RowName) const;
+	const FItemInfoData* FindItemInfoDataFromDataTable(const FName& RowName) const;
 
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 
 	UPROPERTY()
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
-
-	UPROPERTY(EditAnywhere, Category = "InventorySystem")
-	FName CurrentHeldItemName;
 
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor;
