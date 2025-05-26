@@ -22,6 +22,7 @@ public class CR4S : ModuleRules
 			"GeometryCollectionEngine",
 			"NavigationSystem",
 			"DeveloperSettings"
+			"Niagara"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });
