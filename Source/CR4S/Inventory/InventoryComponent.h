@@ -2,51 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Gimmick/Data/ItemData.h"
 
-#include "InventorySystemComponent.generated.h"
+#include "InventoryComponent.generated.h"
 
-struct FBaseItemData;
+class ASurvivalHUD;
+class UBaseInventoryItem;
 class UItemGimmickSubsystem;
 class UInventoryWidget;
-
-USTRUCT()
-struct FInventoryItem
-{
-	GENERATED_BODY()
-
-	FInventoryItem()
-		: SlotIndex(0)
-		  , RowName("")
-		  , Icon(nullptr)
-		  , Count(0)
-	{
-	}
-
-	FInventoryItem(const FName& InRowName
-	               , UTexture2D* InIcon
-	               , const int32 InCount)
-		: SlotIndex(0)
-		  , RowName(InRowName)
-		  , Icon(InIcon)
-		  , Count(InCount)
-	{
-	}
-
-	void SwapItem(FInventoryItem& Other)
-	{
-		Swap(SlotIndex, Other.SlotIndex);
-		Swap(*this, Other);
-	}
-
-	UPROPERTY()
-	int32 SlotIndex;
-	UPROPERTY(Editanywhere)
-	FName RowName;
-	UPROPERTY(EditAnywhere)
-	UTexture2D* Icon;
-	UPROPERTY(Editanywhere, meta = (ClampMin = "0"))
-	int32 Count;
-};
 
 USTRUCT()
 struct FAddItemResult
@@ -54,9 +17,9 @@ struct FAddItemResult
 	GENERATED_BODY()
 
 	FAddItemResult()
-		: Success(false)
-		  , AddedCount(0)
-		  , RemainingCount(0)
+		: Success(false),
+		  AddedCount(0),
+		  RemainingCount(0)
 	{
 	}
 
@@ -66,14 +29,14 @@ struct FAddItemResult
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class CR4S_API UInventorySystemComponent : public UActorComponent
+class CR4S_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 #pragma region UActorComponent Override
 
 public:
-	UInventorySystemComponent();
+	UInventoryComponent();
 
 	virtual void BeginPlay() override;
 
@@ -82,7 +45,7 @@ public:
 #pragma region InventorySystem
 
 public:
-	FAddItemResult AddItem(const FInventoryItem& InInventoryItem);
+	FAddItemResult AddItem(FName RowName, int32 Count);
 	/**
 	 * - If `RemoveCount` > 0: decreases the item count in that slot by `RemoveCount`.
 	 * - If `RemoveCount` == 0 (default): clears the slot entirely (sets count to zero).
@@ -90,26 +53,27 @@ public:
 	void RemoveItemAtIndex(const int32 Index, const int32 RemoveCount = 0);
 	UFUNCTION()
 	void SortInventoryItems();
-	bool SwapItems(const int32 FromIndex, const int32 ToIndex);
-	void MergeItems(const int32 FromIndex, const int32 ToIndex);
+	bool SwapItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const;
+	void MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const;
 
-	const FInventoryItem* GetItemDataByIndex(const int32 Index) const;
+	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
 
+	FORCEINLINE int32 GetMaxInventorySlot() const { return MaxInventorySlot; }
 	FORCEINLINE FName GetCurrentHeldItemName() const { return CurrentHeldItemName; }
+
+protected:
+	int32 MaxInventorySlot;
 
 private:
 	void GetInventoryItemsAndEmptySlots(const FName& InRowName,
-	                                    TArray<FInventoryItem*>& OutSameItems,
-	                                    TArray<FInventoryItem*>& OutEmptySlots);
+	                                    TArray<UBaseInventoryItem*>& OutSameItems,
+	                                    TArray<UBaseInventoryItem*>& OutEmptySlots);
 	void SpawnRemainingItems(const FName& ItemRowName, const int32 Count) const;
 
-	const FBaseItemData* FindItemDataFromDataTable(const FName& RowName) const;
-
-	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem", meta = (ClampMin = "1"))
-	int32 MaxInventorySlot;
+	const FItemInfoData* FindItemDataFromDataTable(const FName& RowName) const;
 
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
-	TArray<FInventoryItem> InventoryItems;
+	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 
 	UPROPERTY()
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
@@ -117,38 +81,36 @@ private:
 	UPROPERTY(EditAnywhere, Category = "InventorySystem")
 	FName CurrentHeldItemName;
 
+	UPROPERTY()
+	TObjectPtr<AActor> OwnerActor;
+	UPROPERTY()
+	TObjectPtr<ASurvivalHUD> SurvivalHUD;
+
 #pragma endregion
 
 #pragma region InventoryWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "InventorySystem|InventoryWidget")
-	void OpenInventory();
+	void OpenInventory() const;
 
 	UFUNCTION(BlueprintCallable, Category = "InventorySystem|InventoryWidget")
 	void CloseInventory();
 
 private:
-	void CreateInventoryWidget();
+	bool CreateInventoryWidget();
 
 	UPROPERTY(EditDefaultsOnly, Category = "InventoryWidget")
 	TSubclassOf<UInventoryWidget> InventoryWidgetClass;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryWidget")
 	TObjectPtr<UInventoryWidget> InventoryWidgetInstance;
 
-	UPROPERTY()
-	TObjectPtr<APlayerController> OwnerPlayerController;
-
 #pragma endregion
 
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnItemSlotChanged
-	                                              , const int32, Index
-	                                              , const FName&, RowName
-	                                              , UTexture2D*, IconTexture
-	                                              , const int32, Count);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemSlotChanged, UBaseInventoryItem*, Item);
 
 	FOnItemSlotChanged OnItemSlotChanged;
 

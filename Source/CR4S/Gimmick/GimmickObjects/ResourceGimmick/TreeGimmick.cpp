@@ -1,5 +1,6 @@
 ﻿#include "TreeGimmick.h"
 
+#include "CR4S.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
@@ -30,8 +31,8 @@ void ATreeGimmick::BeginPlay()
 
 	if (IsValid(DestructibleComponent))
 	{
-		DestructibleComponent->OnTakeDamage.BindUObject(this, &ThisClass::OnGimmickTakeDamage);
-		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroy);
+		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
+		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
 
 		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
 		if (IsValid(GimmickSubsystem))
@@ -47,20 +48,22 @@ void ATreeGimmick::BeginPlay()
 			}
 		}
 	}
-	
+
 	OriginalLocation = GetActorLocation();
 }
 
-void ATreeGimmick::OnGimmickTakeDamage(const float DamageAmount, const float CurrentHealth)
+void ATreeGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount, const float CurrentHealth)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
-		   CurrentHealth);
-	
+	CR4S_Log(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"),
+	         DamageAmount, CurrentHealth);
+
 	StartShake();
 }
 
-void ATreeGimmick::OnGimmickDestroy()
+void ATreeGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
+	GetResources(DamageCauser);
+	
 	/** BEFORE THE TRUNK IS DESTROYED */
 	if (!bIsTrunkDestroyed)
 	{
@@ -85,7 +88,8 @@ void ATreeGimmick::OnGimmickDestroy()
 			DelayedDestroy();
 		}
 
-		GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay, false);
+		GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay,
+		                                       false);
 	}
 }
 
