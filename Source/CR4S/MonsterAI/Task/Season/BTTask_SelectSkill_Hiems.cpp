@@ -4,12 +4,35 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/MonsterAIHelper.h"
+#include "AIController.h"
 
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
-	if (!CachedMonster.IsValid() || !Target) return INDEX_NONE;
+	if (!CachedMonster.IsValid()) return INDEX_NONE;
 
-	const float Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+    const FVector MonsterLocation = CachedMonster->GetActorLocation();
+    float Distance = TNumericLimits<float>::Max();
+
+    if (Target)
+    {
+        Distance = FVector::Dist(MonsterLocation, Target->GetActorLocation());
+    }
+    else
+    {
+        if (AAIController* AIC = Cast<AAIController>(CachedMonster->GetController()))
+        {
+            if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
+            {
+                AActor* HouseActor = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+                FVector HouseLocation = HouseActor->GetActorLocation();
+                if (!HouseLocation.IsNearlyZero())
+                {
+                    Distance = FVector::Dist(MonsterLocation, HouseLocation);
+                }
+                else return INDEX_NONE;
+            }
+        }
+    }
 	
 	TArray<FSkillWeight> Weights;
 	Weights.Reserve(AvailableSkills.Num());
@@ -50,7 +73,8 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
         RandomIndex -= SkillWeight.Weight;
         if (RandomIndex <= 0)
         {
-            return SkillWeight.SkillID;
+            //return SkillWeight.SkillID;
+            return 2;
         }
     }
 

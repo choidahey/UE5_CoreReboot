@@ -22,29 +22,48 @@ void UBTService_UpdateCombatKeys::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 	if (!BB || !Pawn) return;
 
-	float Distance = TNumericLimits<float>::Max();
-	bool  bInAttackRange = false;
-	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+	const FVector PawnLoc = Pawn->GetActorLocation();
 
-	if (Target)
+	AActor* TargetPlayer = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+	AActor* TargetHouse = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+
+	float DistanceToPlayer = TNumericLimits<float>::Max();
+	bool  bPlayerInRange = false;
+
+	float DistanceToHouse = TNumericLimits<float>::Max();
+	bool  bHouseInRange = false;
+
+	if (TargetPlayer)
 	{
-		Distance = FVector::Dist(Pawn->GetActorLocation(), Target->GetActorLocation());
-
-		bInAttackRange = Distance <= AttackDistanceThreshold;
+		DistanceToPlayer = FVector::Dist(PawnLoc, TargetPlayer->GetActorLocation());
+		bPlayerInRange = (DistanceToPlayer <= AttackDistanceThreshold);
 	}
 
-	BB->SetValueAsFloat(CurrentDistance.SelectedKeyName, Distance);
-	BB->SetValueAsBool(bIsAttackRange.SelectedKeyName, bInAttackRange);
+	if (TargetHouse)
+	{
+		DistanceToHouse = FVector::Dist(PawnLoc, TargetHouse->GetActorLocation());
+		bHouseInRange = (DistanceToHouse <= AttackDistanceThreshold);
+	}
 
 	if (auto* StateComp = Pawn->FindComponentByClass<UMonsterStateComponent>())
 	{
-		if (!Target)
+		if (TargetPlayer)
 		{
-			StateComp->SetState(EMonsterState::Idle);
+			if (bPlayerInRange)
+				StateComp->SetState(EMonsterState::Attack);
+			else
+				StateComp->SetState(EMonsterState::Chase);
 		}
-		else if (bInAttackRange)
+		else if (TargetHouse)
 		{
-			StateComp->SetState(EMonsterState::Attack);
+			if (bHouseInRange)
+			{
+				StateComp->SetState(EMonsterState::AttackHouse);
+			}
+			else
+			{
+				StateComp->SetState(EMonsterState::MoveToHouse);
+			}
 		}
 		else
 		{
