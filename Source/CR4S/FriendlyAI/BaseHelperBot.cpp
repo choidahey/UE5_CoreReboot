@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HelperBotStatsSubsystem.h"
 #include "../Gimmick/Components/InteractableComponent.h"
+#include "UI/HelperBotInfoWidget.h"
 
 /**
  * 
@@ -28,6 +29,11 @@ void ABaseHelperBot::BeginPlay()
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
 		MoveComp->SetAvoidanceEnabled(true);
+	}
+
+	if (InteractableComp)
+	{
+		InteractableComp->OnDetectionStateChanged.BindUObject(this, &ABaseHelperBot::OnDetectedChange);
 	}
 }
 
@@ -53,6 +59,33 @@ void ABaseHelperBot::LoadStats()
 
 			CurrentHealth = CurrentStats.MaxHealth;
 		});
+	}
+}
+
+void ABaseHelperBot::OnDetectedChange(AController* DetectingController, bool bIsDetected)
+{
+	if (bIsDetected)
+	{
+		if (!InfoUIInstance && InfoUIClass)
+		{
+			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+			{
+				InfoUIInstance = CreateWidget<UHelperBotInfoWidget>(PC, InfoUIClass);
+				if (InfoUIInstance)
+				{
+					InfoUIInstance->SetHealth(GetCurrentHealth(), CurrentStats.MaxHealth);
+					InfoUIInstance->AddToViewport();
+				}
+			}
+		}
+	}
+	else
+	{
+		if (InfoUIInstance)
+		{
+			InfoUIInstance->RemoveFromParent();
+			InfoUIInstance = nullptr;
+		}
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "BaseHelperBot.generated.h"
 
 class UInteractableComponent;
+class UHelperBotInfoWidget;
 
 UCLASS()
 class CR4S_API ABaseHelperBot : public ACharacter
@@ -85,6 +86,21 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+#pragma endregion
+
+#pragma region Info Widget
+	
+public:
+	UFUNCTION()
+	void OnDetectedChange(AController* DetectingController, bool bIsDetected);
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UHelperBotInfoWidget> InfoUIClass;
+
+	UPROPERTY()
+	TObjectPtr<UHelperBotInfoWidget> InfoUIInstance = nullptr;
+	
 #pragma endregion
 	
 };
