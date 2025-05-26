@@ -4,21 +4,35 @@
 #include "ModularRobot.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Gimmick/Components/InteractableComponent.h"
 
 
 // Sets default values
-AModularRobot::AModularRobot()
+AModularRobot::AModularRobot():
+	UnMountLocation(FVector(-200.f,0.f,0.f)),
+	MountSocketName("cockpit")
 {
 	//Set Tick
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+
+	//Set Mesh option
+	if (IsValid(GetMesh()))
+	{
+		GetMesh()->SetRelativeLocation_Direct({0.0f, 0.0f, -92.0f});
+		GetMesh()->SetRelativeRotation_Direct({0.0f, -90.0f, 0.0f});
+
+		GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickMontagesWhenNotRendered;
+		GetMesh()->bEnableUpdateRateOptimizations = false;
+	}
 	
 	// Don't rotate when the controller rotates.
 	bUseControllerRotationPitch = false;
@@ -49,30 +63,100 @@ AModularRobot::AModularRobot()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	//InteractableComponent
+	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
+}
+
+void AModularRobot::MountRobot(AController* InController)
+{
+	if (!IsValid(InController)) return;
+
+	ACharacter* PreviousCharacter=Cast<ACharacter>(InController->GetPawn());
+	if (IsValid(PreviousCharacter))
+	{
+		MountedCharacter=Cast<APlayerCharacter>(PreviousCharacter);
+		PreviousCharacter->SetActorEnableCollision(false);
+		PreviousCharacter->SetActorTickEnabled(false);
+
+		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,true);
+		PreviousCharacter->AttachToComponent(
+			GetMesh(),
+			AttachRule,
+			MountSocketName
+		);
+	}
+	InController->UnPossess();
+	InController->Possess(this);
+}
+
+void AModularRobot::UnMountRobot()
+{
+	ACharacter* NextCharacter=MountedCharacter.Get();
+	if (IsValid(NextCharacter))
+	{
+		NextCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		
+		FVector UnMountOffset=GetActorForwardVector()*UnMountLocation;
+		FVector DropLocation=GetActorLocation()+UnMountOffset;
+		NextCharacter->TeleportTo(DropLocation,NextCharacter->GetActorRotation(),false,true);
+		
+		NextCharacter->SetActorEnableCollision(true);
+		NextCharacter->SetActorTickEnabled(true);
+	}
+
+	if (AController* CurrentController=GetController())
+	{
+		CurrentController->UnPossess();
+		if (IsValid(NextCharacter))
+		{
+			CurrentController->Possess(NextCharacter);
+		}
+	}
+	MountedCharacter=nullptr;
 }
 
 // Called when the game starts or when spawned
 void AModularRobot::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (InteractComp)
+	{
+		InteractComp->OnTryInteract.BindUObject(this,&AModularRobot::MountRobot);
+	}
 }
 
 void AModularRobot::NotifyControllerChanged()
 {
-	Super::NotifyControllerChanged();
-
-	// Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	const auto* PreviousPlayer{Cast<APlayerController>(PreviousController)};
+	if (IsValid(PreviousPlayer))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		auto* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PreviousPlayer->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
 		{
-			if (ACharacterController* MyController = Cast<ACharacterController>(PlayerController))
-			{
-				Subsystem->AddMappingContext(MyController->DefaultMappingContext, 0);
-			}
+			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
+
+	auto* NewPlayer{Cast<APlayerController>(GetController())};
+	if (IsValid(NewPlayer))
+	{
+		NewPlayer->InputYawScale_DEPRECATED = 1.0f;
+		NewPlayer->InputPitchScale_DEPRECATED = 1.0f;
+		NewPlayer->InputRollScale_DEPRECATED = 1.0f;
+
+		auto* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(NewPlayer->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
+		{
+			FModifyContextOptions Options;
+			Options.bNotifyUserSettings = true;
+
+			InputSubsystem->AddMappingContext(InputMappingContext, 0, Options);
+		}
+	}
+
+	Super::NotifyControllerChanged();
 }
 
 // Called every frame
@@ -150,20 +234,16 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		if (ACharacterController* MyController=Cast<ACharacterController>(GetController()))
 		{
 			// Moving
-			EnhancedInputComponent->BindAction(MyController->MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Move);
+			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Move);
 			//Looking
-			EnhancedInputComponent->BindAction(MyController->LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Look);
+			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Look);
 			//Sprinting
-			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::StartSprint);
-			EnhancedInputComponent->BindAction(MyController->SprintAction, ETriggerEvent::Completed, this, &AModularRobot::StopSprint);
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::StartSprint);
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AModularRobot::StopSprint);
 			// Jumping
-			EnhancedInputComponent->BindAction(MyController->JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-			EnhancedInputComponent->BindAction(MyController->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Jump);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::StopJumping);
 		}
-	}
-	else
-	{
-		//UE_LOG(LogTemp, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 

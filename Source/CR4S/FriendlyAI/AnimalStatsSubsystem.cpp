@@ -1,12 +1,18 @@
 #include "AnimalStatsSubsystem.h"
-#include "Engine/AssetManager.h"
-#include "Engine/DataTable.h"
+#include "UObject/ConstructorHelpers.h"
 
 void UAnimalStatsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	StatsDataTableSoft = TSoftObjectPtr<UDataTable>(FSoftObjectPath(TEXT("/Game/CR4S/_Data/AnimalStatsTable.AnimalStatsTable")));
-	StatsDataTable = nullptr;
+
+	UObject* LoadedObject = StaticLoadObject(UDataTable::StaticClass(), nullptr, TEXT("/Game/CR4S/_Data/AnimalStatsTable.AnimalStatsTable"));
+	StatsDataTable = Cast<UDataTable>(LoadedObject);
+
+	if (!StatsDataTable)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] Failed to load AnimalStatsTable via StaticLoadObject"), *LogHeader);
+	}
+
 	StatsCache.Empty();
 }
 
@@ -17,46 +23,19 @@ const FAnimalStatsRow* UAnimalStatsSubsystem::GetStatsRow(FName RowName) const
 		return &StatsCache[RowName];
 	}
 
-	if (!StatsDataTable && StatsDataTableSoft.IsValid())
+	if (!StatsDataTable || !RowName.IsValid())
 	{
-		StatsDataTable = StatsDataTableSoft.Get();
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Invalid StatsDataTable or RowName"), *LogHeader);
+		return nullptr;
 	}
 
-	if (StatsDataTable)
+	const FAnimalStatsRow* FoundRow = StatsDataTable->FindRow<FAnimalStatsRow>(RowName, TEXT("GetStatsRow"));
+	if (!FoundRow)
 	{
-		return StatsDataTable->FindRow<FAnimalStatsRow>(RowName, TEXT(""));
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Row not found for %s"), *LogHeader, *RowName.ToString());
+		return nullptr;
 	}
 
-	return nullptr;
-}
-
-void UAnimalStatsSubsystem::GetStatsRowAsync(FName RowName, TFunction<void(const FAnimalStatsRow*)> Callback)
-{
-	if (StatsCache.Contains(RowName))
-	{
-		Callback(&StatsCache[RowName]);
-		return;
-	}
-
-	FSoftObjectPath AssetPath = StatsDataTableSoft.ToSoftObjectPath();
-	StreamableManager.RequestAsyncLoad(AssetPath, [this, RowName, Callback]()
-	{
-		StatsDataTable = StatsDataTableSoft.Get();
-		if (!StatsDataTable)
-		{
-			Callback(nullptr);
-			return;
-		}
-
-		const FAnimalStatsRow* Row = StatsDataTable->FindRow<FAnimalStatsRow>(RowName, TEXT(""));
-		if (Row)
-		{
-			StatsCache.Add(RowName, *Row);
-			Callback(&StatsCache[RowName]);
-		}
-		else
-		{
-			Callback(nullptr);
-		}
-	});
+	StatsCache.Add(RowName, *FoundRow);
+	return &StatsCache[RowName];
 }

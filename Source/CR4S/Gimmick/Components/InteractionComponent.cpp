@@ -111,12 +111,12 @@ void UInteractionComponent::UpdateDetectProcess()
 
 	if (IsValid(BeforeComponent) && (BeforeComponent != DetectedInteractableComponent || !bIsDetected))
 	{
-		BeforeComponent->SetHighlight(false);
+		BeforeComponent->DetectionStateChanged(nullptr, false);
 	}
 
 	if (bIsDetected && IsValid(DetectedInteractableComponent))
 	{
-		DetectedInteractableComponent->SetHighlight(true);
+		DetectedInteractableComponent->DetectionStateChanged(OwnerPlayerController, true);
 		ShowInteractionWidget();
 	}
 	else
@@ -140,9 +140,9 @@ bool UInteractionComponent::TryDetectProcess()
 
 		FHitResult HitResult;
 		const bool bHit = OwnerPlayerController->GetHitResultAtScreenPosition(
-			ScreenCenter, ECC_GameTraceChannel1, false, HitResult);
+			ScreenCenter, InteractionTraceChannel, false, HitResult);
 
-		DetectedActor = HitResult.GetActor();;
+		DetectedActor = HitResult.GetActor();
 		if (bHit && IsValid(DetectedActor))
 		{
 			const FVector HitPoint = HitResult.ImpactPoint;
@@ -165,15 +165,10 @@ bool UInteractionComponent::TryDetectProcess()
 				return false;
 			}
 
-			UActorComponent* ActorComponent = DetectedActor->GetComponentByClass(
-				UInteractableComponent::StaticClass());
-			if (IsValid(ActorComponent))
+			DetectedInteractableComponent = DetectedActor->FindComponentByClass<UInteractableComponent>();
+			if (IsValid(DetectedInteractableComponent))
 			{
-				DetectedInteractableComponent = Cast<UInteractableComponent>(ActorComponent);
-				if (IsValid(DetectedInteractableComponent))
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 	}

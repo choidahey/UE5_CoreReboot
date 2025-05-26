@@ -36,7 +36,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	FORCEINLINE float GetCurrentHP() const { return CurrentHP; }
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	FORCEINLINE void SetCurrentHP(const float NewHealth) { CurrentHP = NewHealth; }
+	UFUNCTION(BlueprintCallable, Category = "Monster|Attribute")
+	FORCEINLINE void RecoverToFull() { CurrentHP = CurrentAttribute.MaxHP; }
 
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	FMonsterAttributeRow GetMonsterAttribute() const { return CurrentAttribute; }
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
 	FMonsterAttributeRow CurrentAttribute;
 

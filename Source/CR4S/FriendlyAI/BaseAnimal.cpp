@@ -2,20 +2,26 @@
 #include "AIController.h"
 #include "Controller/AnimalAIController.h"
 #include "Kismet/GameplayStatics.h"
-#include "Navigation/PathFollowingComponent.h"  
+#include "Navigation/PathFollowingComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "../Gimmick/Components/InteractableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AnimalStatsSubsystem.h"
 
 ABaseAnimal::ABaseAnimal()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
     StunValue     = 0.f;
     CurrentTarget = nullptr;
+
+    InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+    InteractableComponent->SetActive(false);
 }
 
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
+    SetAnimalState(EAnimalState::Patrol);
     LoadStats();
 }
 
@@ -23,43 +29,47 @@ void ABaseAnimal::LoadStats()
 {
     if (auto* Subsys = GetGameInstance()->GetSubsystem<UAnimalStatsSubsystem>())
     {
-        Subsys->GetStatsRowAsync(RowName, [this](const FAnimalStatsRow* Row)
+        const FAnimalStatsRow* Row = Subsys->GetStatsRow(RowName);
+        if (Row)
         {
-            if (Row)
+            StatsRow = Row;
+            CurrentStats = *Row;
+            bStatsReady = true;
+
+            const UEnum* EnumPtr = StaticEnum<EAnimalBehavior>();
+            if (EnumPtr)
             {
-                StatsRow = Row;
-                CurrentStats = *Row;
-                bStatsReady = true;
+                BehaviorTypeEnum = static_cast<EAnimalBehavior>(
+                    EnumPtr->GetValueByName(FName(*Row->BehaviorType))
+                );
+            }
 
-                const UEnum* EnumPtr = StaticEnum<EAnimalBehavior>();
-                if (EnumPtr)
-                {
-                    BehaviorTypeEnum = static_cast<EAnimalBehavior>(
-                        EnumPtr->GetValueByName(FName(*Row->BehaviorType))
-                    );
-                }
+            if (GetCharacterMovement())
+            {
+                GetCharacterMovement()->MaxWalkSpeed = CurrentStats.WalkSpeed;
+                GetCharacterMovement()->MaxAcceleration = 2048.f;
+                GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
+                GetCharacterMovement()->GroundFriction = 8.f;
+            }
 
-                if (GetCharacterMovement())
+            if (AAIController* AIController = Cast<AAIController>(GetController()))
+            {
+                if (AAnimalAIController* AnimalAI = Cast<AAnimalAIController>(AIController))
                 {
-                    GetCharacterMovement()->MaxWalkSpeed = CurrentStats.WalkSpeed;
-                    GetCharacterMovement()->MaxAcceleration = 2048.f;
-                    GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
-                    GetCharacterMovement()->GroundFriction = 8.f;
-                }
+                    AnimalAI->ApplyPerceptionStats(CurrentStats);
 
-                if (AAIController* AIController = Cast<AAIController>(GetController()))
-                {
-                    if (AAnimalAIController* AnimalAI = Cast<AAnimalAIController>(AIController))
+                    if (UBehaviorTree* BTAsset = AnimalAI->GetBehaviorTreeAsset())
                     {
-                        AnimalAI->ApplyPerceptionStats(CurrentStats);
+                        AnimalAI->RunBehaviorTree(BTAsset);
+                        SetAnimalState(EAnimalState::Patrol);
                     }
                 }
             }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Animal Stats Load Fail"));
-            }
-        });
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Animal Stats Load Fail"));
+        }
     }
 }
 
@@ -109,22 +119,25 @@ void ABaseAnimal::PerformAttack()
 
     if (!bHit) return;
 
-    for (const FHitResult& Hit : HitResults)
+    for (const FHitResult& EachHit : HitResults)
     {
-        AActor* HitActor = Hit.GetActor();
+        AActor* HitActor = EachHit.GetActor();
         if (!HitActor || HitActor == this) continue;
 
-        float Damage = CurrentStats.AttackDamage;
+        if (HitActor == CurrentTarget)
+        {
+            if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(HitActor))
+            {
+                if (HitAnimal->CurrentState == EAnimalState::Dead)
+                {
+                    continue;
+                }
+            }
 
-        UGameplayStatics::ApplyDamage(
-            HitActor,
-            Damage,
-            GetController(),
-            this,
-            nullptr
-        );
-        
-        break;
+            float Damage = CurrentStats.AttackDamage;
+            UGameplayStatics::ApplyDamage(HitActor, Damage, GetController(), this, nullptr);
+            break;
+        }
     }
 }
 
@@ -141,7 +154,19 @@ void ABaseAnimal::ApplyStun(float Amount)
     {
         UE_LOG(LogTemp, Log,
             TEXT("[%s] stun"), *GetClass()->GetName());
-        Die();
+        
+        SetAnimalState(EAnimalState::Stun);
+        bIsStunned = true;
+        GetWorldTimerManager().SetTimer(StunRecoverTimer, this, &ABaseAnimal::RecoverFromStun, StatsRow->StunDuration, false);
+    }
+}
+
+void ABaseAnimal::RecoverFromStun()
+{
+    if (CurrentState == EAnimalState::Stun)
+    {
+        bIsStunned = false;
+        SetAnimalState(EAnimalState::Patrol);
     }
 }
 
@@ -150,6 +175,7 @@ void ABaseAnimal::Die()
     if (CurrentState == EAnimalState::Dead) return;
     
     SetAnimalState(EAnimalState::Dead);
+    
     OnDied.Broadcast();
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
@@ -163,6 +189,9 @@ void ABaseAnimal::Die()
     UE_LOG(LogTemp, Log,
         TEXT("[%s] Die"), *GetClass()->GetName());
 
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    
     GetMesh()->SetSimulatePhysics(true);
     GetCharacterMovement()->Deactivate();
     SetLifeSpan(10.f);
@@ -171,6 +200,13 @@ void ABaseAnimal::Die()
 void ABaseAnimal::SetAnimalState(EAnimalState NewState)
 {
     CurrentState = NewState;
+    
+    if (USkeletalMeshComponent* Skeletal = GetMesh())
+    {
+        const bool bEnableInteraction = (NewState == EAnimalState::Stun || NewState == EAnimalState::Dead);
+        Skeletal->SetCollisionResponseToChannel(ECC_GameTraceChannel1, bEnableInteraction ? ECR_Block : ECR_Ignore);
+    }
+    
     AAIController* AIController = Cast<AAIController>(Controller);
     if (AIController)
     {
@@ -201,6 +237,14 @@ void ABaseAnimal::PlayAttackMontage()
 
 float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+    if (ABaseAnimal* Damager = Cast<ABaseAnimal>(DamageCauser))
+    {
+        if (Damager->RowName == this->RowName)
+        {
+            return 0.f;
+        }
+    }
+    
     float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
     if (ActualDamage <= 0.f) return 0.f;
 

@@ -4,6 +4,7 @@
 #include "AIController.h"
 #include "BaseMonsterAIController.generated.h"
 
+class ABaseMonster;
 class UBlackboardComponent;
 class UBehaviorTreeComponent;
 class UBehaviorTree;
@@ -26,14 +27,16 @@ protected:
 
 #pragma region AIController Setting
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|AI")
-	UBlackboardComponent* BlackboardComp;
+	void SetupPerceptionFromMonster(ABaseMonster* Monster);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|AI")
-	UBehaviorTreeComponent* BehaviorTreeComp;
+	TObjectPtr<UBlackboardComponent> BlackboardComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|AI")
+	TObjectPtr<UBehaviorTreeComponent> BehaviorTreeComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	UMonsterPerceptionComponent* PerceptionComp;
+	TObjectPtr<UMonsterPerceptionComponent> PerceptionComp;
 
 #pragma endregion
 
@@ -55,11 +58,11 @@ public:
 protected:
 	/* Called when target is detected via perception */
 	UFUNCTION()
-	void OnTargetDetected(AActor* DetectedActor);
+	virtual void OnTargetDetected(AActor* DetectedActor);
 
 	/* Called when target is lost via perception */
 	UFUNCTION()
-	void OnTargetLost(AActor* LostActor);
+	virtual void OnTargetLost(AActor* LostActor);
 
 #pragma endregion
 

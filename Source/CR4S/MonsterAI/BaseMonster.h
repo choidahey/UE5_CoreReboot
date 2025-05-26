@@ -40,7 +40,7 @@ public:
 
 #pragma region BaseMonster Components
  
-public:
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
 
@@ -67,21 +67,21 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void PlayPreMontage(int32 SkillIndex);
+	virtual void UseSkill(int32 SkillIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void UseSkill(int32 SkillIndex);
+	virtual int32 SelectSkillIndex();
 
 #pragma endregion
 
 #pragma region Monster Behavior - Death
 
 public:
-
-	virtual void Die();
-
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	bool IsDead() const;
+
+	UFUNCTION()
+	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
@@ -93,9 +93,6 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Monster|Attribute")
 	FName MonsterID;
-
-	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	FORCEINLINE UMonsterSkillComponent* GetSkillComponent() const { return SkillComponent; }
 
 #pragma endregion
 

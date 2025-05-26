@@ -3,6 +3,7 @@
 #include "../Component/AnimalMovementComponent.h"
 #include "../BaseAnimal.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "NavigationSystem.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UBTTask_AnimalPatrol::UBTTask_AnimalPatrol()
@@ -28,9 +29,9 @@ void UBTTask_AnimalPatrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
     }
     
     ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-    if (!Animal || Animal->CurrentState != EAnimalState::Patrol)
+    if (!IsValid(Animal) || Animal->IsActorBeingDestroyed())
     {
-        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
     
@@ -43,8 +44,25 @@ void UBTTask_AnimalPatrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
         }
         
         const FVector Origin = Pawn->GetActorLocation();
-        const FVector Rand2D = UKismetMathLibrary::RandomUnitVector() * PatrolRadius;
-        PatrolDestination = Origin + FVector(Rand2D.X, Rand2D.Y, 0.0f);
+
+        if (const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
+        {
+            FNavLocation ResultLocation;
+            if (NavSys->GetRandomPointInNavigableRadius(Origin, PatrolRadius, ResultLocation))
+            {
+                PatrolDestination = ResultLocation.Location;
+            }
+            else
+            {
+                FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+                return;
+            }
+        }
+        else
+        {
+            FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+            return;
+        }
         
         if (UAnimalMovementComponent* MoveComp = Pawn->FindComponentByClass<UAnimalMovementComponent>())
         {

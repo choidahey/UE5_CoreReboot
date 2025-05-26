@@ -1,94 +1,74 @@
 #include "CR4S/MonsterAI/Data/MonsterDataSubsystem.h"
+#include "CR4S/MonsterAI/Data/MonsterAttributeRow.h"
+#include "CR4S/MonsterAI/Data/MonsterSkillData.h"
+
+UMonsterDataSubsystem::UMonsterDataSubsystem()
+	: MyHeader(TEXT("MonsterDataSubsyetem"))
+{
+    static ConstructorHelpers::FObjectFinder<UDataTable> MonsterAttributeDataTablePath(
+        TEXT("DataTable'/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable."
+            "MonsterAttributeDataTable'"));
+
+    if (MonsterAttributeDataTablePath.Succeeded())
+    {
+        MonsterAttributeTable = MonsterAttributeDataTablePath.Object;
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[%s] Failed to find MonsterAttributeDataTable Path"), *MyHeader);
+    }
+
+}
 
 void UMonsterDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection);
+    Super::Initialize(Collection);
 
-	const FSoftObjectPath Path(TEXT("/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable.MonsterAttributeDataTable"));
-	MonsterAttributeTable = Cast<UDataTable>(Path.TryLoad());
-
-	CacheMonsterSkillData();
+    UE_LOG(LogTemp, Log, TEXT("[%s] Loaded Attribute DataTable: %s"), *MyHeader, *MonsterAttributeTable->GetName());
 }
 
-FMonsterAttributeRow* UMonsterDataSubsystem::GetMonsterAttributeData(FName MonsterID) const
+FMonsterAttributeRow* UMonsterDataSubsystem::GetMonsterAttributeData(const FName MonsterID) const
 {
-	if (MonsterAttributeTable && MonsterID.IsValid())
-	{
-		return MonsterAttributeTable->FindRow<FMonsterAttributeRow>(MonsterID, TEXT("Fail GetMonsterAttributeData"));
-	}
+    if (!MonsterAttributeTable || !MonsterID.IsValid())
+    {
+        UE_LOG(LogTemp, Log, TEXT("[%s] Invalid MonsterAttributeTable or MonsterID"), *MyHeader);
+        return nullptr;
+    }
 
-	return nullptr;
+    return MonsterAttributeTable->FindRow<FMonsterAttributeRow>(MonsterID, TEXT("Fail GetMonsterAttributeData"));
 }
 
-const TArray<FMonsterSkillData>& UMonsterDataSubsystem::GetMonsterSkillData(FName MonsterID) const
+TArray<FMonsterSkillData> UMonsterDataSubsystem::GetMonsterSkillData(const FName MonsterID) const
 {
-    const TArray<FMonsterSkillData>* SkillDatas = CacheSkillData.Find(MonsterID);
-	if (SkillDatas != nullptr)
-	{
-		// NOTICE :: Test Log
-		UE_LOG(LogTemp, Log,
-			TEXT("[MonsterDataSubsystem] %s has %d cached skills"),
-			*MonsterID.ToString(),
-			SkillDatas->Num()
-		);
+    TArray<FMonsterSkillData> SkillDatas;
 
-		for (int32 i = 0; i < SkillDatas->Num(); ++i)
-		{
-			const FMonsterSkillData& Skill = (*SkillDatas)[i];
-			UE_LOG(LogTemp, Log,
-				TEXT("%s : Damage = %.1f  Cooldown = %.1f  Range = %.1f"),
-				*Skill.SkillName.ToString(),
-				Skill.Damage,
-				Skill.Cooldown,
-				Skill.Range
-			);
-		}
+    FMonsterAttributeRow* MonsterAttributeRow = GetMonsterAttributeData(MonsterID);
+    if (!MonsterAttributeRow)
+    {
+        UE_LOG(LogTemp, Warning,
+            TEXT("[%s] No AttributeRow for %s"), *MyHeader, *MonsterID.ToString());
+        return SkillDatas;
+    }
 
-		return *SkillDatas;
-	}
+    UDataTable* SkillTable = MonsterAttributeRow->SkillDataTable;
+    if (!SkillTable)
+    {
+        UE_LOG(LogTemp, Warning,
+            TEXT("[%s] SkillDataTable is null for %s"), *MyHeader, *MonsterID.ToString());
+        return SkillDatas;
+    }
 
-	static const TArray<FMonsterSkillData> EmptyArray;
+    TArray<FMonsterSkillData*> SkillRows;
+    SkillTable->GetAllRows<FMonsterSkillData>(TEXT("GetMonsterSkillData"), SkillRows);
+    for (FMonsterSkillData* Row : SkillRows)
+    {
+        if (Row)
+        {
+            SkillDatas.Add(*Row);
+        }
+    }
 
-    return EmptyArray;
+    UE_LOG(LogTemp, Log, TEXT("[%s] Success Loaded %d skills for %s"), *MyHeader, SkillDatas.Num(), *MonsterID.ToString());
+
+    return SkillDatas;
 }
-
-void UMonsterDataSubsystem::CacheMonsterSkillData()
-{
-	const TMap<FName, uint8*>& RowMap = MonsterAttributeTable->GetRowMap();
-	for (TMap<FName, uint8*>::TConstIterator It(RowMap); It; ++It)
-	{
-		const FMonsterAttributeRow* AttrRow = reinterpret_cast<const FMonsterAttributeRow*>(It.Value());
-		if (AttrRow == nullptr || !AttrRow->SkillDataTable.IsValid()) continue;
-
-		UDataTable* SkillTable = AttrRow->SkillDataTable.LoadSynchronous();
-		if (SkillTable == nullptr) continue;
-
-		TArray<FMonsterSkillData*> SkillRows;
-		SkillTable->GetAllRows<FMonsterSkillData>(TEXT("InitializeMonserSkill"), SkillRows);
-
-		TArray<FMonsterSkillData>& CacheData = CacheSkillData.FindOrAdd(AttrRow->MonsterID);
-
-		for (int32 i = 0; i < SkillRows.Num(); ++i)
-		{
-			FMonsterSkillData* RowData = SkillRows[i];
-			if (RowData == nullptr)
-			{
-				continue;
-			}
-
-			FMonsterSkillData Copy = *RowData;
-
-			if (Copy.PreMontage.IsValid())
-			{
-				Copy.PreMontage.LoadSynchronous();
-			}
-			if (Copy.SkillMontage.IsValid())
-			{
-				Copy.SkillMontage.LoadSynchronous();
-			}
-
-			CacheData.Add(Copy);
-		}
-	}
-}
-

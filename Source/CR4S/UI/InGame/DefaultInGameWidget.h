@@ -1,16 +1,13 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Game/System/WorldTimeManager.h"
 #include "DefaultInGameWidget.generated.h"
 
 class UCharacterStatusWidget;
 class UPlayerCharacterStatusComponent;
-/**
- * 
- */
+class UTimeDisplayWidget;
+
 UCLASS()
 class CR4S_API UDefaultInGameWidget : public UUserWidget
 {
@@ -29,12 +26,15 @@ public:
 	void UpdateHPWidget(const float InPercentage);
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateStaminaWidget(const float InPercentage);
+	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
 #pragma endregion
 
 #pragma region Widgets
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UCharacterStatusWidget> StatusWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UTimeDisplayWidget> TimeDisplayWidget;
 #pragma endregion
 	
 };

@@ -4,8 +4,6 @@
 #include "Components/ActorComponent.h"
 #include "InteractableComponent.generated.h"
 
-DECLARE_DELEGATE(FOnTryInteract);
-
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UInteractableComponent : public UActorComponent
 {
@@ -15,16 +13,25 @@ class CR4S_API UInteractableComponent : public UActorComponent
 
 public:
 	UInteractableComponent();
-
+	
 	virtual void BeginPlay() override;
+	
+#pragma endregion
+
+#pragma region Initialize
+
+public:
+	void UpdateTraceBlocking(const ECollisionResponse NewResponse = ECR_Block) const;
 	
 #pragma endregion
 	
 #pragma region Interaction
 
 public:
-	void TryInteract(const APlayerController* PlayerController) const;
+	void TryInteract(AController* Controller) const;
 
+	void DetectionStateChanged(AController* DetectingController, const bool bIsDetected) const;
+	
 	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Interaction")
 	FORCEINLINE FText GetInteractionText() const { return InteractionText; }
 
@@ -32,6 +39,9 @@ public:
 	FORCEINLINE void SetInteractionText(const FText& InInteractionText) { InteractionText = InInteractionText; }
 	
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	TEnumAsByte<ECollisionChannel> InteractionTraceChannel;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	FText InteractionText;
 	
@@ -66,7 +76,10 @@ private:
 #pragma region Delegate
 
 public:
-	FOnTryInteract OnTryInteract;
+	DECLARE_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, const bool);
+	FOnDetectionStateChanged OnDetectionStateChanged;
 	
+	DECLARE_DELEGATE_OneParam(FOnTryInteract, AController*);
+	FOnTryInteract OnTryInteract;
 #pragma endregion
 };
