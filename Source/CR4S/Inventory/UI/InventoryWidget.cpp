@@ -5,7 +5,7 @@
 #include "Components/Button.h"
 #include "Components/HorizontalBox.h"
 #include "Components/VerticalBox.h"
-#include "Inventory/UI/InventorySlotWidget.h"
+#include "Inventory/UI/ItemSlotWidget/InventorySlotWidget.h"
 
 void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventorySystemComponent)
 {

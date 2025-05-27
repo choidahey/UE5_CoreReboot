@@ -1,6 +1,6 @@
 ﻿#include "QuickSlotBarWidget.h"
 
-#include "BaseItemSlotWidget.h"
+#include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 #include "CR4S.h"
 #include "Components/HorizontalBox.h"
 #include "Inventory/InventoryComponent.h"
