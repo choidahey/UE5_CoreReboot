@@ -7,8 +7,8 @@
 
 UAnimNotify_IcicleWavesAttack::UAnimNotify_IcicleWavesAttack()
     : SpawnCount(3)
-    , BaseDistance(200.f)
-    , DistanceStep(400.f)
+    , BaseDistance(500.f)
+    , DistanceStep(800.f)
     , SpawnInterval(1.f)
     , bForward(true)
 {

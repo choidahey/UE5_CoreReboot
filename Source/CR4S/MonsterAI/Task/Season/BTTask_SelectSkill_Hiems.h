@@ -16,5 +16,14 @@ class CR4S_API UBTTask_SelectSkill_Hiems : public UBTTask_SelectSkill
 	GENERATED_BODY()
 	
 public:
+	UBTTask_SelectSkill_Hiems();
+
 	virtual int32 SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target) override;
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	float IceRoadForwardTreshold;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	float IceRoadAwayTreshold;
 };

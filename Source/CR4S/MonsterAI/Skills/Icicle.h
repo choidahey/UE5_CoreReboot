@@ -29,11 +29,18 @@ protected:
 		const FHitResult& SweepResult
 	);
 
+	//UFUNCTION()
+	//void OnNiagaraParticleCollide(
+	//	FName EventName,
+	//	float EmitterTime,
+	//	const FVector& Location,
+	//	const FVector& Velocity,
+	//	const FVector& Normal,
+	//	const FName BoneName
+	//);
+
 	UPROPERTY(EditAnywhere)
 	USceneComponent* RootComp;
-
-	//UPROPERTY(EditAnywhere)
-	//UStaticMeshComponent* MeshComp;
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* NiagaraComp;

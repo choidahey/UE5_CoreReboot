@@ -6,6 +6,12 @@
 #include "MonsterAI/MonsterAIHelper.h"
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
 
+UBTTask_SelectSkill_Hiems::UBTTask_SelectSkill_Hiems()
+    : IceRoadForwardTreshold(1100.f)
+    , IceRoadAwayTreshold(500.f)
+{
+}
+
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
 	if (!CachedMonster.IsValid()) return INDEX_NONE;
@@ -15,9 +21,6 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
         return INDEX_NONE;
 
     UBlackboardComponent* BB = AICon->GetBlackboardComponent();
-
-    constexpr float IceRoadForwardTreshold = 1100.f;
-    constexpr float IceRoadAwayTreshold = 500.f;
 
     float Distance = 0.f;
     if (Target)
@@ -52,15 +55,15 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     {
         int32 Weight = 1;
 
-        if (Distance >= 1100.f && (SkillID == 3 || SkillID == 5))
+        if (Distance >= IceRoadForwardTreshold && SkillID == 5)
         {
             Weight = 5;
         }
-        else if (Distance >= 500.f && Distance < 1100.f && SkillID == 2)
+        else if (Distance >= IceRoadAwayTreshold && Distance < IceRoadForwardTreshold && SkillID == 2)
         {
             Weight = 5;
         }
-        else if (Distance < 500.f && (SkillID == 5 || SkillID == 3))
+        else if (Distance < IceRoadAwayTreshold && SkillID == 5)
         {
             Weight = 5;
         }
