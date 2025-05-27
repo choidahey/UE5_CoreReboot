@@ -1,5 +1,7 @@
 ﻿#include "InteractableComponent.h"
 
+#include "CR4S.h"
+
 UInteractableComponent::UInteractableComponent()
 	: InteractionTraceChannel(ECC_GameTraceChannel1),
 	  DefaultHighlightColor(FColor::Green)
@@ -55,9 +57,9 @@ void UInteractableComponent::DetectionStateChanged(AActor* DetectingActor,
 void UInteractableComponent::InitHighlightMaterial()
 {
 	const AActor* Owner = GetOwner();
-	if (!IsValid(Owner))
+	
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(Owner)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Owner is invalid"));
 		return;
 	}
 
@@ -65,9 +67,8 @@ void UInteractableComponent::InitHighlightMaterial()
 	Owner->GetComponents<UMeshComponent>(MeshComponents);
 	HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
 
-	if (!IsValid(HighlightMaterialInstance))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(HighlightMaterialInstance)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HighlightMaterialInstance is invalid"));
 		return;
 	}
 

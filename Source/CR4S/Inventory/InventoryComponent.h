@@ -69,8 +69,6 @@ private:
 	                                    TArray<UBaseInventoryItem*>& OutSameItems,
 	                                    TArray<UBaseInventoryItem*>& OutEmptySlots);
 
-	const FItemInfoData* FindItemInfoDataFromDataTable(const FName& RowName) const;
-
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 
@@ -95,6 +93,8 @@ public:
 
 private:
 	bool CreateInventoryWidget();
+
+	bool IsValidWidgetRef() const;
 
 	UPROPERTY(EditDefaultsOnly, Category = "InventoryWidget")
 	TSubclassOf<UInventoryWidget> InventoryWidgetClass;

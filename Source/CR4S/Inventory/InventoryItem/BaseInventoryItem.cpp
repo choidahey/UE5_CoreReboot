@@ -29,15 +29,9 @@ void UBaseInventoryItem::SetInventoryItemData(const FInventoryItemData& NewInven
 
 void UBaseInventoryItem::SwapData(UBaseInventoryItem* OtherItem)
 {
-	if (!IsValid(OtherItem))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(OtherItem)) ||
+		CR4S_VALIDATE(LogInventory, this == OtherItem))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("OtherItem is invalid"));
-		return;
-	}
-
-	if (this == OtherItem)
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("this == OtherItem"));
 		return;
 	}
 

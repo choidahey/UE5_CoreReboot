@@ -12,10 +12,10 @@ bool UQuickSlotBarWidget::Initialize()
 	{
 		return false;
 	}
-	
+
 	MinQuickSlotIndex = 40;
 	MaxQuickSlotIndex = 49;
-	
+
 	return true;
 }
 
@@ -23,16 +23,13 @@ void UQuickSlotBarWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (IsValid(QuickSlotBar))
+	for (UWidget* ChildWidget : QuickSlotBar->GetAllChildren())
 	{
-		for (UWidget* ChildWidget : QuickSlotBar->GetAllChildren())
+		UBaseItemSlotWidget* ItemSlotWidget = Cast<UBaseItemSlotWidget>(ChildWidget);
+		if (IsValid(ItemSlotWidget))
 		{
-			UBaseItemSlotWidget* ItemSlotWidget = Cast<UBaseItemSlotWidget>(ChildWidget);
-			if (IsValid(ItemSlotWidget))
-			{
-				QuickSlotWidgets.AddUnique(ItemSlotWidget);
-			}
-		}		
+			QuickSlotWidgets.AddUnique(ItemSlotWidget);
+		}
 	}
 }
 
@@ -40,9 +37,8 @@ void UQuickSlotBarWidget::InitWidget(UInventoryComponent* InInventorySystemCompo
 {
 	InventorySystemComponent = InInventorySystemComponent;
 
-	if (!IsValid(InventorySystemComponent))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventorySystemComponent)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("InventorySystemComponent is invalid"));
 		return;
 	}
 
@@ -54,7 +50,6 @@ void UQuickSlotBarWidget::InitWidget(UInventoryComponent* InInventorySystemCompo
 		UBaseItemSlotWidget* ItemSlotWidget = QuickSlotWidgets[Index];
 		if (!IsValid(ItemSlotWidget))
 		{
-			CR4S_Log(LogTemp, Warning, TEXT("QuickSlotWidgets[%d] is invalid"), Index);
 			continue;
 		}
 
@@ -68,9 +63,8 @@ void UQuickSlotBarWidget::InitWidget(UInventoryComponent* InInventorySystemCompo
 
 void UQuickSlotBarWidget::SetItemWidget(UBaseInventoryItem* Item)
 {
-	if (!IsValid(Item))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("Item is invalid"));
 		return;
 	}
 

@@ -18,12 +18,9 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CR4S_Log(LogTemp, Warning, TEXT("Begin"));
-
 	OwnerActor = Cast<AActor>(GetOwner());
-	if (!IsValid(OwnerActor))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerActor)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OwnerActor is invalid"));
 		return;
 	}
 
@@ -36,31 +33,21 @@ void UInventoryComponent::BeginPlay()
 	}
 
 	const APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (!IsValid(PlayerController))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(PlayerController)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerController is invalid"));
 		return;
 	}
 
 	SurvivalHUD = Cast<ASurvivalHUD>(PlayerController->GetHUD());
 
-	if (!CreateInventoryWidget())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("CreateInventoryWidget is failed"));
-	}
-
-	if (!CreateQuickSlotBarWidget())
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("CreateQuickSlotBarWidget is failed"));
-	}
+	CR4S_VALIDATE(LogInventory, CreateInventoryWidget());
+	CR4S_VALIDATE(LogInventory, CreateQuickSlotBarWidget());
 
 	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
-	if (IsValid(GameInstance))
+	if (CR4S_VALIDATE(LogInventory, IsValid(GameInstance)))
 	{
 		ItemGimmickSubsystem = GameInstance->GetSubsystem<UItemGimmickSubsystem>();
 	}
-
-	CR4S_Log(LogTemp, Warning, TEXT("End"));
 }
 
 FAddItemResult UInventoryComponent::AddItem(const FName RowName, const int32 Count)
@@ -68,22 +55,15 @@ FAddItemResult UInventoryComponent::AddItem(const FName RowName, const int32 Cou
 	FAddItemResult Result;
 	Result.RemainingCount = 0;
 
-	if (Count <= 0)
+	if (CR4S_VALIDATE(LogInventory, Count <= 0) ||
+		!CR4S_VALIDATE(LogInventory, IsValid(ItemGimmickSubsystem)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("Count is invalid"));
-		return Result;
-	}
-
-	if (!IsValid(ItemGimmickSubsystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
 		return Result;
 	}
 
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-	if (!ItemData)
+	if (!CR4S_VALIDATE(LogInventory, ItemData))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemData is invalid"));
 		return Result;
 	}
 
@@ -157,9 +137,8 @@ void UInventoryComponent::GetInventoryItemsAndEmptySlots(const FName& InRowName,
 
 	for (UBaseInventoryItem* Item : InventoryItems)
 	{
-		if (!IsValid(Item))
+		if (!CR4S_VALIDATE(LogInventory, IsValid(Item)))
 		{
-			CR4S_Log(LogTemp, Warning, TEXT("Item is invalid"));
 			continue;
 		}
 
@@ -176,15 +155,9 @@ void UInventoryComponent::GetInventoryItemsAndEmptySlots(const FName& InRowName,
 
 bool UInventoryComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
 {
-	if (!IsValid(FromItem))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(FromItem)) ||
+		!CR4S_VALIDATE(LogInventory, IsValid(ToItem)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));
-		return false;
-	}
-
-	if (!IsValid(ToItem))
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("ToItem is invalid"));
 		return false;
 	}
 
@@ -197,29 +170,17 @@ bool UInventoryComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInventory
 
 void UInventoryComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
 {
-	if (!IsValid(FromItem))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(FromItem)) ||
+		!CR4S_VALIDATE(LogInventory, IsValid(ToItem)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));
-		return;
-	}
-
-	if (!IsValid(ToItem))
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("ToItem is invalid"));
-		return;
-	}
-
-	const FItemInfoData* ItemData = FindItemInfoDataFromDataTable(FromItem->GetInventoryItemData()->RowName);
-	if (!ItemData)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemData is invalid"));
 		return;
 	}
 
 	const int32 ToItemCount = ToItem->GetCurrentStackCount();
-	if (ToItemCount < ItemData->MaxStackCount)
+	const int32 MaxStackCount = ToItem->GetInventoryItemData()->ItemInfoData.MaxStackCount;
+	if (ToItemCount < MaxStackCount)
 	{
-		const int32 CanAddCount = ItemData->MaxStackCount - ToItemCount;
+		const int32 CanAddCount = MaxStackCount - ToItemCount;
 		const int32 ActualAddCount = FMath::Min(CanAddCount, FromItem->GetCurrentStackCount());
 
 		ToItem->SetCurrentStackCount(ToItemCount + ActualAddCount);
@@ -229,20 +190,9 @@ void UInventoryComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventor
 	NotifyItemSlotsChanged({FromItem->GetSlotIndex(), ToItem->GetSlotIndex()});
 }
 
-const FItemInfoData* UInventoryComponent::FindItemInfoDataFromDataTable(const FName& RowName) const
-{
-	if (!IsValid(ItemGimmickSubsystem))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
-		return nullptr;
-	}
-
-	return ItemGimmickSubsystem->FindItemInfoData(RowName);
-}
-
 UBaseInventoryItem* UInventoryComponent::GetItemDataByIndex(const int32 Index) const
 {
-	if (!InventoryItems.IsValidIndex(Index))
+	if (!CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(Index)))
 	{
 		return nullptr;
 	}
@@ -252,9 +202,8 @@ UBaseInventoryItem* UInventoryComponent::GetItemDataByIndex(const int32 Index) c
 
 void UInventoryComponent::RemoveItemAtIndex(const int32 Index, const int32 RemoveCount)
 {
-	if (!InventoryItems.IsValidIndex(Index))
+	if (!CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(Index)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Index is invalid"));
 		return;
 	}
 
@@ -275,9 +224,8 @@ void UInventoryComponent::RemoveItemAtIndex(const int32 Index, const int32 Remov
 
 void UInventoryComponent::SortInventoryItems()
 {
-	if (!IsValid(ItemGimmickSubsystem))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(ItemGimmickSubsystem)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
 		return;
 	}
 
@@ -287,9 +235,8 @@ void UInventoryComponent::SortInventoryItems()
 	TMap<FName, int32> TotalCounts;
 	for (UBaseInventoryItem* Item : InventoryItems)
 	{
-		if (!IsValid(Item))
+		if (!CR4S_VALIDATE(LogInventory, IsValid(Item)))
 		{
-			CR4S_Log(LogTemp, Warning, TEXT("Item is invalid"));
 			continue;
 		}
 
@@ -304,7 +251,7 @@ void UInventoryComponent::SortInventoryItems()
 	int32 SlotIndex = 0;
 	for (const FName& RowName : ItemGimmickSubsystem->GetItemDataRowNames())
 	{
-		int32* TotalCount = TotalCounts.Find(RowName);
+		const int32* TotalCount = TotalCounts.Find(RowName);
 		if (TotalCount == nullptr || *TotalCount <= 0)
 		{
 			continue;
@@ -317,7 +264,7 @@ void UInventoryComponent::SortInventoryItems()
 		while (RemainingCount > 0 && SlotIndex < InventoryItems.Num())
 		{
 			UBaseInventoryItem* Item = InventoryItems[SlotIndex];
-			if (!IsValid(Item))
+			if (!CR4S_VALIDATE(LogInventory, IsValid(Item)))
 			{
 				SlotIndex++;
 				continue;
@@ -337,11 +284,9 @@ void UInventoryComponent::SortInventoryItems()
 
 void UInventoryComponent::OpenInventory() const
 {
-	if (!ensureMsgf(IsValid(SurvivalHUD), TEXT("SurvivalHUD is invalid")) ||
-		!ensureMsgf(IsValid(InventoryWidgetInstance), TEXT("InventoryWidgetInstance is invalid")) ||
-		!ensureMsgf(InventoryWidgetInstance->GetVisibility() == ESlateVisibility::Collapsed, TEXT("InventoryWidgetInstance is not collapsed")) ||
-		!ensureMsgf(IsValid(QuickSlotBarWidgetInstance), TEXT("QuickSlotBarWidgetInstance is invalid")) ||
-		!ensureMsgf(QuickSlotBarWidgetInstance->GetVisibility() == ESlateVisibility::Visible, TEXT("QuickSlotBarWidgetInstance is not visible")))
+	if (!IsValidWidgetRef() ||
+		!CR4S_VALIDATE(LogInventory, InventoryWidgetInstance->GetVisibility() == ESlateVisibility::Collapsed) ||
+		!CR4S_VALIDATE(LogInventory, QuickSlotBarWidgetInstance->GetVisibility() == ESlateVisibility::Visible))
 	{
 		return;
 	}
@@ -354,11 +299,9 @@ void UInventoryComponent::OpenInventory() const
 // ReSharper disable once CppUE4BlueprintCallableFunctionMayBeConst
 void UInventoryComponent::CloseInventory()
 {
-	if (!ensureMsgf(IsValid(SurvivalHUD), TEXT("SurvivalHUD is invalid")) ||
-		!ensureMsgf(IsValid(InventoryWidgetInstance), TEXT("InventoryWidgetInstance is invalid")) ||
-		!ensureMsgf(InventoryWidgetInstance->GetVisibility() == ESlateVisibility::Visible, TEXT("InventoryWidgetInstance is not visible")) ||
-		!ensureMsgf(IsValid(QuickSlotBarWidgetInstance), TEXT("QuickSlotBarWidgetInstance is invalid")) ||
-		!ensureMsgf(QuickSlotBarWidgetInstance->GetVisibility() == ESlateVisibility::Collapsed, TEXT("QuickSlotBarWidgetInstance is not collapsed")))
+	if (!IsValidWidgetRef() ||
+		!CR4S_VALIDATE(LogInventory, InventoryWidgetInstance->GetVisibility() == ESlateVisibility::Visible) ||
+		!CR4S_VALIDATE(LogInventory, QuickSlotBarWidgetInstance->GetVisibility() == ESlateVisibility::Collapsed))
 	{
 		return;
 	}
@@ -370,23 +313,16 @@ void UInventoryComponent::CloseInventory()
 
 bool UInventoryComponent::CreateInventoryWidget()
 {
-	if (!IsValid(SurvivalHUD))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryWidgetClass)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SurvivalHUD is invalid"));
-		return false;
-	}
-
-	if (!IsValid(InventoryWidgetClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InventoryWidgetClass is invalid"));
 		return false;
 	}
 
 	InventoryWidgetInstance = SurvivalHUD->CreateAndAddWidget(InventoryWidgetClass, 0, ESlateVisibility::Collapsed);
 
-	if (!IsValid(InventoryWidgetInstance))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryWidgetInstance)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("InventoryWidgetInstance is invalid"));
 		return false;
 	}
 
@@ -395,25 +331,25 @@ bool UInventoryComponent::CreateInventoryWidget()
 	return true;
 }
 
+bool UInventoryComponent::IsValidWidgetRef() const
+{
+	return CR4S_VALIDATE(LogInventory, IsValid(SurvivalHUD)) &&
+		CR4S_VALIDATE(LogInventory, IsValid(InventoryWidgetInstance)) &&
+		CR4S_VALIDATE(LogInventory, IsValid(QuickSlotBarWidgetInstance));
+}
+
 bool UInventoryComponent::CreateQuickSlotBarWidget()
 {
-	if (!IsValid(SurvivalHUD))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidgetClass)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SurvivalHUD is invalid"));
-		return false;
-	}
-
-	if (!IsValid(QuickSlotBarWidgetClass))
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("QuickSlotBarWidgetClass is invalid"));
 		return false;
 	}
 
 	QuickSlotBarWidgetInstance = SurvivalHUD->CreateAndAddWidget(QuickSlotBarWidgetClass, 0, ESlateVisibility::Visible);
 
-	if (!IsValid(QuickSlotBarWidgetInstance))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidgetInstance)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("QuickSlotBarWidgetInstance is invalid"));
 		return false;
 	}
 
@@ -424,7 +360,7 @@ bool UInventoryComponent::CreateQuickSlotBarWidget()
 
 void UInventoryComponent::NotifyItemSlotChanged(const int32 ItemSlotIndex) const
 {
-	if (InventoryItems.IsValidIndex(ItemSlotIndex))
+	if (CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(ItemSlotIndex)))
 	{
 		if (OnItemSlotChanged.IsBound())
 		{

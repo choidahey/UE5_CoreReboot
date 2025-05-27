@@ -6,9 +6,9 @@
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
-void UBaseItemSlotWidget::InitWidget(UInventoryComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem)
+void UBaseItemSlotWidget::InitWidget(UInventoryComponent* InInventoryComponent, UBaseInventoryItem* NewItem)
 {
-	InventorySystemComponent = InInventorySystemComponent;
+	InventoryComponent = InInventoryComponent;
 	CurrentItem = NewItem;
 
 	SetItem(CurrentItem);
@@ -18,9 +18,8 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 {
 	CurrentItem = InItem;
 
-	if (!IsValid(CurrentItem))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
 		return;
 	}
 

@@ -8,21 +8,18 @@ UItemGimmickSubsystem::UItemGimmickSubsystem()
 	: ItemInfoDataTable(nullptr)
 	  , GimmickInfoDataTable(nullptr)
 {
-	// ItemInfoDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_ItemInfoData.DT_ItemInfoData"));
-	// GimmickDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Item/DT_GimmickData.DT_GimmickData"));
 }
 
 void UItemGimmickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	
+
 	const UCR4SDataTableSettings* Settings = GetDefault<UCR4SDataTableSettings>();
-	if (!IsValid(Settings))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(Settings)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("Settings is invalid"));
 		return;
 	}
-	
+
 	ItemInfoDataTable = Settings->GetDataTableByName(TEXT("ItemInfoData"));
 	GimmickInfoDataTable = Settings->GetDataTableByName(TEXT("GimmickInfoData"));
 }
@@ -44,24 +41,21 @@ const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowN
 
 ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation) const
 {
-	if (!IsValid(GimmickInfoDataTable))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(GimmickInfoDataTable)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GimmickDataTable is invalid"));
 		return nullptr;
 	}
 
 	const FBaseGimmickData* GimmickData
 		= GimmickInfoDataTable->FindRow<FBaseGimmickData>(RowName, FString(TEXT("Load Gimmick Data")));
-	if (!GimmickData)
+	if (!CR4S_VALIDATE(LogGimmick, GimmickData))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GimmickData is invalid"));
 		return nullptr;
 	}
 
 	UClass* GimmickClass = GimmickData->GimmickClass;
-	if (!IsValid(GimmickClass))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(GimmickClass)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GimmickClass is invalid"));
 		return nullptr;
 	}
 
@@ -71,12 +65,11 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 
 	ABaseGimmick* Gimmick
 		= GetWorld()->SpawnActor<ABaseGimmick>(GimmickClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-	if (!IsValid(Gimmick))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(Gimmick)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Gimmick is invalid"));
 		return nullptr;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick spawned successfully!"));
+	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick spawned successfully!"));
 	return Gimmick;
 }

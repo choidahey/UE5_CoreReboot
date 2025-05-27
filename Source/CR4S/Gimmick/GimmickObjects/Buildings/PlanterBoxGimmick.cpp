@@ -22,7 +22,7 @@ void APlanterBoxGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(InteractableComponent))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
 		InteractableComponent->OnDetectionStateChanged.BindDynamic(this, &ThisClass::OnDetectionStateChanged);
 		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
@@ -31,7 +31,7 @@ void APlanterBoxGimmick::BeginPlay()
 
 void APlanterBoxGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
-	if (IsValid(PlantedGimmick))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(PlantedGimmick)))
 	{
 		PlantedGimmick->Destroy();
 		PlantedGimmick = nullptr;
@@ -42,36 +42,27 @@ void APlanterBoxGimmick::OnGimmickDestroy(AActor* DamageCauser)
 
 void APlanterBoxGimmick::OnGimmickInteracted(AActor* Interactor)
 {
-	if (!IsValid(Interactor))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(Interactor)) ||
+		!CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("Interactor is invalid"));
-		return;
-	}
-
-	if (!IsValid(InteractableComponent))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InteractableComponent is invalid"));
 		return;
 	}
 
 	UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-	if (!IsValid(ItemGimmickSubsystem))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("ItemGimmickSubsystem is invalid"));
 		return;
 	}
 
 	PlantedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName<ACropsGimmick>(TEXT("Crops"),
 		SpawnPoint->GetComponentLocation());
 
-	if (!IsValid(PlantedGimmick))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(PlantedGimmick)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Gimmick is invalid"));
 		return;
 	}
 
 	PlantedGimmick->OnHarvest.BindDynamic(this, &ThisClass::OnHarvest);
-
 	InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
 }
 
@@ -85,5 +76,10 @@ void APlanterBoxGimmick::OnDetectionStateChanged(AActor* InDetectingActor,
 void APlanterBoxGimmick::OnHarvest()
 {
 	PlantedGimmick = nullptr;
+	
+	if (!CR4S_VALIDATE(LogGimmick, InteractableComponent))
+	{
+		return;
+	}
 	InteractableComponent->UpdateTraceBlocking(ECR_Block);
 }

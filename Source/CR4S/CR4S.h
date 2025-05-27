@@ -5,6 +5,10 @@
 #include "CoreMinimal.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogHong1, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogSetting, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogGimmick, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogInventory, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogInventoryUI, Log, All);
 
 #define FUNCTION_TCHAR (ANSI_TO_TCHAR(__FUNCTION__))
 #pragma region CR4S_Log
@@ -19,10 +23,10 @@ DECLARE_LOG_CATEGORY_EXTERN(LogHong1, Log, All);
 
 #pragma region CR4S_Validate
 
-#define CR4S_VALIDATE(Expression) \
+#define CR4S_VALIDATE(LogCategory, Expression) \
     [&, OuterFunctionName = FUNCTION_TCHAR, OuterLineNumber = __LINE__]() -> bool { \
         if (!(Expression)) { \
-            CR4S_Log_Explicit(LogTemp, Warning, OuterFunctionName, OuterLineNumber, TEXT("Validation Failed: %s"), TEXT(#Expression)); \
+            CR4S_Log_Explicit(LogCategory, Warning, OuterFunctionName, OuterLineNumber, TEXT("Validation Failed: %s"), TEXT(#Expression)); \
             return false; \
         } \
         return true; \

@@ -18,11 +18,11 @@ class CR4S_API UBaseItemSlotWidget : public UUserWidget
 #pragma region Initalize
 
 public:
-	void InitWidget(UInventoryComponent* InInventorySystemComponent, UBaseInventoryItem* NewItem);
+	void InitWidget(UInventoryComponent* InInventoryComponent, UBaseInventoryItem* NewItem);
 
 protected:
 	UPROPERTY()
-	TObjectPtr<UInventoryComponent> InventorySystemComponent;
+	TObjectPtr<UInventoryComponent> InventoryComponent;
 	
 #pragma endregion
 	

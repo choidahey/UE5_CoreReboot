@@ -1,5 +1,6 @@
 ﻿#include "CropsGimmick.h"
 
+#include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Gimmick/Components/InteractableComponent.h"
 
@@ -23,7 +24,7 @@ void ACropsGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(InteractableComponent))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
 		InteractableComponent->OnDetectionStateChanged.BindDynamic(this, &ThisClass::OnDetectionStateChanged);
 		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
@@ -53,11 +54,16 @@ void ACropsGimmick::BeginPlay()
 
 void ACropsGimmick::OnGimmickInteracted(AActor* Interactor)
 {
+	if (!CR4S_VALIDATE(LogGimmick, bIsHarvestable))
+	{
+		return;
+	}
+	
 	OnHarvest.ExecuteIfBound();
 	
 	GetResources(Interactor);
 
-	Destroy();
+	GimmickDestroy();
 }
 
 void ACropsGimmick::OnDetectionStateChanged(AActor* InDetectingActor, const bool bInIsDetected)
@@ -109,7 +115,7 @@ void ACropsGimmick::Grow()
 {
 	CurrentGrowthPercent = FMath::Clamp(CurrentGrowthPercent + GrowthPercentPerInterval, 0.f, MaxGrowthPercent);
 
-	if (Cast<APlayerController>(DetectingActor) && bIsDetected)
+	if (Cast<APlayerCharacter>(DetectingActor) && bIsDetected)
 	{
 		UpdateInteractionText();
 	}

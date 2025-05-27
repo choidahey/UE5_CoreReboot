@@ -13,9 +13,8 @@ void UToolInventoryItem::SetInventoryItemData(const FInventoryItemData& NewInven
 	Super::SetInventoryItemData(NewInventoryItemData, StackCount);
 
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;
-	if (!IsValid(DataTable))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(DataTable)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("DataTable is invalid"));
 		return;
 	}
 

@@ -3,23 +3,18 @@
 #include "CR4S.h"
 #include "InventoryDummySlotWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Inventory/InventoryComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	if (!IsValid(CurrentItem))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, CurrentItem->HasItemData()))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
 		return FReply::Unhandled();
 	}
 
-	if (!CurrentItem->HasItemData())
-	{
-		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem has no item data"));
-		return FReply::Unhandled();
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("NativeOnMouseButtonDown: %d"), CurrentItem->GetSlotIndex());
+	// CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnMouseButtonDown: %d"), CurrentItem->GetSlotIndex());
 
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
@@ -32,57 +27,48 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
                                                 UDragDropOperation*& OutOperation)
 {
-	UE_LOG(LogTemp, Warning, TEXT("NativeOnDragDetected"));
+	// CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnDragDetected"));
 
-	if (!IsValid(CurrentItem))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(DummySlotWidgetClass)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
 		return;
 	}
 
-	if (IsValid(DummySlotWidgetClass))
-	{
-		UDragDropOperation* DragOperation = NewObject<UDragDropOperation>();
-		DragOperation->Payload = this;
+	UDragDropOperation* DragOperation = NewObject<UDragDropOperation>();
+	DragOperation->Payload = this;
 
-		UInventoryDummySlotWidget* DummySlotWidgetInstance = CreateWidget<UInventoryDummySlotWidget>(
-			GetWorld(), DummySlotWidgetClass);
+	UInventoryDummySlotWidget* DummySlotWidgetInstance = CreateWidget<UInventoryDummySlotWidget>(
+		GetWorld(), DummySlotWidgetClass);
 
-		DummySlotWidgetInstance->SetDummy(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon,
-		                                  CurrentItem->GetCurrentStackCount());
+	DummySlotWidgetInstance->SetDummy(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon,
+									  CurrentItem->GetCurrentStackCount());
 
-		DragOperation->DefaultDragVisual = DummySlotWidgetInstance;
+	DragOperation->DefaultDragVisual = DummySlotWidgetInstance;
 
-		OutOperation = DragOperation;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DummySlotWidgetClass is invalid"));
-	}
+	OutOperation = DragOperation;
 }
 
 bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
                                         UDragDropOperation* InOperation)
 {
-	UE_LOG(LogTemp, Warning, TEXT("NativeOnDrop"));
+	// CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnDrop"));
 	
-	if (!IsValid(CurrentItem))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InOperation)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("CurrentItem is invalid"));
 		return false;
 	}
 
 	const UInventorySlotWidget* FromSlot = Cast<UInventorySlotWidget>(InOperation->Payload);
-	if (!IsValid(FromSlot))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(FromSlot)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("FromSlot is invalid"));
 		return false;
 	}
 
 	UBaseInventoryItem* FromItem = FromSlot->CurrentItem;
-	if (!IsValid(FromItem))
+	if (!CR4S_VALIDATE(LogInventoryUI, FromItem))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("FromItem is invalid"));
 		return false;
 	}
 
@@ -91,11 +77,11 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		// Same Item
 		if (FromItem->GetInventoryItemData()->RowName == CurrentItem->GetInventoryItemData()->RowName)
 		{
-			InventorySystemComponent->MergeItems(FromItem, CurrentItem);
+			InventoryComponent->MergeItems(FromItem, CurrentItem);
 		}
 		else
 		{
-			InventorySystemComponent->SwapItems(FromItem, CurrentItem);
+			InventoryComponent->SwapItems(FromItem, CurrentItem);
 		}
 
 		return true;

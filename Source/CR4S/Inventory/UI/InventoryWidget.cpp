@@ -9,7 +9,7 @@
 
 void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventorySystemComponent)
 {
-	if (IsValid(InventorySystemComponent))
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(InventorySystemComponent)))
 	{
 		InventorySystemComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::SetItemWidget);
 		SortButton->OnClicked.AddUniqueDynamic(InventorySystemComponent, &UInventoryComponent::SortInventoryItems);
@@ -42,9 +42,8 @@ void UInventoryWidget::InitInventoryWidget(UInventoryComponent* InventorySystemC
 
 void UInventoryWidget::SetItemWidget(UBaseInventoryItem* Item)
 {
-	if (!IsValid(Item))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("Item is invalid"));
 		return;
 	}
 

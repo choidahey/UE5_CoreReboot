@@ -44,8 +44,6 @@ protected:
 	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
 	
 private:
-	void DelayedDestroy();
-	
 	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
 	bool bIsActorDestroyOnDestroyAction;
 
