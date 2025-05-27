@@ -33,7 +33,7 @@ protected:
 	UFUNCTION()
 	virtual void OnGimmickInteracted(AActor* Interactor);
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 
 private:

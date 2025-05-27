@@ -1,5 +1,6 @@
 ﻿#include "DestructibleGimmick.h"
 
+#include "CR4S.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
@@ -25,27 +26,25 @@ void ADestructibleGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(DestructibleComponent))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(DestructibleComponent)))
 	{
 		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
 		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
 
 		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-		if (IsValid(GimmickSubsystem))
+
+		if (!CR4S_VALIDATE(LogGimmick, IsValid(GimmickSubsystem)))
 		{
-			// check(GimmickData);
-			if (const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
-			{
-				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s is not found in GimmickData"), *GetGimmickDataRowName().ToString());
-			}
+			return;
+		}
+
+		if (const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
+		{
+			DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
 		}
 	}
 
-	if (IsValid(GeometryCollectionComponent))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent)))
 	{
 		GeometryCollectionComponent->SetVisibility(false);
 		GeometryCollectionComponent->SetSimulatePhysics(false);
@@ -53,34 +52,34 @@ void ADestructibleGimmick::BeginPlay()
 }
 
 float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageEvent const& DamageEvent,
-	AController* EventInstigator, AActor* DamageCauser)
+                                       AController* EventInstigator, AActor* DamageCauser)
 {
-	const float Damage =Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	const float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	if (!IsValid(DestructibleComponent))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(DestructibleComponent)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DestructibleComponent is not valid"));
 		return 0.f;
 	}
-	
+
 	DestructibleComponent->TakeDamage(DamageCauser, Damage);
-	
+
 	return Damage;
 }
 
-void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount, const float CurrentHealth)
+void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount,
+                                               const float CurrentHealth)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
-	       CurrentHealth);
+	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
+	         CurrentHealth);
 }
 
 void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
 	GetResources(DamageCauser);
-	
-	if (IsValid(GimmickMeshComponent)
-		&& IsValid(GeometryCollectionComponent)
-		&& IsValid(GeometryCollectionComponent->GetRestCollection()))
+
+	if (CR4S_VALIDATE(LogGimmick, IsValid(GimmickMeshComponent)) &&
+		CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent)) &&
+		CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent->GetRestCollection())))
 	{
 		GimmickMeshComponent->SetVisibility(false);
 		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -97,15 +96,8 @@ void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 
 	if (DestroyDelay == 0.f)
 	{
-		DelayedDestroy();
+		GimmickDestroy();
 	}
 
-	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay, false);
-}
-
-void ADestructibleGimmick::DelayedDestroy()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
-
-	Destroy();
+	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::GimmickDestroy, DestroyDelay, false);
 }

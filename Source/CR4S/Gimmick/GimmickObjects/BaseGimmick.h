@@ -41,6 +41,7 @@ public:
 
 protected:
 	virtual void GetResources(const AActor* InventoryOwnerActor) const;
+	virtual void GimmickDestroy();
 	
 private:
 	

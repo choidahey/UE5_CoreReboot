@@ -24,11 +24,11 @@ void ADoorGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(InteractableComponent))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
 		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
-	
+
 	ClosedRotation = GetActorRotation();
 	OpenRotation = FRotator(ClosedRotation.Pitch, ClosedRotation.Yaw + OpenAngle, ClosedRotation.Roll);
 
@@ -56,12 +56,11 @@ void ADoorGimmick::Tick(const float DeltaSeconds)
 
 void ADoorGimmick::OnGimmickInteracted(AActor* Interactor)
 {
-	if (!IsValid(Interactor))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(Interactor)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("Interactor is invalid"));
 		return;
 	}
-	
+
 	if (!bIsMoving)
 	{
 		bNextStateIsOpen = !bIsOpen;
@@ -81,9 +80,11 @@ void ADoorGimmick::OnGimmickInteracted(AActor* Interactor)
 
 void ADoorGimmick::UpdateInteractionText() const
 {
-	if (InteractableComponent)
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
-		const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
-		InteractableComponent->SetInteractionText(bNextWillOpen ? InteractionTextOpen : InteractionTextClose);
+		return;
 	}
+
+	const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
+	InteractableComponent->SetInteractionText(bNextWillOpen ? InteractionTextOpen : InteractionTextClose);
 }

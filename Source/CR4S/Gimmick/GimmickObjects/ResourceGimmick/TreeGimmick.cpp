@@ -29,32 +29,30 @@ void ATreeGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(DestructibleComponent))
+	OriginalLocation = GetActorLocation();
+
+	if (CR4S_VALIDATE(LogGimmick, IsValid(DestructibleComponent)))
 	{
 		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
 		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
 
 		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-		if (IsValid(GimmickSubsystem))
+
+		if (!CR4S_VALIDATE(LogGimmick, IsValid(GimmickSubsystem)))
 		{
-			// check(GimmickData);
-			if (const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
-			{
-				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s is not found in GimmickData"), *GetGimmickDataRowName().ToString());
-			}
+			return;
+		}
+
+		if (const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
+		{
+			DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
 		}
 	}
-
-	OriginalLocation = GetActorLocation();
 }
 
 void ATreeGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount, const float CurrentHealth)
 {
-	CR4S_Log(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"),
+	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"),
 	         DamageAmount, CurrentHealth);
 
 	StartShake();
@@ -63,7 +61,7 @@ void ATreeGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageA
 void ATreeGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
 	GetResources(DamageCauser);
-	
+
 	/** BEFORE THE TRUNK IS DESTROYED */
 	if (!bIsTrunkDestroyed)
 	{
@@ -85,24 +83,16 @@ void ATreeGimmick::OnGimmickDestroy(AActor* DamageCauser)
 
 		if (DestroyDelay == 0.f)
 		{
-			DelayedDestroy();
+			GimmickDestroy();
 		}
 
-		GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay,
+		GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::GimmickDestroy, DestroyDelay,
 		                                       false);
 	}
 }
 
-void ATreeGimmick::DelayedDestroy()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
-
-	Destroy();
-}
-
 void ATreeGimmick::StartShake()
 {
-	UE_LOG(LogTemp, Warning, TEXT("==== ShakeStart ===="));
 	GetWorldTimerManager().SetTimer(
 		ShakeTimerHandle,
 		this,
@@ -129,7 +119,6 @@ void ATreeGimmick::PerformShake()
 
 void ATreeGimmick::StopShake()
 {
-	UE_LOG(LogTemp, Warning, TEXT("==== ShakeEnd ===="));
 	ElapsedTime = 0.f;
 	GetWorldTimerManager().ClearTimer(ShakeTimerHandle);
 
