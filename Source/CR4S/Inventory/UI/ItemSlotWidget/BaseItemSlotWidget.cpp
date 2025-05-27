@@ -6,7 +6,7 @@
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
-void UBaseItemSlotWidget::InitWidget(UInventoryComponent* InInventoryComponent, UBaseInventoryItem* NewItem)
+void UBaseItemSlotWidget::InitWidget(UBaseInventoryComponent* InInventoryComponent, UBaseInventoryItem* NewItem)
 {
 	InventoryComponent = InInventoryComponent;
 	CurrentItem = NewItem;

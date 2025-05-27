@@ -3,21 +3,8 @@
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 #include "CR4S.h"
 #include "Components/HorizontalBox.h"
-#include "Inventory/InventoryComponent.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
-
-bool UQuickSlotBarWidget::Initialize()
-{
-	if (!Super::Initialize())
-	{
-		return false;
-	}
-
-	MinQuickSlotIndex = 40;
-	MaxQuickSlotIndex = 49;
-
-	return true;
-}
 
 void UQuickSlotBarWidget::NativeConstruct()
 {
@@ -33,42 +20,39 @@ void UQuickSlotBarWidget::NativeConstruct()
 	}
 }
 
-void UQuickSlotBarWidget::InitWidget(UInventoryComponent* InInventorySystemComponent)
+void UQuickSlotBarWidget::InitWidget(UPlayerInventoryComponent* InPlayerInventoryComponent)
 {
-	InventorySystemComponent = InInventorySystemComponent;
+	PlayerInventoryComponent = InPlayerInventoryComponent;
 
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventorySystemComponent)))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)))
 	{
 		return;
 	}
 
-	InventorySystemComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::SetItemWidget);
+	PlayerInventoryComponent->OnQuickSlotItemChanged.AddUniqueDynamic(this, &ThisClass::UpdateQuickSlotWidget);
 
-	int32 SlotIndex = MinQuickSlotIndex;
-	for (int32 Index = 0; Index < QuickSlotWidgets.Num(); Index++)
+	int32 SlotIndex = 0;
+	for (UWidget* ChildWidget : QuickSlotBar->GetAllChildren())
 	{
-		UBaseItemSlotWidget* ItemSlotWidget = QuickSlotWidgets[Index];
-		if (!IsValid(ItemSlotWidget))
+		UBaseItemSlotWidget* SlotWidget = Cast<UBaseItemSlotWidget>(ChildWidget);
+		if (IsValid(SlotWidget))
 		{
-			continue;
+			UBaseInventoryItem* Item = PlayerInventoryComponent->GetQuickSlotItemDataByIndex(SlotIndex);
+			SlotWidget->InitWidget(PlayerInventoryComponent, Item);
+			QuickSlotWidgets.AddUnique(SlotWidget);
+			SlotIndex++;
 		}
-
-		UBaseInventoryItem* Item = InventorySystemComponent->GetItemDataByIndex(SlotIndex);
-		ItemSlotWidget->InitWidget(InventorySystemComponent, Item);
-		SetItemWidget(Item);
-
-		SlotIndex++;
 	}
 }
 
-void UQuickSlotBarWidget::SetItemWidget(UBaseInventoryItem* Item)
+void UQuickSlotBarWidget::UpdateQuickSlotWidget(UBaseInventoryItem* Item)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
 		return;
 	}
 
-	const int32 SlotIndex = Item->GetSlotIndex() - MinQuickSlotIndex;
+	const int32 SlotIndex = Item->GetSlotIndex();
 	if (QuickSlotWidgets.IsValidIndex(SlotIndex))
 	{
 		QuickSlotWidgets[SlotIndex]->SetItem(Item);

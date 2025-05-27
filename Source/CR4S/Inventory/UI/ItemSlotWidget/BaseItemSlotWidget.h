@@ -7,7 +7,7 @@
 class UBorder;
 class UTextBlock;
 class UImage;
-class UInventoryComponent;
+class UBaseInventoryComponent;
 class UBaseInventoryItem;
 
 UCLASS()
@@ -18,11 +18,11 @@ class CR4S_API UBaseItemSlotWidget : public UUserWidget
 #pragma region Initalize
 
 public:
-	void InitWidget(UInventoryComponent* InInventoryComponent, UBaseInventoryItem* NewItem);
+	void InitWidget(UBaseInventoryComponent* InInventoryComponent, UBaseInventoryItem* NewItem);
 
 protected:
 	UPROPERTY()
-	TObjectPtr<UInventoryComponent> InventoryComponent;
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
 	
 #pragma endregion
 	

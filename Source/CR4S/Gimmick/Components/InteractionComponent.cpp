@@ -22,13 +22,16 @@ void UInteractionComponent::BeginPlay()
 
 	InitComponent();
 
-	// Start UpdateFindProcess
-	GetWorld()->GetTimerManager().SetTimer(
-		FindProcessTimerHandle,
-		this,
-		&ThisClass::UpdateDetectProcess,
-		0.1f,
-		true);
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractionWidgetInstance)))
+	{
+		// Start the UpdateDetectProcess
+		GetWorld()->GetTimerManager().SetTimer(
+			FindProcessTimerHandle,
+			this,
+			&ThisClass::UpdateDetectProcess,
+			0.1f,
+			true);
+	}
 }
 
 void UInteractionComponent::InitComponent()

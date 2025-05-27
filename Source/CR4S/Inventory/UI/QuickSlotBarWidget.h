@@ -4,8 +4,8 @@
 #include "Blueprint/UserWidget.h"
 #include "QuickSlotBarWidget.generated.h"
 
+class UPlayerInventoryComponent;
 class UBaseInventoryItem;
-class UInventoryComponent;
 
 UCLASS()
 class CR4S_API UQuickSlotBarWidget : public UUserWidget
@@ -15,7 +15,6 @@ class CR4S_API UQuickSlotBarWidget : public UUserWidget
 #pragma region UUserWidget Override
 
 public:
-	virtual bool Initialize() override;
 	virtual void NativeConstruct() override;
 	
 #pragma endregion
@@ -23,11 +22,11 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UInventoryComponent* InInventorySystemComponent);
+	void InitWidget(UPlayerInventoryComponent* InPlayerInventoryComponent);
 
 private:
 	UPROPERTY()
-	TObjectPtr<UInventoryComponent> InventorySystemComponent;
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
 	
 #pragma endregion
 	
@@ -46,13 +45,7 @@ private:
 
 public:
 	UFUNCTION()
-	void SetItemWidget(UBaseInventoryItem* Item);
-
-private:
-	UPROPERTY(EditDefaultsOnly)
-	int32 MinQuickSlotIndex;
-	UPROPERTY(EditDefaultsOnly)
-	int32 MaxQuickSlotIndex;
+	void UpdateQuickSlotWidget(UBaseInventoryItem* Item);
 	
 #pragma endregion
 };

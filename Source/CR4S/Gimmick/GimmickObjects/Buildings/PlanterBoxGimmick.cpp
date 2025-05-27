@@ -4,8 +4,6 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/InventoryComponent.h"
-#include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 APlanterBoxGimmick::APlanterBoxGimmick()
 {

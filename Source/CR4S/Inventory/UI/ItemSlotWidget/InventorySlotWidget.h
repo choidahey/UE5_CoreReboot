@@ -5,9 +5,9 @@
 #include "Blueprint/UserWidget.h"
 #include "InventorySlotWidget.generated.h"
 
-class UInventoryDummySlotWidget;
-class UInventoryWidget;
-class UInventoryComponent;
+class UDummyItemSlotWidget;
+class UPlayerInventoryWidget;
+class UBaseInventoryComponent;
 class UBorder;
 class UTextBlock;
 class UImage;
@@ -26,7 +26,7 @@ protected:
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "DragAndDrop")
-	TSubclassOf<UInventoryDummySlotWidget> DummySlotWidgetClass;
+	TSubclassOf<UDummyItemSlotWidget> DummySlotWidgetClass;
 	
 #pragma endregion
 	

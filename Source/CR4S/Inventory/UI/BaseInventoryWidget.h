@@ -3,15 +3,14 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
-#include "InventoryWidget.generated.h"
+#include "BaseInventoryWidget.generated.h"
 
-class UVerticalBox;
-class UButton;
-class UInventoryComponent;
+class UBaseInventoryComponent;
 class UInventorySlotWidget;
+class UButton;
 
-UCLASS()
-class CR4S_API UInventoryWidget : public UUserWidget
+UCLASS(Abstract, Blueprintable)
+class CR4S_API UBaseInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -19,30 +18,28 @@ class CR4S_API UInventoryWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryWidget|Initalize")
-	void InitInventoryWidget(UInventoryComponent* InventorySystemComponent);
+	void InitInventoryWidget(UBaseInventoryComponent* InventoryComponent);
 	
 #pragma endregion
 	
 #pragma region BindWidget
 
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UVerticalBox> InventoryBox;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> SortButton;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> CloseButton;
-	
+	TObjectPtr<UPanelWidget> InventoryBox;
+
 #pragma endregion
 
 #pragma region ItemWidget
 	
-private:
+protected:
 	UFUNCTION()
-	void SetItemWidget(UBaseInventoryItem* Item);
+	void UpdateItemSlotWidget(UBaseInventoryItem* Item);
 
 	UPROPERTY()
 	TArray<TObjectPtr<UInventorySlotWidget>> InventorySlotWidgets;
 	
 #pragma endregion
+	
+	
 };

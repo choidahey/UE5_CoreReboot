@@ -1,0 +1,102 @@
+﻿#include "PlayerInventoryComponent.h"
+
+#include "CR4S.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
+#include "UI/InGame/SurvivalHUD.h"
+
+UPlayerInventoryComponent::UPlayerInventoryComponent()
+	: QuickSlotCount(10)
+{
+	PrimaryComponentTick.bCanEverTick = false;
+
+	MaxInventorySlot = 50;
+}
+
+void UPlayerInventoryComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	QuickSlotItems.Reserve(QuickSlotCount);
+	for (int32 Index = 0; Index < QuickSlotCount; ++Index)
+	{
+		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
+		Item->InitInventoryItem(OwnerActor, Index);
+		QuickSlotItems.Add(Item);
+	}
+
+	const APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (!CR4S_VALIDATE(LogInventory, IsValid(PlayerController)))
+	{
+		return;
+	}
+
+	SurvivalHUD = Cast<ASurvivalHUD>(PlayerController->GetHUD());
+	if (!CR4S_VALIDATE(LogInventory, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetClass)))
+	{
+		return;
+	}
+
+	InventoryContainerWidgetInstance = SurvivalHUD->CreateAndAddWidget(InventoryContainerWidgetClass,
+	                                                                   10,
+	                                                                   ESlateVisibility::Visible);
+
+	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
+	{
+		InventoryContainerWidgetInstance->InitWidget(SurvivalHUD, this);
+	}
+}
+
+FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count)
+{
+	FAddItemResult Result = Super::AddItem(RowName, Count);
+
+	if (!CR4S_VALIDATE(LogInventory, Result.Success) ||
+		!CR4S_VALIDATE(LogInventory, Result.RemainingCount > 0))
+	{
+		return Result;
+	}
+
+	TSet<int32> ChangedItemSlots;
+	StackItemsAndFillEmptySlots(RowName, Count, QuickSlotItems, Result, ChangedItemSlots);
+
+	NotifyQuickSlotItemsChanged(ChangedItemSlots.Array());
+
+	return Result;
+}
+
+void UPlayerInventoryComponent::ToggleInventoryWidget(const EInventoryType InventoryType) const
+{
+	if (!CR4S_VALIDATE(LogInventory, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
+	{
+		return;
+	}
+
+	InventoryContainerWidgetInstance->ToggleInventoryWidget(InventoryType);
+}
+
+UBaseInventoryItem* UPlayerInventoryComponent::GetQuickSlotItemDataByIndex(const int32 Index) const
+{
+	return CR4S_VALIDATE(LogInventory, QuickSlotItems.IsValidIndex(Index)) ? QuickSlotItems[Index] : nullptr;
+}
+
+void UPlayerInventoryComponent::NotifyQuickSlotItemChanged(const int32 ItemSlotIndex) const
+{
+	if (CR4S_VALIDATE(LogInventory, QuickSlotItems.IsValidIndex(ItemSlotIndex)))
+	{
+		if (OnQuickSlotItemChanged.IsBound())
+		{
+			OnQuickSlotItemChanged.Broadcast(QuickSlotItems[ItemSlotIndex]);
+		}
+	}
+}
+
+void UPlayerInventoryComponent::NotifyQuickSlotItemsChanged(const TArray<int32>& ChangedItemSlots) const
+{
+	for (const int32 ItemSlotIndex : ChangedItemSlots)
+	{
+		NotifyQuickSlotItemChanged(ItemSlotIndex);
+	}
+}
