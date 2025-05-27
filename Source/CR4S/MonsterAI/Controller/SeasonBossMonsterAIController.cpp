@@ -8,6 +8,11 @@
 #include "GameFramework/Pawn.h"
 #include "Character/Characters/PlayerCharacter.h"
 
+ASeasonBossMonsterAIController::ASeasonBossMonsterAIController()
+	: MyHeader(TEXT("SeasonBossAIController"))
+{
+}
+
 void ASeasonBossMonsterAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -18,12 +23,7 @@ void ASeasonBossMonsterAIController::BeginPlay()
 	Super::BeginPlay();
 
 	BlackboardComp->SetValueAsVector(FSeasonBossAIKeys::InitializeTargetLocation, GetPlayerInitialLocation());
-	BlackboardComp->SetValueAsVector(FSeasonBossAIKeys::NearestHouseLocation, GetNearestHouseLocation(GetPlayerInitialLocation()));
-
-	if (GetPlayerInitialLocation() == GetNearestHouseLocation(GetPlayerInitialLocation()))
-	{
-		BlackboardComp->ClearValue(FSeasonBossAIKeys::NearestHouseLocation);
-	}
+	BlackboardComp->SetValueAsObject(FSeasonBossAIKeys::NearestHouseActor, GetNearestHouseActor(GetPlayerInitialLocation()));
 }
 
 void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
@@ -52,18 +52,18 @@ FVector ASeasonBossMonsterAIController::GetPlayerInitialLocation() const
 	return TargetPlayer->GetActorLocation();
 }
 
-FVector ASeasonBossMonsterAIController::GetNearestHouseLocation(const FVector& PlayerLocation) const
+AActor* ASeasonBossMonsterAIController::GetNearestHouseActor(const FVector& PlayerLocation) const
 {
 	TArray<AActor*> Houses;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("House"), Houses);
 
-	float NearestDistance = FLT_MAX;
-	AActor* NearestActor = nullptr;
-
 	if (Houses.Num() <= 0)
 	{
-		return GetPlayerInitialLocation();
+		return nullptr;
 	}
+
+	float NearestDistance = FLT_MAX;
+	AActor* NearestActor = nullptr;
 
 	for (AActor* FindActor : Houses)
 	{
@@ -76,7 +76,5 @@ FVector ASeasonBossMonsterAIController::GetNearestHouseLocation(const FVector& P
 		}
 	}
 
-	return NearestActor->GetActorLocation();
+	return NearestActor;
 }
-
-

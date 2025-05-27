@@ -2,12 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "InventoryWidget.generated.h"
 
+class UVerticalBox;
 class UButton;
-class UInventorySystemComponent;
+class UInventoryComponent;
 class UInventorySlotWidget;
-class UWrapBox;
 
 UCLASS()
 class CR4S_API UInventoryWidget : public UUserWidget
@@ -18,7 +19,7 @@ class CR4S_API UInventoryWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryWidget|Initalize")
-	void InitInventoryWidget(UInventorySystemComponent* InventorySystemComponent, const int32 InventorySize);
+	void InitInventoryWidget(UInventoryComponent* InventorySystemComponent);
 	
 #pragma endregion
 	
@@ -26,7 +27,7 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UWrapBox> InventoryWrapBox;
+	TObjectPtr<UVerticalBox> InventoryBox;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> SortButton;
 	UPROPERTY(meta = (BindWidget))
@@ -38,10 +39,7 @@ private:
 	
 private:
 	UFUNCTION()
-	void SetItemWidget(const int32 SlotIndex, const FName& RowName, UTexture2D* ItemIcon, const int32 ItemCount);
-	
-	UPROPERTY(EditDefaultsOnly, Category = "ItemWidget")
-	TSubclassOf<UInventorySlotWidget> InventorySlotWidgetClass;
+	void SetItemWidget(UBaseInventoryItem* Item);
 
 	UPROPERTY()
 	TArray<TObjectPtr<UInventorySlotWidget>> InventorySlotWidgets;
