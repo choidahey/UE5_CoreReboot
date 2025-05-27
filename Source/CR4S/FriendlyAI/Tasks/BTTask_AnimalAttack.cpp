@@ -2,7 +2,9 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
+#include "../Controller/AnimalAIController.h"
 #include "../BaseAnimal.h"
+#include "Components/SphereComponent.h"
 
 UBTTask_AnimalAttack::UBTTask_AnimalAttack()
 {
@@ -11,42 +13,34 @@ UBTTask_AnimalAttack::UBTTask_AnimalAttack()
 
 EBTNodeResult::Type UBTTask_AnimalAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	bNotifyTick = true;
-
+	StoredOwnerComp = &OwnerComp;
 	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!Animal || !Animal->AttackMontage || !Animal->CurrentTarget) return EBTNodeResult::Failed;
+	if (!Animal || !Animal->AttackMontage || !Animal->GetCurrentStats().AttackInterval)
+		return EBTNodeResult::Failed;
 
-	Animal->PlayAttackMontage();
+	if (!Animal->AttackRange || !Animal->CurrentTarget) return EBTNodeResult::Failed;
+	if (!Animal->AttackRange->IsOverlappingActor(Animal->CurrentTarget)) return EBTNodeResult::Failed;
+
+	UAnimInstance* Anim = Animal->GetMesh()->GetAnimInstance();
+	float MontageDuration = Anim->Montage_Play(Animal->AttackMontage);
+	float TotalDelay      = MontageDuration + Animal->GetCurrentStats().AttackInterval;
+
+	FTimerDelegate FinishDel = FTimerDelegate::CreateUObject(
+		this, &UBTTask_AnimalAttack::OnAttackFinished);
+	OwnerComp.GetWorld()->GetTimerManager()
+		.SetTimer(AttackTimerHandle, FinishDel, TotalDelay, false);
 
 	return EBTNodeResult::InProgress;
 }
 
-void UBTTask_AnimalAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+void UBTTask_AnimalAttack::OnAttackFinished()
 {
-	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!IsValid(Animal) || Animal->IsActorBeingDestroyed())
+	if (UBehaviorTreeComponent* OwnerComp = StoredOwnerComp.Get())
 	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-		return;
-	}
-
-	if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
-	{
-		if (TargetAnimal->CurrentState == EAnimalState::Dead)
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp->GetAIOwner()))
 		{
-			Animal->ClearTarget();
-			OwnerComp.GetBlackboardComponent()->ClearValue(TEXT("TargetActor"));
-			Animal->SetAnimalState(EAnimalState::Patrol);
-			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-			return;
+			C->SetAnimalState(EAnimalState::Chase);
 		}
-	}
-
-	UAnimInstance* Anim = Animal->GetMesh()->GetAnimInstance();
-	if (!Anim || !Anim->Montage_IsPlaying(Animal->AttackMontage))
-	{
-		Animal->SetAnimalState(EAnimalState::Chase);
-		Animal->bIsAttacking = false;
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
 	}
 }

@@ -7,6 +7,10 @@
 #include "../Gimmick/Components/InteractableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AnimalStatsSubsystem.h"
+#include "Components/SphereComponent.h"
+#include "UI/AnimalInteractWidget.h"
+#include "../Inventory/InventoryComponent.h"
+#include "../Character/Characters/PlayerCharacter.h"
 
 ABaseAnimal::ABaseAnimal()
 {
@@ -16,6 +20,11 @@ ABaseAnimal::ABaseAnimal()
 
     InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
     InteractableComponent->SetActive(false);
+
+    AttackRange = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRange"));
+    AttackRange->SetupAttachment(RootComponent);
+    AttackRange->SetSphereRadius(150.f);
+    AttackRange->SetCollisionProfileName(TEXT("Trigger"));
 }
 
 void ABaseAnimal::BeginPlay()
@@ -23,6 +32,10 @@ void ABaseAnimal::BeginPlay()
     Super::BeginPlay();
     SetAnimalState(EAnimalState::Patrol);
     LoadStats();
+    if (InteractableComponent)
+    {
+        InteractableComponent->OnTryInteract.BindDynamic(this, &ABaseAnimal::OnInteract);
+    }
 }
 
 void ABaseAnimal::LoadStats()
@@ -69,6 +82,8 @@ void ABaseAnimal::LoadStats()
         else
         {
             UE_LOG(LogTemp, Warning, TEXT("Animal Stats Load Fail"));
+            bStatsReady = false;
+            return;
         }
     }
 }
@@ -86,60 +101,24 @@ void ABaseAnimal::MoveToLocation(const FVector& Dest)
 
 void ABaseAnimal::PerformAttack()
 {
-    FVector Start = GetActorLocation() + GetActorForwardVector() * 100.f + FVector(0.f, 0.f, 50.f);
-    FVector End = Start;
+    if (!AttackRange || !CurrentTarget) return;
 
-    float Radius = 100.f;
-    float HalfHeight = 100.f;
-    FQuat Rotation = FQuat::Identity;
-    
-    TArray<FHitResult> HitResults;
-    FCollisionShape CapsuleShape = FCollisionShape::MakeCapsule(Radius, HalfHeight);
+    TArray<AActor*> OverlappedActors;
+    AttackRange->GetOverlappingActors(OverlappedActors);
 
-    bool bHit = GetWorld()->SweepMultiByChannel(
-        HitResults,
-        Start,
-        End,
-        Rotation,
-        ECC_Pawn,
-        CapsuleShape
-    );
+    if (!OverlappedActors.Contains(CurrentTarget)) return;
 
-    FColor CapsuleColor = bHit ? FColor::Red : FColor::Green;
-    DrawDebugCapsule(
-        GetWorld(),
-        Start,
-        HalfHeight,
-        Radius,
-        Rotation,
-        CapsuleColor,
-        false,
-        1.f
-    );
-
-    if (!bHit) return;
-
-    for (const FHitResult& EachHit : HitResults)
+    if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
     {
-        AActor* HitActor = EachHit.GetActor();
-        if (!HitActor || HitActor == this) continue;
-
-        if (HitActor == CurrentTarget)
-        {
-            if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(HitActor))
-            {
-                if (HitAnimal->CurrentState == EAnimalState::Dead)
-                {
-                    continue;
-                }
-            }
-
-            float Damage = CurrentStats.AttackDamage;
-            UGameplayStatics::ApplyDamage(HitActor, Damage, GetController(), this, nullptr);
-            break;
-        }
+        if (HitAnimal->CurrentState == EAnimalState::Dead) return;
     }
+
+    // TODO: player dead
+
+    float Damage = CurrentStats.AttackDamage;
+    UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);
 }
+
 
 void ABaseAnimal::ApplyStun(float Amount)
 {
@@ -157,16 +136,44 @@ void ABaseAnimal::ApplyStun(float Amount)
         
         SetAnimalState(EAnimalState::Stun);
         bIsStunned = true;
+
+        bUseControllerRotationYaw = false;
+        GetCharacterMovement()->bOrientRotationToMovement = false;
+
+        if (GetController())
+        {
+            GetController()->StopMovement();
+        }
+        GetCharacterMovement()->StopMovementImmediately();
+        GetCharacterMovement()->DisableMovement();
+
+        FName BoneName = GetMesh()->GetSocketBoneName(TEXT("TS"));
+        GetMesh()->SetSimulatePhysics(false);
+        GetMesh()->SetAllBodiesBelowSimulatePhysics(BoneName, true, true);
+        GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
         GetWorldTimerManager().SetTimer(StunRecoverTimer, this, &ABaseAnimal::RecoverFromStun, StatsRow->StunDuration, false);
     }
 }
 
 void ABaseAnimal::RecoverFromStun()
 {
-    if (CurrentState == EAnimalState::Stun)
+    bIsStunned = false;
+
+    bUseControllerRotationYaw = true;
+    GetCharacterMovement()->bOrientRotationToMovement = true;
+
+    GetMesh()->bBlendPhysics = true;
+    GetMesh()->SetAllBodiesSimulatePhysics(false);
+    GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+    SetAnimalState(EAnimalState::Patrol);
+
+    if (IsValid(ActiveInteractWidget))
     {
-        bIsStunned = false;
-        SetAnimalState(EAnimalState::Patrol);
+        ActiveInteractWidget->RemoveFromParent();
+        ActiveInteractWidget = nullptr;
     }
 }
 
@@ -175,6 +182,12 @@ void ABaseAnimal::Die()
     if (CurrentState == EAnimalState::Dead) return;
     
     SetAnimalState(EAnimalState::Dead);
+
+    if (IsValid(ActiveInteractWidget))
+    {
+        ActiveInteractWidget->RemoveFromParent();
+        ActiveInteractWidget = nullptr;
+    }
     
     OnDied.Broadcast();
 
@@ -191,10 +204,14 @@ void ABaseAnimal::Die()
 
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
-    
+
     GetMesh()->SetSimulatePhysics(true);
     GetCharacterMovement()->Deactivate();
-    SetLifeSpan(10.f);
+
+    GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);    
+    SetLifeSpan(30.f);
 }
 
 void ABaseAnimal::SetAnimalState(EAnimalState NewState)
@@ -244,8 +261,8 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
             return 0.f;
         }
     }
-    
-    float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+    float ActualDamage = DamageAmount;
     if (ActualDamage <= 0.f) return 0.f;
 
     CurrentHealth -= ActualDamage;
@@ -254,4 +271,60 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
         Die();
     }
     return ActualDamage;
+}
+
+void ABaseAnimal::SetbIsTamed(bool bNewValue)
+{
+    if (bIsTamed == bNewValue) return;
+
+    bIsTamed = bNewValue;
+
+    if (AAnimalAIController* AIController = Cast<AAnimalAIController>(GetController()))
+    {
+        if (UBlackboardComponent* BB = AIController->GetBlackboardComponent())
+        {
+            BB->SetValueAsBool(TEXT("IsTamed"), bNewValue);
+        }
+    }
+}
+
+void ABaseAnimal::OnInteract(AActor* Interactor)
+{
+    if (!IsValid(InteractWidgetClass)) return;
+
+    UAnimalInteractWidget* InteractUI = CreateWidget<UAnimalInteractWidget>(GetWorld(), InteractWidgetClass);
+    if (IsValid(InteractUI))
+    {
+        InteractUI->OwningAnimal = this;
+        InteractUI->InitByAnimalState(bIsStunned);
+        InteractUI->AddToViewport();
+        ActiveInteractWidget = InteractUI;
+    }
+}
+
+void ABaseAnimal::Capture()
+{
+    APlayerCharacter* Interactor = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
+    if (!IsValid(Interactor)) return;
+
+    UInventoryComponent* Inventory = Interactor->FindComponentByClass<UInventoryComponent>();
+    if (!IsValid(Inventory)) return;
+
+    const FAddItemResult Result = Inventory->AddItem(RowName, 1);
+    if (Result.Success)
+    {
+        if (IsValid(ActiveInteractWidget))
+        {
+            ActiveInteractWidget->RemoveFromParent();
+            ActiveInteractWidget = nullptr;
+        }
+
+        Destroy();
+    }
+}
+
+void ABaseAnimal::Butcher()
+{
+    // TODO : AddItem
+    Destroy();
 }

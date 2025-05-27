@@ -14,9 +14,14 @@ public:
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
-	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+	//virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 protected:
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Pawn;
+
+private:
+	FTimerHandle AttackTimerHandle;
+	TWeakObjectPtr<UBehaviorTreeComponent> StoredOwnerComp;
+	void OnAttackFinished();
 };

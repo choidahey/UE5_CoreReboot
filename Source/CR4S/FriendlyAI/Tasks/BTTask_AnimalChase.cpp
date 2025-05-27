@@ -3,6 +3,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "../BaseAnimal.h"
+#include "../Controller/AnimalAIController.h"
 
 UBTTask_AnimalChase::UBTTask_AnimalChase()
 {
@@ -18,32 +19,26 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 	ABaseAnimal* Animal = Cast<ABaseAnimal>(Controller->GetPawn());
 	if (!Animal) return EBTNodeResult::Failed;
 
-	AActor* TargetActor = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
+	AActor* TargetActor = Cast<AActor>(
+		OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor"));
 	if (!TargetActor) return EBTNodeResult::Failed;
-	
+    
 	if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(TargetActor))
 	{
-		if (TargetAnimal->RowName == Animal->RowName || TargetAnimal->CurrentState == EAnimalState::Dead)
+		// …
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
 		{
-
-			Animal->ClearTarget();
-			if (UBlackboardComponent* BB = Controller->GetBlackboardComponent())
-			{
-				BB->ClearValue(TEXT("TargetActor"));
-			}
-
-			Animal->SetAnimalState(EAnimalState::Patrol);
-
-			return EBTNodeResult::Failed;
+			C->SetAnimalState(EAnimalState::Patrol);
 		}
+		return EBTNodeResult::Failed;
 	}
-	
+    
 	TargetToChase = TargetActor;
 
-	const FVector TargetLocation = TargetActor->GetActorLocation();
+	const FVector SelfLocation   = Animal->GetActorLocation();
+	const FVector TargetLocation = TargetToChase->GetActorLocation();
+	const float Distance         = FVector::Dist(SelfLocation, TargetLocation);
 
-	Animal->SetAnimalState(EAnimalState::Chase);
-	
 	FAIMoveRequest MoveReq;
 	MoveReq.SetGoalLocation(TargetLocation);
 	MoveReq.SetAcceptanceRadius(100.f);
@@ -52,9 +47,10 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 	{
 		AIController->MoveTo(MoveReq);
 	}
-	
+
 	return EBTNodeResult::InProgress;
 }
+
 
 void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {	
@@ -72,22 +68,29 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 			BB->ClearValue(TEXT("TargetActor"));
 		}
 		Animal->ClearTarget();
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
+		{
+			C->SetAnimalState(EAnimalState::Patrol);
+		}
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
-		
-	const FVector SelfLocation = Animal->GetActorLocation();
-	const FVector TargetLocation = TargetToChase->GetActorLocation();
 
-	const float Distance = FVector::Dist(SelfLocation, TargetLocation);
+	static FVector LastTargetLocation = FVector::ZeroVector;
+	const FVector CurrentTargetLocation = TargetToChase->GetActorLocation();
+	const float DistanceMoved = FVector::DistSquared(LastTargetLocation, CurrentTargetLocation);
 
-	FAIMoveRequest MoveReq;
-	MoveReq.SetGoalLocation(TargetToChase->GetActorLocation());
-	MoveReq.SetAcceptanceRadius(100.f);
-
-	if (AAIController* AIController = Cast<AAIController>(Animal->GetController()))
+	if (DistanceMoved > FMath::Square(50.f))
 	{
-		AIController->MoveTo(MoveReq);
-	}
+		LastTargetLocation = CurrentTargetLocation;
 
+		FAIMoveRequest MoveReq;
+		MoveReq.SetGoalLocation(CurrentTargetLocation);
+		MoveReq.SetAcceptanceRadius(100.f);
+
+		if (AAIController* AIController = Cast<AAIController>(Animal->GetController()))
+		{
+			AIController->MoveTo(MoveReq);
+		}
+	}
 }

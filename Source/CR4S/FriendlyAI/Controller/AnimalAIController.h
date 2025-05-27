@@ -26,6 +26,11 @@ public:
 
 	UBehaviorTree* GetBehaviorTreeAsset() const { return BehaviorTreeAsset; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetAnimalState(EAnimalState NewState);
+
+	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
+	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	
@@ -52,4 +57,7 @@ protected:
 
 	UPROPERTY()
 	UAISenseConfig_Hearing* HearingConfig;
+
+private:
+	FAnimalStatsRow CurrentStats;
 };
