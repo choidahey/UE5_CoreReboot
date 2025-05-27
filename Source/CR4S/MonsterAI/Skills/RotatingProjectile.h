@@ -31,6 +31,9 @@ protected:
 	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
+	TObjectPtr<USceneComponent> RootComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")

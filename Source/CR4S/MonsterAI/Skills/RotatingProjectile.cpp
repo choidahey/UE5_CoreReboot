@@ -7,16 +7,19 @@ ARotatingProjectile::ARotatingProjectile()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
+	RootComponent = RootComp;
+
 	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CollisionComp->SetGenerateOverlapEvents(false);
 	CollisionComp->SetSimulatePhysics(false);
-	RootComponent = CollisionComp;
+	CollisionComp->SetupAttachment(RootComp);
 
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
 	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	StaticMeshComp->SetGenerateOverlapEvents(false);
-	StaticMeshComp->SetupAttachment(CollisionComp);
+	StaticMeshComp->SetupAttachment(RootComp);
 }
 
 void ARotatingProjectile::BeginPlay()
@@ -42,7 +45,7 @@ void ARotatingProjectile::Tick(float DeltaTime)
 	if (!bHasLanded)
 	{
 		FRotator Spin(-RotatingSpeed * DeltaTime, 0.f, 0.f);
-		CollisionComp->AddLocalRotation(Spin);
+		RootComp->AddLocalRotation(Spin);
 
 		const FVector DeltaMove = MoveDirection * MoveSpeed * DeltaTime;
 		AddActorWorldOffset(DeltaMove, true);

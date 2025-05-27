@@ -20,6 +20,13 @@ ARegionBossMonster::ARegionBossMonster()
 
 	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
+}
 
+bool ARegionBossMonster::IsOutsideCombatRange(float Tolerance) const
+{
+	const FVector CurrentLocation = GetActorLocation();
+	const float DistanceSqr = FVector::DistSquared(CombatStartLocation, CurrentLocation);
+	const float Limit = FMath::Square(CombatRange + Tolerance);
 
+	return DistanceSqr > Limit;
 }
