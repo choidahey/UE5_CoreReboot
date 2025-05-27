@@ -26,11 +26,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Components")
 	FORCEINLINE UInteractableComponent* GetInteractableComponent() const { return InteractableComponent; }
 
-protected:
+private:
 	UFUNCTION()
 	virtual void OnGimmickInteracted(AActor* Interactor);
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 	
 private:
@@ -50,6 +50,17 @@ private:
 	
 
 #pragma endregion
+
+#pragma region Farming
+
+public:
+	void Harvest(const AActor* Interactor);
+	
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	bool bIsHarvestable;
+	
+#pragma endregion
 	
 #pragma region Grow
 
@@ -62,9 +73,6 @@ protected:
 private:
 	void Grow();
 	int32 CalculateGrowthStage() const;
-	
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
-	bool bIsHarvestable;
 
 	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float GrowthPercentPerInterval;

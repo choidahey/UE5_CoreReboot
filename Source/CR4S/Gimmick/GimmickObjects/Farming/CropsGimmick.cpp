@@ -59,11 +59,7 @@ void ACropsGimmick::OnGimmickInteracted(AActor* Interactor)
 		return;
 	}
 	
-	OnHarvest.ExecuteIfBound();
-	
-	GetResources(Interactor);
-
-	GimmickDestroy();
+	Harvest(Interactor);
 }
 
 void ACropsGimmick::OnDetectionStateChanged(AActor* InDetectingActor, const bool bInIsDetected)
@@ -94,6 +90,15 @@ void ACropsGimmick::UpdateInteractionText() const
 
 		InteractableComponent->SetInteractionText(Text);
 	}
+}
+
+void ACropsGimmick::Harvest(const AActor* Interactor)
+{
+	OnHarvest.ExecuteIfBound();
+	
+	GetResources(Interactor);
+
+	GimmickDestroy();
 }
 
 void ACropsGimmick::GrowthStageChanged(const int32 NewGrowthStage)
