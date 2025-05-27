@@ -28,7 +28,7 @@ protected:
 		T* Data = nullptr;
 		if (!DataRef[DataName].ToSoftObjectPath().IsValid())
 		{
-			CR4S_Log(LogTemp, Warning, TEXT("%s is not set"), *DataName.ToString());
+			CR4S_Log(LogSetting, Warning, TEXT("%s is not set"), *DataName.ToString());
 			return nullptr;
 		}
 	
@@ -38,11 +38,11 @@ protected:
 
 			if (!IsValid(Data))
 			{
-				CR4S_Log(LogTemp, Warning, TEXT("%s load failed"), *DataName.ToString());
+				CR4S_Log(LogSetting, Warning, TEXT("%s load failed"), *DataName.ToString());
 				return nullptr;
 			}
 			
-			CR4S_Log(LogTemp, Warning, TEXT("%s load success"), *DataName.ToString());
+			CR4S_Log(LogSetting, Warning, TEXT("%s load success"), *DataName.ToString());
 		}
 		else
 		{

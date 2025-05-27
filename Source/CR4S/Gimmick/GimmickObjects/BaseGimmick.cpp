@@ -17,24 +17,21 @@ ABaseGimmick::ABaseGimmick()
 
 void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 {
-	if (!IsValid(InventoryOwnerActor))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventoryOwnerActor)))
 	{
-		CR4S_Log(LogTemp, Warning, TEXT("InventoryOwnerActor is not valid"));
 		return;
 	}
 	
 	UInventoryComponent* InventorySystem
 		= InventoryOwnerActor->FindComponentByClass<UInventoryComponent>();
-	if (!IsValid(InventorySystem))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventorySystem)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("InventorySystem is not valid"));
 		return;
 	}
 
 	const UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-	if (!IsValid(ItemGimmickSubsystem))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemGimmickSubsystem is not valid"));
 		return;
 	}
 
@@ -48,7 +45,7 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 			const FAddItemResult Result
 				= InventorySystem->AddItem(RowName, RandomCount);
 
-			UE_LOG(LogTemp, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
+			CR4S_Log(LogGimmick, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
 				   , Result.Success, Result.AddedCount, Result.RemainingCount);
 			
 			if (Result.RemainingCount > 0)
@@ -62,5 +59,12 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 	{
 		// TODO: Spawn Remaining Item Pouch
 	}
+}
+
+void ABaseGimmick::GimmickDestroy()
+{
+	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is destroyed"));
+
+	Destroy();
 }
 

@@ -49,7 +49,7 @@ private:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Hit")
-	void TakeDamage(AActor* DamageCauser, float DamageAmount);
+	void TakeDamage(AActor* DamageCauser, const float DamageAmount);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Hit", meta = (ClampMin = "0.0"))

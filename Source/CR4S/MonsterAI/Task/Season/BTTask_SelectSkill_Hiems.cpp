@@ -4,12 +4,46 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/MonsterAIHelper.h"
+#include "MonsterAI/Controller/BaseMonsterAIController.h"
 
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
-	if (!CachedMonster.IsValid() || !Target) return INDEX_NONE;
+	if (!CachedMonster.IsValid()) return INDEX_NONE;
+    
+    ABaseMonsterAIController* AICon = Cast<ABaseMonsterAIController>(CachedMonster->GetController());
+    if (!AICon)
+        return INDEX_NONE;
 
-	const float Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+    UBlackboardComponent* BB = AICon->GetBlackboardComponent();
+
+    constexpr float IceRoadForwardTreshold = 1100.f;
+    constexpr float IceRoadAwayTreshold = 500.f;
+
+    float Distance = 0.f;
+    if (Target)
+    {
+        Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+    }
+    else
+    {
+        UObject* Obj = BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor);
+        if (AActor* HouseActor = Cast<AActor>(Obj))
+        {
+            Distance = FVector::Dist(CachedMonster->GetActorLocation(), HouseActor->GetActorLocation());
+        }
+        else
+        {
+            return INDEX_NONE;
+        }
+    }
+
+    if (Distance >= IceRoadForwardTreshold || Distance <= IceRoadAwayTreshold)
+    {
+        const bool bToward = (Distance >= IceRoadForwardTreshold);
+        BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
+
+        return 3;
+    }
 	
 	TArray<FSkillWeight> Weights;
 	Weights.Reserve(AvailableSkills.Num());
@@ -50,7 +84,8 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
         RandomIndex -= SkillWeight.Weight;
         if (RandomIndex <= 0)
         {
-            return SkillWeight.SkillID;
+            //return SkillWeight.SkillID;
+            return 2;
         }
     }
 

@@ -20,7 +20,7 @@ public:
 	FVector GetPlayerInitialLocation() const;
 
 	UFUNCTION(BlueprintCallable, Category = "BossAI")
-	FVector GetNearestHouseLocation(const FVector& PlayerLocation) const;
+	AActor* GetNearestHouseActor(const FVector& PlayerLocation) const;
 
 private:
 	FString MyHeader;

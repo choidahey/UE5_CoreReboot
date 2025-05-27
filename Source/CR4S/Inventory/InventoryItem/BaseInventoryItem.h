@@ -14,24 +14,19 @@ struct FInventoryItemData
 	GENERATED_BODY()
 
 	FInventoryItemData()
-		: ItemType(EItemType::Resources),
-		  MaxStackCount(0)
 	{
 	}
 
-	FInventoryItemData(const EItemType InItemType, const FName InRowName, const int32 InMaxStackCount)
-		: ItemType(InItemType),
-		  RowName(InRowName),
-		  MaxStackCount(InMaxStackCount)
+	FInventoryItemData(const FName InRowName, const FItemInfoData& InItemInfoData)
+		: RowName(InRowName),
+		  ItemInfoData(InItemInfoData)
 	{
 	}
 
-	UPROPERTY(VisibleAnywhere)
-	EItemType ItemType;
 	UPROPERTY(VisibleAnywhere)
 	FName RowName;
 	UPROPERTY(VisibleAnywhere)
-	int32 MaxStackCount;
+	FItemInfoData ItemInfoData;
 };
 
 UCLASS()
@@ -63,7 +58,8 @@ public:
 #pragma region Data
 
 public:
-	void SetInventoryItemData(const FInventoryItemData& NewInventoryItemData, UTexture2D* NewIcon, const int32 StackCount = 0);
+	virtual void SetInventoryItemData(const FInventoryItemData& NewInventoryItemData,
+	                                  const int32 StackCount = 0);
 	void SetCurrentStackCount(const int32 NewStackCount);
 
 	void SwapData(UBaseInventoryItem* OtherItem);
@@ -72,7 +68,6 @@ public:
 	FORCEINLINE bool HasItemData() const { return bHasItemData; }
 	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
-	FORCEINLINE UTexture2D* GetIcon() const { return Icon; }
 	FORCEINLINE int32 GetCurrentStackCount() const { return CurrentStackCount; }
 
 private:
@@ -84,8 +79,6 @@ private:
 	bool bHasItemData;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	FInventoryItemData InventoryItemData;
-	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
-	TObjectPtr<UTexture2D> Icon;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	int32 CurrentStackCount;
 

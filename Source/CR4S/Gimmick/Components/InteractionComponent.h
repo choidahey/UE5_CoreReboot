@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "InteractionComponent.generated.h"
 
+class ASurvivalHUD;
 class UInteractionWidget;
 class UInteractableComponent;
 
@@ -26,8 +27,11 @@ public:
 private:
 	void InitComponent();
 	
-	UPROPERTY(Visibleanywhere, Category = "Initialize")
+	UPROPERTY()
 	TObjectPtr<APlayerController> OwnerPlayerController;
+
+	UPROPERTY()
+	TObjectPtr<ASurvivalHUD> SurvivalHUD;
 	
 #pragma endregion
 
@@ -75,6 +79,8 @@ private:
 #pragma region Interaction Widget
 
 private:
+	bool IsValidWidgetRef() const;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
 

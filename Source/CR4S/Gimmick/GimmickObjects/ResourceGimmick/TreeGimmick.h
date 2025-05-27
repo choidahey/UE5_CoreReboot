@@ -39,7 +39,6 @@ protected:
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 
 private:
-	void DelayedDestroy();
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	bool bIsActorDestroyOnDestroyAction;
