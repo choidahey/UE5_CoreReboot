@@ -4,7 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "IceSpike.generated.h"
 
-class UBoxComponent;
+class UCapsuleComponent;
 
 UCLASS()
 class CR4S_API AIceSpike : public AActor
@@ -14,53 +14,58 @@ class CR4S_API AIceSpike : public AActor
 public:	
 	AIceSpike();
 
-	UFUNCTION(BlueprintCallable, Category = "Hiems|StrongAttack")
-	static AIceSpike* SpawnIceSpikeAtPlayer(APawn* OwnerPawn, TSubclassOf<AIceSpike> SpikeClass);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hiems|StrongAttack")
-	TSubclassOf<AIceSpike> IceSpikeClass;
+	UFUNCTION(BlueprintCallable, Category = "Boas|Skill")
+	void Launch();
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hiems|StrongAttack")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
 	USceneComponent* RootComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hiems|StrongAttack")
-	UBoxComponent* CollisionComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
+	UCapsuleComponent* CollisionComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hiems|StrongAttack")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
 	UStaticMeshComponent* StaticMeshComp;
 
-	UPROPERTY(EditAnywhere, Category = "Hiems|StrongAttack")
-	float LifeTime;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
+	float BoxSize  = 50.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
+	float LifeTime = 5.f;
 
-	UPROPERTY(EditAnywhere, Category = "Hiems|StrongAttack")
-	float RiseDuration;
+	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
+	float RiseDuration = 0.5f;
 
-	UPROPERTY(EditAnywhere, Category = "Hiems|StrongAttack")
-	float RiseHeight;
+	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
+	float RiseHeight = 30.f;
 
-	UPROPERTY(EditAnywhere, Category = "Hiems|StrongAttack")
-	float PushHorizontalStrength;
+	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
+	float PushHorizontalStrength = 100.f;
 
-	UPROPERTY(EditAnywhere, Category = "Hiems|StrongAttack")
-	float PushUpStrength;
+	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
+	float PushUpStrength = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
+	float Damage = 0.f;
 
 private:
 	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
+	void OnOverlapBegin(
+		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
-		const FHitResult& SweepResult);
+		const FHitResult& SweepResult
+		);
 
 	bool  bRising = true;
 	float ElapsedRise = 0.f;
 	FVector InitialOffset;
 	FVector TargetOffset;
 
-	FString MyHeader;
+	FString MyHeader = TEXT("IceSpike");
 };
