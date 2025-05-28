@@ -64,8 +64,14 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	AActor* CurrentTarget;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	class USphereComponent* AttackRange;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Stats")
 	bool bIsFemale = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tame")
+	bool bIsTamed = false;
 
 	UPROPERTY(BlueprintReadOnly)
 	EAnimalState CurrentState = EAnimalState::Patrol;
@@ -73,6 +79,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	EAnimalBehavior BehaviorTypeEnum;
 
+	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
 	void SetAnimalState(EAnimalState NewState);
 	void ClearTarget();
 
@@ -111,4 +118,24 @@ public:
 	bool bIsStunned = false;
 
 	void RecoverFromStun();
+
+	void SetbIsTamed(bool bNewValue);
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UAnimalInteractWidget> InteractWidgetClass;
+
+	UFUNCTION()
+	void OnInteract(AActor* Interactor);
+
+	UPROPERTY()
+	TObjectPtr<class UAnimalInteractWidget> ActiveInteractWidget;
+
+	UFUNCTION()
+	void Capture();
+
+	UFUNCTION()
+	void Butcher();
+
+	float LastAttackTime = 0.0f;
+	float CachedAttackInterval = 0.0f;
 };
