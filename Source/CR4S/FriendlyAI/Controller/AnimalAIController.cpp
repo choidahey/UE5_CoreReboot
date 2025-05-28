@@ -6,6 +6,7 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Touch.h"
 #include "../BaseAnimal.h"
+#include "Components/SphereComponent.h"
 
 AAnimalAIController::AAnimalAIController()
 {
@@ -39,12 +40,13 @@ void AAnimalAIController::OnPossess(APawn* InPawn)
         {
             BlackboardComponent->InitializeBlackboard(
                 *BehaviorTreeAsset->BlackboardAsset);
+            BlackboardComponent->SetValueAsBool(TEXT("IsTamed"), Animal->bIsTamed);
+            SetAnimalState(EAnimalState::Patrol);
             BehaviorTreeComponent->StartTree(*BehaviorTreeAsset);
         }
-        
-        Animal->SetAnimalState(EAnimalState::Patrol);
     }
 }
+
 
 void AAnimalAIController::ApplyPerceptionStats(const FAnimalStatsRow& Stats)
 {
@@ -65,7 +67,8 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
         {
             if (ABaseAnimal* SensedAnimal = Cast<ABaseAnimal>(Actor))
             {
-                if (SensedAnimal->CurrentState == EAnimalState::Dead)
+                if (SensedAnimal->CurrentState == EAnimalState::Dead ||
+                    SensedAnimal->CurrentState == EAnimalState::Stun)
                 {
                     return;
                 }
@@ -75,10 +78,8 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
                     return;
                 }
             }
-            
-            BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Actor);
-            Animal->CurrentTarget = Actor;
 
+            SetTargetActor(Actor);
             HandlePerceptionResponse(Animal);
         }
         else
@@ -110,11 +111,11 @@ void AAnimalAIController::HandlePerceptionResponse(ABaseAnimal* Animal)
     switch (Animal->BehaviorTypeEnum)
     {
     case EAnimalBehavior::Aggressive:
-        Animal->SetAnimalState(EAnimalState::Chase);
+        SetAnimalState(EAnimalState::Chase);
         break;
 
     case EAnimalBehavior::Coward:
-        Animal->SetAnimalState(EAnimalState::Flee);
+        SetAnimalState(EAnimalState::Flee);
         break;
 
     case EAnimalBehavior::Passive_AggroOnHit:
@@ -133,8 +134,28 @@ void AAnimalAIController::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
     ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn());
-    if (!Animal || !Animal->bStatsReady || !IsValid(Animal->CurrentTarget)) return;
-    
+    if (!Animal || !Animal->bStatsReady)
+    {
+        //UE_LOG(LogTemp, Warning, TEXT("[Animal] Invalid or not ready animal."));
+        return;
+    }
+
+    UObject* BBTarget = BlackboardComponent->GetValueAsObject(TEXT("TargetActor"));
+    if (!IsValid(BBTarget) || !IsValid(Animal->CurrentTarget))
+    {
+        ClearTargetActor();
+        if (Animal->CurrentState != EAnimalState::Patrol)
+        {
+            SetAnimalState(EAnimalState::Patrol);
+        }
+        return;
+    }
+
+    if (!IsValid(BBTarget) && Animal->CurrentState == EAnimalState::Chase)
+    {
+        //UE_LOG(LogTemp, Warning, TEXT("[Animal] Chase : Blackboard TargetActor null"));
+    }
+
     const FAnimalStatsRow* Stats = Animal->GetStatsRowPtr();
     if (!Stats) return;
 
@@ -142,31 +163,75 @@ void AAnimalAIController::Tick(float DeltaSeconds)
         Animal->GetActorLocation(),
         Animal->CurrentTarget->GetActorLocation()
     );
+
     if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
     {
         if (TargetAnimal->CurrentState == EAnimalState::Dead)
         {
-            Animal->ClearTarget();
-            BlackboardComponent->ClearValue(TEXT("TargetActor"));
-            Animal->SetAnimalState(EAnimalState::Patrol);
+            ClearTargetActor();
+            if (Animal->CurrentState != EAnimalState::Patrol)
+            {
+                SetAnimalState(EAnimalState::Patrol);
+            }
             return;
         }
     }
 
-    if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive && Animal->CurrentState == EAnimalState::Chase)
+    if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive ||
+    Animal->BehaviorTypeEnum == EAnimalBehavior::Passive_AggroOnHit)
     {
-        if (Distance <= Stats->AttackRange)
+        if (Animal->CurrentState == EAnimalState::Chase)
         {
-            Animal->SetAnimalState(EAnimalState::Attack);
-            return;
+            // const float AttackDistance = FVector::Dist(Animal->GetActorLocation(), Animal->CurrentTarget->GetActorLocation());
+            // if (AttackDistance > 50.f)
+            // {
+            //     SetAnimalState(EAnimalState::Attack);
+            //     return;
+            // }
+
+            if (Distance >= Stats->TargetLostRange)
+            {
+                ClearTargetActor();
+                if (Animal->CurrentState != EAnimalState::Patrol)
+                {
+                    SetAnimalState(EAnimalState::Patrol);
+                }
+                return;
+            }
         }
 
-        if (Distance >= Stats->TargetLostRange)
+        if (Animal->CurrentState == EAnimalState::Attack)
         {
-            Animal->ClearTarget();
-            BlackboardComponent->ClearValue(TEXT("TargetActor"));
-            Animal->SetAnimalState(EAnimalState::Patrol);
-            return;
+            const bool bTargetDead =
+                Cast<ABaseAnimal>(Animal->CurrentTarget) &&
+                Cast<ABaseAnimal>(Animal->CurrentTarget)->CurrentState == EAnimalState::Dead;
+
+            const bool bOutOfAttackRange =
+                !Animal->AttackRange || !Animal->AttackRange->IsOverlappingActor(Animal->CurrentTarget);
+
+            if (!IsValid(Animal->CurrentTarget) || bTargetDead || Distance >= Stats->TargetLostRange)
+            {
+                ClearTargetActor();
+
+                if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
+                {
+                    SetAnimalState(EAnimalState::Chase);
+                }
+                else
+                {
+                    if (Animal->CurrentState != EAnimalState::Patrol)
+                    {
+                        SetAnimalState(EAnimalState::Patrol);
+                    }
+                }
+                return;
+            }
+
+            if (bOutOfAttackRange && Animal->CurrentState != EAnimalState::Chase)
+            {
+                SetAnimalState(EAnimalState::Chase);
+                return;
+            }
         }
     }
 
@@ -174,19 +239,139 @@ void AAnimalAIController::Tick(float DeltaSeconds)
     {
         if (Distance >= Stats->TargetLostRange)
         {
-            Animal->ClearTarget();
-            BlackboardComponent->ClearValue(TEXT("TargetActor"));
-            Animal->SetAnimalState(EAnimalState::Patrol);
+            ClearTargetActor();
+            if (Animal->CurrentState != EAnimalState::Patrol)
+            {
+                SetAnimalState(EAnimalState::Patrol);
+            }
             return;
         }
     }
-    
-// #if WITH_EDITOR
-//     const FVector Dir = Animal->GetActorForwardVector();
-//     float Radius = Stats->SightRadius;
-//     float HalfAngleRad = FMath::DegreesToRadians(Stats->PeripheralVisionAngle * 0.5f);
-//     DrawDebugCone(GetWorld(), Animal->GetActorLocation(), Dir, Radius, HalfAngleRad, HalfAngleRad, 16, FColor::Green, false, 0.f, 0, 1.f);
-//     DrawDebugSphere(GetWorld(), Animal->GetActorLocation(), Stats->HearingRadius, 12, FColor::Yellow, false, 0.f, 0, 1.f);
-//     DrawDebugSphere(GetWorld(), Animal->GetActorLocation(), Stats->TargetLostRange, 32, FColor::Orange, false, 0.f, 0, 2.f);
-// #endif
+
+    if (Animal && Animal->bStatsReady && Animal->CurrentState != EAnimalState::Dead)
+    {
+        // const float Radius = Animal->GetCurrentStats().TargetLostRange;
+        // const FVector Center = Animal->GetActorLocation();
+        //
+        // DrawDebugSphere(
+        //     GetWorld(),
+        //     Center,
+        //     Radius,
+        //     24,
+        //     FColor::Green,
+        //     false,
+        //     0.1f,
+        //     0,
+        //     1.5f
+        // );
+    }
+    DrawDebugLine(Animal->GetWorld(),
+              Animal->GetActorLocation(),
+              Animal->CurrentTarget->GetActorLocation(),
+              FColor::Red,
+              false,
+              0.f,
+              0,
+              2.f);
+}
+
+void AAnimalAIController::SetAnimalState(EAnimalState NewState)
+{
+    if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
+    {
+        Animal->SetAnimalState(NewState);
+    }
+}
+
+void AAnimalAIController::SetTargetByDamage(AActor* Attacker)
+{
+    if (!IsValid(Attacker)) return;
+
+    if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
+    {
+        const FAnimalStatsRow* Stats = Animal->GetStatsRowPtr();
+        if (!Stats) return;
+
+        const float DistanceToNew = FVector::Dist(Animal->GetActorLocation(), Attacker->GetActorLocation());
+        const float DistanceToCurrent = IsValid(Animal->CurrentTarget)
+            ? FVector::Dist(Animal->GetActorLocation(), Animal->CurrentTarget->GetActorLocation())
+            : FLT_MAX;
+
+        const bool bForceTargetSwitch =
+            Animal->BehaviorTypeEnum == EAnimalBehavior::Passive_AggroOnHit ||
+            Animal->BehaviorTypeEnum == EAnimalBehavior::Passive_FleeOnHit;
+
+        if (bForceTargetSwitch || !IsValid(Animal->CurrentTarget) || DistanceToNew < DistanceToCurrent)
+        {
+            SetTargetActor(Attacker);
+
+            switch (Animal->BehaviorTypeEnum)
+            {
+            case EAnimalBehavior::Aggressive:
+            case EAnimalBehavior::Passive_AggroOnHit:
+                SetAnimalState(EAnimalState::Chase);
+                break;
+
+            case EAnimalBehavior::Coward:
+            case EAnimalBehavior::Passive_FleeOnHit:
+                SetAnimalState(EAnimalState::Flee);
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void AAnimalAIController::OnTargetDied()
+{
+    SetTargetByDamage(nullptr);
+    SetAnimalState(EAnimalState::Patrol);
+}
+
+void AAnimalAIController::OnTargetOutOfRange()
+{
+    SetAnimalState(EAnimalState::Chase);
+}
+
+void AAnimalAIController::OnStunned()
+{
+    SetAnimalState(EAnimalState::Stun);
+}
+
+void AAnimalAIController::OnRecoveredFromStun()
+{
+    SetAnimalState(EAnimalState::Patrol);
+}
+
+void AAnimalAIController::OnDied()
+{
+    SetAnimalState(EAnimalState::Dead);
+}
+
+void AAnimalAIController::SetTargetActor(AActor* Target)
+{
+    if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
+    {
+        if (Animal->CurrentTarget == Target) return;
+
+        Animal->CurrentTarget = Target;
+        if (BlackboardComponent)
+        {
+            BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Target);
+        }
+    }
+}
+
+void AAnimalAIController::ClearTargetActor()
+{
+    if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
+    {
+        Animal->CurrentTarget = nullptr;
+        if (BlackboardComponent)
+        {
+            BlackboardComponent->ClearValue(TEXT("TargetActor"));
+        }
+    }
 }

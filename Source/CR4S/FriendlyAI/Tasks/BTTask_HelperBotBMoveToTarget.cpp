@@ -49,10 +49,10 @@ void UBTTask_HelperBotBMoveToTarget::TickTask(UBehaviorTreeComponent& OwnerComp,
     }
     else
     {
-        if (UAIJumpComponent* JumpComp = Pawn->FindComponentByClass<UAIJumpComponent>())
-        {
-            if (JumpComp->IsActive())
-                JumpComp->Deactivate();
-        }
+        FAIMoveRequest MoveReq;
+        MoveReq.SetGoalActor(PlayerPawn);
+        MoveReq.SetAcceptanceRadius(DistanceThreshold);
+        AICon->MoveTo(MoveReq);
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
     }
 }
