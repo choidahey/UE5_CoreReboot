@@ -27,7 +27,7 @@ EBTNodeResult::Type UBTTask_IdleBored::ExecuteTask(UBehaviorTreeComponent& Owner
 
 		const int32 Index = FMath::RandRange(0, MontageList.Num() - 1);
 		UAnimMontage* SelectedMontage = MontageList[Index];
-		AnimComp->PlayMontange(SelectedMontage);
+		AnimComp->PlayMontage(SelectedMontage);
 
 		return EBTNodeResult::Succeeded;
 	}
