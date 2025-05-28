@@ -16,7 +16,7 @@ ABaseHelperBot::ABaseHelperBot()
 
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
 	InteractableComp->SetInteractionText(FText::FromString("MySon"));
-	InteractableComp->OnTryInteract.BindUObject(this, &ABaseHelperBot::HandleInteract);
+	//InteractableComp->OnTryInteract.BindUFunction(this, &ABaseHelperBot::HandleInteract);
 }
 
 void ABaseHelperBot::BeginPlay()

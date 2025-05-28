@@ -23,11 +23,14 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(GetMesh());
 	Camera->SetRelativeRotation_Direct({0.0f, 90.0f, 0.0f});
 
+	VisibleMesh=CreateDefaultSubobject<USkeletalMeshComponent>(FName{TEXTVIEW("VisibleMesh")});
+	VisibleMesh->SetupAttachment(GetMesh());
+	
 	OverlaySkeletalMesh=CreateDefaultSubobject<USkeletalMeshComponent>(FName{TEXTVIEW("OverlaySkeletalMesh")});
-	OverlaySkeletalMesh->SetupAttachment(GetMesh());
+	OverlaySkeletalMesh->SetupAttachment(VisibleMesh);
 	
 	OverlayStaticMesh=CreateDefaultSubobject<UStaticMeshComponent>(FName{TEXTVIEW("OverlayStaticMesh")});
-	OverlayStaticMesh->SetupAttachment(GetMesh());
+	OverlayStaticMesh->SetupAttachment(VisibleMesh);
 	
 	Combat=CreateDefaultSubobject<UCombatComponent>(FName{TEXTVIEW("Combat")});
 
