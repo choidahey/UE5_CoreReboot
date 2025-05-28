@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Game/Interface/Spawnable.h" // Added Spawnable Interface Library 
 #include "Perception/AIPerceptionComponent.h"
 #include "Engine/DataTable.h"
 #include "Data/AnimalStatsRow.h"
@@ -26,10 +27,11 @@ enum class EAnimalBehavior : uint8
 	Passive_FleeOnHit
 };
 
-DECLARE_MULTICAST_DELEGATE(FOnDied);
+//DECLARE_MULTICAST_DELEGATE(FOnDied); 
+//Declared in Spawnable Interface, thus Deleted 
 
 UCLASS(Abstract)
-class CR4S_API ABaseAnimal : public ACharacter
+class CR4S_API ABaseAnimal : public ACharacter, public ISpawnable //Interface Added
 {
 	GENERATED_BODY()
 
@@ -75,6 +77,9 @@ public:
 	void ClearTarget();
 
 	FOnDied OnDied;
+
+	//Function to Return OnDied Delegate by Spawnable Interface
+	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
 
 public:
 	UFUNCTION(BlueprintCallable)

@@ -107,6 +107,8 @@ void ABaseMonster::HandleDeath()
 	bIsDead = true;
 	StateComponent->SetState(EMonsterState::Dead);
 
+	OnDied.Broadcast(this); // Delegate Broadcast On Death for Spawner
+
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		MoveComp->DisableMovement();
 
