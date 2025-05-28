@@ -53,7 +53,7 @@ void APlanterBoxGimmick::OnGimmickInteracted(AActor* Interactor)
 	}
 
 	PlantedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName<ACropsGimmick>(TEXT("Crops"),
-		SpawnPoint->GetComponentLocation());
+		SpawnPoint->GetComponentLocation(), GetActorRotation());
 
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(PlantedGimmick)))
 	{

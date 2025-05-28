@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UDummyItemSlotWidget;
 class UBorder;
 class UTextBlock;
 class UImage;
@@ -18,11 +19,7 @@ class CR4S_API UBaseItemSlotWidget : public UUserWidget
 #pragma region Initalize
 
 public:
-	void InitWidget(UBaseInventoryComponent* InInventoryComponent, UBaseInventoryItem* NewItem);
-
-protected:
-	UPROPERTY()
-	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	void InitWidget(UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
 	
 #pragma endregion
 	
@@ -42,10 +39,29 @@ private:
 
 public:
 	void SetItem(UBaseInventoryItem* InItem);
+	void EmptyItem();
 
 protected:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryItem> CurrentItem;
+	
+#pragma endregion
+	
+#pragma region Drag And Drop
+	
+protected:
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	
+	UPROPERTY(EditDefaultsOnly)
+	bool bCanDrag;
+	UPROPERTY(EditDefaultsOnly)
+	bool bCanDrop;
+	
+private:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDummyItemSlotWidget> DummySlotWidgetClass;
 	
 #pragma endregion
 };

@@ -1,11 +1,12 @@
 ﻿#include "BaseInventoryComponent.h"
 
 #include "CR4S.h"
+#include "Gimmick/GimmickObjects/ItemPouchGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
-	: MaxInventorySlot(10),
+	: MaxItemSlot(10),
 	  bIsInitializedInventorySize(false)
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -37,8 +38,8 @@ void UBaseInventoryComponent::InitInventorySize()
 		return;
 	}
 
-	InventoryItems.Reserve(MaxInventorySlot);
-	for (int32 Index = 0; Index < MaxInventorySlot; ++Index)
+	InventoryItems.Reserve(MaxItemSlot);
+	for (int32 Index = 0; Index < MaxItemSlot; ++Index)
 	{
 		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
 		Item->InitInventoryItem(OwnerActor, Index);
@@ -46,6 +47,35 @@ void UBaseInventoryComponent::InitInventorySize()
 	}
 
 	bIsInitializedInventorySize = true;
+}
+
+void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
+{
+	if (!CR4S_VALIDATE(LogInventory, IsValid(ItemGimmickSubsystem)))
+	{
+		return;
+	}
+
+	TMap<FName, int32> RemainingItems;
+	for (const auto& [RowName, Count] : Items)
+	{
+		const FAddItemResult Result = AddItem(RowName, Count);
+
+		if (Result.RemainingCount > 0)
+		{
+			RemainingItems.FindOrAdd(RowName) += Result.RemainingCount;
+		}
+	}
+
+	if (RemainingItems.Num() > 0)
+	{
+		const AItemPouchGimmick* ItemPouch =
+			ItemGimmickSubsystem->SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
+			                                                               OwnerActor->GetActorLocation(),
+			                                                               OwnerActor->GetActorRotation());
+		
+		ItemPouch->InitItemPouch(RemainingItems);
+	}
 }
 
 FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32 Count)
@@ -174,7 +204,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 	}
 
 	TSet<int32> ChangedItemSlots;
-	ChangedItemSlots.Reserve(MaxInventorySlot);
+	ChangedItemSlots.Reserve(MaxItemSlot);
 
 	TMap<FName, int32> TotalCounts;
 	for (UBaseInventoryItem* Item : InventoryItems)
@@ -224,41 +254,6 @@ void UBaseInventoryComponent::SortInventoryItems()
 	}
 
 	NotifyInventoryItemsChanged(ChangedItemSlots.Array());
-}
-
-void UBaseInventoryComponent::SwapItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
-{
-	if (!CR4S_VALIDATE(LogInventory, IsValid(FromItem)) ||
-		!CR4S_VALIDATE(LogInventory, IsValid(ToItem)))
-	{
-		return;
-	}
-
-	FromItem->SwapData(ToItem);
-
-	NotifyInventoryItemsChanged({FromItem->GetSlotIndex(), ToItem->GetSlotIndex()});
-}
-
-void UBaseInventoryComponent::MergeItems(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem) const
-{
-	if (!CR4S_VALIDATE(LogInventory, IsValid(FromItem)) ||
-		!CR4S_VALIDATE(LogInventory, IsValid(ToItem)))
-	{
-		return;
-	}
-
-	const int32 ToItemCount = ToItem->GetCurrentStackCount();
-	const int32 MaxStackCount = ToItem->GetInventoryItemData()->ItemInfoData.MaxStackCount;
-	if (ToItemCount < MaxStackCount)
-	{
-		const int32 CanAddCount = MaxStackCount - ToItemCount;
-		const int32 ActualAddCount = FMath::Min(CanAddCount, FromItem->GetCurrentStackCount());
-
-		ToItem->SetCurrentStackCount(ToItemCount + ActualAddCount);
-		FromItem->SetCurrentStackCount(FromItem->GetCurrentStackCount() - ActualAddCount);
-	}
-
-	NotifyInventoryItemsChanged({FromItem->GetSlotIndex(), ToItem->GetSlotIndex()});
 }
 
 void UBaseInventoryComponent::NotifyInventoryItemChanged(const int32 ItemIndex) const

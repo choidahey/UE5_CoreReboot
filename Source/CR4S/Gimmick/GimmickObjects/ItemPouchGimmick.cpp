@@ -4,7 +4,7 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
-#include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/UI/InventoryType.h"
 
 AItemPouchGimmick::AItemPouchGimmick()
 {
@@ -13,7 +13,7 @@ AItemPouchGimmick::AItemPouchGimmick()
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
-	InventoryComponent->SetMaxInventorySlot(10);
+	InventoryComponent->SetMaxInventorySlot(100);
 }
 
 void AItemPouchGimmick::BeginPlay()
@@ -39,21 +39,14 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 	{
 		return;
 	}
+
+	PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::Storage, InventoryComponent);
 }
 
-void AItemPouchGimmick::InitItemPouch(const TArray<UBaseInventoryItem*>& Items) const
+void AItemPouchGimmick::InitItemPouch(const TMap<FName, int32>& RemainingItems) const
 {
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)))
 	{
-		return;
-	}
-
-	const int32 ItemCount = Items.Num();
-	InventoryComponent->SetMaxInventorySlot(ItemCount);
-	InventoryComponent->InitInventorySize();
-
-	for (const UBaseInventoryItem* Item : Items)
-	{
-		InventoryComponent->AddItem(Item->GetInventoryItemData()->RowName, Item->GetCurrentStackCount());
+		InventoryComponent->AddItems(RemainingItems);
 	}
 }

@@ -28,10 +28,13 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent||InventoryContainerWidget")
-	void ToggleInventoryWidget(EInventoryType InventoryType) const;
+	void OpenPlayerInventoryWidget();
+	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "InventoryContainerWidget")
+	UPROPERTY(EditDefaultsOnly)
+	int32 InventoryContainerWidgetOrder;
+	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
 	UPROPERTY()
 	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidgetInstance;

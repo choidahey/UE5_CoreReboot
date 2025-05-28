@@ -2,8 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
 #include "InventoryContainerWidget.generated.h"
 
+class UStorageInventoryWidget;
 enum class EInventoryType : uint8;
 class UPlayerInventoryComponent;
 class ASurvivalHUD;
@@ -32,9 +34,15 @@ private:
 #pragma region ToggleWidget
 
 public:
-	void ToggleInventoryWidget(EInventoryType InventoryType);
+	void OpenPlayerInventoryWidget();
+	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
 
+	UFUNCTION()
+	void CloseInventoryWidget();
+	
 private:
+	void InitToggleWidget(UBaseInventoryWidget* InventoryWidget) const;
+	
 	bool bIsOpen;
 	
 #pragma endregion
@@ -51,10 +59,16 @@ private:
 	TObjectPtr<UQuickSlotBarWidget> QuickSlotBarWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseInventoryWidget> ItemPouchWidget;
+	TObjectPtr<UStorageInventoryWidget> StorageInventoryWidget;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBaseInventoryWidget> PlantBoxInventoryWidget;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBaseInventoryWidget> CompostBinInventoryWidget;
 
 	UPROPERTY(EditDefaultsOnly)
-	TMap<EInventoryType, TObjectPtr<UBaseInventoryWidget>> InventoryWidgets;
+	TArray<TObjectPtr<UBaseInventoryWidget>> OpenInventoryWidgets;
 	
 #pragma endregion
 };

@@ -6,11 +6,12 @@
 #include "UI/InGame/SurvivalHUD.h"
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
-	: QuickSlotCount(10)
+	: InventoryContainerWidgetOrder(0),
+	  QuickSlotCount(10)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	MaxInventorySlot = 50;
+	MaxItemSlot = 50;
 }
 
 void UPlayerInventoryComponent::BeginPlay()
@@ -39,7 +40,7 @@ void UPlayerInventoryComponent::BeginPlay()
 	}
 
 	InventoryContainerWidgetInstance = SurvivalHUD->CreateAndAddWidget(InventoryContainerWidgetClass,
-	                                                                   10,
+	                                                                   InventoryContainerWidgetOrder,
 	                                                                   ESlateVisibility::Visible);
 
 	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
@@ -52,6 +53,8 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 {
 	FAddItemResult Result = Super::AddItem(RowName, Count);
 
+	CR4S_Log(LogGimmick, Warning, TEXT("Remaining Test: %d"), Result.RemainingCount);
+	
 	if (!CR4S_VALIDATE(LogInventory, Result.Success) ||
 		!CR4S_VALIDATE(LogInventory, Result.RemainingCount > 0))
 	{
@@ -59,14 +62,14 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 	}
 
 	TSet<int32> ChangedItemSlots;
-	StackItemsAndFillEmptySlots(RowName, Count, QuickSlotItems, Result, ChangedItemSlots);
+	StackItemsAndFillEmptySlots(RowName, Result.RemainingCount, QuickSlotItems, Result, ChangedItemSlots);
 
 	NotifyQuickSlotItemsChanged(ChangedItemSlots.Array());
 
 	return Result;
 }
 
-void UPlayerInventoryComponent::ToggleInventoryWidget(const EInventoryType InventoryType) const
+void UPlayerInventoryComponent::OpenPlayerInventoryWidget()
 {
 	if (!CR4S_VALIDATE(LogInventory, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
@@ -74,7 +77,14 @@ void UPlayerInventoryComponent::ToggleInventoryWidget(const EInventoryType Inven
 		return;
 	}
 
-	InventoryContainerWidgetInstance->ToggleInventoryWidget(InventoryType);
+	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget();
+}
+
+void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent)
+{
+	OpenPlayerInventoryWidget();
+
+	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
 }
 
 UBaseInventoryItem* UPlayerInventoryComponent::GetQuickSlotItemDataByIndex(const int32 Index) const

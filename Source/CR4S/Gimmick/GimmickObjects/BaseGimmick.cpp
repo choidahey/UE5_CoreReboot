@@ -37,16 +37,16 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 	
 	if (const FBaseGimmickData* GimmickData = ItemGimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
 	{
+		TMap<FName, int32> Resources;
+		
 		for (const auto& [RowName, MinCount, MaxCount] : GimmickData->Resources)
 		{
 			const int32 RandomCount = FMath::RandRange(MinCount, MaxCount);
 			
-			const FAddItemResult Result
-				= InventorySystem->AddItem(RowName, RandomCount);
-
-			CR4S_Log(LogGimmick, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
-				   , Result.Success, Result.AddedCount, Result.RemainingCount);
+			Resources.FindOrAdd(RowName, RandomCount);
 		}
+
+		InventorySystem->AddItems(Resources);
 	}
 }
 

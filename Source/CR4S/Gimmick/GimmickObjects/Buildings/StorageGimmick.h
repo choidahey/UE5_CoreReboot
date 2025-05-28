@@ -1,46 +1,44 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "BaseGimmick.h"
-#include "ItemPouchGimmick.generated.h"
+#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
+#include "StorageGimmick.generated.h"
 
-class UBaseInventoryItem;
 class UBaseInventoryComponent;
 class UInteractableComponent;
 
 UCLASS()
-class CR4S_API AItemPouchGimmick : public ABaseGimmick
+class CR4S_API AStorageGimmick : public ADestructibleGimmick
 {
 	GENERATED_BODY()
-	
-#pragma region ABaseGimmick Override
+
+#pragma region ADestructibleResourceGimmick Override
 
 public:
-	AItemPouchGimmick();
-
+	AStorageGimmick();
+	
 	virtual void BeginPlay() override;
 
-#pragma endregion
+	virtual void OnGimmickDestroy(AActor* DamageCauser) override;
 	
+#pragma endregion
+
 #pragma region UInteractableComponent
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Components")
 	FORCEINLINE UInteractableComponent* GetInteractableComponent() const { return InteractableComponent; }
 
-private:
+protected:
 	UFUNCTION()
 	virtual void OnGimmickInteracted(AActor* Interactor);
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 
 #pragma endregion
-	
-#pragma region Inventory
 
-public:
-	void InitItemPouch(const TMap<FName, int32>& RemainingItems) const;
+#pragma region Inventory
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
