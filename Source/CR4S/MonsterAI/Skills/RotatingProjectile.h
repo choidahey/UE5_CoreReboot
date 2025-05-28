@@ -20,27 +20,43 @@ protected:
 	virtual void Destroyed() override;
 
 public :
-	void LaunchProjectile(const FVector& Direction, float Speed);
+	void LaunchProjectile(const FVector& TargetLocation, float Speed);
 	void SetBossActor(AActor* InBoss, FName InSocket);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
-	TObjectPtr<UCapsuleComponent> CollisionComp;
 
 protected:
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnLandingDetected(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	FVector ComputeParabolicVelocity(const FVector& Start, const FVector& Target, float Speed) const;
+	void UpdateParabolicMovement(float DeltaTime);
+	void HandleLanding();
+	void UpdateLandingCollision();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
 	TObjectPtr<USceneComponent> RootComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
+	TObjectPtr<UCapsuleComponent> CollisionComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Collision")
+	TObjectPtr<UCapsuleComponent> LandingTrigger;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
 	float Damage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
 	float RotatingSpeed = 360.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
+	float GravityZ = -1200.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
+	bool bIsParabolic = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
 	float AutoDestroyDelay = 5.0f;
@@ -52,15 +68,20 @@ protected:
 	float BossApproachRadius = 200.0f;
 
 private:
-	void HandleLanding(AActor* HitActor);
-
 	TObjectPtr<AActor> BossActor;
 	FName RestoreSocketName;
+
 	TSet<AActor*> AlreadyHitActors;
-	
+	bool bIsLaunched = false;
+	bool bHasLanded = false;
+
+	FVector TargetLocation;
+	FVector InitialPosition;
+	FVector InitialVelocity;
+	float TimeSinceLaunch = 0.f;
+
 	FVector MoveDirection;
 	float MoveSpeed = 0.f;
-	bool bHasLanded = false;
 
 	FString MyHeader;
 

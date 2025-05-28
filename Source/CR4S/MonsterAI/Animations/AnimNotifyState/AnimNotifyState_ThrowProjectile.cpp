@@ -59,9 +59,8 @@ void UAnimNotifyState_ThrowProjectile::NotifyEnd(USkeletalMeshComponent* MeshCom
 					TargetLocation = HitResult.Location;
 				}
 
-				FVector ThrowDir = (TargetLocation - Projectile->GetActorLocation()).GetSafeNormal();
 				Projectile->SetBossActor(OwnerBoss, AttachSocketName);
-				Projectile->LaunchProjectile(ThrowDir, LaunchSpeed);
+				Projectile->LaunchProjectile(TargetLocation, LaunchSpeed);
 
 				DrawDebugLine(World, Projectile->GetActorLocation(), TargetLocation, FColor::Red, false, 1.f, 0, 3.f);
 			}
