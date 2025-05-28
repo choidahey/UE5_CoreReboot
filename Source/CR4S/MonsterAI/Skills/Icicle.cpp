@@ -51,7 +51,6 @@ void AIcicle::InitIcicle(float Radius)
 
 		NiComp->SetVariableInt(FName("Spawn Count"), NumSeg);
 		NiComp->SetRelativeScale3D(FVector(Radius / 100.f));
-		//NiComp->OnParticleCollide.AddDynamic(this, &AIcicle::OnNiagaraParticleCollide);
 	}
 
 	for (UCapsuleComponent* C : EdgeColliders)
@@ -63,10 +62,10 @@ void AIcicle::InitIcicle(float Radius)
 	const float BottomZ = BaseLoc.Z;
 	const float CenterZ = BottomZ + CapsuleHalfHeight;
 
-	const float TwoPi = 2.f * PI;
+	const float CircleAngle = 2.f * PI;
 	for (int32 i = 0; i < NumSeg; i++)
 	{
-		float Angle = TwoPi * float(i) / float(NumSeg);
+		float Angle = CircleAngle * float(i) / float(NumSeg);
 		FVector Dir = FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.f);
 
 		FVector LocXY(BaseLoc.X + Dir.X * Radius, BaseLoc.Y + Dir.Y * Radius, 0.f);
@@ -86,22 +85,9 @@ void AIcicle::InitIcicle(float Radius)
 
 		CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AIcicle::OnOverlap);
 		EdgeColliders.Add(CapsuleComp);
-
-		DrawDebugCapsule(
-			GetWorld(),
-			CapsuleCenter,
-			CapsuleHalfHeight,
-			CapsuleRadius,
-			FQuat::Identity,
-			FColor::Cyan,
-			false,
-			1.f,
-			0,
-			2.0f
-		);
 	}
 
-	SetLifeSpan(1.f);
+	SetLifeSpan(LifeTime);
 }
 
 void AIcicle::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -119,7 +105,3 @@ void AIcicle::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		UDamageType::StaticClass()
 	);
 }
-
-//void AIcicle::OnNiagaraParticleCollide(FName EventName, float EmitterTime, const FVector& Location, const FVector& Velocity, const FVector& Normal, const FName BoneName)
-//{
-//}

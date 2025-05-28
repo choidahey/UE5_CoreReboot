@@ -13,7 +13,7 @@ class CR4S_API AIcicleWavesActor : public AActor
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Boss|Skill")
-	void SpawnIcicleWaves(
+	void InitIcicleWaves(
 		int32 SpawnCount,
 		float BaseDistance,
 		float DistanceStep,
@@ -22,24 +22,23 @@ public:
 	);
 
 protected:
-	virtual void BeginPlay() override;
-
-private:
-	void SpawnNext();
+	void SpawnIcicleWaves();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Skill")
-	TSubclassOf<AIcicle> IcicleActorClass;
+	TSubclassOf<AActor> IcicleActorClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	float IcicleColliderRadius = 50.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	float CoverageFactor = 0.8f;
+
+private:
 	TArray<float> SpawnRadius;
 	float SpawnInterval;
 	int32 SpawnIndex;
-	FTimerHandle SpawnTimerHandle;
 	bool bForward;
 	FVector SpawnCenterLocation;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Skill")
-	float IcicleColliderRadius = 50.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Skill")
-	float CoverageFactor = 0.8f;
+	FTimerHandle SpawnTimerHandle;
 };

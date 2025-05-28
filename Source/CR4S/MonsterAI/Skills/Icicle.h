@@ -28,17 +28,7 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-
-	//UFUNCTION()
-	//void OnNiagaraParticleCollide(
-	//	FName EventName,
-	//	float EmitterTime,
-	//	const FVector& Location,
-	//	const FVector& Velocity,
-	//	const FVector& Normal,
-	//	const FName BoneName
-	//);
-
+	
 	UPROPERTY(EditAnywhere)
 	USceneComponent* RootComp;
 
@@ -48,19 +38,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	UNiagaraSystem* NiagaraTemplate;
 
-
 	UPROPERTY()
 	TArray<UCapsuleComponent*> EdgeColliders;
 
 	UPROPERTY(EditAnywhere)
 	float Damage;
 
-	UPROPERTY(EditAnywhere, Category = "Icicle|Collision")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float CapsuleRadius = 100.f;
 
-	UPROPERTY(EditAnywhere, Category = "Icicle|Collision")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float CapsuleHalfHeight = 80.f;
 
-	UPROPERTY(EditAnywhere, Category = "Icicle|Collision")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float CoverageFactor = 0.8f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	float LifeTime = 1.f;
+
+private:
+	FString MyHeader = TEXT("Icicle");
 };
