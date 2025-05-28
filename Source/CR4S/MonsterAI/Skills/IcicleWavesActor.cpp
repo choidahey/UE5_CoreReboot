@@ -3,13 +3,13 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 
-void AIcicleWavesActor::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
 
-void AIcicleWavesActor::SpawnIcicleWaves(int32 SpawnCount, float BaseDistance, float DistanceStep, float Interval, bool bForwardIn)
+void AIcicleWavesActor::InitIcicleWaves(
+	int32 SpawnCount,
+	float BaseDistance,
+	float DistanceStep,
+	float Interval,
+	bool bForwardIn)
 {
 	ACharacter* BossChar = Cast<ACharacter>(GetOwner());
 	if (BossChar)
@@ -42,10 +42,10 @@ void AIcicleWavesActor::SpawnIcicleWaves(int32 SpawnCount, float BaseDistance, f
 	if (!bForward)
 		Algo::Reverse(SpawnRadius);
 
-	SpawnNext();
+	SpawnIcicleWaves();
 }
 
-void AIcicleWavesActor::SpawnNext()
+void AIcicleWavesActor::SpawnIcicleWaves()
 {
 	if (SpawnIndex >= SpawnRadius.Num())
 	{
@@ -59,20 +59,22 @@ void AIcicleWavesActor::SpawnNext()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = BossPawn;
-
-	if (AIcicle* IcicleActor = GetWorld()->SpawnActor<AIcicle>(
+	
+	if (AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(
 		IcicleActorClass,
 		SpawnCenterLocation,
 		FRotator::ZeroRotator,
 		SpawnParams))
 	{
-		IcicleActor->InitIcicle(Dist);
+		if (AIcicle* Icicle = Cast<AIcicle>(SpawnActor))
+			Icicle->InitIcicle(Dist);
 	}
-
+	
 	GetWorld()->GetTimerManager().SetTimer(
-		SpawnTimerHandle,
-		this,
-		&AIcicleWavesActor::SpawnNext,
-		SpawnInterval,
-		false);
+			SpawnTimerHandle,
+			this,
+			&AIcicleWavesActor::SpawnIcicleWaves,
+			SpawnInterval,
+			false
+		);
 }
