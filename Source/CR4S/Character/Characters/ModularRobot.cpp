@@ -127,7 +127,7 @@ void AModularRobot::BeginPlay()
 
 	if (InteractComp)
 	{
-		InteractComp->OnTryInteract.BindUFunction(this,FName("MountRobot"));
+		InteractComp->OnTryInteract.BindDynamic(this,&AModularRobot::MountRobot);
 	}
 }
 
