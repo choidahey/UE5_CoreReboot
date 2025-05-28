@@ -4,11 +4,6 @@
 #include "Engine/World.h"
 #include "MonsterAI/BaseMonster.h"
 
-UAnimNotify_BlizzardSkill::UAnimNotify_BlizzardSkill()
-	: MyHeader(TEXT("Notify_BlizzardSkill"))
-{
-}
-
 void UAnimNotify_BlizzardSkill::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	if (!MeshComp || !BlizzardSkillClass)

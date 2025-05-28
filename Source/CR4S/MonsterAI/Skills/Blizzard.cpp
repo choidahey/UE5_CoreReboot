@@ -11,7 +11,6 @@
 #include "MonsterAI/BaseMonster.h"
 
 ABlizzard::ABlizzard()
-	: MyHeader(TEXT("Blizzard"))
 {
 	RootComp = CreateDefaultSubobject<USceneComponent>("RootComp");
 	SetRootComponent(RootComp);
@@ -58,9 +57,17 @@ void ABlizzard::Launch(ABaseMonster* BossMonster)
 	}
 	
 	OverlapComp->SetCapsuleSize(SpawnRadius, SpawnHeight * 0.5f);
+
+	// TODO :: I Will Refectoring
+	/*FVector GetNiagaraScale= NiagaraComp->GetRelativeScale3D();
 	NiagaraComp->SetWorldScale3D(
-		FVector(SpawnRadius / 5.f, SpawnRadius / 5.f, SpawnHeight / 5.f * 0.5f)
+		FVector(SpawnRadius / GetNiagaraScale.X, SpawnRadius / GetNiagaraScale.Y, SpawnHeight / GetNiagaraScale.Z * 0.5f)
 		);
+	UE_LOG(LogTemp, Display, TEXT("Niagara Scale : %f, %f, %f"), GetNiagaraScale.X, GetNiagaraScale.Y, GetNiagaraScale.Z);
+	
+	NiagaraComp->SetWorldScale3D(
+		FVector(SpawnRadius / 500.f, SpawnRadius / 500.f, SpawnHeight / 500.f * 0.5f)
+		);*/
 
 	float BossHalfHeight = 0.f;
 	if (auto* BossCapsule = BossMonster->FindComponentByClass<UCapsuleComponent>())
@@ -68,25 +75,11 @@ void ABlizzard::Launch(ABaseMonster* BossMonster)
 		BossHalfHeight = BossCapsule->GetScaledCapsuleHalfHeight();
 	}
 	
-	const float ZOffset = -BossHalfHeight + (SpawnHeight * 0.5f);
-	
 	NiagaraComp->Activate(true);
 
 	AttachToActor(BossMonster, FAttachmentTransformRules::KeepRelativeTransform);
-	SetActorRelativeLocation(FVector(0, 0, ZOffset));
-
-	DrawDebugCapsule(
-		GetWorld(),
-		GetActorLocation(),
-		SpawnHeight,
-		SpawnRadius,
-		GetActorRotation().Quaternion(),
-		FColor::Red,
-		false,
-		LifeTime,
-		0,
-		2.0f
-	);
+	SetActorRelativeLocation(FVector(0, 0, -BossHalfHeight));
+	OverlapComp->SetRelativeLocation(FVector(0.f, 0.f, BossHalfHeight));
 
 	GetWorld()->GetTimerManager().SetTimer(
 		DamageTimerHandle,
@@ -107,10 +100,28 @@ void ABlizzard::Launch(ABaseMonster* BossMonster)
 
 void ABlizzard::ApplyDamageTick()
 {
+	// NOTICE :: Test Log
+	const FVector DebugCenter  = OverlapComp->GetComponentLocation();
+	const float   DebugHalfH   = OverlapComp->GetScaledCapsuleHalfHeight();
+	const float   DebugRadius  = OverlapComp->GetScaledCapsuleRadius();
+	const FQuat   DebugQuat    = OverlapComp->GetComponentQuat();
+	DrawDebugCapsule(
+		GetWorld(),
+		DebugCenter,
+		DebugHalfH,
+		DebugRadius,
+		DebugQuat,
+		FColor::Red,
+		false,
+		LifeTime,
+		0,
+		2.0f
+	);
+	
 	TArray<AActor*> OverlapActors;
 	OverlapComp->GetOverlappingActors(OverlapActors);
 
-	UE_LOG(LogTemp, Log, TEXT("Blizzard overlaps: %d actors"), OverlapActors.Num());
+	UE_LOG(LogTemp, Log, TEXT("[%s] Blizzard overlaps: %d actors"), *MyHeader, OverlapActors.Num());
 	
 	for (AActor* Other : OverlapActors)
 	{

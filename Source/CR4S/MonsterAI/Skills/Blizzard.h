@@ -22,6 +22,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void ApplyDamageTick();
+	void EndSkill();
+
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	USceneComponent* RootComp;
 	
@@ -35,16 +38,16 @@ protected:
 	UNiagaraComponent* NiagaraComp;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	float SpawnRadius = 4.f;
+	float SpawnRadius = 400.f;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	float SpawnHeight = 8.f;
+	float SpawnHeight = 800.f;
 	
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float Damage = 0.f;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	float TickInterval = 0.2f;
+	float TickInterval = 0.5f;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float SpeedBuff = 1.5f;
@@ -52,6 +55,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float LifeTime = 5.f;
 	
+	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float Speed;
 
 	UPROPERTY()
@@ -59,10 +63,7 @@ protected:
 	
 	FTimerHandle DamageTimerHandle;
 	FTimerHandle LifetimeTimerHandle;
-	
-	void ApplyDamageTick();
-	void EndSkill();
 
 private:
-	FString MyHeader;
+	FString MyHeader = TEXT("Blizzard");
 };
