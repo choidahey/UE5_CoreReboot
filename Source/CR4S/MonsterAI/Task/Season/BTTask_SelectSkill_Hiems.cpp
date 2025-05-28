@@ -6,12 +6,6 @@
 #include "MonsterAI/MonsterAIHelper.h"
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
 
-UBTTask_SelectSkill_Hiems::UBTTask_SelectSkill_Hiems()
-    : IceRoadForwardTreshold(1100.f)
-    , IceRoadAwayTreshold(500.f)
-{
-}
-
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
 	if (!CachedMonster.IsValid()) return INDEX_NONE;
@@ -70,8 +64,7 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
 
         Weights.Add({ SkillID, Weight });
     }
-
-    // Save Weight
+    
     int32 TotalWeight = 0;
     for (const FSkillWeight& SkillWeight : Weights)
     {
@@ -79,16 +72,14 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     }
     if (TotalWeight <= 0)
         return INDEX_NONE;
-
-    // return random skill index
+    
     int32 RandomIndex = FMath::RandRange(1, TotalWeight);
     for (const FSkillWeight& SkillWeight : Weights)
     {
         RandomIndex -= SkillWeight.Weight;
         if (RandomIndex <= 0)
         {
-            //return SkillWeight.SkillID;
-            return 0;
+            return SkillWeight.SkillID;
         }
     }
 
