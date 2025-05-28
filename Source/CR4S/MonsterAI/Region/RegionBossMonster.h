@@ -16,6 +16,9 @@ class CR4S_API ARegionBossMonster : public ABaseMonster
 public:
 	ARegionBossMonster();
 
+protected:
+	virtual void BeginPlay() override;
+
 #pragma endregion
 
 #pragma region Navigation Invokers

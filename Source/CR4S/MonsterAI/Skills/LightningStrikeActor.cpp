@@ -4,11 +4,10 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
-#include "DrawDebugHelpers.h"
 
 ALightningStrikeActor::ALightningStrikeActor()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
 	SetRootComponent(RootComp);
@@ -26,69 +25,61 @@ ALightningStrikeActor::ALightningStrikeActor()
 	LightningCollider->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 }
 
-void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect, float DamageAmount)
-{
-	TargetPosition = TargetLocation;
-	Damage = DamageAmount;
-
-	if (LightningEffect)
-	{
-		NiagaraComp->SetAsset(LightningEffect);
-		NiagaraComp->Activate(true);
-	}
-
-	const FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
-	SetActorRotation(Direction.Rotation());
-
-	if (IsValid(LightningCollider))
-	{
-		LightningCollider->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
-		LightningCollider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		LightningCollider->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnOverlap);
-
-		LightningCollider->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	}
-}
-
 void ALightningStrikeActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void ALightningStrikeActor::Tick(float DeltaTime)
+void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect, float DamageAmount)
 {
-	Super::Tick(DeltaTime);
+	Damage = DamageAmount;
+	SetActorLocation(TargetLocation);
 
-	if (!IsValid(LightningCollider))
+	if (LightningEffect)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[LightningStrikeActor] LightningCollider is null in Tick."));
-		return;
+		NiagaraComp->SetAsset(LightningEffect);
+		NiagaraComp->SetWorldScale3D(FVector(10.f, 10.f, 20.f));
+		NiagaraComp->SetVariableFloat(FName("User_Width"), LightningWidth);
+		NiagaraComp->Activate(true);
 	}
 
-	const FVector Current = LightningCollider->GetComponentLocation();
-	const FVector ToTarget = (TargetPosition + FVector(0, 0, CapsuleHalfHeight)) - Current;
-	const FVector Move = ToTarget.GetClampedToMaxSize(CapsuleSpeed * DeltaTime);
-	const FVector NewLocation = Current + Move;
+	if (IsValid(LightningCollider))
+	{
+		LightningCollider->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
+		LightningCollider->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnOverlap);
+	}
 
-	LightningCollider->SetWorldLocation(NewLocation);
+	FTimerHandle CollisionHandle;
+	GetWorld()->GetTimerManager().SetTimer(CollisionHandle, [this]()
+		{
+			if (IsValid(LightningCollider))
+			{
+				LightningCollider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+				LightningCollider->SetGenerateOverlapEvents(true);
 
-	DrawDebugCapsule(
-		GetWorld(),
-		NewLocation,
-		CapsuleHalfHeight,
-		CapsuleRadius,
-		LightningCollider->GetComponentQuat(),
-		FColor::Red,
-		false,
-		-1.f,
-		0,
-		2.f
+				DrawDebugCapsule(
+					GetWorld(),
+					LightningCollider->GetComponentLocation(),
+					CapsuleHalfHeight,
+					CapsuleRadius,
+					LightningCollider->GetComponentQuat(),
+					FColor::Red,
+					false,
+					2.f,
+					0,
+					2.f
+				);
+			}
+		}, LightningDelayBeforeStrike, false);
+
+	FTimerHandle DestroyHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		DestroyHandle,
+		this,
+		&ALightningStrikeActor::HandleSelfDestruct,
+		LightningDelayBeforeStrike + ActorLifeAfterStrike,
+		false
 	);
-
-	if (ToTarget.SizeSquared() < FMath::Square(ArrivalThreshold))
-	{
-		Destroy();
-	}
 }
 
 void ALightningStrikeActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -107,4 +98,9 @@ void ALightningStrikeActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActo
 	);
 
 	DamagedActors.Add(OtherActor);
+}
+
+void ALightningStrikeActor::HandleSelfDestruct()
+{
+	Destroy();
 }

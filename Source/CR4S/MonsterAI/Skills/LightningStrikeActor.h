@@ -20,7 +20,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
 	void OnOverlap(
@@ -31,6 +30,9 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
+
+	UFUNCTION()
+	void HandleSelfDestruct();
 
 	UPROPERTY()
 	USceneComponent* RootComp;
@@ -46,9 +48,9 @@ protected:
 
 	UPROPERTY()
 	float Damage = 200.f;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Lightning|Collision")
-	float CapsuleSpeed = 100.f;
+	float LightningWidth = 20.f;
 
 	UPROPERTY(EditAnywhere, Category = "Lightning|Collision")
 	float CapsuleRadius = 100.f;
@@ -57,9 +59,13 @@ protected:
 	float CapsuleHalfHeight = 80.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
-	float ArrivalThreshold = 10;
+	float LightningDelayBeforeStrike = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
+	float ActorLifeAfterStrike = 1.0f;
 
 	UPROPERTY()
 	TSet<TWeakObjectPtr<AActor>> DamagedActors;
+
 
 };

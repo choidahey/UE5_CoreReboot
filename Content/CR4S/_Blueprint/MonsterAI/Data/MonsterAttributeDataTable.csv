@@ -1,6 +1,6 @@
 ,MonsterID,MaxHP,AttackPower,AttackRange,AttackSpeed,MoveSpeed,MaxStun,StunDamageMultiplier,StunChargeStartDelay,StunRecoveryMin,StunRecoveryMax,StunRecoveryRampUpTime,SightRadius,CombatRadius,LoseSightRadius,PeripheralVisionAngleDegrees,HearingRange,SkillDataTable
 KamishForestBoss,KamishForestBoss,250000,10,15,10,45,13000,1.25,3,25,100,1,2500,2000,5000,180,2500,/Game/CR4S/_Blueprint/MonsterAI/Data/KamishSkillDataTable.KamishSkillDataTable
 HiemsFrostBoss,HiemsFrostBoss,100000,20,15,10,27,10000,1.6,4.5,25,100,1,2000,2000,3000,90,1500,/Game/CR4S/_Blueprint/MonsterAI/Data/HiemsSkillDataTable.HiemsSkillDataTable
-MonsterTest3,MonsterTest3,100,30,15,10,5,,,,,,,,,,,,
+LavaBruteRockBoss,LavaBruteRockBoss,270000,30,15,10,40,14000,1.35,4,25,120,1,2500,2000,5000,180,2500,/Game/CR4S/_Blueprint/MonsterAI/Data/LavaBruteSkillDataTable.LavaBruteSkillDataTable
 MonsterTest4,MonsterTest4,100,40,15,10,5,,,,,,,,,,,,
 MonsterTest5,MonsterTest5,100,50,15,10,5,,,,,,,,,,,,

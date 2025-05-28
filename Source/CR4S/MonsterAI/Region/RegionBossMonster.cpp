@@ -1,5 +1,7 @@
 #include "RegionBossMonster.h"
 #include "MonsterAI/Controller/RegionBossMonsterAIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NavigationInvokerComponent.h"
@@ -20,6 +22,21 @@ ARegionBossMonster::ARegionBossMonster()
 
 	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
+}
+
+void ARegionBossMonster::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ARegionBossMonsterAIController* AIC = Cast<ARegionBossMonsterAIController>(GetController());
+	if (!IsValid(AIC))	return;
+
+	SetCombatStartLocation();
+
+	if (auto* BB = AIC->GetBlackboardComponent())
+	{
+		BB->SetValueAsVector(FRegionBossAIKeys::CombatStartLocation, CombatStartLocation);
+	}
 }
 
 bool ARegionBossMonster::IsOutsideCombatRange(float Tolerance) const

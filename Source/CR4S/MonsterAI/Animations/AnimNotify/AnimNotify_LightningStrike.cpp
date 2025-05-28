@@ -2,7 +2,6 @@
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "MonsterAI/Skills/LightningStrikeActor.h"
-#include "MonsterAI/Region/KamishForestBoss.h"
 #include "Kismet/GameplayStatics.h"
 
 void UAnimNotify_LightningStrike::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
@@ -25,22 +24,12 @@ void UAnimNotify_LightningStrike::Notify(USkeletalMeshComponent* MeshComp, UAnim
 	UWorld* World = OwnerMonster->GetWorld();
 	if (!World) return;
 
-	FVector CloudOrigin = OwnerMonster->GetActorLocation() + FVector(0, 0, 1000.f);
-	if (const AKamishForestBoss* Kamish = Cast<AKamishForestBoss>(OwnerMonster))
-	{
-		CloudOrigin = Kamish->GetCloudOriginLocation();
-	}
-
-	const float Angle = FMath::FRandRange(0.f, 2.f * PI);
-	const FVector Offset = FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.f) * SpawnRadius;
-	const FVector SpawnLocation = CloudOrigin + Offset;
-
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	ALightningStrikeActor* Lightning = World->SpawnActor<ALightningStrikeActor>(
-		LightningStrikeClass, 
-		SpawnLocation,
+		LightningStrikeClass,
+		TargetLocation,
 		FRotator::ZeroRotator,
 		Params
 	);
