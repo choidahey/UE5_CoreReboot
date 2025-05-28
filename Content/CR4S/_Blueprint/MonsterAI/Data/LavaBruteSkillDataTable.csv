@@ -1,0 +1,8 @@
+﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
+ThrowingStones,ThrowingStones,/Game/CR4S/_Blueprint/MonsterAI/BossMonster/Region/Animations/LavaBrute/AM_LavaBrute1_ThrowingStones.AM_LavaBrute1_ThrowingStones,4000,0,0,800,0,0,0,0,0
+EarthRumbling,EarthRumbling,/Game/CR4S/_Blueprint/MonsterAI/BossMonster/Region/Animations/LavaBrute/AM_LavaBrute2_EarthRumbling.AM_LavaBrute2_EarthRumbling,3000,0,0,1000,1,0,0,0,0
+ShoulderTackle,ShoulderTackle,/Game/CR4S/_Blueprint/MonsterAI/BossMonster/Region/Animations/LavaBrute/AM_LavaBrute3_ShoulderTackle.AM_LavaBrute3_ShoulderTackle,5000,0,2000,600,0,0,1,4000,1200
+Laser,Laser,/Game/CR4S/_Blueprint/MonsterAI/BossMonster/Region/Animations/LavaBrute/AM_LavaBrute4_Laser.AM_LavaBrute4_Laser,4000,0,1500,700,0,0,0,0,0
+CreateLava,CreateLava,/Game/CR4S/_Blueprint/MonsterAI/BossMonster/Region/Animations/LavaBrute/AM_LavaBrute5_CreateLava.AM_LavaBrute5_CreateLava,2500,0,0,1200,1,0,0,0,0
+SlapHands,SlapHands,/Game/CR4S/_Blueprint/MonsterAI/BossMonster/Region/Animations/LavaBrute/AM_LavaBrute6_SlapHands.AM_LavaBrute6_SlapHands,4000,0,0,800,0,0,0,0,0
+Punching,Punching,/Game/CR4S/_Blueprint/MonsterAI/BossMonster/Region/Animations/LavaBrute/AM_LavaBrute7_Punching.AM_LavaBrute7_Punching,3000,0,0,500,0,0,0,0,0
