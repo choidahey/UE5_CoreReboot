@@ -4,16 +4,6 @@
 #include "Engine/World.h"
 #include "MonsterAI/Skills/IcicleWavesActor.h"
 
-
-UAnimNotify_IcicleWavesAttack::UAnimNotify_IcicleWavesAttack()
-    : SpawnCount(3)
-    , BaseDistance(200.f)
-    , DistanceStep(400.f)
-    , SpawnInterval(1.f)
-    , bForward(true)
-{
-}
-
 void UAnimNotify_IcicleWavesAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
     if (!MeshComp || !IcicleWaveActorClass) return;
@@ -34,6 +24,6 @@ void UAnimNotify_IcicleWavesAttack::Notify(USkeletalMeshComponent* MeshComp, UAn
         FRotator::ZeroRotator,
         SpawnParams))
     {
-        SpawnActor->SpawnIcicleWaves(SpawnCount, BaseDistance, DistanceStep, SpawnInterval, bForward);
+        SpawnActor->InitIcicleWaves(SpawnCount, BaseDistance, DistanceStep, SpawnInterval, bForward);
     }
 }
