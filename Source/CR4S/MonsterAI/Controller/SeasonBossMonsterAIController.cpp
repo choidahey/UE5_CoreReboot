@@ -29,15 +29,18 @@ void ASeasonBossMonsterAIController::BeginPlay()
 void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor));
+	AActor* NearestHouse = nullptr;
+	if (!Target)
+		NearestHouse = Cast<AActor>(BlackboardComp->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 	
-	if (AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor)))
-	{
-		SetFocus(Target);
-	}
+	if (Target)
+		SetFocus(Target, EAIFocusPriority::Gameplay);
+	else if (NearestHouse)
+		SetFocus(NearestHouse, EAIFocusPriority::Gameplay);
 	else
-	{
 		ClearFocus(EAIFocusPriority::Gameplay);
-	}
 }
 
 FVector ASeasonBossMonsterAIController::GetPlayerInitialLocation() const

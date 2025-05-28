@@ -14,10 +14,6 @@ AIcicle::AIcicle()
 	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
 	RootComponent = RootComp;
 
-	// TODO :: I Will Change NiagaraComponent
-/*	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	MeshComp->SetupAttachment(RootComp);*/	
 	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComp"));
 	NiagaraComp->SetupAttachment(RootComp);
 	NiagaraComp->SetAutoActivate(false);
@@ -34,46 +30,43 @@ void AIcicle::InitIcicle(float Radius)
 		}
 	}
 
-	NiagaraComp->SetAsset(NiagaraTemplate);
-	//NiagaraComp->SetRelativeScale3D(FVector(Radius / 100.f));  // 스케일링
-
-	//NiagaraComp->Deactivate();
-	//NiagaraComp->ResetSystem();
-	//NiagaraComp->Activate(true);
-
-	if (NiagaraTemplate)
-	{
-		// RootComp 에 매번 새로운 시스템 붙여서 실행
-		UNiagaraFunctionLibrary::SpawnSystemAttached(
-			NiagaraTemplate,
-			RootComp,
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset,
-			true  // AutoDestroy = true
-		)->SetRelativeScale3D(FVector(Radius / 100.f));
-	}
-
-	for (UCapsuleComponent* C : EdgeColliders)
-		if (C) C->DestroyComponent();
-	EdgeColliders.Empty();
+	NiagaraComp->SetAsset(NiagaraTemplate);	
 
 	const float Circumference = 2.f * PI * Radius;
 	const float CoveragePerCapsule = (CapsuleRadius * 2.f) * CoverageFactor;
 	int32 NumSeg = FMath::CeilToInt(Circumference / CoveragePerCapsule);
 	NumSeg = FMath::Max(3, NumSeg);
 
+	if (NiagaraTemplate)
+	{
+		UNiagaraComponent* NiComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			NiagaraTemplate,
+			RootComp,
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
+
+		NiComp->SetVariableInt(FName("Spawn Count"), NumSeg);
+		NiComp->SetRelativeScale3D(FVector(Radius / 100.f));
+	}
+
+	for (UCapsuleComponent* C : EdgeColliders)
+		if (C) C->DestroyComponent();
+
+	EdgeColliders.Empty();
+
 	const FVector BaseLoc = GetActorLocation();
 	const float BottomZ = BaseLoc.Z;
 	const float CenterZ = BottomZ + CapsuleHalfHeight;
 
-	const float TwoPi = 2.f * PI;
+	const float CircleAngle = 2.f * PI;
 	for (int32 i = 0; i < NumSeg; i++)
 	{
-		float Angle = TwoPi * float(i) / float(NumSeg);
+		float Angle = CircleAngle * float(i) / float(NumSeg);
 		FVector Dir = FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.f);
-		//FVector Loc = GetActorLocation() + Dir * Radius;
 
 		FVector LocXY(BaseLoc.X + Dir.X * Radius, BaseLoc.Y + Dir.Y * Radius, 0.f);
 		FVector CapsuleCenter(LocXY.X, LocXY.Y, CenterZ);
@@ -92,22 +85,9 @@ void AIcicle::InitIcicle(float Radius)
 
 		CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AIcicle::OnOverlap);
 		EdgeColliders.Add(CapsuleComp);
-
-		DrawDebugCapsule(
-			GetWorld(),
-			CapsuleCenter,
-			CapsuleHalfHeight,
-			CapsuleRadius,
-			FQuat::Identity,
-			FColor::Cyan,
-			false,    // persistent
-			1.f,    // lifetime
-			0,       // depthPriority
-			2.0f     // thickness
-		);
 	}
 
-	SetLifeSpan(1.f);
+	SetLifeSpan(LifeTime);
 }
 
 void AIcicle::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

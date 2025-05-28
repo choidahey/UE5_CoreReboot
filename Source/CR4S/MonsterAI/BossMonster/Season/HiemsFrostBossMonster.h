@@ -13,5 +13,5 @@ public:
 	AHiemsFrostBossMonster();
 
 private:
-	FString MyHeader;
+	FString MyHeader = TEXT("HiemsFrostBossMonster");
 };

@@ -15,7 +15,8 @@ class CR4S_API AColdFairyActor : public AActor
 public:	
 	AColdFairyActor();
 
-	void Launch();
+	UFUNCTION(BlueprintCallable, Category = "Boss|Attack")
+	void Launch(AActor* TargetActor);
 
 protected:
 	virtual void BeginPlay() override;
@@ -36,14 +37,28 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
 	float Damage;
 
-	FVector LaunchDirection;
+	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
+	float Speed = 5000.f;
 
+	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
+	float MaxSpeed = 5000.f;
+
+	FVector LaunchDirection;
 
 private:
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* Overlapped, AActor* Other,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-		bool bFromSweep, const FHitResult& Sweep);
+	void OnHit(
+		UPrimitiveComponent* HitComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		FVector NormalImpulse,
+		const FHitResult& Hit
+		);
+	
+	UPROPERTY()
+	TObjectPtr<AActor> TargetActorPtr = nullptr;
 
-	FString MyHeader;
+	FTimerHandle DisableTickTimerHandle;
+	FTimerHandle DestroyTimerHandle;
+	FString MyHeader = TEXT("ColdFairyActor");
 };
