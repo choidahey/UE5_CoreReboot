@@ -12,8 +12,6 @@ class CR4S_API UAnimNotifyState_ColdFairyAttack : public UAnimNotifyState
 	GENERATED_BODY()
 	
 public:
-	UAnimNotifyState_ColdFairyAttack();
-
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 
@@ -21,24 +19,23 @@ public:
 	TSubclassOf<AActor> ColdFairyActorClass;
 	
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	int32 NumSpawnActor;
+	int32 NumSpawnActor = 10;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float Interval;
+	float Interval = 1.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float Damage;
+	float SpawnRadius = 500.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float SpawnRadius;
-
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float SpawnHeightOffset;
+	float SpawnHeightOffset = 300.f;
 
 
 private:
 	FTimerHandle LaunchTimerHandle;
+
+	UPROPERTY()
 	TArray<AColdFairyActor*> SpawnedFairies;
 
-	FString MyHeader;
+	FString MyHeader = TEXT("NotifyState_ColdFairyAttack");
 };
