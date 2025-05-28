@@ -15,6 +15,10 @@
 ABaseAnimal::ABaseAnimal()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    // Possess AI Automatically when Spawned
+    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
     StunValue     = 0.f;
     CurrentTarget = nullptr;
 
@@ -239,7 +243,7 @@ void ABaseAnimal::Die()
         ActiveInteractWidget = nullptr;
     }
     
-    OnDied.Broadcast();
+    OnDied.Broadcast(this); // One Param
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
     {
