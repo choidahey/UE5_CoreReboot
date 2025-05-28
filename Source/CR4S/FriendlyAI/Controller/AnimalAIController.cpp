@@ -134,9 +134,8 @@ void AAnimalAIController::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
     ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn());
-    if (!Animal || !Animal->bStatsReady)
+    if (!Animal || !Animal->bStatsReady || Animal->CurrentState == EAnimalState::Dead)
     {
-        //UE_LOG(LogTemp, Warning, TEXT("[Animal] Invalid or not ready animal."));
         return;
     }
 

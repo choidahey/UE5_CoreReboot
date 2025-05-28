@@ -242,20 +242,23 @@ void ABaseAnimal::Die()
         ActiveInteractWidget->RemoveFromParent();
         ActiveInteractWidget = nullptr;
     }
-    
     OnDied.Broadcast(this); // One Param
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
     {
         if (UAIPerceptionComponent* Perception = AIController->FindComponentByClass<UAIPerceptionComponent>())
         {
-            Perception->ForgetActor(this);
+            Perception->SetSenseEnabled(UAISense_Sight::StaticClass(), false);
         }
+        if (UBrainComponent* Brain = AIController->BrainComponent)
+        {
+            Brain->StopLogic("Dead");  
+        }
+        AIController->StopMovement();
+        AIController->UnPossess(); 
+        SetAnimalState(EAnimalState::Dead);
     }
-
-    UE_LOG(LogTemp, Log,
-        TEXT("[%s] Die"), *GetClass()->GetName());
-
+    
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
 
