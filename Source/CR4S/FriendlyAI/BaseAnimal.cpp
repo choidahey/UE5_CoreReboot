@@ -30,11 +30,23 @@ ABaseAnimal::ABaseAnimal()
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
-    SetAnimalState(EAnimalState::Patrol);
+    if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+    {
+        C->SetAnimalState(EAnimalState::Patrol);
+    }
     LoadStats();
     if (InteractableComponent)
     {
         InteractableComponent->OnTryInteract.BindDynamic(this, &ABaseAnimal::OnInteract);
+    }
+
+    bUseControllerRotationYaw = false;
+
+    UCharacterMovementComponent* Move = GetCharacterMovement();
+    if (Move)
+    {
+        Move->bOrientRotationToMovement = true;
+        Move->RotationRate = FRotator(0.f, 120.f, 0.f);
     }
 }
 
@@ -48,6 +60,8 @@ void ABaseAnimal::LoadStats()
             StatsRow = Row;
             CurrentStats = *Row;
             bStatsReady = true;
+            CurrentHealth = Row->MaxHealth;
+            CachedAttackInterval = Row->AttackInterval;
 
             const UEnum* EnumPtr = StaticEnum<EAnimalBehavior>();
             if (EnumPtr)
@@ -74,7 +88,10 @@ void ABaseAnimal::LoadStats()
                     if (UBehaviorTree* BTAsset = AnimalAI->GetBehaviorTreeAsset())
                     {
                         AnimalAI->RunBehaviorTree(BTAsset);
-                        SetAnimalState(EAnimalState::Patrol);
+                        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+                        {
+                            C->SetAnimalState(EAnimalState::Patrol);
+                        }
                     }
                 }
             }
@@ -108,9 +125,32 @@ void ABaseAnimal::PerformAttack()
 
     if (!OverlappedActors.Contains(CurrentTarget)) return;
 
+    if (!IsValid(CurrentTarget)) return;
+
     if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
     {
-        if (HitAnimal->CurrentState == EAnimalState::Dead) return;
+        if (HitAnimal->CurrentState == EAnimalState::Dead)
+        {
+            if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+            {
+                C->OnTargetDied();
+            }
+            return;
+        }
+    }
+
+    if (!AttackRange->IsOverlappingActor(CurrentTarget))
+    {
+        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+        {
+            C->OnTargetOutOfRange();
+        }
+        return;
+    }
+
+    if (UCharacterMovementComponent* Move = GetCharacterMovement())
+    {
+        Move->StopMovementImmediately();
     }
 
     // TODO: player dead
@@ -122,6 +162,7 @@ void ABaseAnimal::PerformAttack()
 
 void ABaseAnimal::ApplyStun(float Amount)
 {
+    if (!bStatsReady || !StatsRow) return;
     StunValue += Amount;
     UE_LOG(LogTemp, Log,
         TEXT("[%s] StunValue %.1f / %.1f"),
@@ -134,7 +175,10 @@ void ABaseAnimal::ApplyStun(float Amount)
         UE_LOG(LogTemp, Log,
             TEXT("[%s] stun"), *GetClass()->GetName());
         
-        SetAnimalState(EAnimalState::Stun);
+        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+        {
+            C->OnStunned();
+        }
         bIsStunned = true;
 
         bUseControllerRotationYaw = false;
@@ -168,7 +212,10 @@ void ABaseAnimal::RecoverFromStun()
     GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
     GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-    SetAnimalState(EAnimalState::Patrol);
+    if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+    {
+        C->OnRecoveredFromStun();
+    }
 
     if (IsValid(ActiveInteractWidget))
     {
@@ -181,7 +228,10 @@ void ABaseAnimal::Die()
 {
     if (CurrentState == EAnimalState::Dead) return;
     
-    SetAnimalState(EAnimalState::Dead);
+    if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+    {
+        C->OnDied();
+    }
 
     if (IsValid(ActiveInteractWidget))
     {
@@ -270,6 +320,12 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     {
         Die();
     }
+
+    if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+    {
+        C->SetTargetByDamage(DamageCauser);
+    }
+
     return ActualDamage;
 }
 

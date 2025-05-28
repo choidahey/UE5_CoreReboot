@@ -130,5 +130,7 @@ public:
 
 	UFUNCTION()
 	void Butcher();
-	
+
+	float LastAttackTime = 0.0f;
+	float CachedAttackInterval = 0.0f;
 };

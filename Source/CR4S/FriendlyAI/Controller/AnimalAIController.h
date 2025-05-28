@@ -31,6 +31,8 @@ public:
 
 	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
 	
+	void SetTargetByDamage(AActor* Attacker);
+	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	
@@ -60,4 +62,15 @@ protected:
 
 private:
 	FAnimalStatsRow CurrentStats;
+
+public:
+	void OnTargetDied();
+	void OnTargetOutOfRange();
+	void OnStunned();
+	void OnRecoveredFromStun();
+	void OnDied();
+
+public:
+	void SetTargetActor(AActor* Target);
+	void ClearTargetActor();
 };
