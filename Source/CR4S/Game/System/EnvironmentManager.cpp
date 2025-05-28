@@ -1,6 +1,7 @@
 #include "Game/System/EnvironmentManager.h"
 #include "Engine/DataAsset.h"
 #include "Game/System/SeasonType.h"
+#include "Game/System/SpawnZoneManager.h"
 
 AEnvironmentManager::AEnvironmentManager()
 {
@@ -12,6 +13,11 @@ void AEnvironmentManager::BeginPlay()
     // Load Weather if there is Save
 
     //For NewGame, Season Starts with Bountiful Season
+	USpawnZoneManager* SpawnZoneManager = GetWorld()->GetSubsystem<USpawnZoneManager>();
+    if( SpawnZoneManager)
+    {
+        SpawnZoneManager->SetGridSize(GridSize);
+    }
 }
 
 void AEnvironmentManager::SetWeatherByName(const FString& WeatherName, float TransitionTime)
