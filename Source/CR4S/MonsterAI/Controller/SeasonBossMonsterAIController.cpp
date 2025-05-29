@@ -23,26 +23,24 @@ void ASeasonBossMonsterAIController::BeginPlay()
 	Super::BeginPlay();
 
 	BlackboardComp->SetValueAsVector(FSeasonBossAIKeys::InitializeTargetLocation, GetPlayerInitialLocation());
-	BlackboardComp->SetValueAsVector(FSeasonBossAIKeys::NearestHouseLocation, GetNearestHouseLocation(GetPlayerInitialLocation()));
-
-	if (GetPlayerInitialLocation() == GetNearestHouseLocation(GetPlayerInitialLocation()))
-	{
-		BlackboardComp->ClearValue(FSeasonBossAIKeys::NearestHouseLocation);
-	}
+	BlackboardComp->SetValueAsObject(FSeasonBossAIKeys::NearestHouseActor, GetNearestHouseActor(GetPlayerInitialLocation()));
 }
 
 void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor));
+	AActor* NearestHouse = nullptr;
+	if (!Target)
+		NearestHouse = Cast<AActor>(BlackboardComp->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 	
-	if (AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor)))
-	{
-		SetFocus(Target);
-	}
+	if (Target)
+		SetFocus(Target, EAIFocusPriority::Gameplay);
+	else if (NearestHouse)
+		SetFocus(NearestHouse, EAIFocusPriority::Gameplay);
 	else
-	{
 		ClearFocus(EAIFocusPriority::Gameplay);
-	}
 }
 
 FVector ASeasonBossMonsterAIController::GetPlayerInitialLocation() const
@@ -57,18 +55,18 @@ FVector ASeasonBossMonsterAIController::GetPlayerInitialLocation() const
 	return TargetPlayer->GetActorLocation();
 }
 
-FVector ASeasonBossMonsterAIController::GetNearestHouseLocation(const FVector& PlayerLocation) const
+AActor* ASeasonBossMonsterAIController::GetNearestHouseActor(const FVector& PlayerLocation) const
 {
 	TArray<AActor*> Houses;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("House"), Houses);
 
-	float NearestDistance = FLT_MAX;
-	AActor* NearestActor = nullptr;
-
 	if (Houses.Num() <= 0)
 	{
-		return GetPlayerInitialLocation();
+		return nullptr;
 	}
+
+	float NearestDistance = FLT_MAX;
+	AActor* NearestActor = nullptr;
 
 	for (AActor* FindActor : Houses)
 	{
@@ -81,5 +79,5 @@ FVector ASeasonBossMonsterAIController::GetNearestHouseLocation(const FVector& P
 		}
 	}
 
-	return NearestActor->GetActorLocation();
+	return NearestActor;
 }

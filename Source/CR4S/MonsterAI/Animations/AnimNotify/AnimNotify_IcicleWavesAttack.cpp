@@ -1,16 +1,29 @@
 #include "MonsterAI/Animations/AnimNotify/AnimNotify_IcicleWavesAttack.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "GameFramework/Character.h"
+#include "Engine/World.h"
+#include "MonsterAI/Skills/IcicleWavesActor.h"
 
 void UAnimNotify_IcicleWavesAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    if (!MeshComp) return;
+    if (!MeshComp || !IcicleWaveActorClass) return;
 
     ACharacter* OwnerChar = Cast<ACharacter>(MeshComp->GetOwner());
     if (!OwnerChar) return;
 
-    UMonsterSkillComponent* SkillComp = OwnerChar->FindComponentByClass<UMonsterSkillComponent>();
-    if (!SkillComp) return;
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = OwnerChar;
+    SpawnParams.Instigator = OwnerChar->GetInstigator();
+    FVector SpawnLocation = OwnerChar->GetActorLocation();
 
-    const FMonsterSkillData& Data = SkillComp->GetCurrentSkillData();
+    bForward = FMath::RandBool();
+
+    if (AIcicleWavesActor* SpawnActor = OwnerChar->GetWorld()->SpawnActor<AIcicleWavesActor>(
+        IcicleWaveActorClass,
+        SpawnLocation,
+        FRotator::ZeroRotator,
+        SpawnParams))
+    {
+        SpawnActor->InitIcicleWaves(SpawnCount, BaseDistance, DistanceStep, SpawnInterval, bForward);
+    }
 }

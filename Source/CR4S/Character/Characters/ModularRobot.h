@@ -24,7 +24,8 @@ public:
 	AModularRobot();
 	
 #pragma region ChangePossess
-	void MountRobot(AController* InController);
+	UFUNCTION(BlueprintCallable)
+	void MountRobot(AActor* InActor);
 	UFUNCTION(BlueprintCallable)
 	void UnMountRobot();
 #pragma endregion

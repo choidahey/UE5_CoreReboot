@@ -6,7 +6,6 @@
 #include "Kismet/KismetMathLibrary.h"
 
 AColdFairyActor::AColdFairyActor()
-	: MyHeader(TEXT("ColdFairyActor"))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -15,11 +14,15 @@ AColdFairyActor::AColdFairyActor()
 
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
 	CollisionComp->InitSphereRadius(20.f);
-	CollisionComp->SetCollisionProfileName("OverlapAll");
-	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	CollisionComp->SetupAttachment(RootComp);
+	
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
+	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	CollisionComp->SetNotifyRigidBodyCollision(true);
+	CollisionComp->OnComponentHit.AddDynamic(this, &AColdFairyActor::OnHit);
 
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
 	StaticMeshComp->SetupAttachment(RootComp);
@@ -27,16 +30,14 @@ AColdFairyActor::AColdFairyActor()
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
 	MovementComp->bAutoActivate = false;
-	//MovementComp->bIsHomingProjectile = true;
-	//MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bIsHomingProjectile = false;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->HomingAccelerationMagnitude = 5000.f;
-	MovementComp->InitialSpeed = 5000.f;
-	MovementComp->MaxSpeed = 5000.f;
+	MovementComp->InitialSpeed = Speed;
+	MovementComp->MaxSpeed = MaxSpeed;
 	MovementComp->ProjectileGravityScale = 0.f;
-
-	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AColdFairyActor::OnHit);
+	MovementComp->bSweepCollision  = true;
+	MovementComp->UpdatedComponent = CollisionComp; 
 }
 
 void AColdFairyActor::BeginPlay()
@@ -49,7 +50,6 @@ void AColdFairyActor::BeginPlay()
 		{
 			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
 			Damage = SkillData.Damage;
-
 		}
 	}
 }
@@ -58,40 +58,73 @@ void AColdFairyActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	APawn* TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!TargetPlayer) return;
-
-	FVector ToTarget = (TargetPlayer->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	LaunchDirection = ToTarget;
-	FRotator LookAtRot = ToTarget.Rotation();
-	LookAtRot.Roll = 0.f;
-	SetActorRotation(LookAtRot);
-}
-
-void AColdFairyActor::Launch()
-{
-	SetActorTickEnabled(false);
-
-	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!Player || !MovementComp)
-		return;
-
-	FVector Dir = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	LaunchDirection = Dir;
-
-	FRotator LookAtRot = Dir.Rotation();
-	LookAtRot.Roll = 0.f;
-	SetActorRotation(LookAtRot);
-
-	MovementComp->Velocity = Dir * MovementComp->InitialSpeed;
-	MovementComp->Activate(true);
-}
-
-void AColdFairyActor::OnHit(UPrimitiveComponent* Overlapped, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Sweep)
-{
-	if (Other && Other != this)
+	if (IsValid(TargetActorPtr))
 	{
-		UGameplayStatics::ApplyDamage(Other, Damage, GetInstigatorController(), this, nullptr);
-		Destroy();
+		FVector ToTarget = (TargetActorPtr->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		LaunchDirection = ToTarget;
+		FRotator LookAtRot = ToTarget.Rotation();
+		LookAtRot.Roll = 0.f;
+		SetActorRotation(LookAtRot);
 	}
+}
+
+void AColdFairyActor::Launch(AActor* TargetActor)
+{
+	TargetActorPtr = TargetActor;
+
+	if (APawn* InstPawn = GetInstigator<APawn>())
+	{
+		CollisionComp->IgnoreActorWhenMoving(InstPawn, true);
+	}
+	
+	GetWorld()->GetTimerManager().SetTimer(
+			DisableTickTimerHandle,
+			FTimerDelegate::CreateLambda([this]()
+			{
+				SetActorTickEnabled(false);
+				
+				if (!TargetActorPtr || !MovementComp) return;
+
+				FVector Dir = (TargetActorPtr->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+				LaunchDirection = Dir;
+				
+				FRotator LookAtRot = Dir.Rotation();
+				LookAtRot.Roll = 0.f;
+				SetActorRotation(LookAtRot);
+
+				MovementComp->Velocity = Dir * MovementComp->InitialSpeed;
+				MovementComp->Activate(true);
+			}),
+			1.0f,
+			false
+		);
+}
+
+void AColdFairyActor::OnHit(
+	UPrimitiveComponent* HitComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse,
+	const FHitResult& Hit)
+{
+	if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
+
+	UGameplayStatics::ApplyDamage(
+		OtherActor,
+		Damage,
+		GetInstigatorController(),
+		this,
+		UDamageType::StaticClass()
+	);
+	
+	MovementComp->StopMovementImmediately();
+	SetActorLocation(Hit.ImpactPoint);
+	AttachToComponent(OtherComp, FAttachmentTransformRules::KeepWorldTransform);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		DestroyTimerHandle,
+		FTimerDelegate::CreateLambda([this]() { Destroy(); }),
+		2.0f,
+		false
+	);
 }
