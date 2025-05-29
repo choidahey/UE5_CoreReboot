@@ -7,7 +7,8 @@
 void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, UInventoryContainerWidget* InventoryContainerWidget)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlotWidgetClass)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlotWidgetClass)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlotWidgetContainer)))
 	{
 		return;
 	}

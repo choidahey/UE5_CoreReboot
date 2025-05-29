@@ -82,7 +82,10 @@ void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType In
 
 void UInventoryContainerWidget::CloseInventoryWidget()
 {
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(BackgroundBorder)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)))
 	{
 		return;
 	}

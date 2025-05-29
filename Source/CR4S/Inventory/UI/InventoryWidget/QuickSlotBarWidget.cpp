@@ -10,6 +10,11 @@ void UQuickSlotBarWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBar)))
+	{
+		return;
+	}
+	
 	for (UWidget* ChildWidget : QuickSlotBar->GetAllChildren())
 	{
 		UBaseItemSlotWidget* ItemSlotWidget = Cast<UBaseItemSlotWidget>(ChildWidget);
@@ -24,7 +29,8 @@ void UQuickSlotBarWidget::InitWidget(UPlayerInventoryComponent* InPlayerInventor
 {
 	PlayerInventoryComponent = InPlayerInventoryComponent;
 
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBar)))
 	{
 		return;
 	}
