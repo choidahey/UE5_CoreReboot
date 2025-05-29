@@ -19,4 +19,11 @@ public:
 protected:
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_Pawn;
+
+private:
+	FTimerHandle AttackTimerHandle;
+	TWeakObjectPtr<UBehaviorTreeComponent> StoredOwnerComp;
+	bool bCanFollowUp = true;
+	void OnAttackFinished();
+	
 };

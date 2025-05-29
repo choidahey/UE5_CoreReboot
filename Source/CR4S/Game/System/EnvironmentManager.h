@@ -34,7 +34,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DefaultSeason")
 	TObjectPtr<UDataAsset> DrySeasonPreset;
 
+#pragma region Spawn Zone Volume Management
+protected:
+	UPROPERTY(EditAnywhere, Category = "Spawn Zone")
+	int32 GridSize = 5000;
 
+#pragma endregion
 private:
 
 };

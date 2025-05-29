@@ -10,6 +10,7 @@ UBTTask_AnimalFlee::UBTTask_AnimalFlee()
 {
 	NodeName = TEXT("AnimalFlee");
 	bNotifyTick = true;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_AnimalFlee::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -68,7 +69,7 @@ void UBTTask_AnimalFlee::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 		return;
 	}
 	
-	if (Animal->CurrentState == EAnimalState::Dead)
+	if (Animal->CurrentState == EAnimalState::Dead || Animal->CurrentState == EAnimalState::Stun)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;

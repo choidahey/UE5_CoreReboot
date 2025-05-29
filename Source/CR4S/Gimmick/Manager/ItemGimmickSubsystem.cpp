@@ -39,7 +39,7 @@ const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowN
 	return FindDataFromDataTable<FBaseGimmickData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
-ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation) const
+ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const
 {
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(GimmickInfoDataTable)))
 	{
@@ -64,7 +64,7 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	ABaseGimmick* Gimmick
-		= GetWorld()->SpawnActor<ABaseGimmick>(GimmickClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+		= GetWorld()->SpawnActor<ABaseGimmick>(GimmickClass, SpawnLocation, SpawnRotation, SpawnParams);
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(Gimmick)))
 	{
 		return nullptr;
