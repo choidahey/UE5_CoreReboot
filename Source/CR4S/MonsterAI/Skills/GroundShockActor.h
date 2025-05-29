@@ -61,4 +61,7 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UCapsuleComponent>> ArcColliders;
+
+	UPROPERTY()
+	TSet<TObjectPtr<AActor>> AlreadyHitActors;
 };

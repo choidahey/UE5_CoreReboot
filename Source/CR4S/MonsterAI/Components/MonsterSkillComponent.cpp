@@ -183,8 +183,7 @@ void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable, int32 InSki
 				if (bEnable)
 				{
 					Collider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-					Collider->SetCollisionResponseToAllChannels(ECR_Ignore);
-					Collider->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+					Collider->SetCollisionResponseToAllChannels(ECR_Overlap);
 					Collider->SetGenerateOverlapEvents(true);
 				}
 				else

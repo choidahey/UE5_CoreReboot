@@ -96,6 +96,9 @@ void AGroundShockActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 {
 	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator()) return;
 
+	if (AlreadyHitActors.Contains(OtherActor)) return;
+	AlreadyHitActors.Add(OtherActor);
+
 	UGameplayStatics::ApplyDamage(
 		OtherActor,
 		Damage,
