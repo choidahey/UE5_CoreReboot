@@ -20,9 +20,14 @@ class CR4S_API UBaseInventoryWidget : public UUserWidget
 #pragma region Initalize
 
 public:
+	virtual void NativeConstruct() override;
+
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	
 	UFUNCTION(BlueprintCallable, Category = "InventoryWidget|Initalize")
 	virtual void InitWidget(ASurvivalHUD* SurvivalHUD,
-	                        UInventoryContainerWidget* InventoryContainerWidget);
+	                        UInventoryContainerWidget* NewInventoryContainerWidget);
 
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag, bool bCanDrop);
 
@@ -31,6 +36,12 @@ public:
 protected:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	
+	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController;
+
+	UPROPERTY()
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
 
 #pragma endregion
 

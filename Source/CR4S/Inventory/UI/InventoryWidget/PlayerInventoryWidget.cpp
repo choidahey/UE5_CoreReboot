@@ -1,26 +1,17 @@
 ﻿#include "PlayerInventoryWidget.h"
 
-#include "Components/Button.h"
+#include "CR4S.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 
-void UPlayerInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD,
-                                        UInventoryContainerWidget* InventoryContainerWidget)
+FReply UPlayerInventoryWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	Super::InitWidget(SurvivalHUD, InventoryContainerWidget);
-
-	if (IsValid(CloseButton))
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Key: %s"), *InKeyEvent.GetKey().ToString());
+	
+	if (InKeyEvent.GetKey() == EKeys::G && CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent)))
 	{
-		CloseButton->OnClicked.AddUniqueDynamic(InventoryContainerWidget,
-		                                        &UInventoryContainerWidget::CloseInventoryWidget);
+		InventoryComponent->SortInventoryItems();
+		return FReply::Handled();
 	}
-}
-
-void UPlayerInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, const bool bCanDrag, const bool bCanDrop)
-{
-	Super::ConnectInventoryComponent(NewInventoryComponent, bCanDrag, bCanDrop);
-
-	if (IsValid(SortButton))
-	{
-		SortButton->OnClicked.AddUniqueDynamic(InventoryComponent, &UBaseInventoryComponent::SortInventoryItems);
-	}
+	
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }

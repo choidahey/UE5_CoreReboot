@@ -9,23 +9,10 @@ class CR4S_API UPlayerInventoryWidget : public UBaseInventoryWidget
 {
 	GENERATED_BODY()
 
-#pragma region UBaseInventoryWidget Override
+#pragma region Input
 
 public:
-	virtual void InitWidget(ASurvivalHUD* SurvivalHUD,
-	                        UInventoryContainerWidget* InventoryContainerWidget) override;
-
-	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag, bool bCanDrop) override;
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 	
-#pragma endregion
-
-#pragma region BindWidget
-
-private:
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> CloseButton;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> SortButton;
-
-#pragma endregion
+#pragma endregion 
 };

@@ -4,7 +4,7 @@
 #include "Components/PanelWidget.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 
-void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, UInventoryContainerWidget* InventoryContainerWidget)
+void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, UInventoryContainerWidget* NewInventoryContainerWidget)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlotWidgetClass)) ||

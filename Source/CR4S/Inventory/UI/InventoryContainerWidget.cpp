@@ -31,7 +31,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	PlayerInventoryWidget->InitWidget(SurvivalHUD, this);
 	PlayerInventoryWidget->ConnectInventoryComponent(PlayerInventoryComponent, true, true);
 	QuickSlotBarWidget->InitWidget(InPlayerInventoryComponent);
-	
+
 	StorageInventoryWidget->InitWidget(SurvivalHUD, this);
 	PlantBoxInventoryWidget->InitWidget(SurvivalHUD, this);
 	CompostBinInventoryWidget->InitWidget(SurvivalHUD, this);
@@ -52,7 +52,7 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget()
 	}
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly);
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 
 	OpenInventoryWidgets.AddUnique(PlayerInventoryWidget);
@@ -73,7 +73,7 @@ void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType In
 	{
 		return;
 	}
-	
+
 	TargetInventoryWidget->ConnectInventoryComponent(InventoryComponent, bCanDrag, bCanDrop);
 
 	SurvivalHUD->ToggleWidget(TargetInventoryWidget);
@@ -106,7 +106,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	}
 
 	OpenInventoryWidgets.Empty();
-
+	
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
 
 	bIsOpen = false;
@@ -120,24 +120,29 @@ void UInventoryContainerWidget::InitToggleWidget(UBaseInventoryWidget* Inventory
 	}
 }
 
-UBaseInventoryWidget* UInventoryContainerWidget::GetTargetInventoryWidget(const EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const
+UBaseInventoryWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
+	const EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const
 {
 	UBaseInventoryWidget* TargetInventoryWidget = nullptr;
-	
+
 	switch (InventoryType)
 	{
 	case EInventoryType::Player:
 	case EInventoryType::Greenhouse:
 		return nullptr;
 	case EInventoryType::Storage:
-		TargetInventoryWidget = StorageInventoryWidget;
-		bCanDrag = true;
-		break;
+		{
+			TargetInventoryWidget = StorageInventoryWidget;
+			bCanDrag = true;
+			break;
+		}
 	case EInventoryType::ItemPouch:
-		TargetInventoryWidget = StorageInventoryWidget;
-		bCanDrag = true;
-		bCanDrop = false;
-		break;
+		{
+			TargetInventoryWidget = StorageInventoryWidget;
+			bCanDrag = true;
+			bCanDrop = false;
+			break;
+		}
 	case EInventoryType::PlantBox:
 		TargetInventoryWidget = PlantBoxInventoryWidget;
 		break;
@@ -147,4 +152,17 @@ UBaseInventoryWidget* UInventoryContainerWidget::GetTargetInventoryWidget(const 
 	}
 
 	return TargetInventoryWidget;
+}
+
+FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Key: %s"), *InKeyEvent.GetKey().ToString());
+
+	if (InKeyEvent.GetKey() == EKeys::Nine)
+	{
+		CloseInventoryWidget();
+		return FReply::Handled();
+	}
+
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }

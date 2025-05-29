@@ -47,6 +47,13 @@ private:
 	bool bIsOpen;
 	
 #pragma endregion
+
+#pragma region Input
+
+public:
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+	
+#pragma endregion
 	
 #pragma region BindWidget
 

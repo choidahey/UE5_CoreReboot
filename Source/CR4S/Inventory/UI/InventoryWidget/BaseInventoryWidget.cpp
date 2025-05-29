@@ -3,15 +3,53 @@
 #include "CR4S.h"
 #include "Components/Button.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 
+void UBaseInventoryWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	PlayerController = GetOwningPlayer();
+}
+
+void UBaseInventoryWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)))
+	{
+		PlayerController->SetInputMode(FInputModeUIOnly()
+		                               .SetWidgetToFocus(this->TakeWidget())
+		                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
+	}
+}
+
+void UBaseInventoryWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
+		GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		return;
+	}
+	
+	PlayerController->SetInputMode(FInputModeUIOnly()
+	                               .SetWidgetToFocus(InventoryContainerWidget->TakeWidget())
+	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
+}
+
 void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD,
-                                      UInventoryContainerWidget* InventoryContainerWidget)
+                                      UInventoryContainerWidget* NewInventoryContainerWidget)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
 	{
 		return;
 	}
+
+	InventoryContainerWidget = NewInventoryContainerWidget;
 
 	for (UWidget* ChildWidget : ItemSlotWidgetContainer->GetAllChildren())
 	{
