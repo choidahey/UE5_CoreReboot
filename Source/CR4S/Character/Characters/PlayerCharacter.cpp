@@ -1,5 +1,6 @@
 #include "PlayerCharacter.h"
 #include "AlsCameraComponent.h"
+#include "AlsCharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Character/CharacterController.h"
@@ -92,7 +93,7 @@ void APlayerCharacter::NotifyControllerChanged()
 			InputSubsystem->AddMappingContext(InputMappingContext, 0, Options);
 		}
 	}
-
+	
 	Super::NotifyControllerChanged();
 }
 
@@ -150,6 +151,13 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,Combat.Get(),&UCombatComponent::Input_OnAttack);
 	}
+}
+
+void APlayerCharacter::PossessedBy(AController* NewController)
+{
+	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Default")));
+	SetOverlayMode(CurrentTag);
+	Super::PossessedBy(NewController);
 }
 
 void APlayerCharacter::UnPossessed()
