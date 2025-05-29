@@ -196,6 +196,42 @@ UBaseInventoryItem* UBaseInventoryComponent::GetItemDataByIndex(const int32 Inde
 	return CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(Index)) ? InventoryItems[Index] : nullptr;
 }
 
+int32 UBaseInventoryComponent::GetItemCountByRowName(const FName RowName) const
+{
+	int32 Count = 0;
+
+	for (const UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
+		{
+			Count += Item->GetCurrentStackCount();
+		}
+	}
+	
+	return Count;
+}
+
+void UBaseInventoryComponent::RemoveItem(const FName RowName, const int32 Count)
+{
+	int32 RemainingCount = Count;
+	for (UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (RemainingCount <= 0)
+		{
+			return;
+		}
+		
+		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
+		{
+			const int32 ItemCount = Item->GetCurrentStackCount();
+			const int32 RemoveCount = FMath::Min(ItemCount, RemainingCount);
+
+			Item->SetCurrentStackCount(ItemCount - RemoveCount);
+			RemainingCount -= RemoveCount;
+		}
+	}
+}
+
 void UBaseInventoryComponent::SortInventoryItems()
 {
 	if (!CR4S_VALIDATE(LogInventory, IsValid(ItemGimmickSubsystem)))

@@ -50,11 +50,11 @@ public:
 	void AddItems(const TMap<FName, int32>& Items);
 	virtual FAddItemResult AddItem(FName RowName, int32 Count);
 
-	UFUNCTION(BlueprintCallable, Category = "InventoryComponent|InventorySystem")
-	void SortInventoryItems();
-
+	void RemoveItem(const FName RowName, const int32 Count);
 	
+	void SortInventoryItems();
 	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
+	int32 GetItemCountByRowName(const FName RowName) const;
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
 	
