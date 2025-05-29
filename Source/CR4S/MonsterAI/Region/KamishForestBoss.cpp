@@ -34,47 +34,28 @@ void AKamishForestBoss::SpawnCloudEffect()
 {
 	if (!CloudAsset || ActiveCloudEffect) return;
 
+	const float CloudSizeParam = CombatRange / NiagaraRadiusBase;
+	const float AdjustedHeight = CloudHeight * CloudSizeParam;
+
 	const FVector SpawnLocation = GetActorLocation() + FVector(0, 0, CloudHeight);
 	CloudOriginLocation = SpawnLocation;
-
-	const float NiagaraScale = CombatRange / NiagaraRadiusBase;
-	FVector NiagaraScale3D(NiagaraScale);
 
 	ActiveCloudEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(),
 		CloudAsset,
 		SpawnLocation,
 		GetActorRotation(),
-		NiagaraScale3D,
+		FVector(1.f),
 		true,
 		true,
 		ENCPoolMethod::None,
 		true
 	);
 
-#if WITH_EDITOR
-	DrawDebugSphere(
-		GetWorld(),
-		CloudOriginLocation,
-		CombatRange,
-		32,
-		FColor::Cyan,
-		false,
-		10.f,  // 10초간 유지 (혹은 -1.f: 무제한)
-		0,
-		3.f
-	);
-
-	DrawDebugString(
-		GetWorld(),
-		CloudOriginLocation + FVector(0, 0, 100.f),
-		TEXT("SwirlCloudOrigin"),
-		nullptr,
-		FColor::White,
-		10.f,
-		true
-	);
-#endif
+	if (ActiveCloudEffect)
+	{
+		ActiveCloudEffect->SetVariableFloat(FName("User_CloudSize"), CloudSizeParam);
+	}
 }
 
 void AKamishForestBoss::DestroyActiveClouds()

@@ -22,6 +22,9 @@ public:
 	TObjectPtr<UNiagaraSystem> LightningEffect;
 
 	UPROPERTY(EditAnywhere, Category = "Lightning")
-	float SpawnRadius = 800.f;
+	float RandomRadius = 300.f;
+
+	UPROPERTY(EditAnywhere, Category = "Lightning")
+	float SpawnDelay = 0.3f;
 
 };

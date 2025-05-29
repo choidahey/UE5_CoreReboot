@@ -150,7 +150,6 @@ FVector ARotatingProjectile::ComputeParabolicVelocity(const FVector& Start, cons
 
 	float Root = FMath::Sqrt(Discriminant);
 	float Angle = FMath::Atan((SpeedSq - Root) / (Gravity * DistXY));
-	// float Angle = FMath::Atan((SpeedSq + Root) / (Gravity * DistXY));
 
 	FVector DirXY = DeltaXY.GetSafeNormal();
 

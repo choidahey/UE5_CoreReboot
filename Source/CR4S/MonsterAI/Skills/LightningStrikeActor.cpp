@@ -20,9 +20,12 @@ ALightningStrikeActor::ALightningStrikeActor()
 	LightningCollider->SetupAttachment(RootComp);
 
 	LightningCollider->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	LightningCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	LightningCollider->SetCollisionResponseToAllChannels(ECR_Ignore);
+	LightningCollider->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
+	LightningCollider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	LightningCollider->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	LightningCollider->SetGenerateOverlapEvents(true);
+
+	LightningCollider->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnOverlap);
 }
 
 void ALightningStrikeActor::BeginPlay()
@@ -38,39 +41,43 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 	if (LightningEffect)
 	{
 		NiagaraComp->SetAsset(LightningEffect);
-		NiagaraComp->SetWorldScale3D(FVector(10.f, 10.f, 20.f));
+		NiagaraComp->SetWorldScale3D(FVector(10.f));
 		NiagaraComp->SetVariableFloat(FName("User_Width"), LightningWidth);
 		NiagaraComp->Activate(true);
 	}
 
 	if (IsValid(LightningCollider))
 	{
-		LightningCollider->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
-		LightningCollider->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnOverlap);
-	}
+		TArray<AActor*> OverlappingActors;
+		LightningCollider->GetOverlappingActors(OverlappingActors, APawn::StaticClass());
 
-	FTimerHandle CollisionHandle;
-	GetWorld()->GetTimerManager().SetTimer(CollisionHandle, [this]()
+		for (AActor* Overlapped : OverlappingActors)
 		{
-			if (IsValid(LightningCollider))
-			{
-				LightningCollider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-				LightningCollider->SetGenerateOverlapEvents(true);
+			FHitResult DummyHit;
 
-				DrawDebugCapsule(
-					GetWorld(),
-					LightningCollider->GetComponentLocation(),
-					CapsuleHalfHeight,
-					CapsuleRadius,
-					LightningCollider->GetComponentQuat(),
-					FColor::Red,
-					false,
-					2.f,
-					0,
-					2.f
-				);
-			}
-		}, LightningDelayBeforeStrike, false);
+			OnOverlap(
+				LightningCollider,
+				Overlapped,
+				nullptr,
+				INDEX_NONE,
+				false,
+				DummyHit
+			);
+		}
+
+		DrawDebugCapsule(
+			GetWorld(),
+			LightningCollider->GetComponentLocation(),
+			CapsuleHalfHeight,
+			CapsuleRadius,
+			LightningCollider->GetComponentQuat(),
+			FColor::Red,
+			false,
+			2.f,
+			0,
+			2.f
+		);
+	}
 
 	FTimerHandle DestroyHandle;
 	GetWorld()->GetTimerManager().SetTimer(

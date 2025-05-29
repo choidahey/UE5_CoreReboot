@@ -19,23 +19,33 @@ void UAnimNotify_LightningStrike::Notify(USkeletalMeshComponent* MeshComp, UAnim
 	APawn* TargetPlayer = UGameplayStatics::GetPlayerPawn(OwnerMonster, 0);
 	if (!TargetPlayer) return;
 
-	const FVector TargetLocation = TargetPlayer->GetActorLocation();
-	
+	const FVector Center = TargetPlayer->GetActorLocation();
+	const FVector2D Rand2D = FMath::RandPointInCircle(RandomRadius);
+	const FVector TargetLocation = Center + FVector(Rand2D.X, Rand2D.Y, 0.f);
+
 	UWorld* World = OwnerMonster->GetWorld();
 	if (!World) return;
 
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FTimerHandle SpawnHandle;
+	World->GetTimerManager().SetTimer(SpawnHandle,
+		FTimerDelegate::CreateWeakLambda(this, [this, World, TargetLocation, Damage]()
+		{
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	ALightningStrikeActor* Lightning = World->SpawnActor<ALightningStrikeActor>(
-		LightningStrikeClass,
-		TargetLocation,
-		FRotator::ZeroRotator,
-		Params
+			ALightningStrikeActor* Lightning = World->SpawnActor<ALightningStrikeActor>(
+				LightningStrikeClass,
+				TargetLocation,
+				FRotator::ZeroRotator,
+				Params
+			);
+
+			if (Lightning)
+			{
+				Lightning->InitializeStrike(TargetLocation, LightningEffect, Damage);
+			}
+		}),
+		SpawnDelay,
+		false
 	);
-
-	if (Lightning)
-	{
-		Lightning->InitializeStrike(TargetLocation, LightningEffect, Damage);
-	}
 }
