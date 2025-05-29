@@ -11,6 +11,7 @@ UBTService_UpdateCombatKeys::UBTService_UpdateCombatKeys()
 	NodeName = TEXT("UpdateCombatKeys");
 	Interval = 0.5f;
 	bNotifyBecomeRelevant = true;
+	bCreateNodeInstance = true;
 }
 
 void UBTService_UpdateCombatKeys::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
