@@ -8,6 +8,7 @@ UBTTask_MoveToInitializeLocation::UBTTask_MoveToInitializeLocation()
 {
 	NodeName = TEXT("MoveToInitializeTargetLocation");
 	bNotifyTick = true;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_MoveToInitializeLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

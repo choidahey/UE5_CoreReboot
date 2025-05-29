@@ -6,6 +6,12 @@
 #include "MonsterAI/MonsterAIHelper.h"
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
 
+UBTTask_SelectSkill_Hiems::UBTTask_SelectSkill_Hiems()
+{
+    NodeName = "SelectSkill_Hiems";
+    bCreateNodeInstance = true;
+}
+
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
 	if (!CachedMonster.IsValid()) return INDEX_NONE;
@@ -34,13 +40,14 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
         }
     }
 
-    if (Distance >= IceRoadForwardTreshold || Distance <= IceRoadAwayTreshold)
-    {
-        const bool bToward = (Distance >= IceRoadForwardTreshold);
-        BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
-
-        return 3;
-    }
+    // TODO :: 이 부분 태스크로 뺄 것
+    // if (Distance >= IceRoadForwardTreshold || Distance <= IceRoadAwayTreshold)
+    // {
+    //     const bool bToward = (Distance >= IceRoadForwardTreshold);
+    //     BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
+    //
+    //     return 3;
+    // }
 	
 	TArray<FSkillWeight> Weights;
 	Weights.Reserve(AvailableSkills.Num());
@@ -80,6 +87,7 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
         if (RandomIndex <= 0)
         {
             return SkillWeight.SkillID;
+            // return 2;
         }
     }
 
