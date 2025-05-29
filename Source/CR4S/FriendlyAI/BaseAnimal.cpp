@@ -9,8 +9,8 @@
 #include "AnimalStatsSubsystem.h"
 #include "Components/SphereComponent.h"
 #include "UI/AnimalInteractWidget.h"
-#include "../Inventory/InventoryComponent.h"
 #include "../Character/Characters/PlayerCharacter.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
 
 ABaseAnimal::ABaseAnimal()
 {
@@ -367,7 +367,7 @@ void ABaseAnimal::Capture()
     APlayerCharacter* Interactor = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
     if (!IsValid(Interactor)) return;
 
-    UInventoryComponent* Inventory = Interactor->FindComponentByClass<UInventoryComponent>();
+    UBaseInventoryComponent* Inventory = Interactor->FindComponentByClass<UBaseInventoryComponent>();
     if (!IsValid(Inventory)) return;
 
     const FAddItemResult Result = Inventory->AddItem(RowName, 1);

@@ -47,7 +47,7 @@ struct FBaseGimmickData : public FTableRowBase
 	FBaseDataInfo Info;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "종류"))
 	EGimmickType Type;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "종류"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "디테일 데이터"))
 	FDataTableRowHandle DetailData;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 엑터 클래스"))
 	TSubclassOf<class ABaseGimmick> GimmickClass;

@@ -2,13 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InventoryDummySlotWidget.generated.h"
+#include "DummyItemSlotWidget.generated.h"
 
 class UTextBlock;
 class UImage;
 
 UCLASS()
-class CR4S_API UInventoryDummySlotWidget : public UUserWidget
+class CR4S_API UDummyItemSlotWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

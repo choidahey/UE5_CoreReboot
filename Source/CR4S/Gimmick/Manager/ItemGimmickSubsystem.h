@@ -57,16 +57,16 @@ private:
 
 public:
 	template<typename GimmickClass>
-	GimmickClass* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation)
+	GimmickClass* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation)
 	{
-		ABaseGimmick* BaseGimmick = SpawnGimmick(RowName, SpawnLocation);
+		ABaseGimmick* BaseGimmick = SpawnGimmick(RowName, SpawnLocation, SpawnRotation);
 		GimmickClass* Gimmick = Cast<GimmickClass>(BaseGimmick);
 
 		return Gimmick;
 	}
 
 private:
-	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation) const;
+	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
 #pragma endregion
 };
