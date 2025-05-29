@@ -11,6 +11,10 @@ void UBaseInventoryWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	PlayerController = GetOwningPlayer();
+
+	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
+	
+	SetIsFocusable(true);
 }
 
 void UBaseInventoryWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -31,7 +35,7 @@ void UBaseInventoryWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
-		GetVisibility() == ESlateVisibility::Collapsed)
+		GetVisibility() != ESlateVisibility::Visible)
 	{
 		return;
 	}
@@ -41,15 +45,12 @@ void UBaseInventoryWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
 }
 
-void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD,
-                                      UInventoryContainerWidget* NewInventoryContainerWidget)
+void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
 	{
 		return;
 	}
-
-	InventoryContainerWidget = NewInventoryContainerWidget;
 
 	for (UWidget* ChildWidget : ItemSlotWidgetContainer->GetAllChildren())
 	{

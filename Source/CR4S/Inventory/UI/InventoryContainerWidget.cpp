@@ -9,6 +9,13 @@
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 
+void UInventoryContainerWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	SetIsFocusable(true);
+}
+
 void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
                                            UPlayerInventoryComponent* InPlayerInventoryComponent)
 {
@@ -28,13 +35,13 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
-	PlayerInventoryWidget->InitWidget(SurvivalHUD, this);
+	PlayerInventoryWidget->InitWidget(SurvivalHUD);
 	PlayerInventoryWidget->ConnectInventoryComponent(PlayerInventoryComponent, true, true);
 	QuickSlotBarWidget->InitWidget(InPlayerInventoryComponent);
 
-	StorageInventoryWidget->InitWidget(SurvivalHUD, this);
-	PlantBoxInventoryWidget->InitWidget(SurvivalHUD, this);
-	CompostBinInventoryWidget->InitWidget(SurvivalHUD, this);
+	StorageInventoryWidget->InitWidget(SurvivalHUD);
+	PlantBoxInventoryWidget->InitWidget(SurvivalHUD);
+	CompostBinInventoryWidget->InitWidget(SurvivalHUD);
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InitToggleWidget(StorageInventoryWidget);

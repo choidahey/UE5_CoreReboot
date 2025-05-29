@@ -5,13 +5,12 @@
 
 FReply UPlayerInventoryWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	CR4S_Log(LogInventoryUI, Warning, TEXT("Key: %s"), *InKeyEvent.GetKey().ToString());
-	
-	if (InKeyEvent.GetKey() == EKeys::G && CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent)))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent)) ||
+		InKeyEvent.GetKey() != EKeys::R)
 	{
-		InventoryComponent->SortInventoryItems();
-		return FReply::Handled();
+		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}
-	
-	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+
+	InventoryComponent->SortInventoryItems();
+	return FReply::Handled();
 }

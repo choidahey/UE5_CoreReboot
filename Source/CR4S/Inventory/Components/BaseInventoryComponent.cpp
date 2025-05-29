@@ -228,6 +228,8 @@ void UBaseInventoryComponent::RemoveItem(const FName RowName, const int32 Count)
 
 			Item->SetCurrentStackCount(ItemCount - RemoveCount);
 			RemainingCount -= RemoveCount;
+
+			NotifyInventoryItemChanged(Item->GetSlotIndex());
 		}
 	}
 }

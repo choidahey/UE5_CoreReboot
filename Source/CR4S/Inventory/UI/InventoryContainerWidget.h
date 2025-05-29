@@ -21,6 +21,8 @@ class CR4S_API UInventoryContainerWidget : public UUserWidget
 #pragma region Initalize
 
 public:
+	virtual void NativeConstruct() override;
+	
 	void InitWidget(ASurvivalHUD* InSurvivalHUD, UPlayerInventoryComponent* InPlayerInventoryComponent);
 
 private:

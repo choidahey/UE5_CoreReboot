@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
 
 void UBaseItemSlotWidget::NativeConstruct()
 {
@@ -15,6 +16,12 @@ void UBaseItemSlotWidget::NativeConstruct()
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	PlayerController = GetOwningPlayer();
+
+	OwnerWidget = GetTypedOuter<UInventoryContainerWidget>();
+
+	SetIsFocusable(true);
 }
 
 void UBaseItemSlotWidget::InitWidget(UBaseInventoryItem* NewItem, const bool bNewCanDrag, const bool bNewCanDrop)
@@ -73,6 +80,13 @@ void UBaseItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const 
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Visible);
 	}
+
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)))
+	{
+		PlayerController->SetInputMode(FInputModeUIOnly()
+		                               .SetWidgetToFocus(this->TakeWidget())
+		                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
+	}
 }
 
 void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
@@ -83,6 +97,17 @@ void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(OwnerWidget)) ||
+		GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		return;
+	}
+
+	PlayerController->SetInputMode(FInputModeUIOnly()
+	                               .SetWidgetToFocus(OwnerWidget->TakeWidget())
+	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
 }
 
 FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -181,4 +206,18 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 	}
 
 	return false;
+}
+
+FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, CurrentItem->HasItemData()) ||
+		InKeyEvent.GetKey() != EKeys::G)
+	{
+		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+	}
+
+	CurrentItem->SetCurrentStackCount(0);
+	SetItem(CurrentItem);
+	return FReply::Handled();
 }
