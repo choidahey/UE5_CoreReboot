@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AlsCharacter.h"
+#include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "PlayerCharacter.generated.h"
 
 class UInteractionComponent;
@@ -25,6 +26,7 @@ public:
 
 #pragma region Get
 	FORCEINLINE UStaticMeshComponent* GetOverlayStaticMesh() { return OverlayStaticMesh; }
+	FORCEINLINE int32 GetAttackPower() const { return Status->GetAttackPower(); }
 #pragma endregion
 	
 #pragma region Widget
