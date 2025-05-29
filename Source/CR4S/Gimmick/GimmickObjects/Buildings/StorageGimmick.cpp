@@ -2,9 +2,9 @@
 
 #include "CR4S.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
-#include "Inventory/UI/InventoryType.h"
 
 AStorageGimmick::AStorageGimmick()
 {

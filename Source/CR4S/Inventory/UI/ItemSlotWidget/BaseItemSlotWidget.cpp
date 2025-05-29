@@ -3,10 +3,19 @@
 #include "CR4S.h"
 #include "DummyItemSlotWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Components/Border.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+
+void UBaseItemSlotWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (IsValid(HoverImage))
+	{
+		HoverImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
 
 void UBaseItemSlotWidget::InitWidget(UBaseInventoryItem* NewItem, const bool bNewCanDrag, const bool bNewCanDrop)
 {
@@ -15,14 +24,16 @@ void UBaseItemSlotWidget::InitWidget(UBaseInventoryItem* NewItem, const bool bNe
 	SetItem(CurrentItem);
 
 	bCanDrag = bNewCanDrag;
-	bCanDrop = bNewCanDrop;	
+	bCanDrop = bNewCanDrop;
 }
 
 void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 {
 	CurrentItem = InItem;
 
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(IconImage)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CountTextBlock)))
 	{
 		return;
 	}
@@ -34,24 +45,44 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 
 		if (CurrentItem->GetInventoryItemData()->ItemInfoData.MaxStackCount > 1)
 		{
-			CountTextBorder->SetVisibility(ESlateVisibility::Visible);
+			CountTextBlock->SetVisibility(ESlateVisibility::Visible);
 			CountTextBlock->SetText(FText::AsNumber(CurrentItem->GetCurrentStackCount()));
 		}
 		else
 		{
-			CountTextBorder->SetVisibility(ESlateVisibility::Hidden);
+			CountTextBlock->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 	else
 	{
-		IconImage->SetVisibility(ESlateVisibility::Hidden);
-		CountTextBorder->SetVisibility(ESlateVisibility::Hidden);
+		IconImage->SetVisibility(ESlateVisibility::Collapsed);
+		CountTextBlock->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
 void UBaseItemSlotWidget::EmptyItem()
 {
 	CurrentItem = nullptr;
+}
+
+void UBaseItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+
+	if (IsValid(HoverImage))
+	{
+		HoverImage->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+
+	if (IsValid(HoverImage))
+	{
+		HoverImage->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -73,16 +104,12 @@ FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 }
 
 void UBaseItemSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
-                                                UDragDropOperation*& OutOperation)
+                                               UDragDropOperation*& OutOperation)
 {
 	// CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnDragDetected"));
 
-	if (!CR4S_VALIDATE(LogInventoryUI, bCanDrag))
-	{
-		return;
-	}
-
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+	if (!CR4S_VALIDATE(LogInventoryUI, bCanDrag) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(DummySlotWidgetClass)))
 	{
 		return;
@@ -103,16 +130,12 @@ void UBaseItemSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, cons
 }
 
 bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-                                        UDragDropOperation* InOperation)
+                                       UDragDropOperation* InOperation)
 {
 	// CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnDrop"));
 
-	if (!CR4S_VALIDATE(LogInventoryUI, bCanDrop))
-	{
-		return false;
-	}
-
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+	if (!CR4S_VALIDATE(LogInventoryUI, bCanDrop) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(InOperation)))
 	{
 		return false;

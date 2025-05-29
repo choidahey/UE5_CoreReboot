@@ -4,7 +4,7 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
-#include "Inventory/UI/InventoryType.h"
+#include "Inventory/InventoryType.h"
 
 AItemPouchGimmick::AItemPouchGimmick()
 {
@@ -40,7 +40,7 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 		return;
 	}
 
-	PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::Storage, InventoryComponent);
+	PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::ItemPouch, InventoryComponent);
 }
 
 void AItemPouchGimmick::InitItemPouch(const TMap<FName, int32>& RemainingItems) const

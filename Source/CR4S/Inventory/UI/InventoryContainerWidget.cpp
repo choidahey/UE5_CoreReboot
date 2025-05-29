@@ -1,8 +1,8 @@
 ﻿#include "InventoryContainerWidget.h"
 
 #include "CR4S.h"
-#include "InventoryType.h"
 #include "Components/Border.h"
+#include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
 #include "InventoryWidget/QuickSlotBarWidget.h"
@@ -16,7 +16,12 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	SurvivalHUD = InSurvivalHUD;
 	PlayerInventoryComponent = InPlayerInventoryComponent;
 
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlantBoxInventoryWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinInventoryWidget)))
 	{
 		return;
 	}
@@ -39,12 +44,9 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 void UInventoryContainerWidget::OpenPlayerInventoryWidget()
 {
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
-	{
-		return;
-	}
-
-	if (CR4S_VALIDATE(LogInventoryUI, bIsOpen))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		CR4S_VALIDATE(LogInventoryUI, bIsOpen) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(BackgroundBorder)))
 	{
 		return;
 	}
@@ -63,26 +65,13 @@ void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType In
 {
 	OpenPlayerInventoryWidget();
 
-	UBaseInventoryWidget* TargetInventoryWidget = nullptr;
-
 	bool bCanDrag = false;
 	bool bCanDrop = true;
-	
-	switch (InventoryType)
+	UBaseInventoryWidget* TargetInventoryWidget = GetTargetInventoryWidget(InventoryType, bCanDrag, bCanDrop);
+
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(TargetInventoryWidget)))
 	{
-	case EInventoryType::Player:
-	case EInventoryType::Greenhouse:
 		return;
-	case EInventoryType::Storage:
-		TargetInventoryWidget = StorageInventoryWidget;
-		bCanDrag = true;
-		break;
-	case EInventoryType::PlantBox:
-		TargetInventoryWidget = PlantBoxInventoryWidget;
-		break;
-	case EInventoryType::CompostBin:
-		TargetInventoryWidget = CompostBinInventoryWidget;
-		break;
 	}
 	
 	TargetInventoryWidget->ConnectInventoryComponent(InventoryComponent, bCanDrag, bCanDrop);
@@ -126,4 +115,33 @@ void UInventoryContainerWidget::InitToggleWidget(UBaseInventoryWidget* Inventory
 	{
 		SurvivalHUD->ToggleWidget(InventoryWidget);
 	}
+}
+
+UBaseInventoryWidget* UInventoryContainerWidget::GetTargetInventoryWidget(const EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const
+{
+	UBaseInventoryWidget* TargetInventoryWidget = nullptr;
+	
+	switch (InventoryType)
+	{
+	case EInventoryType::Player:
+	case EInventoryType::Greenhouse:
+		return nullptr;
+	case EInventoryType::Storage:
+		TargetInventoryWidget = StorageInventoryWidget;
+		bCanDrag = true;
+		break;
+	case EInventoryType::ItemPouch:
+		TargetInventoryWidget = StorageInventoryWidget;
+		bCanDrag = true;
+		bCanDrop = false;
+		break;
+	case EInventoryType::PlantBox:
+		TargetInventoryWidget = PlantBoxInventoryWidget;
+		break;
+	case EInventoryType::CompostBin:
+		TargetInventoryWidget = CompostBinInventoryWidget;
+		break;
+	}
+
+	return TargetInventoryWidget;
 }

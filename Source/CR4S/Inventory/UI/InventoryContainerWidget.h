@@ -42,6 +42,7 @@ public:
 	
 private:
 	void InitToggleWidget(UBaseInventoryWidget* InventoryWidget) const;
+	UBaseInventoryWidget* GetTargetInventoryWidget(EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const;
 	
 	bool bIsOpen;
 	

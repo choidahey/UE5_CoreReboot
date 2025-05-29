@@ -15,6 +15,13 @@ UCLASS()
 class CR4S_API UBaseItemSlotWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+#pragma region UUserWidget Override
+
+public:
+	virtual void NativeConstruct() override;
+	
+#pragma endregion 
 	
 #pragma region Initalize
 
@@ -27,11 +34,11 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> HoverImage;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> IconImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> CountTextBlock;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBorder> CountTextBorder;
 	
 #pragma endregion
 
@@ -46,6 +53,15 @@ protected:
 	TObjectPtr<UBaseInventoryItem> CurrentItem;
 	
 #pragma endregion
+
+#pragma region Hover
+
+protected:
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	
+#pragma endregion 
+	
 	
 #pragma region Drag And Drop
 	
