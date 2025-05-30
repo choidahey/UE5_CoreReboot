@@ -7,6 +7,8 @@
 #include "Data/AnimalStatsRow.h"
 #include "BaseAnimal.generated.h"
 
+class UAnimalRangedAttackComponent;
+
 UENUM(BlueprintType)
 enum class EAnimalState : uint8
 {
@@ -94,6 +96,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void PerformAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void DashAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void RangedAttack();
 	
 	UFUNCTION(BlueprintCallable)
 	void ApplyStun(float Amount);
@@ -115,6 +123,7 @@ public:
 	TObjectPtr<class UInteractableComponent> InteractableComponent;
 
 	FTimerHandle StunRecoverTimer;
+	
 	bool bIsStunned = false;
 
 	void RecoverFromStun();
@@ -138,4 +147,10 @@ public:
 
 	float LastAttackTime = 0.0f;
 	float CachedAttackInterval = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
+	UAnimalRangedAttackComponent* RangedAttackComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
+	UArrowComponent* MuzzleArrow;
 };

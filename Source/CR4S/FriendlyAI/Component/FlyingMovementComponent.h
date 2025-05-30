@@ -11,7 +11,7 @@ class CR4S_API UFlyingMovementComponent : public UAnimalMovementComponent
 
 public:
     UFlyingMovementComponent();
-
+    virtual void BeginPlay() override;
     virtual void MoveToLocation(const FVector& Dest) override;
     virtual void MoveToActor(AActor* TargetActor) override;
     virtual void StopMovement() override;
@@ -37,7 +37,7 @@ protected:
     UPROPERTY(EditAnywhere, Category="Flock") float AlignWeight;
     UPROPERTY(EditAnywhere, Category="Flock") float CohereWeight;
     UPROPERTY(EditAnywhere, Category="Flock") float SeparateWeight;
-
+    virtual void InitializeComponent() override;
 private:
     enum class EPhase : uint8 { Ascend, Cruise, Descend };
 
@@ -55,4 +55,8 @@ private:
     FVector ChooseDir(const FVector& CurPos) const;
     bool    CanLand(const FVector& CurPos) const;
     float   GroundZAt(const FVector& Pos) const;
+
+    FRandomStream RandomStream;
+    FVector TargetLocation;
+    bool bHasSeeded = false;
 };

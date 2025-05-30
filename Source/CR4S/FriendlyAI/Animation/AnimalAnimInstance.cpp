@@ -55,3 +55,19 @@ void UAnimalAnimInstance::AnimNotify_AnimalAttackHit()
 		OwnerAnimal->PerformAttack();
 	}
 }
+
+void UAnimalAnimInstance::AnimNotify_AnimalDash()
+{
+	if (OwnerAnimal)
+	{
+		OwnerAnimal->DashAttack();
+	}
+}
+
+void UAnimalAnimInstance::AnimNotify_AnimalRanged()
+{
+	if (OwnerAnimal)
+	{
+		OwnerAnimal->RangedAttack();
+	}
+}

@@ -10,6 +10,8 @@
 #include "Components/SphereComponent.h"
 #include "UI/AnimalInteractWidget.h"
 #include "../Inventory/InventoryComponent.h"
+#include "Component/AnimalRangedAttackComponent.h"
+#include "Components/ArrowComponent.h"
 #include "../Character/Characters/PlayerCharacter.h"
 
 ABaseAnimal::ABaseAnimal()
@@ -29,6 +31,10 @@ ABaseAnimal::ABaseAnimal()
     AttackRange->SetupAttachment(RootComponent);
     AttackRange->SetSphereRadius(150.f);
     AttackRange->SetCollisionProfileName(TEXT("Trigger"));
+
+    RangedAttackComponent = CreateDefaultSubobject<UAnimalRangedAttackComponent>(TEXT("RangedAttackComponent"));
+    MuzzleArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleArrow"));
+    MuzzleArrow->SetupAttachment(RootComponent);
 }
 
 void ABaseAnimal::BeginPlay()
@@ -390,4 +396,21 @@ void ABaseAnimal::Butcher()
 {
     // TODO : AddItem
     Destroy();
+}
+
+void ABaseAnimal::DashAttack()
+{
+    if (StatsRow)
+    {
+        LaunchCharacter(GetActorForwardVector() * StatsRow->ChargeSpeed, true, true);
+        //GetCharacterMovement()->Velocity = GetActorForwardVector() * StatsRow->ChargeSpeed;
+    } 
+}
+
+void ABaseAnimal::RangedAttack()
+{
+    if (RangedAttackComponent)
+    {
+        RangedAttackComponent->FireProjectile();
+    }
 }
