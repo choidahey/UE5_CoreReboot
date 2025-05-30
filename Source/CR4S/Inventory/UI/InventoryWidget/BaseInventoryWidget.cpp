@@ -35,7 +35,7 @@ void UBaseInventoryWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
-		GetVisibility() != ESlateVisibility::Visible)
+		!InventoryContainerWidget->IsOpen())
 	{
 		return;
 	}

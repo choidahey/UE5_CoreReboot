@@ -75,8 +75,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
 	int32 MaxItemSlot;
-
-	bool bIsInitializedInventorySize;
+	
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 

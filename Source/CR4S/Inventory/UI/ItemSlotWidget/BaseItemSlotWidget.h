@@ -28,7 +28,7 @@ public:
 
 public:
 	void InitWidget(UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
-
+	
 protected:
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController;

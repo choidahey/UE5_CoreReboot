@@ -6,8 +6,7 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
-	: MaxItemSlot(10),
-	  bIsInitializedInventorySize(false)
+	: MaxItemSlot(10)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -33,11 +32,6 @@ void UBaseInventoryComponent::BeginPlay()
 
 void UBaseInventoryComponent::InitInventorySize()
 {
-	if (CR4S_VALIDATE(LogInventory, bIsInitializedInventorySize))
-	{
-		return;
-	}
-
 	InventoryItems.Reserve(MaxItemSlot);
 	for (int32 Index = 0; Index < MaxItemSlot; ++Index)
 	{
@@ -45,8 +39,6 @@ void UBaseInventoryComponent::InitInventorySize()
 		Item->InitInventoryItem(OwnerActor, Index);
 		InventoryItems.Add(Item);
 	}
-
-	bIsInitializedInventorySize = true;
 }
 
 void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)

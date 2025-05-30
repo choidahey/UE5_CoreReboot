@@ -91,14 +91,13 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(BackgroundBorder)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)))
 	{
 		return;
 	}
-
-	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
-
+	
+	bIsOpen = false;
+	
 	for (UBaseInventoryWidget* OpenInventoryWidget : OpenInventoryWidgets)
 	{
 		if (IsValid(OpenInventoryWidget))
@@ -113,10 +112,10 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	}
 
 	OpenInventoryWidgets.Empty();
+
+	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 	
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
-
-	bIsOpen = false;
 }
 
 void UInventoryContainerWidget::InitToggleWidget(UBaseInventoryWidget* InventoryWidget) const

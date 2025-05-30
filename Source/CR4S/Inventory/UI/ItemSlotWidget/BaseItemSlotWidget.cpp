@@ -100,7 +100,7 @@ void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(OwnerWidget)) ||
-		GetVisibility() == ESlateVisibility::Collapsed)
+		!OwnerWidget->IsOpen())
 	{
 		return;
 	}
