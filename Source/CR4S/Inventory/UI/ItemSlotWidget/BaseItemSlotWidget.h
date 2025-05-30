@@ -4,6 +4,8 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UBaseInventoryWidget;
+class UInventoryContainerWidget;
 class UDummyItemSlotWidget;
 class UBorder;
 class UTextBlock;
@@ -27,6 +29,16 @@ public:
 
 public:
 	void InitWidget(UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
+	
+protected:
+	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController;
+
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryWidget> InventoryWidget;
+	
+	UPROPERTY()
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
 	
 #pragma endregion
 	
@@ -61,8 +73,7 @@ protected:
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
 #pragma endregion 
-	
-	
+
 #pragma region Drag And Drop
 	
 protected:
@@ -78,6 +89,13 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDummyItemSlotWidget> DummySlotWidgetClass;
+	
+#pragma endregion
+
+#pragma region Input
+
+public:
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 	
 #pragma endregion
 };

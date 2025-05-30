@@ -4,6 +4,8 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/InventoryType.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 
 APlanterBoxGimmick::APlanterBoxGimmick()
 {
@@ -14,6 +16,9 @@ APlanterBoxGimmick::APlanterBoxGimmick()
 	SpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint"));
 	SpawnPoint->SetupAttachment(RootComponent);
 	SpawnPoint->SetMobility(EComponentMobility::Movable);
+
+	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
+	InventoryComponent->SetMaxInventorySlot(1);
 }
 
 void APlanterBoxGimmick::BeginPlay()
@@ -46,6 +51,24 @@ void APlanterBoxGimmick::OnGimmickInteracted(AActor* Interactor)
 		return;
 	}
 
+	UPlayerInventoryComponent* PlayerInventoryComponent = Interactor->FindComponentByClass<UPlayerInventoryComponent>();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(PlayerInventoryComponent)))
+	{
+		return;
+	}
+
+	PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::PlantBox, InventoryComponent);
+}
+
+void APlanterBoxGimmick::OnDetectionStateChanged(AActor* InDetectingActor,
+                                                 const bool bInIsDetected)
+{
+	DetectingActor = InDetectingActor;
+	bIsDetected = bInIsDetected;
+}
+
+void APlanterBoxGimmick::HandlePlantingCropsGimmick()
+{
 	UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
 	{
@@ -60,18 +83,11 @@ void APlanterBoxGimmick::OnGimmickInteracted(AActor* Interactor)
 		return;
 	}
 
-	PlantedGimmick->OnHarvest.BindDynamic(this, &ThisClass::OnHarvest);
+	PlantedGimmick->OnHarvest.BindDynamic(this, &ThisClass::HandleHarvest);
 	InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
 }
 
-void APlanterBoxGimmick::OnDetectionStateChanged(AActor* InDetectingActor,
-                                                 const bool bInIsDetected)
-{
-	DetectingActor = InDetectingActor;
-	bIsDetected = bInIsDetected;
-}
-
-void APlanterBoxGimmick::OnHarvest()
+void APlanterBoxGimmick::HandleHarvest()
 {
 	PlantedGimmick = nullptr;
 	

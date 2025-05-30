@@ -15,6 +15,17 @@ ABaseGimmick::ABaseGimmick()
 	GimmickMeshComponent->SetupAttachment(SceneComponent);
 }
 
+const FGimmickInfoData* ABaseGimmick::GetGimmickInfoData() const
+{
+	const UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
+	{
+		return nullptr;
+	}
+
+	return ItemGimmickSubsystem->FindGimmickInfoData(GimmickDataRowName);
+}
+
 void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 {
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventoryOwnerActor)))
@@ -35,7 +46,7 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 		return;
 	}
 	
-	if (const FBaseGimmickData* GimmickData = ItemGimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
+	if (const FGimmickInfoData* GimmickData = ItemGimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
 	{
 		TMap<FName, int32> Resources;
 		

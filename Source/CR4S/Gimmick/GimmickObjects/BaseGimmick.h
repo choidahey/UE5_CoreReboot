@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "BaseGimmick.generated.h"
 
+struct FGimmickInfoData;
+struct FItemInfoData;
 struct FResourceItemData;
 
 UCLASS()
@@ -36,6 +38,8 @@ protected:
 #pragma region GimmickData
 
 public:
+	const FGimmickInfoData* GetGimmickInfoData() const;
+	
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Data")
 	FORCEINLINE FName GetGimmickDataRowName() const { return GimmickDataRowName; }
 

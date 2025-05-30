@@ -6,8 +6,7 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
-	: MaxItemSlot(10),
-	  bIsInitializedInventorySize(false)
+	: MaxItemSlot(10)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -33,11 +32,6 @@ void UBaseInventoryComponent::BeginPlay()
 
 void UBaseInventoryComponent::InitInventorySize()
 {
-	if (CR4S_VALIDATE(LogInventory, bIsInitializedInventorySize))
-	{
-		return;
-	}
-
 	InventoryItems.Reserve(MaxItemSlot);
 	for (int32 Index = 0; Index < MaxItemSlot; ++Index)
 	{
@@ -45,8 +39,6 @@ void UBaseInventoryComponent::InitInventorySize()
 		Item->InitInventoryItem(OwnerActor, Index);
 		InventoryItems.Add(Item);
 	}
-
-	bIsInitializedInventorySize = true;
 }
 
 void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
@@ -73,7 +65,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 			ItemGimmickSubsystem->SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
 			                                                               OwnerActor->GetActorLocation(),
 			                                                               OwnerActor->GetActorRotation());
-		
+
 		ItemPouch->InitItemPouch(RemainingItems);
 	}
 }
@@ -194,6 +186,44 @@ void UBaseInventoryComponent::GetSameItemSlotsAndEmptySlots(const FName& InRowNa
 UBaseInventoryItem* UBaseInventoryComponent::GetItemDataByIndex(const int32 Index) const
 {
 	return CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(Index)) ? InventoryItems[Index] : nullptr;
+}
+
+int32 UBaseInventoryComponent::GetItemCountByRowName(const FName RowName) const
+{
+	int32 Count = 0;
+
+	for (const UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
+		{
+			Count += Item->GetCurrentStackCount();
+		}
+	}
+
+	return Count;
+}
+
+void UBaseInventoryComponent::RemoveItem(const FName RowName, const int32 Count)
+{
+	int32 RemainingCount = Count;
+	for (UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (RemainingCount <= 0)
+		{
+			return;
+		}
+
+		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
+		{
+			const int32 ItemCount = Item->GetCurrentStackCount();
+			const int32 RemoveCount = FMath::Min(ItemCount, RemainingCount);
+
+			Item->SetCurrentStackCount(ItemCount - RemoveCount);
+			RemainingCount -= RemoveCount;
+
+			NotifyInventoryItemChanged(Item->GetSlotIndex());
+		}
+	}
 }
 
 void UBaseInventoryComponent::SortInventoryItems()

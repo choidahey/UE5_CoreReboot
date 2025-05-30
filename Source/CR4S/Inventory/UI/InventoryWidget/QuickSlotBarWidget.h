@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "BaseInventoryWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "QuickSlotBarWidget.generated.h"
 
@@ -22,7 +23,7 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UPlayerInventoryComponent* InPlayerInventoryComponent);
+	void InitWidget(UBaseInventoryWidget* InventoryWidget, UPlayerInventoryComponent* InPlayerInventoryComponent);
 
 private:
 	UPROPERTY()

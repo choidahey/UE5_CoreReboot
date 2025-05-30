@@ -6,6 +6,8 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
+#include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
 
 void UBaseItemSlotWidget::NativeConstruct()
 {
@@ -15,6 +17,12 @@ void UBaseItemSlotWidget::NativeConstruct()
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	PlayerController = GetOwningPlayer();
+	
+	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
+
+	SetIsFocusable(true);
 }
 
 void UBaseItemSlotWidget::InitWidget(UBaseInventoryItem* NewItem, const bool bNewCanDrag, const bool bNewCanDrop)
@@ -38,10 +46,17 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 		return;
 	}
 
+	UBaseInventoryComponent* InventoryComponent = nullptr;
+	
+	if (IsValid(InventoryWidget))
+	{
+		InventoryComponent = InventoryWidget->GetInventoryComponent();
+	}
+
 	if (CurrentItem->HasItemData())
 	{
 		IconImage->SetVisibility(ESlateVisibility::Visible);
-		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon);
+		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Icon);
 
 		if (CurrentItem->GetInventoryItemData()->ItemInfoData.MaxStackCount > 1)
 		{
@@ -52,11 +67,21 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 		{
 			CountTextBlock->SetVisibility(ESlateVisibility::Collapsed);
 		}
+
+		if (IsValid(InventoryComponent))
+		{
+			InventoryComponent->AddOccupiedSlot(CurrentItem->GetSlotIndex());
+		}
 	}
 	else
 	{
 		IconImage->SetVisibility(ESlateVisibility::Collapsed);
 		CountTextBlock->SetVisibility(ESlateVisibility::Collapsed);
+
+		if (IsValid(InventoryComponent))
+		{
+			InventoryComponent->RemoveOccupiedSlot(CurrentItem->GetSlotIndex());
+		}
 	}
 }
 
@@ -73,6 +98,13 @@ void UBaseItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const 
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Visible);
 	}
+
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)))
+	{
+		PlayerController->SetInputMode(FInputModeUIOnly()
+		                               .SetWidgetToFocus(this->TakeWidget())
+		                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
+	}
 }
 
 void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
@@ -83,6 +115,17 @@ void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
+		!InventoryContainerWidget->IsOpen())
+	{
+		return;
+	}
+
+	PlayerController->SetInputMode(FInputModeUIOnly()
+	                               .SetWidgetToFocus(InventoryContainerWidget->TakeWidget())
+	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
 }
 
 FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -92,8 +135,6 @@ FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 	{
 		return FReply::Unhandled();
 	}
-
-	CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnMouseButtonDown: %d"), CurrentItem->GetSlotIndex());
 
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
@@ -121,7 +162,7 @@ void UBaseItemSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, cons
 	UDummyItemSlotWidget* DummySlotWidgetInstance = CreateWidget<UDummyItemSlotWidget>(
 		GetWorld(), DummySlotWidgetClass);
 
-	DummySlotWidgetInstance->SetDummy(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon,
+	DummySlotWidgetInstance->SetDummy(CurrentItem->GetInventoryItemData()->ItemInfoData.Icon,
 	                                  CurrentItem->GetCurrentStackCount());
 
 	DragOperation->DefaultDragVisual = DummySlotWidgetInstance;
@@ -181,4 +222,21 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 	}
 
 	return false;
+}
+
+FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (!IsValid(CurrentItem) || !CurrentItem->HasItemData())
+	{
+		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+	}
+
+	if (InKeyEvent.GetKey() == EKeys::G)
+	{
+		CurrentItem->SetCurrentStackCount(0);
+		SetItem(CurrentItem);
+		return FReply::Handled();
+	}
+
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }

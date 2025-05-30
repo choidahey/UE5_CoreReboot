@@ -47,7 +47,6 @@ private:
 	AActor* DetectingActor;
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
 	bool bIsDetected;
-	
 
 #pragma endregion
 
@@ -66,32 +65,32 @@ private:
 
 public:
 	FORCEINLINE float GetCurrentGrowthPercent() const { return CurrentGrowthPercent; }
-
-protected:
-	virtual void GrowthStageChanged(const int32 NewGrowthStage);
 	
 private:
-	void Grow();
-	int32 CalculateGrowthStage() const;
+	UFUNCTION()
+	void Grow(int64 PlayTime);
+	void UpdateGrowthStage();
 
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
-	float GrowthPercentPerInterval;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
-	float IntervalSeconds;
-	UPROPERTY(EditDefaultsOnly, Category = "Grow")
-	TArray<float> GrowthStageThresholds;
-	UPROPERTY(EditDefaultsOnly, Category = "Grow")
-	TArray<float> GrowthStageScale;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
-	int32 PreviousGrowthStage;
+	void BindDelegate();
+	void UnBindDelegate();
 	
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	int32 GrowthTimeMinutes;
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	float ElapsedSeconds;
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	float TotalGrowthSeconds;
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	int32 MaxStageCount;
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	int32 StageDuration;
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	int32 CurrentStage;
 	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float CurrentGrowthPercent;
-	
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
-	float MaxGrowthPercent;
-	
-	FTimerHandle GrowthTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Grow")
+	TArray<TObjectPtr<UStaticMesh>> GrowthMeshes;
 	
 #pragma endregion
 

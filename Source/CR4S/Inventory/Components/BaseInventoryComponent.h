@@ -50,16 +50,19 @@ public:
 	void AddItems(const TMap<FName, int32>& Items);
 	virtual FAddItemResult AddItem(FName RowName, int32 Count);
 
-	UFUNCTION(BlueprintCallable, Category = "InventoryComponent|InventorySystem")
-	void SortInventoryItems();
-
+	void RemoveItem(const FName RowName, const int32 Count);
 	
+	void SortInventoryItems();
 	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
+	int32 GetItemCountByRowName(const FName RowName) const;
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
 	
 	FORCEINLINE int32 GetMaxInventorySlot() const { return MaxItemSlot; }
 	FORCEINLINE void SetMaxInventorySlot(const int32 InMaxInventorySlot) { MaxItemSlot = InMaxInventorySlot; }
+	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex) { OccupiedSlots.Add(SlotIndex); }
+	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex) { OccupiedSlots.Remove(SlotIndex); }
+	FORCEINLINE int32 GetNumOccupiedSlots() const { return OccupiedSlots.Num(); }
 
 protected:
 	void GetSameItemSlotsAndEmptySlots(const FName& InRowName,
@@ -76,7 +79,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
 	int32 MaxItemSlot;
 
-	bool bIsInitializedInventorySize;
+	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
+	TSet<int32> OccupiedSlots;
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 

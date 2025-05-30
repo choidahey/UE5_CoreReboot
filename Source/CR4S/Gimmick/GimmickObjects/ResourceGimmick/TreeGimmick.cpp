@@ -43,7 +43,7 @@ void ATreeGimmick::BeginPlay()
 			return;
 		}
 
-		if (const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
+		if (const FGimmickInfoData* GimmickData = GimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
 		{
 			DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
 		}

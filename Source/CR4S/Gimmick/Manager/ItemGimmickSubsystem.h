@@ -29,7 +29,7 @@ public:
 public:
 	TArray<FName> GetItemDataRowNames() const;
 	const FItemInfoData* FindItemInfoData(const FName& RowName) const;
-	const FBaseGimmickData* FindGimmickData(const FName& RowName) const;
+	const FGimmickInfoData* FindGimmickInfoData(const FName& RowName) const;
 	
 private:
 	template<typename RowStruct>
