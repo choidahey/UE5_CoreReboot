@@ -48,7 +48,7 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 	if (CurrentItem->HasItemData())
 	{
 		IconImage->SetVisibility(ESlateVisibility::Visible);
-		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon);
+		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Icon);
 
 		if (CurrentItem->GetInventoryItemData()->ItemInfoData.MaxStackCount > 1)
 		{
@@ -144,7 +144,7 @@ void UBaseItemSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, cons
 	UDummyItemSlotWidget* DummySlotWidgetInstance = CreateWidget<UDummyItemSlotWidget>(
 		GetWorld(), DummySlotWidgetClass);
 
-	DummySlotWidgetInstance->SetDummy(CurrentItem->GetInventoryItemData()->ItemInfoData.Info.Icon,
+	DummySlotWidgetInstance->SetDummy(CurrentItem->GetInventoryItemData()->ItemInfoData.Icon,
 	                                  CurrentItem->GetCurrentStackCount());
 
 	DragOperation->DefaultDragVisual = DummySlotWidgetInstance;
