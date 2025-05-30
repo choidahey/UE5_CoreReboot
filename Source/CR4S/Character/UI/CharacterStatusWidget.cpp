@@ -13,15 +13,16 @@ void UCharacterStatusWidget::UpdateHP(const float InPercentage)
 	HP->SetPercent(InPercentage);
 }
 
+void UCharacterStatusWidget::UpdateResource(const float InPercentage)
+{
+	Resource->SetPercent(InPercentage);
+}
+
 void UCharacterStatusWidget::UpdateEnergy(const float InPercentage)
 {
 	Energy->SetPercent(InPercentage);
 }
 
-void UCharacterStatusWidget::UpdateOverHeat(const float InPercentage)
-{
-	OverHeat->SetPercent(InPercentage);
-}
 
 void UCharacterStatusWidget::UpdateStun(const float InPercentage)
 {
@@ -30,16 +31,22 @@ void UCharacterStatusWidget::UpdateStun(const float InPercentage)
 
 void UCharacterStatusWidget::ToggleWidgetMode(const bool bIsRobot)
 {
-	if (OverHeat)
+	if (Energy)
 	{
-		OverHeat->SetVisibility((bIsRobot
+		Energy->SetVisibility((bIsRobot
 			? ESlateVisibility::Visible
-			: ESlateVisibility::Collapsed));
+			: ESlateVisibility::Hidden));
 	}
 	if (Stun)
 	{
 		Stun->SetVisibility((bIsRobot
 			? ESlateVisibility::Visible
-			: ESlateVisibility::Collapsed));
+			: ESlateVisibility::Hidden));
+	}
+	if (Resource)
+	{
+		Resource->SetFillColorAndOpacity(bIsRobot
+			? FColor::Red
+			: FColor::Yellow);
 	}
 }

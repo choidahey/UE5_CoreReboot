@@ -39,19 +39,19 @@ void UModularRobotStatusComponent::TickComponent(float DeltaTime, ELevelTick Tic
 }
 
 
-void UModularRobotStatusComponent::AddMaxOverHeat(const float InAmount)
+void UModularRobotStatusComponent::AddMaxEnergy(const float InAmount)
 {
-	RobotStatus.MaxOverHeat+=InAmount;
-	const float Percentage=FMath::Clamp(RobotStatus.OverHeat/RobotStatus.MaxOverHeat,0.f,1.f);
-	OnOverHeatChanged.Broadcast(Percentage);
+	RobotStatus.MaxEnergy+=InAmount;
+	const float Percentage=FMath::Clamp(RobotStatus.Energy/RobotStatus.MaxEnergy,0.f,1.f);
+	OnEnergyChanged.Broadcast(Percentage);
 }
 
-void UModularRobotStatusComponent::AddOverHeat(const float InAmount)
+void UModularRobotStatusComponent::AddEnergy(const float InAmount)
 {
-	const float Temp=FMath::Clamp(RobotStatus.OverHeat+InAmount,0.f,RobotStatus.MaxOverHeat);
-	RobotStatus.OverHeat=Temp;
-	const float Percentage=FMath::Clamp(RobotStatus.OverHeat/RobotStatus.MaxOverHeat,0.f,1.f);
-	OnOverHeatChanged.Broadcast(Percentage);
+	const float Temp=FMath::Clamp(RobotStatus.Energy+InAmount,0.f,RobotStatus.MaxEnergy);
+	RobotStatus.Energy=Temp;
+	const float Percentage=FMath::Clamp(RobotStatus.Energy/RobotStatus.MaxEnergy,0.f,1.f);
+	OnEnergyChanged.Broadcast(Percentage);
 }
 
 void UModularRobotStatusComponent::AddMaxStun(const float InAmount)

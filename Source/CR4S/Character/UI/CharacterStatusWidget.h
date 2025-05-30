@@ -23,10 +23,11 @@ public:
 	void UpdateHP(const float InPercentage);
 	
 	UFUNCTION(BlueprintCallable)
+	void UpdateResource(const float InPercentage);
+	
+	UFUNCTION(BlueprintCallable)
 	void UpdateEnergy(const float InPercentage);
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateOverHeat(const float InPercentage);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateStun(const float InPercentage);
@@ -41,11 +42,11 @@ protected:
 	TObjectPtr<UProgressBar> HP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Energy;
-
+	TObjectPtr<UProgressBar> Resource;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> OverHeat;
-
+	TObjectPtr<UProgressBar> Energy;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UProgressBar> Stun;
 #pragma endregion

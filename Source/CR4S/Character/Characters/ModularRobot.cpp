@@ -133,8 +133,8 @@ void AModularRobot::InitializeWidgets()
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
 				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
+				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
 				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
-				Status->OnOverHeatChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateOverHeatWidget);
 				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
 				
 				InGameWidget->InitializeStatusWidget(Status,true);
@@ -152,8 +152,8 @@ void AModularRobot::DisconnectWidgets()
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
 				Status->OnHPChanged.RemoveAll(InGameWidget);
+				Status->OnResourceChanged.RemoveAll(InGameWidget);
 				Status->OnEnergyChanged.RemoveAll(InGameWidget);
-				Status->OnOverHeatChanged.RemoveAll(InGameWidget);
 				Status->OnStunChanged.RemoveAll(InGameWidget);
 			}
 		}

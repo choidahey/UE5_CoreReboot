@@ -28,11 +28,11 @@ void UBaseStatusComponent::AddMaxHP(const float InAmount)
 	OnHPChanged.Broadcast(Percentage);
 }
 
-void UBaseStatusComponent::AddMaxEnergy(const float InAmount)
+void UBaseStatusComponent::AddMaxResource(const float InAmount)
 {
-	BaseStatus.MaxEnergy+=InAmount;
-	const float Percentage=FMath::Clamp((BaseStatus.Energy)/BaseStatus.MaxEnergy,0.f,1.f);
-	OnEnergyChanged.Broadcast(Percentage);
+	BaseStatus.MaxResource+=InAmount;
+	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
+	OnResourceChanged.Broadcast(Percentage);
 }
 
 void UBaseStatusComponent::AddCurrentHP(const float InAmount)
@@ -51,17 +51,17 @@ void UBaseStatusComponent::AddCurrentHP(const float InAmount)
 	OnHPChanged.Broadcast(Percentage);
 }
 
-void UBaseStatusComponent::AddCurrentEnergy(const float InAmount)
+void UBaseStatusComponent::AddCurrentResource(const float InAmount)
 {
-	const float Temp=FMath::Clamp(BaseStatus.Energy+InAmount,0,BaseStatus.Energy);
-	BaseStatus.Energy=Temp;
-	const float Percentage=FMath::Clamp((BaseStatus.Energy)/BaseStatus.MaxEnergy,0.f,1.f);
-	OnEnergyChanged.Broadcast(Percentage);
+	const float Temp=FMath::Clamp(BaseStatus.Resource+InAmount,0,BaseStatus.Resource);
+	BaseStatus.Resource=Temp;
+	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
+	OnResourceChanged.Broadcast(Percentage);
 }
 
-void UBaseStatusComponent::AddEnergyConsumptionRate(const float InAmount)
+void UBaseStatusComponent::AddResourceConsumptionRate(const float InAmount)
 {
-	BaseStatus.EnergyConsumptionRate+=InAmount;
+	BaseStatus.ResourceConsumptionRate+=InAmount;
 }
 
 void UBaseStatusComponent::AddAttackPower(const float InAmount)

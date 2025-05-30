@@ -16,8 +16,8 @@ void UDefaultInGameWidget::InitializeStatusWidget(UBaseStatusComponent* InCompon
 	float Percentage=FMath::Clamp(InComponent->GetCurrentHP()/InComponent->GetMaxHP(), 0.f, 1.f);
 	UpdateHPWidget(Percentage);
 	
-	Percentage=FMath::Clamp(InComponent->GetCurrentEnergy()/InComponent->GetMaxEnergy(), 0.f, 1.f);
-	UpdateEnergyWidget(Percentage);
+	Percentage=FMath::Clamp(InComponent->GetCurrentResource()/InComponent->GetMaxResource(), 0.f, 1.f);
+	UpdateResourceWidget(Percentage);
 
 	if (UPlayerCharacterStatusComponent* PlayerStatusComp=Cast<UPlayerCharacterStatusComponent>(InComponent))
 	{
@@ -26,8 +26,8 @@ void UDefaultInGameWidget::InitializeStatusWidget(UBaseStatusComponent* InCompon
 	}
 	if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(InComponent))
 	{
-		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentOverHeat()/RobotStatusComp->GetMaxOverHeat(), 0.f, 1.f);
-		UpdateOverHeatWidget(Percentage);
+		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentEnergy()/RobotStatusComp->GetMaxEnergy(), 0.f, 1.f);
+		UpdateEnergyWidget(Percentage);
 
 		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentStun()/RobotStatusComp->GetMaxStun(), 0.f, 1.f);
 		UpdateStunWidget(Percentage);
@@ -43,6 +43,14 @@ void UDefaultInGameWidget::UpdateHPWidget(const float InPercentage)
 	}
 }
 
+void UDefaultInGameWidget::UpdateResourceWidget(const float InPercentage)
+{
+	if (StatusWidget)
+	{
+		StatusWidget->UpdateResource(InPercentage);
+	}
+}
+
 void UDefaultInGameWidget::UpdateEnergyWidget(const float InPercentage)
 {
 	if (StatusWidget)
@@ -51,13 +59,6 @@ void UDefaultInGameWidget::UpdateEnergyWidget(const float InPercentage)
 	}
 }
 
-void UDefaultInGameWidget::UpdateOverHeatWidget(const float InPercentage)
-{
-	if (StatusWidget)
-	{
-		StatusWidget->UpdateOverHeat(InPercentage);
-	}
-}
 
 void UDefaultInGameWidget::UpdateStunWidget(const float InPercentage)
 {

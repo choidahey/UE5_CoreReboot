@@ -7,7 +7,7 @@
 #include "Character/DataAsset/ModularRobotStatus.h"
 #include "ModularRobotStatusComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnOverHeatChangedDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStunChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float);
 
@@ -23,8 +23,9 @@ public:
 	UModularRobotStatusComponent();
 	
 #pragma region Get
-	FORCEINLINE float GetMaxOverHeat() const { return RobotStatus.MaxOverHeat; }
-	FORCEINLINE float GetCurrentOverHeat() const { return RobotStatus.OverHeat; }
+	FORCEINLINE float GetMaxEnergy() const { return RobotStatus.MaxEnergy; }
+	FORCEINLINE float GetCurrentEnergy() const { return RobotStatus.Energy; }
+	FORCEINLINE float GetEnergyConsumptionRate() const { return RobotStatus.EnergyConsumptionRate; }
 
 	FORCEINLINE float GetMaxStun() const { return RobotStatus.MaxStun; }
 	FORCEINLINE float GetCurrentStun() const { return RobotStatus.Stun; }
@@ -38,9 +39,9 @@ public:
 #pragma endregion
 
 #pragma region Add
-	void AddMaxOverHeat(const float InAmount);
+	void AddMaxEnergy(const float InAmount);
 	UFUNCTION(BlueprintCallable)
-	void AddOverHeat(const float InAmount);
+	void AddEnergy(const float InAmount);
 
 	void AddMaxStun(const float InAmount);
 	UFUNCTION(BlueprintCallable)
@@ -84,7 +85,7 @@ private:
 
 #pragma region Delegate
 public:
-	FOnOverHeatChangedDelegate OnOverHeatChanged;
+	FOnEnergyChangedDelegate OnEnergyChanged;
 	FOnStunChangedDelegate OnStunChanged;
 	FOnWeightChangedDelegate OnWeightChanged;
 #pragma endregion

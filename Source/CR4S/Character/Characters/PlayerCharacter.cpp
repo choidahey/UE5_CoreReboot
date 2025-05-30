@@ -12,11 +12,8 @@
 #include "UI/InGame/DefaultInGameWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
-
 #include "NavigationInvokerComponent.h"
 
-
-#include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -56,8 +53,8 @@ void APlayerCharacter::InitializeWidgets()
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
 				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
+				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
 				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
-				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
 
 				InGameWidget->InitializeStatusWidget(Status,false);
 			}
@@ -74,7 +71,7 @@ void APlayerCharacter::DisconnectWidgets()
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
 				Status->OnHPChanged.RemoveAll(InGameWidget);
-				Status->OnEnergyChanged.RemoveAll(InGameWidget);
+				Status->OnResourceChanged.RemoveAll(InGameWidget);
 				Status->OnHungerChanged.RemoveAll(InGameWidget);
 			}
 		}

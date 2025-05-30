@@ -17,11 +17,11 @@ public:
 	float Health{4000};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxEnergy{100000};
+	float MaxResource{100000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Energy{100000};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ForceUnits="Energy/s"))
-	float EnergyConsumptionRate{200};
+	float Resource{100000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ResourceConsumptionRate{20};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Armor{0};

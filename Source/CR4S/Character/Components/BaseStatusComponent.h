@@ -8,7 +8,7 @@
 #include "BaseStatusComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float /*InPercentage*/)
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float /*InPercentage*/)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnResourceChangedDelegate, float /*InPercentage*/)
 DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
 
 
@@ -24,9 +24,9 @@ public:
 	FORCEINLINE float GetMaxHP() const { return BaseStatus.MaxHealth; }
 	FORCEINLINE float GetCurrentHP() const { return BaseStatus.Health; }
 	
-	FORCEINLINE float GetMaxEnergy() const { return BaseStatus.MaxEnergy; }
-	FORCEINLINE float GetCurrentEnergy() const { return BaseStatus.Energy; }
-	FORCEINLINE float GetEnergyConsumptionRate() const { return BaseStatus.EnergyConsumptionRate; }
+	FORCEINLINE float GetMaxResource() const { return BaseStatus.MaxResource; }
+	FORCEINLINE float GetCurrentResource() const { return BaseStatus.Resource; }
+	FORCEINLINE float GetResourceConsumptionRate() const { return BaseStatus.ResourceConsumptionRate; }
 	
 	FORCEINLINE float GetAttackPower() const { return BaseStatus.AttackPower; }
 	FORCEINLINE float GetArmor() const { return BaseStatus.Armor; }
@@ -42,9 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddCurrentHP(const float InAmount);
 	
-	void AddMaxEnergy(const float InAmount);
-	void AddCurrentEnergy(const float InAmount);
-	void AddEnergyConsumptionRate(const float InAmount);
+	void AddMaxResource(const float InAmount);
+	void AddCurrentResource(const float InAmount);
+	void AddResourceConsumptionRate(const float InAmount);
 	
 	void AddAttackPower(const float InAmount);
 	void AddArmor(const float InAmount);
@@ -71,7 +71,7 @@ protected:
 #pragma region Delegate
 public:
 	FOnHPChangedDelegate OnHPChanged;
-	FOnEnergyChangedDelegate OnEnergyChanged;
+	FOnResourceChangedDelegate OnResourceChanged;
 	FOnDeathDelegate OnDeathState;
 #pragma endregion
 };

@@ -25,8 +25,8 @@ public:
 #pragma region UpdateWidget
 public:
 	void UpdateHPWidget(const float InPercentage);
+	void UpdateResourceWidget(const float InPercentage);
 	void UpdateEnergyWidget(const float InPercentage);
-	void UpdateOverHeatWidget(const float InPercentage);
 	void UpdateStunWidget(const float InPercentage);
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
