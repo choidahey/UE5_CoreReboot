@@ -9,6 +9,13 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Navigation/NavLinkProxy.h"
+#include "JumpNavLinkComponent.h"
+#include "NavLinkCustomComponent.h"
+#include "Navigation/GeneratedNavLinksProxy.h"
+#include "NavigationSystem.h"
+#include "Components/CapsuleComponent.h"
+#include "NavMesh/RecastNavMesh.h"
 
 UAIJumpComponent::UAIJumpComponent()
 {
@@ -23,6 +30,10 @@ void UAIJumpComponent::BeginPlay()
     OwnerCharacter = Cast<ACharacter>(GetOwner());
     if (OwnerCharacter)
     {
+        if (UCharacterMovementComponent* MoveComp = OwnerCharacter->GetCharacterMovement())
+        {
+            CurrentJumpPower = MoveComp->JumpZVelocity;
+        }
         OwnerCharacter->LandedDelegate.AddDynamic(this, &UAIJumpComponent::OnCharacterLanded);
     }
 }
@@ -50,113 +61,143 @@ void UAIJumpComponent::StartEQSTimer()
 {
     if (GetWorld())
     {
-        //UE_LOG(LogTemp, Log, TEXT("EQS Timer Start"));
-        GetWorld()->GetTimerManager().SetTimer(EQSTimerHandle, this, &UAIJumpComponent::RunEQSQuery, 1.f, true);
+        GetWorld()->GetTimerManager().SetTimer(EQSTimerHandle, this, &UAIJumpComponent::RunEQSQuery, 0.5f, true);
     }
 }
 
 
 void UAIJumpComponent::RunEQSQuery()
 {
-    if (!OwnerCharacter)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("RunEQSQuery: OwnerCharacter null"));
-        return;
-    }
-    if (!JumpEQSQuery)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("RunEQSQuery: JumpEQSQuery null"));
-        return;
-    }
+    AAIController* AICon = Cast<AAIController>(OwnerCharacter->GetController());
+    if (!AICon) return;
+    UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
+    if (!BBComp) return;
 
-    UE_LOG(LogTemp, Log, TEXT("EQS Query Start"));
-    if (UEnvQueryInstanceBlueprintWrapper* QueryInstance =
-        UEnvQueryManager::RunEQSQuery(this, JumpEQSQuery, OwnerCharacter, EEnvQueryRunMode::SingleResult, nullptr))
-    {
-        QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &UAIJumpComponent::OnEQSQueryFinished);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("EQS Query Create fail"));
-    }
+    UEnvQueryInstanceBlueprintWrapper* QueryInstance =
+        UEnvQueryManager::RunEQSQuery(this, JumpEQSQuery, OwnerCharacter,
+                                      EEnvQueryRunMode::SingleResult, nullptr);
+    if (!QueryInstance) return;
+    
+    QueryInstance->SetNamedParam(FName("MaxJumpHeight"), CurrentJumpPower);
+
+    QueryInstance->GetOnQueryFinishedEvent()
+        .AddDynamic(this, &UAIJumpComponent::OnEQSQueryFinished);
 }
+
 
 void UAIJumpComponent::OnEQSQueryFinished(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
 {
     if (!OwnerCharacter)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("OnEQSQueryFinished: OwnerCharacter null"));
         return;
-    }
-        
-    if (!QueryInstance)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("OnEQSQueryFinished: QueryInstance null"));
-        return;
-    }
-
-    if (!OwnerCharacter->GetCharacterMovement() ||
-        OwnerCharacter->GetCharacterMovement()->MovementMode != EMovementMode::MOVE_Walking)
-    {
-        //UE_LOG(LogTemp, Log, TEXT("Falling, Jump Skip"));
-        return;
-    }
-    
     if (QueryStatus != EEnvQueryStatus::Success)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("EQS Query fail:  %d"), static_cast<int32>(QueryStatus));
         return;
-    }
 
     const TArray<FVector> Results = QueryInstance->GetResultsAsLocations();
     if (Results.Num() == 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("EQS Query result null"));
         return;
-    }
 
-    const FVector Start = OwnerCharacter->GetActorLocation();
+    UCapsuleComponent* Capsule = OwnerCharacter->GetCapsuleComponent();
+    FVector Start = Capsule->GetComponentLocation() - FVector(0,0,Capsule->GetScaledCapsuleHalfHeight());
     const FVector End   = Results[0];
 
+    DrawDebugSphere(GetWorld(), Start, 30.f, 12, FColor::Green, false, 2.f);
+    DrawDebugSphere(GetWorld(), End,   30.f, 12, FColor::Red,   false, 2.f);
+    DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 2.f, 0, 3.f);
+
     const float Gravity     = FMath::Abs(GetWorld()->GetGravityZ());
-    const float InitialVz   = JumpPower;
+    const float InitialVz   = OwnerCharacter && OwnerCharacter->GetCharacterMovement()
+    ? OwnerCharacter->GetCharacterMovement()->JumpZVelocity
+    : JumpPower;
     const float FlightTime  = (2.f * InitialVz) / Gravity;
     const float DeltaZ      = End.Z - Start.Z;
     const float DeltaXY     = FVector2D(End - Start).Size();
     const float MaxHorDist  = OwnerCharacter->GetCharacterMovement()
-        ? OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed * FlightTime
-        : 0.f;
-    const bool bCanJump     = (DeltaZ <= JumpPower) && (DeltaXY <= MaxHorDist);
+                                 ? OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed * FlightTime
+                                 : 0.f;
 
-    // if (bCanJump)
-    // {
-    //     UE_LOG(LogTemp, Log, TEXT("Jump : Target (%.1f, %.1f, %.1f)"), End.X, End.Y, End.Z);
-    // }
-    // else
-    // {
-    //     UE_LOG(LogTemp, Log, TEXT("Move: Target (%.1f, %.1f, %.1f)"), End.X, End.Y, End.Z);
-    // }
-
-    DrawDebugCapsule(GetWorld(), End, 10.f, 5.f, FQuat::Identity,
-                     bCanJump ? FColor::Green : FColor::Red, false, 1.f);
-
-    if (bCanJump)
+    const bool bCanJump = (DeltaZ <= JumpPower) && (DeltaXY <= MaxHorDist);
+    if (!bCanJump)
     {
-        FVector Dir2D     = (End - Start).GetSafeNormal2D();
-        float HorSpeed    = DeltaXY / FlightTime;
-        FVector LaunchVel = Dir2D * HorSpeed;
-        LaunchVel.Z       = InitialVz;
-        OwnerCharacter->LaunchCharacter(LaunchVel, true, true);
+        if (AAIController* AICon = Cast<AAIController>(OwnerCharacter->GetController()))
+        {
+            FAIMoveRequest MoveReq;
+            MoveReq.SetGoalLocation(End);
+            MoveReq.SetAcceptanceRadius(5.f);
+            MoveReq.SetAllowPartialPath(true);
+            AICon->MoveTo(MoveReq);
+        }
+        return;
     }
-    else if (AAIController* AICon = Cast<AAIController>(OwnerCharacter->GetController()))
+    
+    if (DeltaZ > JumpPower || DeltaXY > MaxHorDist)
+    {
+        if (AAIController* AICon = Cast<AAIController>(OwnerCharacter->GetController()))
+        {
+            FAIMoveRequest MoveReq;
+            MoveReq.SetGoalLocation(End);
+            MoveReq.SetAcceptanceRadius(5.f);
+            MoveReq.SetAllowPartialPath(true);
+            AICon->MoveTo(MoveReq);
+        }
+        return;
+    }
+    
+    if (UWorld* World = GetWorld())
+    {
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        ANavLinkProxy* LinkProxy = World->SpawnActor<ANavLinkProxy>(Start, FRotator::ZeroRotator, SpawnParams);
+        if (LinkProxy)
+        {
+            LinkProxy->PointLinks.Empty();
+            FVector NavLeft = Start;
+            FVector NavRight = End;
+            UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+            if (NavSys)
+            {
+                FNavLocation Projected;
+                if (NavSys->ProjectPointToNavigation(Start, Projected))
+                    NavLeft = Projected.Location;
+                if (NavSys->ProjectPointToNavigation(End, Projected))
+                    NavRight = Projected.Location;
+            }
+
+            FNavigationLink NavLink;
+            NavLink.Left      = NavLeft;
+            NavLink.Right     = NavRight;
+            NavLink.Direction = ENavLinkDirection::BothWays;
+            LinkProxy->PointLinks.Add(NavLink);
+            CurrentLinkProxy = LinkProxy;
+
+            if (UNavLinkCustomComponent* Old = LinkProxy->GetSmartLinkComp())
+                Old->DestroyComponent();
+
+            UJumpNavLinkComponent* JumpComp = NewObject<UJumpNavLinkComponent>(LinkProxy);
+            JumpComp->JumpPower = OwnerCharacter && OwnerCharacter->GetCharacterMovement()
+                ? OwnerCharacter->GetCharacterMovement()->JumpZVelocity
+                : JumpPower;
+            JumpComp->RegisterComponent();
+            LinkProxy->AddInstanceComponent(JumpComp);
+            JumpComp->SetRelativeStartAndEnd(NavLeft, NavRight, LinkProxy);
+
+            LinkProxy->SetSmartLinkEnabled(true);
+            LinkProxy->RegisterAllComponents();
+        }
+    }
+    
+    if (AAIController* AICon = Cast<AAIController>(OwnerCharacter->GetController()))
     {
         FAIMoveRequest MoveReq;
         MoveReq.SetGoalLocation(End);
         MoveReq.SetAcceptanceRadius(5.f);
-        MoveReq.SetAllowPartialPath(true);
-        AICon->MoveTo(MoveReq);
+        MoveReq.SetAllowPartialPath(false);
+        const FPathFollowingRequestResult MoveResult = AICon->MoveTo(MoveReq);
+        if (MoveResult.Code == EPathFollowingRequestResult::RequestSuccessful)
+            AICon->ReceiveMoveCompleted.AddDynamic(this, &UAIJumpComponent::OnNavMoveCompleted);
     }
+
 }
+
 
 void UAIJumpComponent::OnCharacterLanded(const FHitResult& Hit)
 {
@@ -173,6 +214,22 @@ void UAIJumpComponent::TryJump()
     }
 }
 
-void UAIJumpComponent::OnCustomLinkReached(UNavLinkCustomComponent*, UObject*, const FVector&)
+void UAIJumpComponent::OnCustomLinkReached(AActor* Agent, const FVector Destination)
 {
+}
+
+void UAIJumpComponent::OnNavMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
+{
+    if (AController* Ctrl = OwnerCharacter ? OwnerCharacter->GetController() : nullptr)
+    {
+        if (AAIController* AICon = Cast<AAIController>(Ctrl))
+        {
+            AICon->ReceiveMoveCompleted.RemoveDynamic(this, &UAIJumpComponent::OnNavMoveCompleted);
+        }
+    }
+    if (CurrentLinkProxy.IsValid())
+    {
+        CurrentLinkProxy->Destroy();
+        CurrentLinkProxy = nullptr;
+    }
 }

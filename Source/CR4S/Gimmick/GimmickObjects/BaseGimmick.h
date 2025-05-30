@@ -38,8 +38,13 @@ protected:
 public:
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Data")
 	FORCEINLINE FName GetGimmickDataRowName() const { return GimmickDataRowName; }
+
+protected:
+	virtual void GetResources(const AActor* InventoryOwnerActor) const;
+	virtual void GimmickDestroy();
 	
 private:
+	
 	UPROPERTY(EditDefaultsOnly, Category = "GimmickData")
 	FName GimmickDataRowName;
 

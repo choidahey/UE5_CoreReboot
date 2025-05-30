@@ -8,6 +8,10 @@
 #include "BaseHelperBot.generated.h"
 
 class UInteractableComponent;
+class UHelperBotInfoWidget;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
 
 UCLASS()
 class CR4S_API ABaseHelperBot : public ACharacter
@@ -30,7 +34,7 @@ public:
 	
 protected:
 	UFUNCTION()
-	void HandleInteract(AController* InteractingController);
+	void HandleInteract(AActor* InteractableActor);
 	
 #pragma endregion
 
@@ -86,5 +90,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 #pragma endregion
+
+#pragma region Info Widget
 	
+public:
+	UFUNCTION()
+	void OnDetectedChange(AActor* InteractableActor, bool bIsDetected);
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UHelperBotInfoWidget> InfoUIClass;
+
+	UPROPERTY()
+	TObjectPtr<UHelperBotInfoWidget> InfoUIInstance = nullptr;
+	
+#pragma endregion
+
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnTryInteract OnTryInteract;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnDetectionStateChanged OnDetectionStateChanged;
 };

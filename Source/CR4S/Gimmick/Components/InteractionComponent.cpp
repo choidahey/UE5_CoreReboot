@@ -1,9 +1,11 @@
 ﻿#include "InteractionComponent.h"
 
+#include "CR4S.h"
 #include "InteractableComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "CR4S/Character/Characters/PlayerCharacter.h"
 #include "CR4S/Gimmick/UI/InteractionWidget.h"
+#include "UI/InGame/SurvivalHUD.h"
 
 UInteractionComponent::UInteractionComponent()
 	: InteractionTraceChannel(ECC_GameTraceChannel1)
@@ -20,87 +22,81 @@ void UInteractionComponent::BeginPlay()
 
 	InitComponent();
 
-	// Start UpdateFindProcess
-	GetWorld()->GetTimerManager().SetTimer(
-		FindProcessTimerHandle,
-		this,
-		&ThisClass::UpdateDetectProcess,
-		0.1f,
-		true);
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractionWidgetInstance)))
+	{
+		// Start the UpdateDetectProcess
+		GetWorld()->GetTimerManager().SetTimer(
+			FindProcessTimerHandle,
+			this,
+			&ThisClass::UpdateDetectProcess,
+			0.1f,
+			true);
+	}
 }
 
 void UInteractionComponent::InitComponent()
 {
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
-	if (IsValid(PlayerCharacter))
+
+	if (CR4S_VALIDATE(LogGimmick, IsValid(PlayerCharacter)))
 	{
 		OwnerPlayerController = Cast<APlayerController>(PlayerCharacter->GetController());
 
-		if (IsValid(OwnerPlayerController))
+		if (CR4S_VALIDATE(LogGimmick, IsValid(OwnerPlayerController)))
 		{
 			OwnerPlayerController->HitResultTraceDistance = HitResultTraceDistance;
+			SurvivalHUD = Cast<ASurvivalHUD>(OwnerPlayerController->GetHUD());
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("OwnerPlayerController is invalid"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter is invalid"));
 	}
 
-	if (IsValid(InteractionWidgetClass))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(InteractionWidgetClass)) ||
+		!CR4S_VALIDATE(LogGimmick, IsValid(SurvivalHUD)))
 	{
-		InteractionWidgetInstance = CreateWidget<UInteractionWidget>(GetWorld(), InteractionWidgetClass);
-		if (!IsValid(InteractionWidgetInstance))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("InteractionWidgetInstance is invalid"));
-		}
+		return;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("InteractionWidgetClass is invalid"));
-	}
+
+	InteractionWidgetInstance = SurvivalHUD->CreateAndAddWidget(InteractionWidgetClass, 0, ESlateVisibility::Collapsed);
 }
 
 void UInteractionComponent::ShowInteractionWidget() const
 {
-	if (IsValid(DetectedInteractableComponent))
+	if (!IsValidWidgetRef() ||
+		!CR4S_VALIDATE(LogGimmick, IsValid(DetectedInteractableComponent)))
 	{
-		if (IsValid(InteractionWidgetInstance))
-		{
-			InteractionWidgetInstance->InitWidget(DetectedInteractableComponent->GetInteractionText());
+		return;
+	}
 
-			if (!InteractionWidgetInstance->IsInViewport())
-			{
-				InteractionWidgetInstance->AddToViewport();
-			}
-		}
+	InteractionWidgetInstance->SetInteractionText(DetectedInteractableComponent->GetInteractionText());
+
+	if (InteractionWidgetInstance->GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		SurvivalHUD->ToggleWidget(InteractionWidgetInstance);
 	}
 }
 
 void UInteractionComponent::HideInteractionWidget() const
 {
-	if (IsValid(InteractionWidgetInstance))
+	if (!IsValidWidgetRef() ||
+		InteractionWidgetInstance->GetVisibility() != ESlateVisibility::Visible)
 	{
-		InteractionWidgetInstance->RemoveFromParent();
+		return;
 	}
+
+	SurvivalHUD->ToggleWidget(InteractionWidgetInstance);
 }
 
 bool UInteractionComponent::TryStartInteraction() const
 {
-	if (IsValid(DetectedActor) && IsValid(DetectedInteractableComponent))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(DetectedActor)) ||
+		!CR4S_VALIDATE(LogGimmick, IsValid(DetectedInteractableComponent)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TryStartInteraction! TargetActor: %s"), *DetectedActor->GetName());
-
-		DetectedInteractableComponent->TryInteract(OwnerPlayerController);
-
-		return true;
+		return false;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("TargetActor is invalid"));
-	return false;
+	CR4S_Log(LogGimmick, Warning, TEXT("TryStartInteraction! TargetActor: %s"), *DetectedActor->GetName());
+	DetectedInteractableComponent->TryInteract(GetOwner());
+
+	return true;
 }
 
 void UInteractionComponent::UpdateDetectProcess()
@@ -116,7 +112,7 @@ void UInteractionComponent::UpdateDetectProcess()
 
 	if (bIsDetected && IsValid(DetectedInteractableComponent))
 	{
-		DetectedInteractableComponent->DetectionStateChanged(OwnerPlayerController, true);
+		DetectedInteractableComponent->DetectionStateChanged(GetOwner(), true);
 		ShowInteractionWidget();
 	}
 	else
@@ -130,52 +126,59 @@ void UInteractionComponent::UpdateDetectProcess()
 bool UInteractionComponent::TryDetectProcess()
 {
 	const AActor* OwnerActor = GetOwner();
-	if (IsValid(OwnerPlayerController) && IsValid(OwnerActor))
+
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(OwnerActor)) ||
+		!CR4S_VALIDATE(LogGimmick, IsValid(OwnerPlayerController)))
 	{
-		const FVector OwnerLocation = OwnerActor->GetActorLocation();
-
-		FVector2D ViewportSize;
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
-		const FVector2D ScreenCenter(ViewportSize.X / 2, ViewportSize.Y / 2);
-
-		FHitResult HitResult;
-		const bool bHit = OwnerPlayerController->GetHitResultAtScreenPosition(
-			ScreenCenter, InteractionTraceChannel, false, HitResult);
-
-		DetectedActor = HitResult.GetActor();
-		if (bHit && IsValid(DetectedActor))
-		{
-			const FVector HitPoint = HitResult.ImpactPoint;
-			const float Distance = FVector::DistSquared(OwnerLocation, HitPoint);
-
-			if (bIsDebugMode)
-			{
-				DrawDebugLine(
-					GetWorld(),
-					OwnerLocation,
-					HitPoint,
-					FColor::Green,
-					false,
-					0.1f
-				);
-			}
-
-			if (Distance > InteractionRange * InteractionRange)
-			{
-				return false;
-			}
-
-			DetectedInteractableComponent = DetectedActor->FindComponentByClass<UInteractableComponent>();
-			if (IsValid(DetectedInteractableComponent))
-			{
-				return true;
-			}
-		}
+		GetWorld()->GetTimerManager().ClearTimer(FindProcessTimerHandle);
+		return false;
 	}
-	else
+
+	const FVector OwnerLocation = OwnerActor->GetActorLocation();
+
+	FVector2D ViewportSize;
+	GEngine->GameViewport->GetViewportSize(ViewportSize);
+	const FVector2D ScreenCenter(ViewportSize.X / 2, ViewportSize.Y / 2);
+
+	FHitResult HitResult;
+	const bool bHit = OwnerPlayerController->GetHitResultAtScreenPosition(
+		ScreenCenter, InteractionTraceChannel, false, HitResult);
+
+	DetectedActor = HitResult.GetActor();
+	if (bHit && IsValid(DetectedActor))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OwnerPlayer is invalid"));
+		const FVector HitPoint = HitResult.ImpactPoint;
+		const float Distance = FVector::DistSquared(OwnerLocation, HitPoint);
+
+		if (bIsDebugMode)
+		{
+			DrawDebugLine(
+				GetWorld(),
+				OwnerLocation,
+				HitPoint,
+				FColor::Green,
+				false,
+				0.1f
+			);
+		}
+
+		if (Distance > InteractionRange * InteractionRange)
+		{
+			return false;
+		}
+
+		DetectedInteractableComponent = DetectedActor->FindComponentByClass<UInteractableComponent>();
+		if (IsValid(DetectedInteractableComponent))
+		{
+			return true;
+		}
 	}
 
 	return false;
+}
+
+bool UInteractionComponent::IsValidWidgetRef() const
+{
+	return CR4S_VALIDATE(LogGimmick, IsValid(SurvivalHUD)) &&
+		CR4S_VALIDATE(LogGimmick, IsValid(InteractionWidgetInstance));
 }

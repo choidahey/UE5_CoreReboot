@@ -16,5 +16,7 @@ enum class EMonsterState : uint8
     Hit         = 7  UMETA(DisplayName = "Hit"),
     Casting     = 8  UMETA(DisplayName = "Casting"),
     Stunned     = 9  UMETA(DisplayName = "Stunned"),
-    Dead        = 10 UMETA(DisplayName = "Dead")
+    Dead        = 10 UMETA(DisplayName = "Dead"),
+    AttackHouse = 11 UMETA(DisplayName = "AttackHouse"),
+    MoveToHouse = 12 UMETA(DisplayName = "MoveToHouse")
 };

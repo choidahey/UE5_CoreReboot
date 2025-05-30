@@ -12,11 +12,11 @@ const FName FAIKeys::IsDead = TEXT("IsDead");
 const FName FAIKeys::SkillIndex = TEXT("SkillIndex");
 
 // Region Boss AI Key
-const FName FRegionBossAIKeys::BaseCampLocation = TEXT("BaseCampLocation");
+const FName FRegionBossAIKeys::CombatStartLocation = TEXT("CombatStartLocation");
 const FName FRegionBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
 const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
 
 // Season Boss AI Key
 const FName FSeasonBossAIKeys::InitializeTargetLocation = TEXT("InitializeTargetLocation");
-const FName FSeasonBossAIKeys::NearestHouseLocation = TEXT("NearestHouseLocation");
-const FName FSeasonBossAIKeys::bIsAttackRange = TEXT("bIsAttackRange");
+const FName FSeasonBossAIKeys::NearestHouseActor = TEXT("NearestHouseActor");
+const FName FSeasonBossAIKeys::bIsIceRoadForward = TEXT("bIsIceRoadForward");

@@ -31,15 +31,14 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickTakeDamage(float DamageAmount, float CurrentHealth);
+	virtual void OnGimmickTakeDamage(AActor* DamageCauser, float DamageAmount, float CurrentHealth);
 	UFUNCTION()
-	virtual void OnGimmickDestroy();
+	virtual void OnGimmickDestroy(AActor* DamageCauser);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 
 private:
-	void DelayedDestroy();
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	bool bIsActorDestroyOnDestroyAction;

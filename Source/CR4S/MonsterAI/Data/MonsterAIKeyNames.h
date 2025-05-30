@@ -17,7 +17,7 @@ struct FAIKeys
 
 struct FRegionBossAIKeys : public FAIKeys
 {
-	static const FName BaseCampLocation;
+	static const FName CombatStartLocation;
 	static const FName CurrentPhase;
 	static const FName ShouldReturn;
 };
@@ -25,6 +25,6 @@ struct FRegionBossAIKeys : public FAIKeys
 struct FSeasonBossAIKeys : public FAIKeys
 {
 	static const FName InitializeTargetLocation;
-	static const FName NearestHouseLocation;
-	static const FName bIsAttackRange;
+	static const FName NearestHouseActor;
+	static const FName bIsIceRoadForward;
 };

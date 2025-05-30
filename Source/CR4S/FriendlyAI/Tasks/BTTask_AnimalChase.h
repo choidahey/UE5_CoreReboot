@@ -20,7 +20,7 @@ public:
 	
 protected:
 	UPROPERTY(EditAnywhere)
-	float AcceptanceRadius = 100.f;
+	float AcceptanceRadius = 0.1f;
 
 	UPROPERTY()
 	AActor* TargetToChase;
