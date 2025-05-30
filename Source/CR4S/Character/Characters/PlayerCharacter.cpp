@@ -57,9 +57,25 @@ void APlayerCharacter::InitializeWidgets()
 			{
 				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
 				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
-				Status->OnStaminaChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStaminaWidget);
+				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
 
-				InGameWidget->InitializeWidget(Status);
+				InGameWidget->InitializeStatusWidget(Status,false);
+			}
+		}
+	}
+}
+
+void APlayerCharacter::DisconnectWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.RemoveAll(InGameWidget);
+				Status->OnEnergyChanged.RemoveAll(InGameWidget);
+				Status->OnHungerChanged.RemoveAll(InGameWidget);
 			}
 		}
 	}
@@ -100,16 +116,16 @@ void APlayerCharacter::NotifyControllerChanged()
 float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	Status->AddCurrentHP(static_cast<int>(-DamageAmount));
+	Status->AddCurrentHP(-DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
 void APlayerCharacter::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	//Binding Delegate Functions and Set up Widget
 	InitializeWidgets();
-	
-	Super::BeginPlay();
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -155,9 +171,12 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
+	Super::PossessedBy(NewController);
+	
 	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Default")));
 	SetOverlayMode(CurrentTag);
-	Super::PossessedBy(NewController);
+	
+	InitializeWidgets();
 }
 
 void APlayerCharacter::UnPossessed()
@@ -170,7 +189,7 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
-	
+	DisconnectWidgets();
 	Super::UnPossessed();
 }
 

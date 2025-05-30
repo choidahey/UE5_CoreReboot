@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseStatusAsset.h"
 #include "Engine/DataAsset.h"
 #include "ModularRobotStatus.generated.h"
 
@@ -11,40 +12,35 @@ struct CR4S_API FModularRobotStats
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float Health{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float HeatThreshold{80};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float MaxStun{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float Temperature{30};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float Humidity{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float MaxHumidity{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float HumidityThreshold{50};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float Armor{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float ArmorMultiplier{1};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float AttackPower{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float Weight{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
-	float MaxWeight{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ModularRobot")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxOverHeat{10000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float OverHeat{0};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxStun{1000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Stun{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunResistance{0};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ArmorMultiplier{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackPowerMultiplier{1};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxWeight{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Weight{0};
 };
 
 UCLASS()
-class CR4S_API UModularRobotStatus : public UDataAsset
+class CR4S_API UModularRobotStatusAsset : public UBaseStatusAsset
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	FModularRobotStats Status;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Robot")
+	FModularRobotStats RobotStats;
 };

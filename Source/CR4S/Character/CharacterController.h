@@ -17,7 +17,7 @@ class CR4S_API ACharacterController : public APlayerController
 	GENERATED_BODY()
 public:
 	ACharacterController();
-
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;	

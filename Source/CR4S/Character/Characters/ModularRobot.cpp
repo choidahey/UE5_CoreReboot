@@ -7,10 +7,12 @@
 #include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
+#include "Character/Components/ModularRobotStatusComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "UI/InGame/SurvivalHUD.h"
 
 
 // Sets default values
@@ -64,6 +66,8 @@ AModularRobot::AModularRobot():
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	Status=CreateDefaultSubobject<UModularRobotStatusComponent>(TEXT("Status"));
+	
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 }
@@ -120,6 +124,42 @@ void AModularRobot::UnMountRobot()
 	MountedCharacter=nullptr;
 }
 
+void AModularRobot::InitializeWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
+				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
+				Status->OnOverHeatChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateOverHeatWidget);
+				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
+				
+				InGameWidget->InitializeStatusWidget(Status,true);
+			}
+		}
+	}
+}
+
+void AModularRobot::DisconnectWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.RemoveAll(InGameWidget);
+				Status->OnEnergyChanged.RemoveAll(InGameWidget);
+				Status->OnOverHeatChanged.RemoveAll(InGameWidget);
+				Status->OnStunChanged.RemoveAll(InGameWidget);
+			}
+		}
+	}
+}
+
 // Called when the game starts or when spawned
 void AModularRobot::BeginPlay()
 {
@@ -129,6 +169,8 @@ void AModularRobot::BeginPlay()
 	{
 		InteractComp->OnTryInteract.BindDynamic(this,&AModularRobot::MountRobot);
 	}
+
+	InitializeWidgets();
 }
 
 void AModularRobot::NotifyControllerChanged()
@@ -161,6 +203,27 @@ void AModularRobot::NotifyControllerChanged()
 	}
 
 	Super::NotifyControllerChanged();
+}
+
+void AModularRobot::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	InitializeWidgets();
+}
+
+void AModularRobot::UnPossessed()
+{
+	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		UEnhancedInputLocalPlayerSubsystem* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
+		{
+			InputSubsystem->RemoveMappingContext(InputMappingContext);
+		}
+	}
+	DisconnectWidgets();
+	Super::UnPossessed();
 }
 
 // Called every frame

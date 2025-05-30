@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class UModularRobotStatusComponent;
 class APlayerCharacter;
 class UInteractableComponent;
 class UInputAction;
@@ -29,19 +30,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UnMountRobot();
 #pragma endregion
+
+#pragma region Widgets
+	void InitializeWidgets();
+	void DisconnectWidgets();
+#pragma endregion
 	
 #pragma region OverrideFunctions
 public:
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	// === Character Override Functions ===
 	virtual void NotifyControllerChanged() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 #pragma endregion
 
 #pragma region MoveFunctions
@@ -99,6 +103,8 @@ private:
 	TObjectPtr<USpringArmComponent> CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UModularRobotStatusComponent> Status;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
 #pragma endregion

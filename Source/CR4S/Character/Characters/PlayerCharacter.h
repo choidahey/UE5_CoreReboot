@@ -31,6 +31,7 @@ public:
 	
 #pragma region Widget
 	void InitializeWidgets();
+	void DisconnectWidgets();
 #pragma endregion
 	
 #pragma region Overrides

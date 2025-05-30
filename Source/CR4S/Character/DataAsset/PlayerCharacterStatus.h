@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseStatusAsset.h"
 #include "Engine/DataAsset.h"
-#include "Settings/AlsInAirRotationMode.h"
 #include "PlayerCharacterStatus.generated.h"
 
 USTRUCT(BlueprintType)
@@ -13,37 +13,18 @@ struct CR4S_API FPlayerCharacterStats
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 MaxHealth{4000};
+	float MaxHunger{100};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Health{4000};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 MaxHunger{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Hunger{100};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 MaxStamina{10000};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Stamina{10000};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 AttackPower{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Armor{50};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ColdThreshold{-20};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 HeatThreshold{30};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 HumidityThreshold{100};
-	
+	float Hunger{100};
 };
 
 UCLASS(Blueprintable, BlueprintType)
-class CR4S_API UPlayerCharacterStatus : public UDataAsset
+class CR4S_API UPlayerCharacterStatusAsset : public UBaseStatusAsset
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FPlayerCharacterStats StatsData;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Player")
+	FPlayerCharacterStats PlayerStats;
 	
 };
