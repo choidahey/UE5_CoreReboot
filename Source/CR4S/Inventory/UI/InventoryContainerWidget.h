@@ -5,6 +5,7 @@
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "InventoryContainerWidget.generated.h"
 
+class UCompostBinWidget;
 class UStorageInventoryWidget;
 enum class EInventoryType : uint8;
 class UPlayerInventoryComponent;
@@ -45,7 +46,7 @@ public:
 	FORCEINLINE bool IsOpen() const { return bIsOpen; }
 
 private:
-	void InitToggleWidget(UBaseInventoryWidget* InventoryWidget) const;
+	void InitToggleWidget(UUserWidget* Widget) const;
 	UBaseInventoryWidget* GetTargetInventoryWidget(EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const;
 
 	bool bIsOpen;
@@ -77,7 +78,7 @@ private:
 	TObjectPtr<UBaseInventoryWidget> PlantBoxInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseInventoryWidget> CompostBinInventoryWidget;
+	TObjectPtr<UCompostBinWidget> CompostBinWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<TObjectPtr<UBaseInventoryWidget>> OpenInventoryWidgets;

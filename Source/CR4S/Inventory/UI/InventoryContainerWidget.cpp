@@ -2,6 +2,7 @@
 
 #include "CR4S.h"
 #include "Components/Border.h"
+#include "Gimmick/UI/CompostBinWidget.h"
 #include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
@@ -28,7 +29,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlantBoxInventoryWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinInventoryWidget)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)))
 	{
 		return;
 	}
@@ -41,12 +42,11 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	StorageInventoryWidget->InitWidget(SurvivalHUD);
 	PlantBoxInventoryWidget->InitWidget(SurvivalHUD);
-	CompostBinInventoryWidget->InitWidget(SurvivalHUD);
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InitToggleWidget(StorageInventoryWidget);
 	InitToggleWidget(PlantBoxInventoryWidget);
-	InitToggleWidget(CompostBinInventoryWidget);
+	InitToggleWidget(CompostBinWidget);
 }
 
 void UInventoryContainerWidget::OpenPlayerInventoryWidget()
@@ -118,11 +118,11 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
 }
 
-void UInventoryContainerWidget::InitToggleWidget(UBaseInventoryWidget* InventoryWidget) const
+void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const
 {
-	if (CR4S_VALIDATE(LogInventoryUI, InventoryWidget->GetVisibility() != ESlateVisibility::Collapsed))
+	if (CR4S_VALIDATE(LogInventoryUI, Widget->GetVisibility() != ESlateVisibility::Collapsed))
 	{
-		SurvivalHUD->ToggleWidget(InventoryWidget);
+		SurvivalHUD->ToggleWidget(Widget);
 	}
 }
 
@@ -140,6 +140,7 @@ UBaseInventoryWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 		{
 			TargetInventoryWidget = StorageInventoryWidget;
 			bCanDrag = true;
+			TargetInventoryWidget->SetCanSort(true);
 			break;
 		}
 	case EInventoryType::ItemPouch:
@@ -147,13 +148,12 @@ UBaseInventoryWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 			TargetInventoryWidget = StorageInventoryWidget;
 			bCanDrag = true;
 			bCanDrop = false;
+			TargetInventoryWidget->SetCanSort(false);
 			break;
 		}
 	case EInventoryType::PlantBox:
 		TargetInventoryWidget = PlantBoxInventoryWidget;
-		break;
-	case EInventoryType::CompostBin:
-		TargetInventoryWidget = CompostBinInventoryWidget;
+		TargetInventoryWidget->SetCanSort(false);
 		break;
 	}
 
@@ -162,8 +162,6 @@ UBaseInventoryWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 
 FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	CR4S_Log(LogInventoryUI, Warning, TEXT("Key: %s"), *InKeyEvent.GetKey().ToString());
-
 	if (InKeyEvent.GetKey() == EKeys::Nine)
 	{
 		CloseInventoryWidget();

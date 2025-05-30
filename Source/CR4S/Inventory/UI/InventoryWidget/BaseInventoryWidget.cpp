@@ -13,8 +13,10 @@ void UBaseInventoryWidget::NativeConstruct()
 	PlayerController = GetOwningPlayer();
 
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
-	
+
 	SetIsFocusable(true);
+
+	bCanSort = true;
 }
 
 void UBaseInventoryWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -39,7 +41,7 @@ void UBaseInventoryWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	{
 		return;
 	}
-	
+
 	PlayerController->SetInputMode(FInputModeUIOnly()
 	                               .SetWidgetToFocus(InventoryContainerWidget->TakeWidget())
 	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
@@ -108,4 +110,17 @@ void UBaseInventoryWidget::UpdateItemSlotWidget(UBaseInventoryItem* Item)
 	{
 		ItemSlotWidgets[SlotIndex]->SetItem(Item);
 	}
+}
+
+FReply UBaseInventoryWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent)) ||
+		InKeyEvent.GetKey() != EKeys::R ||
+		!CR4S_VALIDATE(LogInventoryUI, bCanSort))
+	{
+		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+	}
+
+	InventoryComponent->SortInventoryItems();
+	return FReply::Handled();
 }

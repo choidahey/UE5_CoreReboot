@@ -211,8 +211,8 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
-		!CR4S_VALIDATE(LogInventoryUI, CurrentItem->HasItemData()) ||
-		InKeyEvent.GetKey() != EKeys::G)
+		InKeyEvent.GetKey() != EKeys::G ||
+		!CR4S_VALIDATE(LogInventoryUI, CurrentItem->HasItemData()))
 	{
 		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}

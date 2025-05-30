@@ -62,4 +62,17 @@ protected:
 	TArray<TObjectPtr<UBaseItemSlotWidget>> ItemSlotWidgets;
 
 #pragma endregion
+
+#pragma region Input
+
+public:
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+
+	FORCEINLINE void SetCanSort(const bool bNewCanSort) { bCanSort = bNewCanSort; }
+	
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	bool bCanSort;
+	
+#pragma endregion 
 };
