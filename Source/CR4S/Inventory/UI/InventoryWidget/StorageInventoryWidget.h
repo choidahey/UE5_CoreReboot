@@ -12,7 +12,7 @@ class CR4S_API UStorageInventoryWidget : public UBaseInventoryWidget
 #pragma region UBaseInventoryWidget Override
 
 public:
-	virtual void InitWidget(ASurvivalHUD* SurvivalHUD) override;
+	virtual void InitWidget(ASurvivalHUD* SurvivalHUD, bool bNewCanSort) override;
 	
 #pragma endregion
 

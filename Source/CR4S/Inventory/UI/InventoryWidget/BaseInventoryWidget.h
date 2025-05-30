@@ -26,7 +26,7 @@ public:
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "InventoryWidget|Initalize")
-	virtual void InitWidget(ASurvivalHUD* SurvivalHUD);
+	virtual void InitWidget(ASurvivalHUD* SurvivalHUD, bool bNewCanSort);
 
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag, bool bCanDrop);
 

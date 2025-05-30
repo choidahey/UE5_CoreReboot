@@ -47,7 +47,7 @@ void UBaseInventoryWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
 }
 
-void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD)
+void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNewCanSort)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
 	{
@@ -62,6 +62,8 @@ void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD)
 			ItemSlotWidgets.AddUnique(ItemSlotWidget);
 		}
 	}
+
+	bCanSort = bNewCanSort;
 }
 
 void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent,
@@ -114,13 +116,16 @@ void UBaseInventoryWidget::UpdateItemSlotWidget(UBaseInventoryItem* Item)
 
 FReply UBaseInventoryWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent)) ||
-		InKeyEvent.GetKey() != EKeys::R ||
-		!CR4S_VALIDATE(LogInventoryUI, bCanSort))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent)))
 	{
 		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}
 
-	InventoryComponent->SortInventoryItems();
-	return FReply::Handled();
+	if (InKeyEvent.GetKey() == EKeys::R && CR4S_VALIDATE(LogInventoryUI, bCanSort))
+	{
+		InventoryComponent->SortInventoryItems();
+		return FReply::Handled();
+	}
+
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }

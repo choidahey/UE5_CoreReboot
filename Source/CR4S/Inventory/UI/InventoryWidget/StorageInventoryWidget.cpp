@@ -5,7 +5,7 @@
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 
-void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD)
+void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNewCanSort)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlotWidgetClass)) ||

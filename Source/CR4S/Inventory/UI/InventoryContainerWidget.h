@@ -47,7 +47,7 @@ public:
 
 private:
 	void InitToggleWidget(UUserWidget* Widget) const;
-	UBaseInventoryWidget* GetTargetInventoryWidget(EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const;
+	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const;
 
 	bool bIsOpen;
 
@@ -81,7 +81,7 @@ private:
 	TObjectPtr<UCompostBinWidget> CompostBinWidget;
 
 	UPROPERTY(EditDefaultsOnly)
-	TArray<TObjectPtr<UBaseInventoryWidget>> OpenInventoryWidgets;
+	TObjectPtr<UUserWidget> OpenOtherWidget;
 
 #pragma endregion
 };

@@ -34,7 +34,7 @@ protected:
 	TObjectPtr<APlayerController> PlayerController;
 
 	UPROPERTY()
-	TObjectPtr<UInventoryContainerWidget> OwnerWidget;
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
 	
 #pragma endregion
 	
@@ -92,6 +92,6 @@ private:
 
 public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
-
+	
 #pragma endregion
 };

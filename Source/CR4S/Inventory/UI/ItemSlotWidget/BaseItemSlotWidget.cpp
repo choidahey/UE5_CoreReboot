@@ -19,7 +19,7 @@ void UBaseItemSlotWidget::NativeConstruct()
 
 	PlayerController = GetOwningPlayer();
 
-	OwnerWidget = GetTypedOuter<UInventoryContainerWidget>();
+	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
 
 	SetIsFocusable(true);
 }
@@ -99,14 +99,14 @@ void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	}
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(OwnerWidget)) ||
-		!OwnerWidget->IsOpen())
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
+		!InventoryContainerWidget->IsOpen())
 	{
 		return;
 	}
 
 	PlayerController->SetInputMode(FInputModeUIOnly()
-	                               .SetWidgetToFocus(OwnerWidget->TakeWidget())
+	                               .SetWidgetToFocus(InventoryContainerWidget->TakeWidget())
 	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
 }
 
@@ -117,8 +117,6 @@ FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 	{
 		return FReply::Unhandled();
 	}
-
-	CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnMouseButtonDown: %d"), CurrentItem->GetSlotIndex());
 
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
@@ -210,14 +208,17 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 
 FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
-		InKeyEvent.GetKey() != EKeys::G ||
-		!CR4S_VALIDATE(LogInventoryUI, CurrentItem->HasItemData()))
+	if (!IsValid(CurrentItem) || !CurrentItem->HasItemData())
 	{
 		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}
 
-	CurrentItem->SetCurrentStackCount(0);
-	SetItem(CurrentItem);
-	return FReply::Handled();
+	if (InKeyEvent.GetKey() == EKeys::G)
+	{
+		CurrentItem->SetCurrentStackCount(0);
+		SetItem(CurrentItem);
+		return FReply::Handled();
+	}
+
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
