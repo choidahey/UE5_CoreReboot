@@ -7,6 +7,7 @@
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
+#include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
 
 void UBaseItemSlotWidget::NativeConstruct()
 {
@@ -18,7 +19,7 @@ void UBaseItemSlotWidget::NativeConstruct()
 	}
 
 	PlayerController = GetOwningPlayer();
-
+	
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
 
 	SetIsFocusable(true);
@@ -45,6 +46,13 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 		return;
 	}
 
+	UBaseInventoryComponent* InventoryComponent = nullptr;
+	
+	if (IsValid(InventoryWidget))
+	{
+		InventoryComponent = InventoryWidget->GetInventoryComponent();
+	}
+
 	if (CurrentItem->HasItemData())
 	{
 		IconImage->SetVisibility(ESlateVisibility::Visible);
@@ -59,11 +67,21 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 		{
 			CountTextBlock->SetVisibility(ESlateVisibility::Collapsed);
 		}
+
+		if (IsValid(InventoryComponent))
+		{
+			InventoryComponent->AddOccupiedSlot(CurrentItem->GetSlotIndex());
+		}
 	}
 	else
 	{
 		IconImage->SetVisibility(ESlateVisibility::Collapsed);
 		CountTextBlock->SetVisibility(ESlateVisibility::Collapsed);
+
+		if (IsValid(InventoryComponent))
+		{
+			InventoryComponent->RemoveOccupiedSlot(CurrentItem->GetSlotIndex());
+		}
 	}
 }
 

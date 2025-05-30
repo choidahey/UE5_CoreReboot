@@ -2,7 +2,6 @@
 
 #include "CR4S.h"
 #include "Components/PanelWidget.h"
-#include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 
 void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNewCanSort)

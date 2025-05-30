@@ -60,6 +60,9 @@ public:
 	
 	FORCEINLINE int32 GetMaxInventorySlot() const { return MaxItemSlot; }
 	FORCEINLINE void SetMaxInventorySlot(const int32 InMaxInventorySlot) { MaxItemSlot = InMaxInventorySlot; }
+	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex) { OccupiedSlots.Add(SlotIndex); }
+	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex) { OccupiedSlots.Remove(SlotIndex); }
+	FORCEINLINE int32 GetNumOccupiedSlots() const { return OccupiedSlots.Num(); }
 
 protected:
 	void GetSameItemSlotsAndEmptySlots(const FName& InRowName,
@@ -75,7 +78,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
 	int32 MaxItemSlot;
-	
+
+	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
+	TSet<int32> OccupiedSlots;
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 

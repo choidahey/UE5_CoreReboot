@@ -65,7 +65,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 			ItemGimmickSubsystem->SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
 			                                                               OwnerActor->GetActorLocation(),
 			                                                               OwnerActor->GetActorRotation());
-		
+
 		ItemPouch->InitItemPouch(RemainingItems);
 	}
 }
@@ -199,7 +199,7 @@ int32 UBaseInventoryComponent::GetItemCountByRowName(const FName RowName) const
 			Count += Item->GetCurrentStackCount();
 		}
 	}
-	
+
 	return Count;
 }
 
@@ -212,7 +212,7 @@ void UBaseInventoryComponent::RemoveItem(const FName RowName, const int32 Count)
 		{
 			return;
 		}
-		
+
 		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
 		{
 			const int32 ItemCount = Item->GetCurrentStackCount();

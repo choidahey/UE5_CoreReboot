@@ -25,7 +25,7 @@ void UQuickSlotBarWidget::NativeConstruct()
 	}
 }
 
-void UQuickSlotBarWidget::InitWidget(UPlayerInventoryComponent* InPlayerInventoryComponent)
+void UQuickSlotBarWidget::InitWidget(UBaseInventoryWidget* InventoryWidget, UPlayerInventoryComponent* InPlayerInventoryComponent)
 {
 	PlayerInventoryComponent = InPlayerInventoryComponent;
 

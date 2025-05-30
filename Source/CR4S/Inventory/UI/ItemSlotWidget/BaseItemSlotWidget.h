@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UBaseInventoryWidget;
 class UInventoryContainerWidget;
 class UDummyItemSlotWidget;
 class UBorder;
@@ -33,6 +34,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController;
 
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryWidget> InventoryWidget;
+	
 	UPROPERTY()
 	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
 	

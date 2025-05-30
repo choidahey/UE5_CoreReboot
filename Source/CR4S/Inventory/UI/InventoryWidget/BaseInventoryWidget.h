@@ -31,6 +31,8 @@ public:
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag, bool bCanDrop);
 
 	void UnBoundOnItemSlotChanged();
+
+	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	
 protected:
 	UPROPERTY()

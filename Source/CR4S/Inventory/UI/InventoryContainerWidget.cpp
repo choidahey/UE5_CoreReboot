@@ -38,7 +38,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	PlayerInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlayerInventoryWidget->ConnectInventoryComponent(PlayerInventoryComponent, true, true);
-	QuickSlotBarWidget->InitWidget(InPlayerInventoryComponent);
+	QuickSlotBarWidget->InitWidget(PlayerInventoryWidget, InPlayerInventoryComponent);
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlantBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 
