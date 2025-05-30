@@ -32,11 +32,11 @@ struct FResourceItemData
 };
 
 USTRUCT(BlueprintType)
-struct FBaseGimmickData : public FTableRowBase
+struct FGimmickInfoData : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	FBaseGimmickData()
+	FGimmickInfoData()
 		: Type(EGimmickType::Resources),
 		  GimmickMaxHealth(0.f)
 	{
@@ -94,7 +94,7 @@ struct FCropsGimmickData : public FTableRowBase
 	int32 HumidityMinThreshold;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 감속 습도 최대 임계값"))
 	int32 HumidityMaxThreshold;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "온도로 인한 성장 감속 배율", ClampMin = "0.0", ClampMax = "1.0"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "습도로 인한 성장 감속 배율", ClampMin = "0.0", ClampMax = "1.0"))
 	float HumiditySlowdownMultiplier;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 사용 여부"))
 	bool bUseGrowthBoost;

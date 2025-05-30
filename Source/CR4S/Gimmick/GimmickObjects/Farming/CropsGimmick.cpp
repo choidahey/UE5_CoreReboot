@@ -2,18 +2,21 @@
 
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Game/System/WorldTimeManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Gimmick/Data/GimmickData.h"
 
 ACropsGimmick::ACropsGimmick()
 	: HarvestText(FText::FromString(TEXT("수확 하기"))),
 	  DetectingActor(nullptr),
 	  bIsDetected(false),
 	  bIsHarvestable(false),
-	  GrowthPercentPerInterval(10.f),
-	  IntervalSeconds(5.f),
-	  PreviousGrowthStage(0),
-	  CurrentGrowthPercent(0.f),
-	  MaxGrowthPercent(100.f)
+	  GrowthTimeMinutes(0),
+	  ElapsedSeconds(0),
+	  TotalGrowthSeconds(0),
+	  MaxStageCount(0),
+	  CurrentStage(0),
+	  CurrentGrowthPercent(0.f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -32,23 +35,43 @@ void ACropsGimmick::BeginPlay()
 		DefaultInteractionText = InteractableComponent->GetInteractionText();
 	}
 
-	GrowthPercentPerInterval = 10.f;
-	IntervalSeconds = 2.f;
-
-	GrowthStageThresholds = {25.f, 50.f, 75.f, 100.f};
-	GrowthStageScale = {0.1f, 0.25f, 0.5f, 0.75f, 1.f};
-
-	MaxGrowthPercent = GrowthStageThresholds.Num() != 0 ? GrowthStageThresholds.Last() : 100.f;
-
-	if (!bIsHarvestable)
+	FCropsGimmickData* CropsGimmickData = nullptr;
+	if (const FGimmickInfoData* GimmickInfoData = GetGimmickInfoData())
 	{
-		GetWorldTimerManager().SetTimer(
-			GrowthTimerHandle,
-			this,
-			&ThisClass::Grow,
-			IntervalSeconds,
-			true
-		);
+		const UDataTable* DataTable = GimmickInfoData->DetailData.DataTable;
+		FName RowName = GimmickInfoData->DetailData.RowName;
+		CropsGimmickData = DataTable->FindRow<FCropsGimmickData>(RowName, TEXT("CropsGimmickData"));
+	}
+
+	if (CR4S_VALIDATE(LogGimmick, GrowthMeshes.Num() > 0))
+	{
+		if (!bIsHarvestable)
+		{
+			if (IsValid(GrowthMeshes[0]))
+			{
+				GimmickMeshComponent->SetStaticMesh(GrowthMeshes[0]);
+
+				if (CropsGimmickData)
+				{
+					GrowthTimeMinutes = CropsGimmickData->GrowthRate;
+					ElapsedSeconds = 0;
+					CurrentStage = 0;
+					TotalGrowthSeconds = GrowthTimeMinutes * 60;
+					MaxStageCount = GrowthMeshes.Num() - 1;
+					StageDuration = TotalGrowthSeconds / (MaxStageCount);
+					CurrentGrowthPercent = 0.f;
+
+					BindDelegate();
+				}
+			}
+		}
+		else
+		{
+			if (IsValid(GrowthMeshes.Last()))
+			{
+				GimmickMeshComponent->SetStaticMesh(GrowthMeshes.Last());
+			}
+		}
 	}
 }
 
@@ -58,7 +81,7 @@ void ACropsGimmick::OnGimmickInteracted(AActor* Interactor)
 	{
 		return;
 	}
-	
+
 	Harvest(Interactor);
 }
 
@@ -79,13 +102,15 @@ void ACropsGimmick::UpdateInteractionText() const
 	if (IsValid(InteractableComponent))
 	{
 		const FString InteractionString = DefaultInteractionText.ToString()
-			+ FString::Printf(TEXT(" %.f%%"), CurrentGrowthPercent);
+			+ FString::Printf(TEXT(" %.1f%%"), CurrentGrowthPercent);
 
 		FText Text = FText::FromString(InteractionString);
 
 		if (bIsHarvestable)
 		{
-			Text = HarvestText;
+			const FString NewInteractionString = FString::Printf(TEXT("%s\n%s"),
+			                                                     *HarvestText.ToString(), *InteractionString);
+			Text = FText::FromString(NewInteractionString);
 		}
 
 		InteractableComponent->SetInteractionText(Text);
@@ -95,56 +120,77 @@ void ACropsGimmick::UpdateInteractionText() const
 void ACropsGimmick::Harvest(const AActor* Interactor)
 {
 	OnHarvest.ExecuteIfBound();
-	
+
 	GetResources(Interactor);
 
 	GimmickDestroy();
 }
 
-void ACropsGimmick::GrowthStageChanged(const int32 NewGrowthStage)
+void ACropsGimmick::Grow(int64 PlayTime)
 {
-	if (IsValid(GimmickMeshComponent) && GrowthStageScale.IsValidIndex(NewGrowthStage))
+	if (GrowthMeshes.Num() < 2 || TotalGrowthSeconds <= 0.f)
 	{
-		const FVector NewScale = FVector(GrowthStageScale[NewGrowthStage]);
-		GimmickMeshComponent->SetRelativeScale3D(NewScale);
-		
-		if (NewGrowthStage == GrowthStageThresholds.Num())
-		{
-			GetWorldTimerManager().ClearTimer(GrowthTimerHandle);
-			bIsHarvestable = true;
-		}
-	}
-}
-
-void ACropsGimmick::Grow()
-{
-	CurrentGrowthPercent = FMath::Clamp(CurrentGrowthPercent + GrowthPercentPerInterval, 0.f, MaxGrowthPercent);
-
-	if (Cast<APlayerCharacter>(DetectingActor) && bIsDetected)
-	{
-		UpdateInteractionText();
+		return;
 	}
 
-	const int32 NewStage = CalculateGrowthStage();
-	if (NewStage != PreviousGrowthStage)
+	if (FMath::RandRange(1, 100) <= 70)
 	{
-		PreviousGrowthStage = NewStage;
-		if (NewStage >= 0)
-		{
-			GrowthStageChanged(NewStage);
-		}
-	}
-}
-
-int32 ACropsGimmick::CalculateGrowthStage() const
-{
-	for (int32 Index = GrowthStageThresholds.Num() - 1; Index >= 0; Index--)
-	{
-		if (CurrentGrowthPercent >= GrowthStageThresholds[Index])
-		{
-			return Index + 1;
-		}
+		ElapsedSeconds += 1;
 	}
 	
-	return 0;
+	CurrentGrowthPercent = FMath::Clamp(ElapsedSeconds * 100.0f / TotalGrowthSeconds, 0.0f, 200.0f);
+
+	if (CurrentGrowthPercent == 200.f)
+	{
+		Destroy();
+		return;
+	}
+
+	if (CurrentGrowthPercent > 100.f)
+	{
+		return;
+	}
+
+	UpdateGrowthStage();
+}
+
+void ACropsGimmick::UpdateGrowthStage()
+{
+	const int32 NewStage = FMath::Clamp(
+		FMath::FloorToInt(ElapsedSeconds / StageDuration),
+		0,
+		MaxStageCount
+	);
+
+	if (NewStage != CurrentStage)
+	{
+		CurrentStage = NewStage;
+		if (GrowthMeshes.IsValidIndex(CurrentStage) && GrowthMeshes[CurrentStage])
+		{
+			GimmickMeshComponent->SetStaticMesh(GrowthMeshes[CurrentStage]);
+
+			if (CurrentStage == MaxStageCount)
+			{
+				bIsHarvestable = true;
+			}
+		}
+	}
+}
+
+void ACropsGimmick::BindDelegate()
+{
+	UWorldTimeManager* WorldTimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
+	if (IsValid(WorldTimeManager))
+	{
+		WorldTimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::Grow);
+	}
+}
+
+void ACropsGimmick::UnBindDelegate()
+{
+	UWorldTimeManager* WorldTimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
+	if (IsValid(WorldTimeManager) && WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(this, &ThisClass::Grow))
+	{
+		WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::Grow);
+	}
 }

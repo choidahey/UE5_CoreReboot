@@ -34,9 +34,9 @@ const FItemInfoData* UItemGimmickSubsystem::FindItemInfoData(const FName& RowNam
 	return FindDataFromDataTable<FItemInfoData>(ItemInfoDataTable, RowName, TEXT("Load Item Data"));
 }
 
-const FBaseGimmickData* UItemGimmickSubsystem::FindGimmickData(const FName& RowName) const
+const FGimmickInfoData* UItemGimmickSubsystem::FindGimmickInfoData(const FName& RowName) const
 {
-	return FindDataFromDataTable<FBaseGimmickData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
+	return FindDataFromDataTable<FGimmickInfoData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
 ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const
@@ -46,8 +46,8 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 		return nullptr;
 	}
 
-	const FBaseGimmickData* GimmickData
-		= GimmickInfoDataTable->FindRow<FBaseGimmickData>(RowName, FString(TEXT("Load Gimmick Data")));
+	const FGimmickInfoData* GimmickData
+		= GimmickInfoDataTable->FindRow<FGimmickInfoData>(RowName, FString(TEXT("Load Gimmick Data")));
 	if (!CR4S_VALIDATE(LogGimmick, GimmickData))
 	{
 		return nullptr;
