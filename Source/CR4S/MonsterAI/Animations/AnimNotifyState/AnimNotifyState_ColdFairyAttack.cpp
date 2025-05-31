@@ -23,10 +23,9 @@ void UAnimNotifyState_ColdFairyAttack::NotifyBegin(USkeletalMeshComponent* MeshC
     UBlackboardComponent* BB = AIC->GetBlackboardComponent();
     if (!AIC || !BB) return;
     
-    AActor* Target = nullptr;
-    Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
-    if (!Target)
-        Target = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+    AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+    Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+    Target = Target ? Target : UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
     
     FVector BaseLoc = Target->GetActorLocation();
     if (ACharacter* Char = Cast<ACharacter>(Target))
