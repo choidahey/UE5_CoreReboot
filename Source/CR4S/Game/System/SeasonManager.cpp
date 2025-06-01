@@ -30,7 +30,6 @@ void USeasonManager::OnPostWorldInit(UWorld* World, const UWorld::Initialization
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: EnvironmentManager not found"));
 	}
-
 }
 
 void USeasonManager::LoadSeason()
@@ -40,6 +39,30 @@ void USeasonManager::LoadSeason()
 	UE_LOG(LogTemp, Warning, TEXT("Loading Season"));
 	SetCurrentSeason(ESeasonType::BountifulSeason);
 }
+
+void USeasonManager::HandleDayChange()
+{
+	if (!EnvironmentManager) return;
+		
+	float Progress = static_cast<float>(CurrentSeasonDay) / static_cast<float>(SeasonLength);
+	CurrentDayNightRatio = FMath::Lerp(StartDayNightRatio, TargetDayNightRatio, Progress);
+
+	EnvironmentManager->SetDayNightRatio(CurrentDayNightRatio);
+
+	CurrentSeasonDay++;
+
+	if (CurrentSeasonDay > SeasonLength)
+	{
+		ChangeToNextSeason();
+		CurrentSeasonDay = 1;
+		StartDayNightRatio = CurrentDayNightRatio;
+		TargetDayNightRatio = GetTargetDayRatioForSeason(CurrentSeason);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("AdjustDayNightLength: Day %d / %d, Ratio %.3f"), CurrentSeasonDay, SeasonLength, CurrentDayNightRatio);
+}
+
+
 
 void USeasonManager::ChangeToNextSeason()
 {
@@ -62,15 +85,25 @@ void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 	UE_LOG(LogTemp, Warning, TEXT("Current Season changed to: %s"), *UEnum::GetValueAsString(NewSeason));
 
 	EnvironmentManager->SetWeatherBySeason(NewSeason);
-
-	HandleSeasonChange(NewSeason);
 }
 
 void USeasonManager::HandleSeasonChange(ESeasonType NewSeason)
 {
-	// Handle the season change logic here
+
 
 	UE_LOG(LogTemp, Warning, TEXT("Handling season change to: %s"), *UEnum::GetValueAsString(NewSeason));
+}
+
+float USeasonManager::GetTargetDayRatioForSeason(ESeasonType Season) const
+{
+	switch (Season)
+	{
+	case ESeasonType::BountifulSeason: return 0.3f;
+	case ESeasonType::FrostSeason: return 0.4f;
+	case ESeasonType::RainySeason: return 0.7f;
+	case ESeasonType::DrySeason: return 0.5f;
+	default: return 0.5f;
+	}
 }
 
 void USeasonManager::Deinitialize()

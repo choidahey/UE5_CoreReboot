@@ -9,6 +9,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogSetting, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogGimmick, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogInventory, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogInventoryUI, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogEnvironment, Log, All);
 
 #define FUNCTION_TCHAR (ANSI_TO_TCHAR(__FUNCTION__))
 #pragma region CR4S_Log

@@ -4,6 +4,7 @@
 #include "WorldTimeManager.generated.h"
 
 class AEnvironmentManager;
+class USeasonManager;
 
 USTRUCT(BlueprintType)
 struct FWorldTimeData
@@ -27,45 +28,49 @@ class CR4S_API UWorldTimeManager : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
+
+
+#pragma region Getters & Setters & Subsystem Setup
 public:
-
-#pragma region Getters & Subsystem Setup
-
 	FORCEINLINE FWorldTimeData GetCurrentTimeData() const { return CurrentTimeData; }
 	FORCEINLINE int64 GetTotalPlayTime() const { return TotalPlayTime; }
+	FORCEINLINE int32 GetDayCycleLength() const { return DayCycleLength; }
 
+	FORCEINLINE void SetWorldTimeMultiplier(int32 Multiplier) { WorldTimeMultiplier = Multiplier; }
+
+
+
+#pragma endregion
+
+#pragma region Subsystem Setup
+protected:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
+	void OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS);
+	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
+
 #pragma endregion
 
 #pragma region Public Time Control API
-
+public:
+	void StartWorldTime();
 	void PauseTime();
 	void ResumeTime();
 	void ModifyTime(int32 Day, int32 Minute);
 
 #pragma endregion
 
-#pragma region Delegates & Events
+#pragma region Load
 
-	UPROPERTY(BlueprintAssignable, Category = "WorldTime|Event")
-	FOnWorldTimeUpdated OnWorldTimeUpdated;
 
-#pragma endregion
-
-protected:
-
-#pragma region Lifecycle & Initialization
-
-	void OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS);
-	void OnWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
 	void LoadTimeData();
 
 #pragma endregion
 
 #pragma region Internal Time Logic
+protected:
 
 	void UpdateTime();
 	void AdvanceSkyTime(int32 Min, int32 Sec);
@@ -74,15 +79,14 @@ protected:
 #pragma endregion
 
 #pragma region Time Settings & State
+protected:
+	UPROPERTY()
+	int32 WorldTimeMultiplier = 1;
 
-	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
-	int32 WorldTimeMultiplier = 12;
+	UPROPERTY()
+	int32 DayCycleLength = 20;
 
-	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
-	int32 DayLength = 10;
 
-	UPROPERTY(EditAnywhere, Category = "WorldTime|Setting")
-	int32 SeasonLength = 30;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WorldTime|State", meta = (AllowPrivateAccess = "true"))
 	FWorldTimeData CurrentTimeData;
@@ -97,7 +101,18 @@ protected:
 	UPROPERTY(Transient)
 	AEnvironmentManager* EnvironmentManager;
 
+	USeasonManager* SeasonManager;
+
+
 	FTimerHandle TimeUpdateHandle;
+
+#pragma endregion
+
+#pragma region Delegates & Events
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "WorldTime|Event")
+	FOnWorldTimeUpdated OnWorldTimeUpdated;
 
 #pragma endregion
 };
