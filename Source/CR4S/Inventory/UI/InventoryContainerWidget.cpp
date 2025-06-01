@@ -69,6 +69,8 @@ void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType In
 {
 	OpenPlayerInventoryWidget();
 
+	OtherInventoryComponent = InventoryComponent;
+
 	bool bCanDrag = false;
 	bool bCanDrop = true;
 	UUserWidget* TargetWidget = GetTargetInventoryWidget(InventoryType, bCanDrag, bCanDrop);
@@ -98,6 +100,11 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	}
 
 	bIsOpen = false;
+
+	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChanged.IsBound())
+	{
+		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
+	}
 
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 	SurvivalHUD->ToggleWidget(OpenOtherWidget);
@@ -177,4 +184,31 @@ FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, c
 	}
 
 	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+}
+
+void UInventoryContainerWidget::MoveItemToInventory(UBaseItemSlotWidget* ItemSlot, const bool bTargetIsPlayer) const
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(OtherInventoryComponent)))
+	{
+		return;
+	}
+
+	UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
+
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
+	{
+		return;
+	}
+
+	const FName RowName = Item->GetInventoryItemData()->RowName;
+
+	UBaseInventoryComponent* ToInventoryComponent = bTargetIsPlayer
+		                                                ? PlayerInventoryComponent
+		                                                : OtherInventoryComponent;
+
+	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
+
+	Item->SetCurrentStackCount(Result.RemainingCount);
+	ItemSlot->SetItem(Item);
 }

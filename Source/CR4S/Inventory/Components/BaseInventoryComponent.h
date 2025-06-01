@@ -51,17 +51,25 @@ public:
 	virtual FAddItemResult AddItem(FName RowName, int32 Count);
 
 	void RemoveItem(const FName RowName, const int32 Count);
-	
+
 	void SortInventoryItems();
 	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
 	int32 GetItemCountByRowName(const FName RowName) const;
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
-	
+
 	FORCEINLINE int32 GetMaxInventorySlot() const { return MaxItemSlot; }
 	FORCEINLINE void SetMaxInventorySlot(const int32 InMaxInventorySlot) { MaxItemSlot = InMaxInventorySlot; }
-	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex) { OccupiedSlots.Add(SlotIndex); }
-	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex) { OccupiedSlots.Remove(SlotIndex); }
+	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex)
+	{
+		OccupiedSlots.Add(SlotIndex);
+		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
+	}
+	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex)
+	{
+		OccupiedSlots.Remove(SlotIndex);
+		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
+	}
 	FORCEINLINE int32 GetNumOccupiedSlots() const { return OccupiedSlots.Num(); }
 
 protected:
@@ -102,6 +110,10 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryClosed);
 
 	FOnInventoryClosed OnInventoryClosed;
+
+	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnOccupiedSlotsChanged, const int32, NumOccupiedSlots);
+
+	FOnOccupiedSlotsChanged OnOccupiedSlotsChanged;
 
 private:
 	void NotifyInventoryItemChanged(const int32 ItemIndex) const;

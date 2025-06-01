@@ -87,6 +87,14 @@ void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType In
 	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
 }
 
+void UPlayerInventoryComponent::CloseInventoryWidget() const
+{
+	if (IsValid(InventoryContainerWidgetInstance))
+	{
+		InventoryContainerWidgetInstance->CloseInventoryWidget();
+	}
+}
+
 UBaseInventoryItem* UPlayerInventoryComponent::GetQuickSlotItemDataByIndex(const int32 Index) const
 {
 	return CR4S_VALIDATE(LogInventory, QuickSlotItems.IsValidIndex(Index)) ? QuickSlotItems[Index] : nullptr;

@@ -8,6 +8,7 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
+#include "Inventory/UI/InventoryWidget/PlayerInventoryWidget.h"
 
 void UBaseItemSlotWidget::NativeConstruct()
 {
@@ -19,14 +20,23 @@ void UBaseItemSlotWidget::NativeConstruct()
 	}
 
 	PlayerController = GetOwningPlayer();
-	
+
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
+
+	bCanMoveItem = true;
 
 	SetIsFocusable(true);
 }
 
 void UBaseItemSlotWidget::InitWidget(UBaseInventoryItem* NewItem, const bool bNewCanDrag, const bool bNewCanDrop)
 {
+	const UBaseInventoryWidget* InventoryWidget = GetTypedOuter<UBaseInventoryWidget>();
+	if (IsValid(InventoryWidget))
+	{
+		bIsPlayerItemSlot = InventoryWidget->IsA(UPlayerInventoryWidget::StaticClass());
+		InventoryComponent = InventoryWidget->GetInventoryComponent();
+	}
+
 	CurrentItem = NewItem;
 
 	SetItem(CurrentItem);
@@ -44,13 +54,6 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(CountTextBlock)))
 	{
 		return;
-	}
-
-	UBaseInventoryComponent* InventoryComponent = nullptr;
-	
-	if (IsValid(InventoryWidget))
-	{
-		InventoryComponent = InventoryWidget->GetInventoryComponent();
 	}
 
 	if (CurrentItem->HasItemData())
@@ -235,6 +238,21 @@ FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const F
 	{
 		CurrentItem->SetCurrentStackCount(0);
 		SetItem(CurrentItem);
+		return FReply::Handled();
+	}
+
+	const bool bPressedE = InKeyEvent.GetKey() == EKeys::E;
+	const bool bPressedQ = InKeyEvent.GetKey() == EKeys::Q;
+
+	const bool bCanMoveToPlayer = bPressedE && !bIsPlayerItemSlot;
+	const bool bCanMoveToOther = bPressedQ && bIsPlayerItemSlot;
+
+	if ((bCanMoveToPlayer || bCanMoveToOther) &&
+		CR4S_VALIDATE(LogInventoryUI, bCanDrag) &&
+		CR4S_VALIDATE(LogInventoryUI, bCanMoveItem) &&
+		IsValid(InventoryContainerWidget))
+	{
+		InventoryContainerWidget->MoveItemToInventory(this, bCanMoveToPlayer);
 		return FReply::Handled();
 	}
 

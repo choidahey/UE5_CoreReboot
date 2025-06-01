@@ -31,6 +31,8 @@ public:
 	void OpenPlayerInventoryWidget();
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
 
+	void CloseInventoryWidget() const;
+
 private:
 	UPROPERTY(EditDefaultsOnly)
 	int32 InventoryContainerWidgetOrder;

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
+#include "ItemSlotWidget/BaseItemSlotWidget.h"
 #include "InventoryContainerWidget.generated.h"
 
 class UCompostBinWidget;
@@ -31,7 +32,8 @@ private:
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
 	UPROPERTY()
 	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
-
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryComponent> OtherInventoryComponent;
 #pragma endregion
 
 #pragma region ToggleWidget
@@ -58,6 +60,8 @@ private:
 public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
+	void MoveItemToInventory(UBaseItemSlotWidget* ItemSlot, bool bTargetIsPlayer) const;
+	
 #pragma endregion
 
 #pragma region BindWidget

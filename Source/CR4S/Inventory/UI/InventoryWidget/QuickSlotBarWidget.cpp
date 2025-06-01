@@ -45,6 +45,7 @@ void UQuickSlotBarWidget::InitWidget(UBaseInventoryWidget* InventoryWidget, UPla
 		{
 			UBaseInventoryItem* Item = PlayerInventoryComponent->GetQuickSlotItemDataByIndex(SlotIndex);
 			SlotWidget->InitWidget(Item, true, true);
+			SlotWidget->SetCanMoveItem(false);
 			QuickSlotWidgets.AddUnique(SlotWidget);
 			SlotIndex++;
 		}

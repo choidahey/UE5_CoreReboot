@@ -35,10 +35,12 @@ protected:
 	TObjectPtr<APlayerController> PlayerController;
 
 	UPROPERTY()
-	TObjectPtr<UBaseInventoryWidget> InventoryWidget;
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
 	
 	UPROPERTY()
 	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
+
+	bool bIsPlayerItemSlot;
 	
 #pragma endregion
 	
@@ -59,6 +61,8 @@ private:
 public:
 	void SetItem(UBaseInventoryItem* InItem);
 	void EmptyItem();
+
+	FORCEINLINE UBaseInventoryItem* GetCurrentItem() const { return CurrentItem; }
 
 protected:
 	UPROPERTY()
@@ -96,6 +100,12 @@ private:
 
 public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+
+	FORCEINLINE void SetCanMoveItem(const bool bNewCanMoveItem) { bCanMoveItem = bNewCanMoveItem; }
+	
+private:
+	UPROPERTY()
+	bool bCanMoveItem;
 	
 #pragma endregion
 };
