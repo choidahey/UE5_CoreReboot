@@ -44,14 +44,43 @@ protected:
 	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
 	
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
-	bool bIsActorDestroyOnDestroyAction;
-
-	FTimerHandle DestroyTimerHandle;
+	UPROPERTY(EditAnywhere, Category = "Destroy")
+	TEnumAsByte<ECollisionChannel> DestructibleGimmickCollisionChannel;
 	
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
 	float DestroyDelay;
+	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
+	float DestroyImpulseRadius;
+	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
+	float DestroyImpulseStrength;
+	
+	FTimerHandle DestroyTimerHandle;
+	
+#pragma endregion
 
+#pragma region Shake
+
+private:
+	void StartShake();
+	void PerformShake();
+	void StopShake();
+
+	FTimerHandle ShakeTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shake")
+	bool bCanShake;
+	UPROPERTY(EditDefaultsOnly, Category = "Shake")
+	float ShakeDuration;
+	UPROPERTY(EditDefaultsOnly, Category = "Shake")
+	float ShakeInterval;
+	UPROPERTY(EditDefaultsOnly, Category = "Shake")
+	float ShakeIntensity;
+
+	UPROPERTY(VisibleAnywhere, Category = "Shake")
+	FVector OriginalLocation;
+	UPROPERTY(VisibleAnywhere, Category = "Shake")
+	float ElapsedTime;
+	
 #pragma endregion
 	
 };

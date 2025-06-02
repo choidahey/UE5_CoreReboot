@@ -6,8 +6,16 @@
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
-	: bIsActorDestroyOnDestroyAction(true)
-	  , DestroyDelay(0.f)
+	: DestructibleGimmickCollisionChannel(ECC_EngineTraceChannel2),
+	  DestroyDelay(0.f),
+	  DestroyImpulseRadius(50.f),
+	  DestroyImpulseStrength(50.f),
+	  bCanShake(true),
+	  ShakeDuration(0.5f),
+	  ShakeInterval(0.02f),
+	  ShakeIntensity(5.0f),
+	  OriginalLocation(FVector::ZeroVector),
+	  ElapsedTime(0.f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -20,6 +28,8 @@ ADestructibleGimmick::ADestructibleGimmick()
 	GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GeometryCollectionComponent->SetSimulatePhysics(false);
 	GeometryCollectionComponent->DamageThreshold.Init(0.f, 1);
+	GeometryCollectionComponent->SetCollisionObjectType(DestructibleGimmickCollisionChannel);
+	GeometryCollectionComponent->
 }
 
 void ADestructibleGimmick::BeginPlay()
@@ -49,6 +59,8 @@ void ADestructibleGimmick::BeginPlay()
 		GeometryCollectionComponent->SetVisibility(false);
 		GeometryCollectionComponent->SetSimulatePhysics(false);
 	}
+
+	OriginalLocation = GetActorLocation();
 }
 
 float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -71,6 +83,11 @@ void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float
 {
 	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
 	         CurrentHealth);
+
+	if (bCanShake)
+	{
+		StartShake();
+	}
 }
 
 void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
@@ -87,11 +104,13 @@ void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 		GeometryCollectionComponent->SetVisibility(true);
 		GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GeometryCollectionComponent->SetSimulatePhysics(true);
-	}
-
-	if (!bIsActorDestroyOnDestroyAction)
-	{
-		return;
+		GeometryCollectionComponent->AddRadialImpulse(
+			GeometryCollectionComponent->GetComponentLocation(),
+			DestroyImpulseRadius,
+			DestroyImpulseStrength,
+			RIF_Linear,
+			true
+		);
 	}
 
 	if (DestroyDelay == 0.f)
@@ -100,4 +119,38 @@ void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::GimmickDestroy, DestroyDelay, false);
+}
+
+void ADestructibleGimmick::StartShake()
+{
+	GetWorldTimerManager().SetTimer(
+		ShakeTimerHandle,
+		this,
+		&ThisClass::PerformShake,
+		ShakeInterval,
+		true
+	);
+}
+
+void ADestructibleGimmick::PerformShake()
+{
+	ElapsedTime += ShakeInterval;
+
+	if (ElapsedTime >= ShakeDuration)
+	{
+		StopShake();
+		return;
+	}
+
+	const FVector RandomOffset = FMath::VRand() * ShakeIntensity;
+
+	SetActorLocation(OriginalLocation + RandomOffset, false, nullptr, ETeleportType::TeleportPhysics);
+}
+
+void ADestructibleGimmick::StopShake()
+{
+	ElapsedTime = 0.f;
+	GetWorldTimerManager().ClearTimer(ShakeTimerHandle);
+
+	SetActorLocation(OriginalLocation, false, nullptr, ETeleportType::TeleportPhysics);
 }
