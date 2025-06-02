@@ -20,7 +20,7 @@ void UAnimNotify_ReturnToBaseCamp::Notify(USkeletalMeshComponent* MeshComp, UAni
 	if (!AIC || !AIC->GetBlackboardComponent())	return;
 
 	// Return
-	const FVector TargetLocation = AIC->GetBlackboardComponent()->GetValueAsVector(FRegionBossAIKeys::BaseCampLocation) + FVector(0.f, 0.f, 100.f);
+	const FVector TargetLocation = AIC->GetBlackboardComponent()->GetValueAsVector(FRegionBossAIKeys::CombatStartLocation) + FVector(0.f, 0.f, 100.f);
 	Monster->SetActorLocation(TargetLocation);
 
 	if (UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>())

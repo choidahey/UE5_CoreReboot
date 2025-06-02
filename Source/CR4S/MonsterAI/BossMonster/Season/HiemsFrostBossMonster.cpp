@@ -3,7 +3,6 @@
 #include "AIController.h"
 
 AHiemsFrostBossMonster::AHiemsFrostBossMonster()
-	: MyHeader(TEXT("HiemsFrostBossMonster"))
 {
 	MonsterID = TEXT("HiemsFrostBoss");
 }

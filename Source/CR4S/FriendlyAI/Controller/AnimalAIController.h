@@ -26,6 +26,13 @@ public:
 
 	UBehaviorTree* GetBehaviorTreeAsset() const { return BehaviorTreeAsset; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetAnimalState(EAnimalState NewState);
+
+	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
+	
+	void SetTargetByDamage(AActor* Attacker);
+	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	
@@ -52,4 +59,18 @@ protected:
 
 	UPROPERTY()
 	UAISenseConfig_Hearing* HearingConfig;
+
+private:
+	FAnimalStatsRow CurrentStats;
+
+public:
+	void OnTargetDied();
+	void OnTargetOutOfRange();
+	void OnStunned();
+	void OnRecoveredFromStun();
+	void OnDied();
+
+public:
+	void SetTargetActor(AActor* Target);
+	void ClearTargetActor();
 };

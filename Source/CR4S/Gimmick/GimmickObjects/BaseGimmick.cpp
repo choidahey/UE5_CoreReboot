@@ -2,7 +2,7 @@
 
 #include "CR4S.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/InventoryComponent.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
 
 ABaseGimmick::ABaseGimmick()
 {
@@ -22,8 +22,8 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 		return;
 	}
 	
-	UInventoryComponent* InventorySystem
-		= InventoryOwnerActor->FindComponentByClass<UInventoryComponent>();
+	UBaseInventoryComponent* InventorySystem
+		= InventoryOwnerActor->FindComponentByClass<UBaseInventoryComponent>();
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventorySystem)))
 	{
 		return;
@@ -34,30 +34,19 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 	{
 		return;
 	}
-
-	TMap<FName, int32> RemainingItems;
+	
 	if (const FBaseGimmickData* GimmickData = ItemGimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
 	{
+		TMap<FName, int32> Resources;
+		
 		for (const auto& [RowName, MinCount, MaxCount] : GimmickData->Resources)
 		{
 			const int32 RandomCount = FMath::RandRange(MinCount, MaxCount);
 			
-			const FAddItemResult Result
-				= InventorySystem->AddItem(RowName, RandomCount);
-
-			CR4S_Log(LogGimmick, Warning, TEXT("Success: %d / AddCount: %d / RemainingCount: %d")
-				   , Result.Success, Result.AddedCount, Result.RemainingCount);
-			
-			if (Result.RemainingCount > 0)
-			{
-				RemainingItems[RowName] = Result.RemainingCount;
-			}
+			Resources.FindOrAdd(RowName, RandomCount);
 		}
-	}
 
-	if (RemainingItems.Num() > 0)
-	{
-		// TODO: Spawn Remaining Item Pouch
+		InventorySystem->AddItems(Resources);
 	}
 }
 

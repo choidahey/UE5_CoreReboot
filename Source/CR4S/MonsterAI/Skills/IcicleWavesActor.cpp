@@ -1,8 +1,8 @@
 #include "MonsterAI/Skills/IcicleWavesActor.h"
 #include "MonsterAI/Skills/Icicle.h"
+#include "MonsterAI/Skills/GroundShockActor.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
-
 
 void AIcicleWavesActor::InitIcicleWaves(
 	int32 SpawnCount,
@@ -68,6 +68,9 @@ void AIcicleWavesActor::SpawnIcicleWaves()
 	{
 		if (AIcicle* Icicle = Cast<AIcicle>(SpawnActor))
 			Icicle->InitIcicle(Dist);
+
+		if (AGroundShockActor* GroundShock = Cast<AGroundShockActor>(SpawnActor))
+			GroundShock->InitShock(BossPawn->GetActorRotation());
 	}
 	
 	GetWorld()->GetTimerManager().SetTimer(

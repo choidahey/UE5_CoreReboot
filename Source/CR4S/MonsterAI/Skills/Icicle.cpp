@@ -49,7 +49,7 @@ void AIcicle::InitIcicle(float Radius)
 			true
 		);
 
-		NiComp->SetVariableInt(FName("Spawn Count"), NumSeg);
+		NiComp->SetVariableInt(FName("Spawn Count"), NumSeg * 1.5);
 		NiComp->SetRelativeScale3D(FVector(Radius / 100.f));
 	}
 

@@ -27,10 +27,10 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	TObjectPtr<UAnimMontage> DeathMontage;
+	TObjectPtr<UAnimMontage> CombatMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	TObjectPtr<UAnimMontage> HitReactMontage;
+	TObjectPtr<UAnimMontage> DeathMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
 	TObjectPtr<UAnimMontage> StunnedMontage;
@@ -46,14 +46,15 @@ protected:
 
 #pragma region Montage Controls
 public:
-	void PlayMontange(UAnimMontage* Montage);
+	void PlayMontage(UAnimMontage* Montage);
 	bool IsAnyMontagePlaying() const;
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	void StopAllMontages();
 
+
 	/* Explicit Play Calls */
+	void PlayCombatMontage();
 	void PlayDeathMontage();
-	void PlayHitReactMontage();
 	void PlayStunnedMontage();
 
 #pragma endregion
