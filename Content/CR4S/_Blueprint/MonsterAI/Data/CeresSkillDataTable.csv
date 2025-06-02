@@ -1,0 +1,7 @@
+﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
+MudAmbust,MudAmbust,/Game/DarkElementalBundle02/Animation/Attack/AM_MudAmbust.AM_MudAmbust,3500,15,400,600,0,0,0,0,0
+ThornField,ThornField,/Game/DarkElementalBundle02/Animation/Attack/AM_ColdBeamAttack.AM_ColdBeamAttack,2000,20,600,500,0,0,0,0,0
+ThunderRoad,ThunderRoad,/Game/DarkElementalBundle02/Animation/Attack/AM_IcicleWavesAttack.AM_IcicleWavesAttack,1000,20,400,300,0,0,0,0,0
+IceRoad,IceRoad,/Game/DarkElementalBundle02/Animation/Attack/AM_IceRoad.AM_IceRoad,1800,5,500,300,0,0,0,0,0
+IceSpike,IceSpike,/Game/DarkElementalBundle02/Animation/Attack/AM_IceSpikeAttack.AM_IceSpikeAttack,2000,5,0,600,0,0,0,0,0
+ColdFairy,ColdFairy,/Game/DarkElementalBundle02/Animation/Attack/AM_ColdFairyAttack.AM_ColdFairyAttack,1000,0,0,200,0,0,0,0,0

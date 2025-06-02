@@ -23,7 +23,7 @@ void UMonsterAnimComponent::Initialize(USkeletalMeshComponent* InMesh)
 	}
 }
 
-void UMonsterAnimComponent::PlayMontange(UAnimMontage* Montage)
+void UMonsterAnimComponent::PlayMontage(UAnimMontage* Montage)
 {
 	if (!Montage || !AnimInstance.IsValid())
 	{
@@ -61,20 +61,17 @@ void UMonsterAnimComponent::StopAllMontages()
 	AnimInstance->StopAllMontages(0.2f);
 }
 
-void UMonsterAnimComponent::PlayDeathMontage()
+void UMonsterAnimComponent::PlayCombatMontage()
 {
-	UE_LOG(LogTemp, Log, TEXT("[%s] PlayDeathMontage"), *MyHeader);
-	PlayMontange(DeathMontage);
+	PlayMontage(CombatMontage);
 }
 
-void UMonsterAnimComponent::PlayHitReactMontage()
+void UMonsterAnimComponent::PlayDeathMontage()
 {
-	UE_LOG(LogTemp, Log, TEXT("[%s] PlayHitReactMontage"), *MyHeader);
-	PlayMontange(HitReactMontage);
+	PlayMontage(DeathMontage);
 }
 
 void UMonsterAnimComponent::PlayStunnedMontage()
 {
-	UE_LOG(LogTemp, Log, TEXT("[%s] PlayStunnedMontage"), *MyHeader);
-	PlayMontange(StunnedMontage);
+	PlayMontage(StunnedMontage);
 }
