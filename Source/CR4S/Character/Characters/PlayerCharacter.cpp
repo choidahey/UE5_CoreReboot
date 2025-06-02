@@ -186,6 +186,8 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
+	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Mounted")));
+	SetOverlayMode(CurrentTag);
 	DisconnectWidgets();
 	Super::UnPossessed();
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/Components/ModularRobotStatusComponent.h"
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
@@ -23,6 +24,10 @@ class CR4S_API AModularRobot : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AModularRobot();
+
+#pragma region Get
+	FORCEINLINE float GetAttackPowerMultiplier() const { return Status->GetAttackPowerMultiplier(); }
+#pragma endregion
 	
 #pragma region ChangePossess
 	UFUNCTION(BlueprintCallable)
