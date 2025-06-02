@@ -12,6 +12,7 @@ UBTTaskNode_ChasePlayerDynamic::UBTTaskNode_ChasePlayerDynamic()
 {
 	NodeName = TEXT("ChasePlayerDynamic");
 	bNotifyTick = true;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTaskNode_ChasePlayerDynamic::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

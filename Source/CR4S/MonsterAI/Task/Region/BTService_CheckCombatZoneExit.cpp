@@ -3,6 +3,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
+#include "MonsterAI/Region/RegionBossMonster.h"
 #include "NavigationSystem.h"
 #include "MonsterAI/MonsterAIHelper.h"
 
@@ -10,28 +11,24 @@ void UBTService_CheckCombatZoneExit::TickNode(UBehaviorTreeComponent& OwnerComp,
 {
 	ABaseMonster* Monster = MonsterAIHelper::GetControlledMonster(OwnerComp);
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-
 	if (!Monster || !BlackboardComp) return;
 	
 	AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor));
 	if (!Target) return;
 
-	if (UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>())
+	UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>();
+	if (!StateComp || !StateComp->IsInState(EMonsterState::Combat)) return;
+
+	const FVector TargetLocation = Target->GetActorLocation();
+
+	if (const ARegionBossMonster* RegionBoss = Cast<ARegionBossMonster>(Monster))
 	{
-		if (!StateComp->IsInState(EMonsterState::Combat)) return;
-			
-		const FVector PlayerLocation = Target->GetActorLocation();
-
-		FNavLocation Dummy;
-		const UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(Monster->GetWorld());
-		if (!NavSystem) return;
-
-		if (!NavSystem->ProjectPointToNavigation(PlayerLocation, Dummy, FVector(50, 50, 100)))
+		if (RegionBoss->IsOutsideCombatRange())
 		{
 			StateComp->SetState(EMonsterState::Return);
 			BlackboardComp->SetValueAsBool(FAIKeys::CanSeePlayer, false);
 
-			UE_LOG(LogTemp, Warning, TEXT("[NavMeshExit] Player left NavMesh, returning."));
+			UE_LOG(LogTemp, Warning, TEXT("[CombatZoneExit] Boss exceeded combat range. Returning."));
 		}
 	}
 }

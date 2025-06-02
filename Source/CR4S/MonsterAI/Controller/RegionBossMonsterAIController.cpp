@@ -22,8 +22,7 @@ void ARegionBossMonsterAIController::OnPossess(APawn* InPawn)
 
 		if (Blackboard)
 		{
-			RegionBoss->SetBaseCampLocation(RegionBoss->GetActorLocation());
-			Blackboard->SetValueAsVector(FRegionBossAIKeys::BaseCampLocation, RegionBoss->GetBaseCampLocation());
+			Blackboard->SetValueAsVector(FRegionBossAIKeys::CombatStartLocation, RegionBoss->GetCombatStartLocation());
 		}
 	}
 }

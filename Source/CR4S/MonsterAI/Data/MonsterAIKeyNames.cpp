@@ -12,7 +12,7 @@ const FName FAIKeys::IsDead = TEXT("IsDead");
 const FName FAIKeys::SkillIndex = TEXT("SkillIndex");
 
 // Region Boss AI Key
-const FName FRegionBossAIKeys::BaseCampLocation = TEXT("BaseCampLocation");
+const FName FRegionBossAIKeys::CombatStartLocation = TEXT("CombatStartLocation");
 const FName FRegionBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
 const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
 
