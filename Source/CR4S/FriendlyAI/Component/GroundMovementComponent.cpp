@@ -1,5 +1,6 @@
 #include "GroundMovementComponent.h"
 #include "AIController.h"
+#include "Engine/World.h"
 #include "GameFramework/Character.h"
 
 void UGroundMovementComponent::MoveToLocation(const FVector& Dest)

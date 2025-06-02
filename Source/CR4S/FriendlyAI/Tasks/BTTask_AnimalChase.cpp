@@ -4,6 +4,8 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "../BaseAnimal.h"
 #include "Components/SphereComponent.h"
+#include "../AnimalGround.h"
+#include "../Component/AIJumpComponent.h"
 #include "../Controller/AnimalAIController.h"
 
 UBTTask_AnimalChase::UBTTask_AnimalChase()
@@ -55,11 +57,28 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 
 	FAIMoveRequest MoveReq;
 	MoveReq.SetGoalLocation(TargetLocation);
-	MoveReq.SetAcceptanceRadius(100.f);
-
-	if (AAIController* AIController = Cast<AAIController>(Animal->GetController()))
+	
+	float DesiredRadius = 0.f;
+	if (Animal->bCanRanged && !Animal->bIsRangedOnCooldown)
 	{
-		AIController->MoveTo(MoveReq);
+		DesiredRadius = Animal->RangedRange;
+	}
+	else if (Animal->bCanCharge && !Animal->bIsChargeOnCooldown)
+	{
+		DesiredRadius = Animal->DashRange;
+	}
+	else
+	{
+		DesiredRadius = Animal->MeleeRange;
+	}
+	MoveReq.SetAcceptanceRadius(DesiredRadius);
+
+	if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
+	{
+		if (GroundAnimal->AIJumpComponent)
+		{
+			GroundAnimal->AIJumpComponent->Activate();
+		}
 	}
 
 	return EBTNodeResult::InProgress;
@@ -98,20 +117,75 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	if (DistanceMoved > FMath::Square(50.f))
 	{
 		LastTargetLocation = CurrentTargetLocation;
-		FAIMoveRequest MoveReq;
-		MoveReq.SetGoalLocation(CurrentTargetLocation);
-		MoveReq.SetAcceptanceRadius(100.f);
-		if (AAIController* AIController = Cast<AAIController>(Animal->GetController()))
+
+		if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
 		{
-			AIController->MoveTo(MoveReq);
+			if (GroundAnimal->AIJumpComponent && !GroundAnimal->AIJumpComponent->IsActive())
+			{
+				GroundAnimal->AIJumpComponent->Activate();
+			}
 		}
 	}
+
 	
-	if (Animal->AttackRange && Animal->AttackRange->IsOverlappingActor(TargetToChase))
+	float Distance = FVector::Dist(
+	Animal->GetActorLocation(),
+	TargetToChase->GetActorLocation()
+);
+	
+	if (Animal->bCanRanged
+		&& !Animal->bIsRangedOnCooldown
+		&& Distance <= Animal->RangedRange)
 	{
 		if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
 		{
 			C->SetAnimalState(EAnimalState::Attack);
 		}
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
 	}
+	
+	if (Animal->bCanCharge
+		&& !Animal->bIsChargeOnCooldown
+		&& Distance <= Animal->DashRange)
+	{
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
+		{
+			C->SetAnimalState(EAnimalState::Attack);
+		}
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
+	
+	if (Animal->bCanMelee
+		&& !Animal->bIsMeleeOnCooldown
+		&& Distance <= Animal->MeleeRange)
+	{
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
+		{
+			C->SetAnimalState(EAnimalState::Attack);
+		}
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
+	
+	// if (Animal->bCanCharge && !Animal->bIsChargeOnCooldown && Distance <= Animal->DashRange)
+	// {
+	// 	if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
+	// 	{
+	// 		C->SetAnimalState(EAnimalState::Attack);
+	// 	}
+	// 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	// 	return;
+	// }
+	//
+	// if (Animal->bCanMelee && !Animal->bIsMeleeOnCooldown && Distance <= Animal->MeleeRange)
+	// {
+	// 	if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
+	// 	{
+	// 		C->SetAnimalState(EAnimalState::Attack);
+	// 	}
+	// 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	// 	return;
+	// }
 }

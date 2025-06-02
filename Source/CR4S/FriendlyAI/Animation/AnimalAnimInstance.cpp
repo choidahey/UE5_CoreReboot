@@ -52,7 +52,7 @@ void UAnimalAnimInstance::AnimNotify_AnimalAttackHit()
 {
 	if (OwnerAnimal)
 	{
-		OwnerAnimal->PerformAttack();
+		OwnerAnimal->PerformMeleeAttack();
 	}
 }
 
@@ -60,7 +60,7 @@ void UAnimalAnimInstance::AnimNotify_AnimalDash()
 {
 	if (OwnerAnimal)
 	{
-		OwnerAnimal->DashAttack();
+		OwnerAnimal->PerformChargeAttack();
 	}
 }
 
@@ -68,6 +68,6 @@ void UAnimalAnimInstance::AnimNotify_AnimalRanged()
 {
 	if (OwnerAnimal)
 	{
-		OwnerAnimal->RangedAttack();
+		OwnerAnimal->PerformRangedAttack();
 	}
 }

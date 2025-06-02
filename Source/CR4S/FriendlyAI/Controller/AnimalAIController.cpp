@@ -6,6 +6,9 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Touch.h"
 #include "../BaseAnimal.h"
+#include "../AnimalGround.h"
+#include "../AnimalFlying.h"
+#include "../Component/AIJumpComponent.h"
 #include "Components/SphereComponent.h"
 
 AAnimalAIController::AAnimalAIController()
@@ -35,18 +38,29 @@ void AAnimalAIController::OnPossess(APawn* InPawn)
         AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
             this, &AAnimalAIController::OnTargetPerceptionUpdated
         );
+
+        UBehaviorTree* SelectedBT = nullptr;
+        if (Cast<AAnimalGround>(Animal))
+        {
+            SelectedBT = GroundBehaviorTree;
+        }
+        else if (Cast<AAnimalFlying>(Animal))
+        {
+            SelectedBT = FlyingBehaviorTree;
+        }
         
-        if (BehaviorTreeAsset && BlackboardComponent && BehaviorTreeComponent)
+        // TODO : BossMonster BehaviorTree
+
+        if (SelectedBT && BlackboardComponent && BehaviorTreeComponent)
         {
             BlackboardComponent->InitializeBlackboard(
-                *BehaviorTreeAsset->BlackboardAsset);
+                *SelectedBT->BlackboardAsset);
             BlackboardComponent->SetValueAsBool(TEXT("IsTamed"), Animal->bIsTamed);
             SetAnimalState(EAnimalState::Patrol);
-            BehaviorTreeComponent->StartTree(*BehaviorTreeAsset);
+            BehaviorTreeComponent->StartTree(*SelectedBT);
         }
     }
 }
-
 
 void AAnimalAIController::ApplyPerceptionStats(const FAnimalStatsRow& Stats)
 {
@@ -204,14 +218,26 @@ void AAnimalAIController::Tick(float DeltaSeconds)
             const bool bTargetDead =
                 Cast<ABaseAnimal>(Animal->CurrentTarget) &&
                 Cast<ABaseAnimal>(Animal->CurrentTarget)->CurrentState == EAnimalState::Dead;
+            
+            float MaxAttackRange = 0.f;
+            if (Animal->bCanRanged)
+            {
+                MaxAttackRange = Animal->RangedRange;
+            }
+            else if (Animal->bCanCharge)
+            {
+                MaxAttackRange = Animal->DashRange;
+            }
+            else if (Animal->bCanMelee)
+            {
+                MaxAttackRange = Animal->MeleeRange;
+            }
 
-            const bool bOutOfAttackRange =
-                !Animal->AttackRange || !Animal->AttackRange->IsOverlappingActor(Animal->CurrentTarget);
+            const bool bOutOfAttackRange = Distance > MaxAttackRange;
 
             if (!IsValid(Animal->CurrentTarget) || bTargetDead || Distance >= Stats->TargetLostRange)
             {
                 ClearTargetActor();
-
                 if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
                 {
                     SetAnimalState(EAnimalState::Chase);
@@ -279,6 +305,14 @@ void AAnimalAIController::SetAnimalState(EAnimalState NewState)
     if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
     {
         Animal->SetAnimalState(NewState);
+
+        if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
+        {
+            if (GroundAnimal->AIJumpComponent && GroundAnimal->AIJumpComponent->IsActive())
+            {
+                GroundAnimal->AIJumpComponent->Deactivate();
+            }
+        }
     }
 }
 

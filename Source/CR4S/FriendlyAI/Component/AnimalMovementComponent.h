@@ -18,4 +18,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void StopMovement();
+
+	bool HasReachedDestination(const FVector& Dest, float AcceptanceRadius) const;
 };

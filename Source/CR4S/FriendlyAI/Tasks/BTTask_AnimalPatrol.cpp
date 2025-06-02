@@ -1,6 +1,10 @@
 #include "BTTask_AnimalPatrol.h"
 #include "AIController.h"
-#include "../Component/AnimalMovementComponent.h"
+#include "../Component/FlyingMovementComponent.h"
+#include "../Component/GroundMovementComponent.h"
+#include "../AnimalGround.h"
+#include "../AnimalFlying.h"
+#include "../BaseAnimal.h"
 #include "../BaseAnimal.h"
 #include "NavigationSystem.h"
 
@@ -35,10 +39,21 @@ EBTNodeResult::Type UBTTask_AnimalPatrol::ExecuteTask(UBehaviorTreeComponent& Ow
 
     Mem->PatrolDestination = Result.Location;
 
-    if (UAnimalMovementComponent* MoveComp = Pawn->FindComponentByClass<UAnimalMovementComponent>())
+    if (AAnimalFlying* FlyingPawn = Cast<AAnimalFlying>(Pawn))
     {
-        MoveComp->MoveToLocation(Mem->PatrolDestination);
-        return EBTNodeResult::InProgress;
+        if (UFlyingMovementComponent* FlyComp = FlyingPawn->FindComponentByClass<UFlyingMovementComponent>())
+        {
+            FlyComp->MoveToLocation(Mem->PatrolDestination);
+            return EBTNodeResult::InProgress;
+        }
+    }
+    else if (AAnimalGround* GroundPawn = Cast<AAnimalGround>(Pawn))
+    {
+        if (UGroundMovementComponent* GroundComp = GroundPawn->FindComponentByClass<UGroundMovementComponent>())
+        {
+            GroundComp->MoveToLocation(Mem->PatrolDestination);
+            return EBTNodeResult::InProgress;
+        }
     }
 
     return EBTNodeResult::Failed;
@@ -62,8 +77,23 @@ void UBTTask_AnimalPatrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
         return;
     }
 
-    const float Distance = FVector::Dist(Pawn->GetActorLocation(), Mem->PatrolDestination);
-    if (Distance <= AcceptanceRadius)
+    bool bArrived = false;
+    if (AAnimalFlying* FlyingPawn = Cast<AAnimalFlying>(Pawn))
+    {
+        if (UFlyingMovementComponent* FlyComp = FlyingPawn->FindComponentByClass<UFlyingMovementComponent>())
+        {
+            bArrived = FlyComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
+        }
+    }
+    else if (AAnimalGround* GroundPawn = Cast<AAnimalGround>(Pawn))
+    {
+        if (UGroundMovementComponent* GroundComp = GroundPawn->FindComponentByClass<UGroundMovementComponent>())
+        {
+            bArrived = GroundComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
+        }
+    }
+
+    if (bArrived)
     {
         FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
     }
