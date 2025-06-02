@@ -5,6 +5,8 @@
 #include "UI/Common/ConfirmWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 void UMainMenuWidget::NativeConstruct()
 {
@@ -40,6 +42,15 @@ void UMainMenuWidget::NativeConstruct()
 	if (QuitButton)
 	{
 		QuitButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnQuitButtonClicked);
+	}
+
+	if (MainMenuBGM)
+	{
+		BGMComponent = UGameplayStatics::SpawnSound2D(this, MainMenuBGM, 1.0f, 1.0f, 0.0f, nullptr, true);
+		if (BGMComponent)
+		{
+			BGMComponent->FadeIn(1.5f, 1.0f);
+		}
 	}
 }
 
@@ -135,6 +146,8 @@ void UMainMenuWidget::OnNewGameButtonClicked()
 	if (DifficultyOptionsWidgetInstance)
 	{
 		DifficultyOptionsWidgetInstance->AddToViewport(10);
+
+		DifficultyOptionsWidgetInstance->MainMenuWidgetRef = this;
 	}
 }
 
@@ -196,6 +209,14 @@ void UMainMenuWidget::HideGameButtons()
 	if (LoadGameText)
 	{
 		LoadGameText->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UMainMenuWidget::FadeOutBGM(float FadeDuration)
+{
+	if (BGMComponent && BGMComponent->IsPlaying())
+	{
+		BGMComponent->FadeOut(FadeDuration, 0.0f);
 	}
 }
 

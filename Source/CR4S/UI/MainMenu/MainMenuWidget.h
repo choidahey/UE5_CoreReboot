@@ -9,12 +9,19 @@ class UConfirmWidget;
 class USettingsWidget;
 class UCreditsWidget;
 class UDifficultyOptionsWidget;
+class USoundBase;
+class UAudioComponent;
 
 UCLASS()
 class CR4S_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+
+public:
+	UFUNCTION()
+	void FadeOutBGM(float FadeDuration = 1.0f);
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -34,6 +41,7 @@ protected:
 	void OnQuitButtonClicked();
 	UFUNCTION()
 	void OnNewGameButtonClicked();
+
 
 	void CreateChildWidgets();
 	void ShowGameButtons();
@@ -56,6 +64,10 @@ protected:
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UCreditsWidget> CreditsWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	USoundBase* MainMenuBGM;
+	UPROPERTY()
+	UAudioComponent* BGMComponent;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* PlayGameButton;

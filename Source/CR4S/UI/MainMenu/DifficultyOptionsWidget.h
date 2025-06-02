@@ -6,12 +6,17 @@
 class UButton;
 class ULoadingWidget;
 class UBaseWindowWidget;
+class UMainMenuWidget;
 
 UCLASS()
 class CR4S_API UDifficultyOptionsWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY()
+	UMainMenuWidget* MainMenuWidgetRef;
+
 protected:
 
 	UFUNCTION()
@@ -31,6 +36,8 @@ protected:
 	ULoadingWidget* LoadingWidgetInstance;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<ULoadingWidget> LoadingWidgetClass;
+
+
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* FadeIn;
