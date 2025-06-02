@@ -22,6 +22,7 @@ struct FWorldTimeData
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWorldTimeUpdated, int64, PlayTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMinuteUpdated, int32, Minute);
 
 UCLASS()
 class CR4S_API UWorldTimeManager : public UWorldSubsystem
@@ -86,8 +87,6 @@ protected:
 	UPROPERTY()
 	int32 DayCycleLength = 20;
 
-
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WorldTime|State", meta = (AllowPrivateAccess = "true"))
 	FWorldTimeData CurrentTimeData;
 
@@ -113,6 +112,8 @@ protected:
 public:
 	UPROPERTY(BlueprintAssignable, Category = "WorldTime|Event")
 	FOnWorldTimeUpdated OnWorldTimeUpdated;
+	UPROPERTY(BlueprintAssignable, Category = "WorldTime|Event")
+	FOnMinuteUpdated OnMinuteUpdated;
 
 #pragma endregion
 };

@@ -35,8 +35,7 @@ protected:
 
 public:
 	FORCEINLINE int32 GetGridSize() { return GridSize; }
-	float GetBaseTemperatureBySeason() const;
-	
+
 	void SpawnEnvironmentalModifierVolume(
 		const FVector& Location,
 		float Radius,

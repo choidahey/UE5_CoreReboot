@@ -1,5 +1,6 @@
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Game/System/EnvironmentManager.h"
+#include "Game/System/WorldTimeManager.h"
 #include "Game/System/SeasonManager.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Character/Characters/ModularRobot.h"
@@ -16,10 +17,29 @@ void UEnvironmentalStatusComponent::BeginPlay()
 	Super::BeginPlay();
 
 	EnvironmentManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AEnvironmentManager::StaticClass()));
-	CurrentTemperature = EnvironmentManager->GetBaseTemperatureBySeason();
-	TargetTemperature = CurrentTemperature;
+
+	BindToTimeSystemDelegates();
 }
 
+void UEnvironmentalStatusComponent::BindToTimeSystemDelegates()
+{
+	UWorldTimeManager* TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
+	if (TimeManager)
+	{
+		DayCycleLength = TimeManager->GetDayCycleLength();
+		TimeManager->OnMinuteUpdated.AddDynamic(this, &UEnvironmentalStatusComponent::UpdateTemperatureByMinute);
+	}
+	
+	USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
+	if(SeasonManager)
+	{
+		SeasonManager->OnDayChanged.AddDynamic(this, &UEnvironmentalStatusComponent::UpdateDayNightRatio);
+		SeasonManager->OnSeasonChanged.AddDynamic(this, &UEnvironmentalStatusComponent::HandleSeasonChanged);
+		CurrentSeasonBaseTemperature = GetBaseTemperatureBySeason(SeasonManager->GetCurrentSeason());
+		CurrentTemperature = CurrentSeasonBaseTemperature;
+		TargetTemperature = CurrentTemperature;
+	}
+}
 
 void UEnvironmentalStatusComponent::ModifyTemperature(float Delta, float Speed)
 {
@@ -38,6 +58,38 @@ void UEnvironmentalStatusComponent::ModifyHumidity(float Delta, float Speed)
 		OnHumidityChanged.Broadcast(CurrentHumidity);
 	}
 }
+
+// 매 분마다 불리는 함수
+void UEnvironmentalStatusComponent::UpdateTemperatureByMinute(int32 Minute)
+{
+
+}
+
+void UEnvironmentalStatusComponent::UpdateDayNightRatio(float Ratio)
+{
+	CurrentDayNightRatio = Ratio;
+}
+
+void UEnvironmentalStatusComponent::HandleSeasonChanged(ESeasonType Season)
+{
+	UE_LOG(LogTemp, Log, TEXT("HandleSeasonChanged Called. Season: %d"), static_cast<uint8>(Season));
+
+	float OldBaseTemperature = CurrentSeasonBaseTemperature;
+	CurrentSeasonBaseTemperature = GetBaseTemperatureBySeason(Season);
+
+	UE_LOG(LogTemp, Log, TEXT("OldBaseTemperature: %.2f, NewBaseTemperature: %.2f"),
+		OldBaseTemperature, CurrentSeasonBaseTemperature);
+
+	float TemperatureDelta = CurrentSeasonBaseTemperature - OldBaseTemperature;
+	TargetTemperature = TargetTemperature + TemperatureDelta;
+
+	UE_LOG(LogTemp, Log, TEXT("TargetTemperature Adjusted: %.2f (Delta: %.2f)"), TargetTemperature, TemperatureDelta);
+
+	PrimaryComponentTick.SetTickFunctionEnable(true);
+	UE_LOG(LogTemp, Log, TEXT("Tick Enabled"));
+}
+
+
 
 void UEnvironmentalStatusComponent::SetMaxTemperature(float Max)
 {
@@ -62,11 +114,11 @@ bool UEnvironmentalStatusComponent::IsPlayer() const
 
 void UEnvironmentalStatusComponent::UpdateTemperature(float DeltaTime, float Speed)
 {
-	const float DampingFactor = 0.1f; 
+	const float AccelerationFactor = 0.5f;
 
 	float Diff = TargetTemperature - CurrentTemperature;
 	float Direction = FMath::Sign(Diff);
-	float DeltaTemp = Direction * Speed * FMath::Exp(-FMath::Abs(Diff) * DampingFactor);
+	float DeltaTemp = Direction * Speed * (FMath::Abs(Diff) * AccelerationFactor);
 
 	CurrentTemperature += DeltaTemp * DeltaTime;
 
@@ -87,10 +139,25 @@ void UEnvironmentalStatusComponent::UpdateTemperature(float DeltaTime, float Spe
 
 }
 
+
+
 void UEnvironmentalStatusComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	UpdateTemperature(DeltaTime, TemperatureChangeSpeed);
 
+}
+
+float UEnvironmentalStatusComponent::GetBaseTemperatureBySeason(ESeasonType Season) const
+{
+	switch (Season)
+	{
+	case ESeasonType::BountifulSeason: return 15.0f;
+	case ESeasonType::FrostSeason: return -30.0f;
+	case ESeasonType::RainySeason: return 10.0f;
+	case ESeasonType::DrySeason: return 40.0f;
+
+	default: return 20.0f;
+	}
 }

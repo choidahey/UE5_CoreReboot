@@ -48,6 +48,7 @@ void USeasonManager::HandleDayChange()
 	CurrentDayNightRatio = FMath::Lerp(StartDayNightRatio, TargetDayNightRatio, Progress);
 
 	EnvironmentManager->SetDayNightRatio(CurrentDayNightRatio);
+	OnDayChanged.Broadcast(CurrentDayNightRatio);
 
 	CurrentSeasonDay++;
 
@@ -76,6 +77,7 @@ void USeasonManager::ChangeToNextSeason()
 	}
 
 	SetCurrentSeason(NextSeason);
+	OnSeasonChanged.Broadcast(NextSeason);
 }
 
 

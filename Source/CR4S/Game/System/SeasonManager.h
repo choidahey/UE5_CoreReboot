@@ -7,6 +7,9 @@
 
 class AEnvironmentManager;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDayChanged, float, Ratio);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSeasonChanged, ESeasonType, Season);
+
 UCLASS()
 class CR4S_API USeasonManager : public UWorldSubsystem
 {
@@ -55,6 +58,14 @@ private:
 	float StartDayNightRatio = 0.5f;
 	float TargetDayNightRatio = 0.3f;
 
+#pragma endregion
 
+#pragma region  Delegates & Events
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "WorldTime|Event")
+	FOnDayChanged OnDayChanged;
+	UPROPERTY(BlueprintAssignable, Category = "WorldTime|Event")
+	FOnSeasonChanged OnSeasonChanged;
 #pragma endregion
 };

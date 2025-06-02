@@ -92,23 +92,6 @@ void AEnvironmentManager::SetWeatherBySeason(ESeasonType Season, float Transitio
     }
 }
 
-
-float AEnvironmentManager::GetBaseTemperatureBySeason() const
-{
-    USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
-    if (!SeasonManager) return 20.0f;
-
-    switch (SeasonManager->GetCurrentSeason())
-    {
-    case ESeasonType::BountifulSeason: return 15.0f;
-    case ESeasonType::FrostSeason: return -30.0f;
-    case ESeasonType::RainySeason: return 10.0f;
-    case ESeasonType::DrySeason: return 40.0f;
-
-    default: return 20.0f;
-    }
-}
-
 void AEnvironmentManager::SpawnEnvironmentalModifierVolume(
     const FVector& Location,
     float Radius,
