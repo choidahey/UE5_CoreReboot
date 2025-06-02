@@ -17,7 +17,6 @@ void UAnimNotifyState_TriggerSkillActor::NotifyBegin(USkeletalMeshComponent* Mes
 		if (Child->GetClass()->FindFunctionByName(ActivateFunctionName))
 		{
 			Child->CallFunctionByNameWithArguments(*ActivateFunctionName.ToString(), *GLog, nullptr, true);
-			UE_LOG(LogTemp, Log, TEXT("[TriggerSkillActor] Activated %s on %s"), *ActivateFunctionName.ToString(), *Child->GetName());
 		}
 	}
 }
@@ -40,7 +39,6 @@ void UAnimNotifyState_TriggerSkillActor::NotifyEnd(USkeletalMeshComponent* MeshC
 		if (Child->GetClass()->FindFunctionByName(EndFunctionName))
 		{
 			Child->CallFunctionByNameWithArguments(*EndFunctionName.ToString(), *GLog, nullptr, true);
-			UE_LOG(LogTemp, Log, TEXT("[TriggerSkillActor] Ended %s on %s"), *EndFunctionName.ToString(), *Child->GetName());
 		}
 		else
 		{

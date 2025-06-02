@@ -1,5 +1,7 @@
 #include "MonsterAI/Animations/AnimNotify/AnimNotify_SpawnActorAtSocket.h"
 #include "MonsterAI/Skills/BreathActor.h"
+#include "MonsterAI/Skills/RollingActor.h"
+#include "Kismet/GameplayStatics.h"
 
 void UAnimNotify_SpawnActorAtSocket::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -27,11 +29,24 @@ void UAnimNotify_SpawnActorAtSocket::Notify(USkeletalMeshComponent* MeshComp, UA
 	if (!SkillActor->ActorHasTag(SkillActorTag))
 	{
 		SkillActor->Tags.Add(SkillActorTag);
-		UE_LOG(LogTemp, Log, TEXT("[SpawnActorAtSocket] Tag %s added to %s"), *SkillActorTag.ToString(), *SkillActor->GetName());
-	}
+	}					
 
 	if (ABreathActor* Breath = Cast<ABreathActor>(SkillActor))
 	{
 		Breath->InitializeSkill(MeshComp, SocketName);
+	}
+
+	if (ARollingActor* Rolling = Cast<ARollingActor>(SkillActor))
+	{
+		SkillActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(Owner, 0);
+		if (!PlayerPawn) return;
+		
+		const FVector Start = SkillActor->GetActorLocation();
+		const FVector End = PlayerPawn->GetActorLocation();
+		const FVector Direction = (End - Start).GetSafeNormal();
+
+		Rolling->LaunchInDirection(Direction);
 	}
 }

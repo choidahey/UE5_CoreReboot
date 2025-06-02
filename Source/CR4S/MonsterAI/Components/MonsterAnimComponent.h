@@ -35,6 +35,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
 	TObjectPtr<UAnimMontage> StunnedMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
+	TObjectPtr<UAnimMontage> HitReactMontage;
+
 #pragma endregion
 
 #pragma region Cached References
@@ -56,6 +59,7 @@ public:
 	void PlayCombatMontage();
 	void PlayDeathMontage();
 	void PlayStunnedMontage();
+	void PlayHitReactMontage();
 
 #pragma endregion
 
