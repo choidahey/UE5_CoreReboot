@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
+#include "MonsterAI/Skills/AcidWaveActor.h"
 #include "MonsterAI/Skills/FieldActor.h"
 
 void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
@@ -57,6 +58,10 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{
 		FieldActor->Initialize(Cast<AActor>(OwnerPawn), Target);
+	}
+	else if (AAcidWaveActor* WaveActor = Cast<AAcidWaveActor>(SpawnActor))
+	{
+		WaveActor->Initialize(Cast<AActor>(OwnerPawn), Target);
 	}
 	else
 	{
