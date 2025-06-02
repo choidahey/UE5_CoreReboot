@@ -44,9 +44,6 @@ protected:
 	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
 	
 private:
-	UPROPERTY(EditAnywhere, Category = "Destroy")
-	TEnumAsByte<ECollisionChannel> DestructibleGimmickCollisionChannel;
-	
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
 	float DestroyDelay;
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
