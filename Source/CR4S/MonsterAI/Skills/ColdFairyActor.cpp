@@ -17,13 +17,11 @@ AColdFairyActor::AColdFairyActor()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
 	CollisionComp->InitSphereRadius(20.f);
 	CollisionComp->SetupAttachment(RootComp);
-	
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-
 	CollisionComp->SetNotifyRigidBodyCollision(true);
 	CollisionComp->OnComponentHit.AddDynamic(this, &AColdFairyActor::OnHit);
 
@@ -71,103 +69,90 @@ void AColdFairyActor::Tick(float DeltaTime)
 	}
 }
 
-void AColdFairyActor::InitialLaunch(AActor* InTarget, int32 InIndex, int32 TotalCount)
+void AColdFairyActor::InitialLaunch(AActor* InTarget, int32 InIndex, int32 InTotalCount)
 {
 	if (!InTarget) return;
 	
 	TargetActor = InTarget;
-	MySpawnOrder       = InIndex;
-	ExpectedTotalCount = TotalCount;
+	SpawnOrder = InIndex;
+	TotalCount = InTotalCount;
 
 	if (APawn* InstPawn = GetInstigator<APawn>())
-	{
 		CollisionComp->IgnoreActorWhenMoving(InstPawn, true);
-	}
 	
-	if (bSequentialLaunch)
-    {
-        LaunchDelay = MySpawnOrder * Interval;
+	bSequentialLaunch ? HandleSequenceLaunch() : HandleImmediateLaunch();
+}
 
-		if (LaunchDelay <= KINDA_SMALL_NUMBER)
-		{
-			LaunchSelf();
-		}
-		else
-		{
-			GetWorld()->GetTimerManager().SetTimer(
-				LaunchTimerHandle,
-				this,
-				&AColdFairyActor::Launch,
-				LaunchDelay,
-				false
-			);
-		}
-    }
-    else
-    {
-        TArray<AActor*> FoundAll;
-        UGameplayStatics::GetAllActorsOfClass(GetWorld(), AColdFairyActor::StaticClass(), FoundAll);
+void AColdFairyActor::HandleSequenceLaunch()
+{
+	LaunchDelay = SpawnOrder * Interval;
 
-        TArray<AColdFairyActor*> FairyActors;
-        for (AActor* Actor : FoundAll)
-        {
-            AColdFairyActor* CF = Cast<AColdFairyActor>(Actor);
-            if (CF && CF->GetOwner() == GetOwner())
-            {
-                FairyActors.Add(CF);
-            }
-        }
+	if (LaunchDelay <= KINDA_SMALL_NUMBER)
+	{
+		Launch();
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			LaunchTimerHandle,
+			this,
+			&AColdFairyActor::Launch,
+			LaunchDelay,
+			false
+		);
+	}
+}
+
+void AColdFairyActor::HandleImmediateLaunch() const
+{
+	TArray<AActor*> SpawnedActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AColdFairyActor::StaticClass(), SpawnedActors);
+
+	TArray<AColdFairyActor*> FairyActors;
+	for (AActor* Actor : SpawnedActors)
+	{
+		AColdFairyActor* CF = Cast<AColdFairyActor>(Actor);
+		if (CF && CF->GetOwner() == GetOwner())
+			FairyActors.Add(CF);
+	}
     	
-    	if (FairyActors.Num() < TotalCount) return;
+	if (FairyActors.Num() < TotalCount) return;
     	
-        for (AColdFairyActor* FairyActor : FairyActors)
-        {
-            if (IsValid(FairyActor))
-            {
-            	FairyActor->LaunchSelf();
-            }
-        }
-    }
+	for (AColdFairyActor* FairyActor : FairyActors)
+	{
+		if (IsValid(FairyActor))
+			FairyActor->Launch();
+	}
 }
 
 void AColdFairyActor::Launch()
 {
-	UE_LOG(LogTemp, Warning,
-		TEXT("[%s][LaunchSelf] called  bHasLaunched=%s  TargetActor=%s"),
-		*GetName(),
-		bHasLaunched ? TEXT("true") : TEXT("false"),
-		TargetActor ? *TargetActor->GetName() : TEXT("null")
-	);
-	
 	if (!CR4S_VALIDATE(LogDa, IsValid(this))) return;
 	if (!CR4S_VALIDATE(LogDa, IsValid(TargetActor))) return;
-	if (bHasLaunched)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s][LaunchSelf] Aborting: already launched or invalid target."), *GetName());
-		return;
-	}
+	if (bHasLaunched) return;
+
 	bHasLaunched = true;
 	
 	if (!ProjectileMovementComp->IsActive())
-	{
 		ProjectileMovementComp->Activate(true);
-		CR4S_Log(LogDa, Log, TEXT("[%s] LaunchSelf: ProjectileMovementComp activated manually"), *MyHeader);
-	}
-	UE_LOG(LogTemp, Warning,
-		TEXT("[%s][LaunchSelf] IsActive() = %s"),
-		*GetName(),
-		ProjectileMovementComp->IsActive() ? TEXT("Yes") : TEXT("No")
-	);
 	
 	ProjectileMovementComp->bIsHomingProjectile = true;
 	ProjectileMovementComp->HomingAccelerationMagnitude = 5000.f;
 	ProjectileMovementComp->HomingTargetComponent = TargetActor->GetRootComponent();
 	
 	FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	if (Direction.IsNearlyZero())
+	{
+		CR4S_Log(LogDa, Warning, TEXT("[%s][LaunchSelf] Direction is nearly zero. Aborting."), *GetName());
+		return;
+	}
+
+	FRotator NewRot = Direction.Rotation();
+	SetActorRotation(NewRot);
 	ProjectileMovementComp->Velocity = Direction * ProjectileMovementComp->InitialSpeed;
 	
 	CR4S_Log(LogDa, Log,
-		TEXT("[%s] LaunchSelf: Homeing activated → Target=%s, InitialDir=%s"),
+		TEXT("[%s] Launch: Homeing activated → Target=%s, InitialDir=%s"),
 		*MyHeader,
 		*TargetActor->GetName(),
 		*Direction.ToString()
@@ -181,16 +166,8 @@ void AColdFairyActor::OnHit(
     FVector NormalImpulse,
     const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Warning,
-		TEXT("[%s][OnHit] OtherActor=%s  ImpactPoint=%s"),
-		*GetName(),
-		OtherActor ? *OtherActor->GetName() : TEXT("null"),
-		*Hit.ImpactPoint.ToString()
-	);
-	
-    if (!OtherActor || OtherActor == this || OtherActor == GetInstigator())
-        return;
-	
+    if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
+
     UGameplayStatics::ApplyDamage(
         OtherActor,
         Damage,
@@ -203,9 +180,8 @@ void AColdFairyActor::OnHit(
     SetActorLocation(Hit.ImpactPoint);
 
     if (CollisionComp->IsRegistered())
-    {
         CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-    }
+    
     AttachToComponent(OtherComp, FAttachmentTransformRules::KeepWorldTransform);
 
     GetWorld()->GetTimerManager().SetTimer(

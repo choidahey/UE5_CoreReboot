@@ -87,8 +87,8 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
         if (RandomIndex <= 0)
         {
             // return SkillWeight.SkillID;
-            return 0;
-            // return 4;
+            // return 0;
+            return 4;
         }
     }
 

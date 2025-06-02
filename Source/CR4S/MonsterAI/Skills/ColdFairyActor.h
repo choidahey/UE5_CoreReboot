@@ -17,8 +17,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Attack")
 	void InitialLaunch(AActor* InTarget, int32 InIndex, int32 TotalCount);
-	
-	void Launch();
 
 protected:
 	virtual void BeginPlay() override;
@@ -65,13 +63,18 @@ private:
 		FVector NormalImpulse,
 		const FHitResult& Hit
 		);
+
+	void Launch();
+	void HandleSequenceLaunch();
+	void HandleImmediateLaunch() const;
 	
 	bool bHasLaunched = false;
-	int32 MySpawnOrder = 0;
-	int32 ExpectedTotalCount = 0;
+	int32 SpawnOrder = 0;
+	int32 TotalCount = 0;
 	float LaunchDelay = 0.f;
 
 	FTimerHandle LaunchTimerHandle;
 	FTimerHandle DestroyTimerHandle;
+	
 	FString MyHeader = TEXT("ColdFairyActor");
 };
