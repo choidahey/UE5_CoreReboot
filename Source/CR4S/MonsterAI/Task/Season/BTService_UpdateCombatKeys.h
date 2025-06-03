@@ -32,5 +32,5 @@ protected:
 	FBlackboardKeySelector CurrentDistance;
 
 	UPROPERTY(EditAnywhere, Category = "Configuration", meta = (ClampMin = "0.0"))
-	float AttackDistanceThreshold = 800.f;
+	float AttackDistanceThreshold = 1200.f;
 };
