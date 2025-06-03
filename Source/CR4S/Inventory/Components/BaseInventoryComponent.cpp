@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "Gimmick/GimmickObjects/ItemPouchGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
@@ -73,7 +74,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32 Count)
 {
 	FAddItemResult Result;
-	Result.RemainingCount = 0;
+	Result.RemainingCount = Count;
 
 	if (!CR4S_VALIDATE(LogInventory, Count > 0) ||
 		!CR4S_VALIDATE(LogInventory, IsValid(ItemGimmickSubsystem)))
@@ -96,7 +97,8 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
                                                           TSet<int32>& ChangedItemSlots)
 {
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-	if (!CR4S_VALIDATE(LogInventory, ItemData))
+	if (!CR4S_VALIDATE(LogInventory, ItemData),
+		!CR4S_VALIDATE(LogInventory, IsItemAllowedByFilter(ItemData->ItemTags)))
 	{
 		return;
 	}
@@ -154,6 +156,16 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 	}
 
 	Result.RemainingCount = RemainingCount;
+}
+
+bool UBaseInventoryComponent::IsItemAllowedByFilter(const FGameplayTagContainer& ItemTags) const
+{
+	if (!IsValid(FilterData))
+	{
+		return true;
+	}
+
+	return FilterData->IsAllowedItem(ItemTags);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic

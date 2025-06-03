@@ -131,6 +131,16 @@ void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
 }
 
+bool UBaseItemSlotWidget::IsItemAllowedByFilter(const UBaseInventoryItem* Item) const
+{
+	if (!IsValid(InventoryComponent) || !IsValid(Item))
+	{
+		return false;
+	}
+
+	return InventoryComponent->IsItemAllowedByFilter(Item->GetInventoryItemData()->ItemInfoData.ItemTags);
+}
+
 FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
@@ -192,7 +202,9 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 	}
 
 	UBaseInventoryItem* FromItem = FromSlot->CurrentItem;
-	if (!CR4S_VALIDATE(LogInventoryUI, FromItem))
+	if (!CR4S_VALIDATE(LogInventoryUI, FromItem) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, FromSlot->IsItemAllowedByFilter(CurrentItem)))
 	{
 		return false;
 	}

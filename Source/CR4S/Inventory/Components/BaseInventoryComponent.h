@@ -1,10 +1,12 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 
 #include "BaseInventoryComponent.generated.h"
 
+class UInventoryFilterData;
 class UBaseInventoryWidget;
 class UQuickSlotBarWidget;
 class ASurvivalHUD;
@@ -98,6 +100,18 @@ protected:
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor;
 
+#pragma endregion
+
+#pragma region Filter
+
+public:
+	bool IsItemAllowedByFilter(const FGameplayTagContainer& ItemTags) const;
+	
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Filter")
+	TObjectPtr<UInventoryFilterData> FilterData;
+	
 #pragma endregion
 
 #pragma region Delegate

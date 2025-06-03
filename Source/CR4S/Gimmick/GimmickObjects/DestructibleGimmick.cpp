@@ -6,7 +6,7 @@
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
-	: DestroyDelay(0.f),
+	: DestroyDelay(1.f),
 	  DestroyImpulseRadius(50.f),
 	  DestroyImpulseStrength(50.f),
 	  bCanShake(true),
@@ -27,6 +27,7 @@ ADestructibleGimmick::ADestructibleGimmick()
 	GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GeometryCollectionComponent->SetSimulatePhysics(false);
 	GeometryCollectionComponent->DamageThreshold.Init(0.f, 1);
+	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }

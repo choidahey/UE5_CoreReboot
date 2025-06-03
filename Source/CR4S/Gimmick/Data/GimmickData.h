@@ -1,16 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 
 #include "GimmickData.generated.h"
-
-UENUM(BlueprintType)
-enum class EGimmickType : uint8
-{
-	Resources UMETA(DisplayName = "재료"),
-	Building UMETA(DisplayName = "건축물"),
-	Crops UMETA(DisplayName = "작물")
-};
 
 USTRUCT(BlueprintType)
 struct FResourceItemData
@@ -37,8 +30,7 @@ struct FGimmickInfoData : public FTableRowBase
 	GENERATED_BODY()
 
 	FGimmickInfoData()
-		: Type(EGimmickType::Resources),
-		  GimmickMaxHealth(0.f)
+		: GimmickMaxHealth(0.f)
 	{
 	}
 
@@ -48,8 +40,8 @@ struct FGimmickInfoData : public FTableRowBase
 	FText Description;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "아이콘"))
 	TObjectPtr<UTexture2D> Icon;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "종류"))
-	EGimmickType Type;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "태그"))
+	FGameplayTagContainer GimmickTags;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "디테일 데이터"))
 	FDataTableRowHandle DetailData;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 엑터 클래스"))

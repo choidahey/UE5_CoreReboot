@@ -39,6 +39,11 @@ void APlanterBoxGimmick::OnGimmickDestroy(AActor* DamageCauser)
 		PlantedGimmick->Destroy();
 		PlantedGimmick = nullptr;
 	}
+	
+	if (IsValid(InteractableComponent))
+	{
+		InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
+	}
 
 	Super::OnGimmickDestroy(DamageCauser);
 }

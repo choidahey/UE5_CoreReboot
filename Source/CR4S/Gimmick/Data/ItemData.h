@@ -1,19 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 
 #include "ItemData.generated.h"
-
-UENUM(BlueprintType)
-enum class EItemType : uint8
-{
-	Resources UMETA(DisplayName = "재료"),
-	Building UMETA(DisplayName = "건축물"),
-	Tool UMETA(DisplayName = "도구"),
-	Spawn UMETA(DisplayName = "소환"),
-	Animal UMETA(DisplayName = "동물"),
-	Consumable UMETA(DisplayName = "소모품")
-};
 
 USTRUCT(BlueprintType)
 struct FItemInfoData : public FTableRowBase
@@ -21,8 +11,7 @@ struct FItemInfoData : public FTableRowBase
 	GENERATED_BODY()
 
 	FItemInfoData()
-		: Type(EItemType::Resources),
-		  MaxStackCount(64)
+		: MaxStackCount(64)
 	{
 	}
 
@@ -32,8 +21,8 @@ struct FItemInfoData : public FTableRowBase
 	FText Description;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "아이콘"))
 	TObjectPtr<UTexture2D> Icon;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "종류"))
-	EItemType Type;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "태그"))
+	FGameplayTagContainer ItemTags;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "최대 중첩 개수", ClampMin = "1", ClampMax = "9999"))
 	int32 MaxStackCount;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "디테일 데이터"))
