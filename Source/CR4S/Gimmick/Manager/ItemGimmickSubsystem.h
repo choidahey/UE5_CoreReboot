@@ -7,11 +7,10 @@
 
 #include "ItemGimmickSubsystem.generated.h"
 
-
 class ABaseGimmick;
 
 UCLASS()
-class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
+class CR4S_API UItemGimmickSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -20,6 +19,7 @@ class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
 public:
 	UItemGimmickSubsystem();
 
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
 #pragma endregion
@@ -29,7 +29,7 @@ public:
 public:
 	TArray<FName> GetItemDataRowNames() const;
 	const FItemInfoData* FindItemInfoData(const FName& RowName) const;
-	const FBaseGimmickData* FindGimmickData(const FName& RowName) const;
+	const FGimmickInfoData* FindGimmickInfoData(const FName& RowName) const;
 	
 private:
 	template<typename RowStruct>

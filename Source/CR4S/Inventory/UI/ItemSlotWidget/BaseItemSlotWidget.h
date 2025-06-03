@@ -4,6 +4,8 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UBaseInventoryWidget;
+class UInventoryContainerWidget;
 class UDummyItemSlotWidget;
 class UBorder;
 class UTextBlock;
@@ -26,7 +28,21 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
+	void InitWidget(UBaseInventoryComponent* NewInventoryComponent, UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
+
+	FORCEINLINE void SetInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) { InventoryComponent = NewInventoryComponent; }
+	
+protected:
+	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController;
+
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
+
+	bool bIsPlayerItemSlot;
 	
 #pragma endregion
 	
@@ -48,6 +64,8 @@ public:
 	void SetItem(UBaseInventoryItem* InItem);
 	void EmptyItem();
 
+	FORCEINLINE UBaseInventoryItem* GetCurrentItem() const { return CurrentItem; }
+	
 protected:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryItem> CurrentItem;
@@ -61,10 +79,12 @@ protected:
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
 #pragma endregion 
-	
-	
+
 #pragma region Drag And Drop
 	
+public:
+	bool IsItemAllowedByFilter(const UBaseInventoryItem* Item) const;
+
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
@@ -78,6 +98,21 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDummyItemSlotWidget> DummySlotWidgetClass;
+	
+#pragma endregion
+
+#pragma region Input
+
+public:
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+
+	FORCEINLINE void SetCanMoveItem(const bool bNewCanMoveItem) { bCanMoveItem = bNewCanMoveItem; }
+	
+private:
+	UPROPERTY(EditDefaultsOnly)
+	bool bCanRemoveItem;
+	UPROPERTY(EditDefaultsOnly)
+	bool bCanMoveItem;
 	
 #pragma endregion
 };
