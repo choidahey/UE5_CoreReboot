@@ -22,7 +22,7 @@ struct FWorldTimeData
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWorldTimeUpdated, int64, PlayTime);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMinuteUpdated, int32, Minute);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMinuteUpdated, int32, Minute, int32, DayCycle);
 
 UCLASS()
 class CR4S_API UWorldTimeManager : public UWorldSubsystem

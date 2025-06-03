@@ -27,18 +27,13 @@ void AEnvironmentManager::BeginPlay()
     Super::BeginPlay();
 }
 
-void AEnvironmentManager::SetDayNightRatio(float Ratio)
+void AEnvironmentManager::SetDayNightByTime(float DawnTime, float DuskTime)
 {
-    Ratio = FMath::Clamp(Ratio, 0.0f, 1.0f);
 
-    int32 DayCycle = TimeManager->GetDayCycleLength();
-    int32 Day = FMath::RoundToInt(DayCycle * Ratio);
-    int32 Night = DayCycle - Day;
+    DawnTime = FMath::Clamp(DawnTime, 0.0f, 2400.0f);
+    DuskTime = FMath::Clamp(DuskTime, 0.0f, 2400.0f);
 
-    UE_LOG(LogTemp, Log, TEXT("SetDayNightRatio: Ratio = %.2f | DayCycle = %d | Day = %d | Night = %d"),
-        Ratio, DayCycle, Day, Night);
-
-    ApplyDayNightRatio(Day, Night);
+    SetDawnDuskTime(DawnTime, DuskTime);
 }
 
 void AEnvironmentManager::SetWeatherByName(const FString& WeatherName, float TransitionTime)

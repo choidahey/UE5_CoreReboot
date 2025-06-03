@@ -14,7 +14,7 @@ class CR4S_API AEnvironmentManager : public AActor
 #pragma region UltraDynamic Sky and Weather Controls
 public:	
 	UFUNCTION(BlueprintCallable, Category = "Time")
-	void SetDayNightRatio(float Ratio);
+	void SetDayNightByTime(float DawnTime, float DuskTime);
 	UFUNCTION(BlueprintCallable, Category = "Weather")
 	void SetWeatherByName(const FString& WeatherName, float TransitionTime = 60.0f);
 	UFUNCTION(BlueprintCallable, Category = "Weather")
@@ -28,7 +28,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Weather")
 	void ApplyWeather(UDataAsset* WeatherPreset, float TransitionTime);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Time")
-	void ApplyDayNightRatio(int32 DayLength, int32 NightLength);
+	void SetDawnDuskTime(float DawnTime, float DuskTime);
 
 
 #pragma endregion

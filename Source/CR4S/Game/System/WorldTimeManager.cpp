@@ -67,7 +67,7 @@ void UWorldTimeManager::UpdateTime()
 		CurrentTimeData.Second = 0;
 		CurrentTimeData.Minute += 1;
 
-		OnMinuteUpdated.Broadcast(CurrentTimeData.Minute);
+		OnMinuteUpdated.Broadcast(CurrentTimeData.Minute, DayCycleLength);
 
 		if (CurrentTimeData.Minute >= DayCycleLength)
 		{

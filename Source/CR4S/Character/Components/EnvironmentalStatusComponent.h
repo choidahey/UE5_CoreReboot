@@ -23,9 +23,7 @@ protected:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void BindToTimeSystemDelegates();
-
-
+	void InitializeTimeSystemBindings();
 
 #pragma region Getters & Setters
 public:
@@ -35,6 +33,9 @@ public:
 	FORCEINLINE float GetMinTemperature() const { return MinTemperature; }
 	FORCEINLINE float GetMaxHumidity() const { return MaxHumidity; }
 	FORCEINLINE float GetMinHumidity() const { return MinHumidity; }
+
+	float GetBaseTemperatureBySeason(ESeasonType Season) const;
+	float GetBaseHumidityBySeason(ESeasonType Season) const;
 
 	void ModifyTemperature(float Delta, float Speed);
 	void ModifyHumidity(float Delta, float Speed);
@@ -49,15 +50,16 @@ public:
 #pragma region Utility Functions
 
 	UFUNCTION()
-	void UpdateTemperatureByMinute(int32 Minute);
+	void UpdateTemperatureByMinute(int32 Minute, int32 DayCycle);
 	UFUNCTION()
-	void UpdateDayNightRatio(float Ratio);
+	void UpdateDayLengthChanged(float DawnTime, float DuskTime);
 	UFUNCTION()
 	void HandleSeasonChanged(ESeasonType Season);
 
-	float GetBaseTemperatureBySeason(ESeasonType Season) const;
-
 	void UpdateTemperature(float DeltaTime, float Speed);
+	void UpdateHumidity(float DeltaTime, float Speed);
+
+	bool ShouldDisableTick();
 
 	bool IsPlayer() const;
 
@@ -70,6 +72,7 @@ private:
 	float CurrentHumidity = 0.0f;
 
 	float CurrentSeasonBaseTemperature = 0.0f;
+	float CurrentSeasonBaseHumidity = 0.0f;
 
 	float MinTemperature = -20.f;
 	float MaxTemperature = 30.f;
@@ -79,10 +82,19 @@ private:
 
 	float TargetHumidity = 0.0f;
 	float TargetTemperature = 0.0f;
+	
+	float ExternalTemperatureDelta = 0.0f;
+	float ExternalHumidityDelta = 0.0f;
+
+	float TemperatureOffset = 0.0f;
 
 	float TemperatureChangeSpeed = 0.5f;
 	float HumidityChangeSpeed = 0.5f;
 
+	float CurrentDawnTime = 600.0f;
+	float CurrentDuskTime = 1600.0f;
+	float DayMid = 1200.0f;
+	float NightMid = 0.0f;
 
 	TWeakObjectPtr<AEnvironmentManager> EnvironmentManager;
 

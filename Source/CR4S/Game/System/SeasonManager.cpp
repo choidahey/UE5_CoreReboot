@@ -30,6 +30,9 @@ void USeasonManager::OnPostWorldInit(UWorld* World, const UWorld::Initialization
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: EnvironmentManager not found"));
 	}
+
+
+	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
 
 void USeasonManager::LoadSeason()
@@ -38,17 +41,20 @@ void USeasonManager::LoadSeason()
 	// else Set Default Season
 	UE_LOG(LogTemp, Warning, TEXT("Loading Season"));
 	SetCurrentSeason(ESeasonType::BountifulSeason);
+
+	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
 
 void USeasonManager::HandleDayChange()
 {
 	if (!EnvironmentManager) return;
-		
-	float Progress = static_cast<float>(CurrentSeasonDay) / static_cast<float>(SeasonLength);
-	CurrentDayNightRatio = FMath::Lerp(StartDayNightRatio, TargetDayNightRatio, Progress);
 
-	EnvironmentManager->SetDayNightRatio(CurrentDayNightRatio);
-	OnDayChanged.Broadcast(CurrentDayNightRatio);
+	float Progress = static_cast<float>(CurrentSeasonDay) / static_cast<float>(SeasonLength);
+	CurrentDawnTime = FMath::Lerp(StartDawnTime, TargetDawnTime, Progress);
+	CurrentDuskTime = FMath::Lerp(StartDuskTime, TargetDuskTime, Progress);
+
+	EnvironmentManager->SetDayNightByTime(CurrentDawnTime, CurrentDuskTime);
+	OnDayChanged.Broadcast(CurrentDawnTime, CurrentDuskTime);
 
 	CurrentSeasonDay++;
 
@@ -56,13 +62,38 @@ void USeasonManager::HandleDayChange()
 	{
 		ChangeToNextSeason();
 		CurrentSeasonDay = 1;
-		StartDayNightRatio = CurrentDayNightRatio;
-		TargetDayNightRatio = GetTargetDayRatioForSeason(CurrentSeason);
-	}
 
-	UE_LOG(LogTemp, Log, TEXT("AdjustDayNightLength: Day %d / %d, Ratio %.3f"), CurrentSeasonDay, SeasonLength, CurrentDayNightRatio);
+		StartDawnTime = CurrentDawnTime;
+		StartDuskTime = CurrentDuskTime;
+	}
 }
 
+void USeasonManager::GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime)
+{
+	switch (Season)
+	{
+	case ESeasonType::BountifulSeason:
+		OutDawnTime = 900.0f;
+		OutDuskTime = 1500.0f;
+		break;
+	case ESeasonType::FrostSeason:
+		OutDawnTime = 800.0f;
+		OutDuskTime = 1600.0f;
+		break;
+	case ESeasonType::RainySeason:
+		OutDawnTime = 500.0f;
+		OutDuskTime = 1900.0f;
+		break;
+	case ESeasonType::DrySeason:
+		OutDawnTime = 600.0f;
+		OutDuskTime = 1600.0f;
+		break;
+	default:
+		OutDawnTime = 600.0f;
+		OutDuskTime = 1800.0f;
+		break;
+	}
+}
 
 
 void USeasonManager::ChangeToNextSeason()
@@ -87,6 +118,8 @@ void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 	UE_LOG(LogTemp, Warning, TEXT("Current Season changed to: %s"), *UEnum::GetValueAsString(NewSeason));
 
 	EnvironmentManager->SetWeatherBySeason(NewSeason);
+
+	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
 
 void USeasonManager::HandleSeasonChange(ESeasonType NewSeason)
@@ -94,18 +127,6 @@ void USeasonManager::HandleSeasonChange(ESeasonType NewSeason)
 
 
 	UE_LOG(LogTemp, Warning, TEXT("Handling season change to: %s"), *UEnum::GetValueAsString(NewSeason));
-}
-
-float USeasonManager::GetTargetDayRatioForSeason(ESeasonType Season) const
-{
-	switch (Season)
-	{
-	case ESeasonType::BountifulSeason: return 0.3f;
-	case ESeasonType::FrostSeason: return 0.4f;
-	case ESeasonType::RainySeason: return 0.7f;
-	case ESeasonType::DrySeason: return 0.5f;
-	default: return 0.5f;
-	}
 }
 
 void USeasonManager::Deinitialize()

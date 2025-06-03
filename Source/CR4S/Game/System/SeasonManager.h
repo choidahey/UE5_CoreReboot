@@ -7,7 +7,7 @@
 
 class AEnvironmentManager;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDayChanged, float, Ratio);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDayChanged, float, DawnTime, float, DuskTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSeasonChanged, ESeasonType, Season);
 
 UCLASS()
@@ -30,12 +30,16 @@ protected:
 public:
 	FORCEINLINE ESeasonType GetCurrentSeason() const { return CurrentSeason; }
 	FORCEINLINE int32 GetSeasonLength() const { return SeasonLength; }
+	FORCEINLINE float GetCurrentDawnTime() const { return CurrentDawnTime; }
+	FORCEINLINE float GetCurrentDuskTime() const { return CurrentDuskTime; }
 
 	FORCEINLINE void SetSeasonLength(int32 Length) { SeasonLength = Length; }
 
+	void GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime);
 	void SetCurrentSeason(ESeasonType NewSeason);
 	
 	void HandleDayChange();
+
 	void ChangeToNextSeason();
 
 #pragma endregion
@@ -48,15 +52,18 @@ protected:
 private:
 	void HandleSeasonChange(ESeasonType NewSeason);
 
-	float GetTargetDayRatioForSeason(ESeasonType Season) const;
-
 	ESeasonType CurrentSeason = ESeasonType::BountifulSeason;
 
 	int32 SeasonLength = 30;
 	int32 CurrentSeasonDay = 1;
-	float CurrentDayNightRatio = 0.5f;
-	float StartDayNightRatio = 0.5f;
-	float TargetDayNightRatio = 0.3f;
+	float CurrentDawnTime = 600.0f;
+	float CurrentDuskTime = 1600.0f;
+
+	float StartDawnTime = 600.0f;
+	float TargetDawnTime;
+
+	float StartDuskTime = 1600.0f;
+	float TargetDuskTime;
 
 #pragma endregion
 

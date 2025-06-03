@@ -45,6 +45,8 @@ bool UCharacterEnvironmentStatusWidget::TryBindToPlayerCharacter()
 
 	MinTempText->SetText(FText::AsNumber(EnvComp->GetMinTemperature()));
 	MaxTempText->SetText(FText::AsNumber(EnvComp->GetMaxTemperature()));
+	MinHuText->SetText(FText::AsNumber(EnvComp->GetMinHumidity()));
+	MaxHuText->SetText(FText::AsNumber(EnvComp->GetMaxHumidity()));
 
 	return true;
 }
@@ -60,7 +62,27 @@ void UCharacterEnvironmentStatusWidget::OnTemperatureChanged(float NewTemperatur
 	UEnvironmentalStatusComponent* EnvComp = Pawn->FindComponentByClass<UEnvironmentalStatusComponent>();
 	if (EnvComp)
 	{
-		TemperatureProgressBar->SetPercent((NewTemperature + 20.0f) / (30.0f + 20.0f));
+		float NormalizedTemperature = (NewTemperature + 20.0f) / (30.0f + 20.0f);
+		TemperatureProgressBar->SetPercent(NormalizedTemperature);
+
+		FLinearColor ColdColor = FLinearColor(0.0f, 0.75f, 1.0f);
+		FLinearColor MidColor = FLinearColor(1.0f, 1.0f, 0.4f);
+		FLinearColor HotColor = FLinearColor(1.0f, 0.27f, 0.0f);
+
+		FLinearColor InterpolatedColor;
+
+		if (NormalizedTemperature < 0.5f)
+		{
+			float T = NormalizedTemperature / 0.5f;
+			InterpolatedColor = FLinearColor::LerpUsingHSV(ColdColor, MidColor, T);
+		}
+		else
+		{
+			float T = (NormalizedTemperature - 0.5f) / 0.5f;
+			InterpolatedColor = FLinearColor::LerpUsingHSV(MidColor, HotColor, T);
+		}
+
+		TemperatureProgressBar->SetFillColorAndOpacity(InterpolatedColor);
 
 		int32 RoundedTemp = FMath::RoundToInt(EnvComp->GetCurrentTemperature());
 		CurrentTempText->SetText(FText::AsNumber(RoundedTemp));
