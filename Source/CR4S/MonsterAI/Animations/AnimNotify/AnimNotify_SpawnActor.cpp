@@ -54,6 +54,8 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 		SpawnParams
 	);
 	if (!SpawnActor) return;
+
+	SpawnActor->AddActorLocalOffset(SpawnLocationOffset);
 	
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{
