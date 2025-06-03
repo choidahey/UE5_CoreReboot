@@ -35,18 +35,26 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	FVector PositionOffset = FVector::ZeroVector;
 	
-	/* Rotation */
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	bool bIsRotating{false};
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bIsRotating"))
 	FRotator RotationOffset;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bIsRotating"))
 	float RotationDuration{1.f};
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bIsRotating"))
 	float RotationStartDelay{2.f};
+	
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	bool bDynamicScale{false};
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bDynamicScale"))
+	FVector ScaleOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bDynamicScale"))
+	float ScaleDuration = 1.f;
 
 private:
 	UFUNCTION()
@@ -75,9 +83,13 @@ private:
 	TMap<AActor*, int32> DebuffTicksMap;
 	
 	FRotator InitialRotation;
+	FVector InitialScale;
+	FVector TargetScale;
+	FVector InitialBoxExtent;
 	
 	float ElapsedRotationTime{0.f};
 	float ElapsedDelayTime{0.f};
+	float ElapsedScaleTime{0.f};
 
 	FString MyHeader{TEXT("AcidWave")};
 };

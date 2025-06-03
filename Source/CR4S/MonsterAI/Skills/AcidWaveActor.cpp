@@ -66,6 +66,14 @@ void AAcidWaveActor::Initialize(AActor* InOwner, AActor* InTarget)
 		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, HalfHeight));
 	}
 
+	if (bDynamicScale && MeshComp)
+	{
+		InitialScale = MeshComp->GetRelativeScale3D();
+		InitialBoxExtent = BoxCollisionComp->GetUnscaledBoxExtent();
+		TargetScale = InitialScale + ScaleOffset;
+		ElapsedScaleTime = 0.f;
+	}
+
 	if (bIsRotating)
 	{
 		InitialRotation = GetActorRotation();
@@ -89,6 +97,20 @@ void AAcidWaveActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bDynamicScale && MeshComp)
+	{
+		ElapsedScaleTime += DeltaTime;
+		float AlphaScale = FMath::Clamp(ElapsedScaleTime / ScaleDuration, 0.f, 1.f);
+		FVector NewScale = FMath::Lerp(InitialScale, TargetScale, AlphaScale);
+		MeshComp->SetRelativeScale3D(NewScale);
+
+		FVector NewExtent = InitialBoxExtent * NewScale;
+		BoxCollisionComp->SetBoxExtent(NewExtent);
+
+		if (AlphaScale >= 1.f)
+			bDynamicScale = false;
+	}
+	
 	if (ElapsedDelayTime < RotationStartDelay)
 	{
 		ElapsedDelayTime += DeltaTime;
