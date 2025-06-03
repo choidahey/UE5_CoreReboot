@@ -371,7 +371,7 @@ void ABaseAnimal::Capture()
     if (!IsValid(Inventory)) return;
 
     const FAddItemResult Result = Inventory->AddItem(RowName, 1);
-    if (Result.Success)
+    if (Result.bSuccess)
     {
         if (IsValid(ActiveInteractWidget))
         {

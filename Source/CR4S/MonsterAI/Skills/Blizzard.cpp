@@ -10,6 +10,7 @@
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "MonsterAI/BaseMonster.h"
 
+// NOTICE :: Not Use
 ABlizzard::ABlizzard()
 {
 	RootComp = CreateDefaultSubobject<USceneComponent>("RootComp");
@@ -37,20 +38,20 @@ void ABlizzard::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ABlizzard::Launch(ABaseMonster* BossMonster)
+void ABlizzard::Launch(APawn* BossOwnerPawn)
 {
-	if (!BossMonster) return;
+	if (!BossOwnerPawn) return;
 
-	OwnerMonster = BossMonster;
+	OwnerMonster = Cast<ABaseMonster>(BossOwnerPawn);
 	
-	const UMonsterAttributeComponent* AttrComp = BossMonster->FindComponentByClass<UMonsterAttributeComponent>();
-	const UMonsterSkillComponent* SkillComp = BossMonster->FindComponentByClass<UMonsterSkillComponent>();
+	const UMonsterAttributeComponent* AttrComp = OwnerMonster->FindComponentByClass<UMonsterAttributeComponent>();
+	const UMonsterSkillComponent* SkillComp = OwnerMonster->FindComponentByClass<UMonsterSkillComponent>();
 	if (!AttrComp || !SkillComp) return;
 
 	Speed = AttrComp->GetMonsterAttribute().MoveSpeed;
 	Damage = SkillComp->GetCurrentSkillData().Damage;
 	
-	if (UCharacterMovementComponent* MovementComp = BossMonster->GetCharacterMovement())
+	if (UCharacterMovementComponent* MovementComp = OwnerMonster->GetCharacterMovement())
 	{
 		Speed = MovementComp->MaxWalkSpeed;
 		MovementComp->MaxWalkSpeed = Speed * SpeedBuff;
@@ -70,14 +71,14 @@ void ABlizzard::Launch(ABaseMonster* BossMonster)
 		);*/
 
 	float BossHalfHeight = 0.f;
-	if (auto* BossCapsule = BossMonster->FindComponentByClass<UCapsuleComponent>())
+	if (auto* BossCapsule = OwnerMonster->FindComponentByClass<UCapsuleComponent>())
 	{
 		BossHalfHeight = BossCapsule->GetScaledCapsuleHalfHeight();
 	}
 	
 	NiagaraComp->Activate(true);
 
-	AttachToActor(BossMonster, FAttachmentTransformRules::KeepRelativeTransform);
+	AttachToActor(OwnerMonster, FAttachmentTransformRules::KeepRelativeTransform);
 	SetActorRelativeLocation(FVector(0, 0, -BossHalfHeight));
 	OverlapComp->SetRelativeLocation(FVector(0.f, 0.f, BossHalfHeight));
 

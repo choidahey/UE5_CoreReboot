@@ -9,6 +9,7 @@ class UCapsuleComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
 
+// NOTICE :: Not Use
 UCLASS()
 class CR4S_API ABlizzard : public AActor
 {
@@ -17,7 +18,7 @@ class CR4S_API ABlizzard : public AActor
 public:
 	ABlizzard();
 
-	void Launch(ABaseMonster* BossMonster);
+	void Launch(APawn* BossOwnerPawn);
 
 protected:
 	virtual void BeginPlay() override;
@@ -59,7 +60,7 @@ protected:
 	float Speed;
 
 	UPROPERTY()
-	ABaseMonster* OwnerMonster;
+	ACharacter* OwnerMonster;
 	
 	FTimerHandle DamageTimerHandle;
 	FTimerHandle LifetimeTimerHandle;

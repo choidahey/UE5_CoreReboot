@@ -24,6 +24,16 @@ void AItemPouchGimmick::BeginPlay()
 	{
 		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
+
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (IsValid(PlayerController))
+	{
+		APawn* PlayerPawn = PlayerController->GetPawn();
+		if (IsValid(PlayerController->GetPawn()))
+		{
+			PlayerInventoryComponent = PlayerPawn->FindComponentByClass<UPlayerInventoryComponent>();
+		}
+	}
 }
 
 void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
@@ -34,13 +44,17 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 		return;
 	}
 
-	UPlayerInventoryComponent* PlayerInventoryComponent = Interactor->FindComponentByClass<UPlayerInventoryComponent>();
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(PlayerInventoryComponent)))
 	{
 		return;
 	}
 
-	PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::ItemPouch, InventoryComponent);
+	if (IsValid(PlayerInventoryComponent))
+	{
+		InventoryComponent->OnOccupiedSlotsChanged.BindDynamic(this, &ThisClass::DestroyItemPouch);
+
+		PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::ItemPouch, InventoryComponent);
+	}
 }
 
 void AItemPouchGimmick::InitItemPouch(const TMap<FName, int32>& RemainingItems) const
@@ -48,5 +62,15 @@ void AItemPouchGimmick::InitItemPouch(const TMap<FName, int32>& RemainingItems) 
 	if (CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)))
 	{
 		InventoryComponent->AddItems(RemainingItems);
+	}
+}
+
+void AItemPouchGimmick::DestroyItemPouch(const int32 NumOccupiedSlots)
+{
+	if (NumOccupiedSlots == 0)
+	{
+		PlayerInventoryComponent->CloseInventoryWidget();
+
+		Destroy();
 	}
 }
