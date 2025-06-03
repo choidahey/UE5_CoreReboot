@@ -5,6 +5,7 @@
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventoryType.h"
+#include "Inventory/Components/PlanterBoxInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
 APlanterBoxGimmick::APlanterBoxGimmick()
@@ -17,8 +18,8 @@ APlanterBoxGimmick::APlanterBoxGimmick()
 	SpawnPoint->SetupAttachment(RootComponent);
 	SpawnPoint->SetMobility(EComponentMobility::Movable);
 
-	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
-	InventoryComponent->SetMaxInventorySlot(1);
+	PlanterBoxInventoryComponent = CreateDefaultSubobject<UPlanterBoxInventoryComponent>(TEXT("InventoryComponent"));
+	PlanterBoxInventoryComponent->SetMaxInventorySlot(1);
 }
 
 void APlanterBoxGimmick::BeginPlay()
@@ -29,6 +30,11 @@ void APlanterBoxGimmick::BeginPlay()
 	{
 		InteractableComponent->OnDetectionStateChanged.BindDynamic(this, &ThisClass::OnDetectionStateChanged);
 		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
+	}
+
+	if (CR4S_VALIDATE(LogGimmick, IsValid(PlanterBoxInventoryComponent)))
+	{
+		PlanterBoxInventoryComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::HandlePlantingCropsGimmick);
 	}
 }
 
@@ -62,7 +68,7 @@ void APlanterBoxGimmick::OnGimmickInteracted(AActor* Interactor)
 		return;
 	}
 
-	PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::PlantBox, InventoryComponent);
+	PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::PlantBox, PlanterBoxInventoryComponent);
 }
 
 void APlanterBoxGimmick::OnDetectionStateChanged(AActor* InDetectingActor,
@@ -72,15 +78,18 @@ void APlanterBoxGimmick::OnDetectionStateChanged(AActor* InDetectingActor,
 	bIsDetected = bInIsDetected;
 }
 
-void APlanterBoxGimmick::HandlePlantingCropsGimmick()
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+void APlanterBoxGimmick::HandlePlantingCropsGimmick(UBaseInventoryItem* Item)
 {
-	UItemGimmickSubsystem* ItemGimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)) ||
+		!CR4S_VALIDATE(LogGimmick, IsValid(Item)) ||
+		!Item->HasItemData())
 	{
 		return;
 	}
 
-	PlantedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName<ACropsGimmick>(TEXT("Crops"),
+	const FName RowName = Item->GetInventoryItemData()->RowName;
+	PlantedGimmick = ItemGimmickSubsystem->SpawnGimmickByRowName<ACropsGimmick>(RowName,
 		SpawnPoint->GetComponentLocation(), GetActorRotation());
 
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(PlantedGimmick)))
@@ -88,17 +97,18 @@ void APlanterBoxGimmick::HandlePlantingCropsGimmick()
 		return;
 	}
 
-	PlantedGimmick->OnHarvest.BindDynamic(this, &ThisClass::HandleHarvest);
-	InteractableComponent->UpdateTraceBlocking(ECR_Ignore);
+	PlantedGimmick->OnHarvest.AddUniqueDynamic(this, &ThisClass::HandleHarvest);
+	PlantedGimmick->OnCropComposted.AddUniqueDynamic(this, &ThisClass::HandleHarvest);
 }
 
 void APlanterBoxGimmick::HandleHarvest()
 {
 	PlantedGimmick = nullptr;
 	
-	if (!CR4S_VALIDATE(LogGimmick, InteractableComponent))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)) ||
+		!CR4S_VALIDATE(LogGimmick, IsValid(PlanterBoxInventoryComponent)))
 	{
 		return;
 	}
-	InteractableComponent->UpdateTraceBlocking(ECR_Block);
+	PlanterBoxInventoryComponent->RemoveItemByIndex(0);
 }

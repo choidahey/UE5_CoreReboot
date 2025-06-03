@@ -5,7 +5,7 @@
 #include "Engine/DataAsset.h"
 #include "InventoryFilterData.generated.h"
 
-UCLASS(Abstract, Blueprintable, BlueprintType)
+UCLASS(Blueprintable)
 class CR4S_API UInventoryFilterData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()

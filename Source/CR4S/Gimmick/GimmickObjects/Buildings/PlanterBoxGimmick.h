@@ -5,7 +5,7 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "PlanterBoxGimmick.generated.h"
 
-class UBaseInventoryComponent;
+class UPlanterBoxInventoryComponent;
 class ACropsGimmick;
 class UInteractableComponent;
 
@@ -52,8 +52,12 @@ private:
 
 #pragma region Farming
 
+public:
+	FORCEINLINE ACropsGimmick* GetPlantedGimmick() const { return PlantedGimmick; }
+	
 private:
-	void HandlePlantingCropsGimmick();
+	UFUNCTION()
+	void HandlePlantingCropsGimmick(UBaseInventoryItem* Item);
 	
 	UFUNCTION()
 	void HandleHarvest();
@@ -70,7 +74,7 @@ private:
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	TObjectPtr<UPlanterBoxInventoryComponent> PlanterBoxInventoryComponent;
 	
 #pragma endregion
 	

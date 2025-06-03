@@ -79,7 +79,7 @@ private:
 	TObjectPtr<UStorageInventoryWidget> StorageInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseInventoryWidget> PlantBoxInventoryWidget;
+	TObjectPtr<UBaseInventoryWidget> PlanterBoxInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCompostBinWidget> CompostBinWidget;

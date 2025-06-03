@@ -22,10 +22,10 @@ void UBaseInventoryComponent::BeginPlay()
 		return;
 	}
 
-	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
-	if (CR4S_VALIDATE(LogInventory, IsValid(GameInstance)))
+	const UWorld* World = GetWorld();
+	if (CR4S_VALIDATE(LogInventory, IsValid(World)))
 	{
-		ItemGimmickSubsystem = GameInstance->GetSubsystem<UItemGimmickSubsystem>();
+		ItemGimmickSubsystem = World->GetSubsystem<UItemGimmickSubsystem>();
 	}
 
 	InitInventorySize();
@@ -103,7 +103,7 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 		return;
 	}
 
-	Result.Success = true;
+	Result.bSuccess = true;
 	int32 RemainingCount = Count;
 
 	TArray<UBaseInventoryItem*> SameItems;
@@ -235,6 +235,15 @@ void UBaseInventoryComponent::RemoveItem(const FName RowName, const int32 Count)
 
 			NotifyInventoryItemChanged(Item->GetSlotIndex());
 		}
+	}
+}
+
+void UBaseInventoryComponent::RemoveItemByIndex(const int32 Index)
+{
+	if (InventoryItems.IsValidIndex(Index))
+	{
+		InventoryItems[Index]->SetCurrentStackCount(0);
+		NotifyInventoryItemChanged(Index);
 	}
 }
 

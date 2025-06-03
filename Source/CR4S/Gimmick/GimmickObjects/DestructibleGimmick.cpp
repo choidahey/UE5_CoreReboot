@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Gimmick/Components/DestructibleComponent.h"
+#include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
@@ -40,17 +41,13 @@ void ADestructibleGimmick::BeginPlay()
 	{
 		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
 		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
-
-		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-
-		if (!CR4S_VALIDATE(LogGimmick, IsValid(GimmickSubsystem)))
+		
+		if (CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
 		{
-			return;
-		}
-
-		if (const FGimmickInfoData* GimmickData = GimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
-		{
-			DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
+			if (const FGimmickInfoData* GimmickData = ItemGimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
+			{
+				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
+			}
 		}
 	}
 

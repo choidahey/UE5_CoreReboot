@@ -19,13 +19,13 @@ struct FAddItemResult
 	GENERATED_BODY()
 
 	FAddItemResult()
-		: Success(false),
+		: bSuccess(false),
 		  AddedCount(0),
 		  RemainingCount(0)
 	{
 	}
 
-	bool Success;
+	bool bSuccess;
 	int32 AddedCount;
 	int32 RemainingCount;
 };
@@ -53,6 +53,7 @@ public:
 	virtual FAddItemResult AddItem(FName RowName, int32 Count);
 
 	void RemoveItem(const FName RowName, const int32 Count);
+	void RemoveItemByIndex(const int32 Index);
 
 	void SortInventoryItems();
 	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
@@ -67,11 +68,13 @@ public:
 		OccupiedSlots.Add(SlotIndex);
 		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
 	}
+
 	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex)
 	{
 		OccupiedSlots.Remove(SlotIndex);
 		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
 	}
+
 	FORCEINLINE int32 GetNumOccupiedSlots() const { return OccupiedSlots.Num(); }
 
 protected:
@@ -106,12 +109,11 @@ protected:
 
 public:
 	bool IsItemAllowedByFilter(const FGameplayTagContainer& ItemTags) const;
-	
-	
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Filter")
 	TObjectPtr<UInventoryFilterData> FilterData;
-	
+
 #pragma endregion
 
 #pragma region Delegate
@@ -129,7 +131,7 @@ public:
 
 	FOnOccupiedSlotsChanged OnOccupiedSlotsChanged;
 
-private:
+protected:
 	void NotifyInventoryItemChanged(const int32 ItemIndex) const;
 	void NotifyInventoryItemsChanged(const TArray<int32>& ChangedItemIndexes) const;
 

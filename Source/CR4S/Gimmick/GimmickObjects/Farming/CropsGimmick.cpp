@@ -21,6 +21,10 @@ ACropsGimmick::ACropsGimmick()
 	PrimaryActorTick.bCanEverTick = false;
 
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }
 
 void ACropsGimmick::BeginPlay()
@@ -70,6 +74,7 @@ void ACropsGimmick::BeginPlay()
 			if (IsValid(GrowthMeshes.Last()))
 			{
 				GimmickMeshComponent->SetStaticMesh(GrowthMeshes.Last());
+				CurrentGrowthPercent = 100.f;
 			}
 		}
 	}
@@ -119,7 +124,10 @@ void ACropsGimmick::UpdateInteractionText() const
 
 void ACropsGimmick::Harvest(const AActor* Interactor)
 {
-	OnHarvest.ExecuteIfBound();
+	if (OnHarvest.IsBound())
+	{
+		OnHarvest.Broadcast();
+	}
 
 	GetResources(Interactor);
 
@@ -137,11 +145,20 @@ void ACropsGimmick::Grow(int64 PlayTime)
 	{
 		ElapsedSeconds += 1;
 	}
-	
+
 	CurrentGrowthPercent = FMath::Clamp(ElapsedSeconds * 100.0f / TotalGrowthSeconds, 0.0f, 200.0f);
+
+	if (OnGrow.IsBound())
+	{
+		OnGrow.Broadcast(CurrentGrowthPercent);
+	}
 
 	if (CurrentGrowthPercent == 200.f)
 	{
+		if (OnCropComposted.IsBound())
+		{
+			OnCropComposted.Broadcast();
+		}
 		Destroy();
 		return;
 	}

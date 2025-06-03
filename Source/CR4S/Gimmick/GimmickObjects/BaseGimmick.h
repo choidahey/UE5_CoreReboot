@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseGimmick.generated.h"
 
+class UItemGimmickSubsystem;
 struct FGimmickInfoData;
 struct FItemInfoData;
 struct FResourceItemData;
@@ -17,6 +18,8 @@ class CR4S_API ABaseGimmick : public AActor
 
 public:
 	ABaseGimmick();
+
+	virtual void BeginPlay() override;
 
 #pragma endregion
 
@@ -46,9 +49,11 @@ public:
 protected:
 	virtual void GetResources(const AActor* InventoryOwnerActor) const;
 	virtual void GimmickDestroy();
+
+	UPROPERTY()
+	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
 	
 private:
-	
 	UPROPERTY(EditDefaultsOnly, Category = "GimmickData")
 	FName GimmickDataRowName;
 

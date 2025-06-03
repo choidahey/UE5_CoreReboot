@@ -28,7 +28,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlantBoxInventoryWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)))
 	{
 		return;
@@ -38,20 +38,20 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	PlayerInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlayerInventoryWidget->ConnectInventoryComponent(PlayerInventoryComponent, true, true);
-	QuickSlotBarWidget->InitWidget(PlayerInventoryWidget, InPlayerInventoryComponent);
+	QuickSlotBarWidget->InitWidget(InPlayerInventoryComponent);
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
-	PlantBoxInventoryWidget->InitWidget(SurvivalHUD, false);
+	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InitToggleWidget(StorageInventoryWidget);
-	InitToggleWidget(PlantBoxInventoryWidget);
+	InitToggleWidget(PlanterBoxInventoryWidget);
 	InitToggleWidget(CompostBinWidget);
 }
 
 void UInventoryContainerWidget::OpenPlayerInventoryWidget()
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
-		CR4S_VALIDATE(LogInventoryUI, bIsOpen) ||
+		bIsOpen ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(BackgroundBorder)))
 	{
 		return;
@@ -112,7 +112,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	UBaseInventoryWidget* OtherInventoryWidget = Cast<UBaseInventoryWidget>(OpenOtherWidget);
 	if (IsValid(OtherInventoryWidget))
 	{
-		OtherInventoryWidget->UnBoundOnItemSlotChanged();
+		OtherInventoryWidget->UnBoundWidgetDelegate();
 	}
 
 	OpenOtherWidget = nullptr;
@@ -165,7 +165,7 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 			break;
 		}
 	case EInventoryType::PlantBox:
-		TargetWidget = PlantBoxInventoryWidget;
+		TargetWidget = PlanterBoxInventoryWidget;
 		break;
 	case EInventoryType::CompostBin:
 		TargetWidget = CompostBinWidget;

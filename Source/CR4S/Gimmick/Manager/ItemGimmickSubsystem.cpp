@@ -10,6 +10,24 @@ UItemGimmickSubsystem::UItemGimmickSubsystem()
 {
 }
 
+bool UItemGimmickSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+{
+	const UWorld* World = Cast<UWorld>(Outer);
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(World)))
+	{
+		return false;
+	}
+
+	// if (!CR4S_VALIDATE(LogGimmick, World->GetName() == TEXT("SurvivalLevel")) &&
+	// 	!CR4S_VALIDATE(LogGimmick, World->GetName() == TEXT("GimmickTestMap")))
+	// {
+	// 	return false;
+	// }
+
+	CR4S_Log(LogGimmick, Warning, TEXT("Create ItemGimmickSubsystem for %s"), *World->GetName());
+	return true;
+}
+
 void UItemGimmickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -39,7 +57,8 @@ const FGimmickInfoData* UItemGimmickSubsystem::FindGimmickInfoData(const FName& 
 	return FindDataFromDataTable<FGimmickInfoData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
-ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const
+ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation,
+                                                  const FRotator& SpawnRotation) const
 {
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(GimmickInfoDataTable)))
 	{

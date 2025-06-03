@@ -28,7 +28,9 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
+	void InitWidget(UBaseInventoryComponent* NewInventoryComponent, UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
+
+	FORCEINLINE void SetInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) { InventoryComponent = NewInventoryComponent; }
 	
 protected:
 	UPROPERTY()
@@ -63,7 +65,7 @@ public:
 	void EmptyItem();
 
 	FORCEINLINE UBaseInventoryItem* GetCurrentItem() const { return CurrentItem; }
-
+	
 protected:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryItem> CurrentItem;
@@ -80,9 +82,10 @@ protected:
 
 #pragma region Drag And Drop
 	
-protected:
+public:
 	bool IsItemAllowedByFilter(const UBaseInventoryItem* Item) const;
-	
+
+protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
@@ -106,7 +109,9 @@ public:
 	FORCEINLINE void SetCanMoveItem(const bool bNewCanMoveItem) { bCanMoveItem = bNewCanMoveItem; }
 	
 private:
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
+	bool bCanRemoveItem;
+	UPROPERTY(EditDefaultsOnly)
 	bool bCanMoveItem;
 	
 #pragma endregion

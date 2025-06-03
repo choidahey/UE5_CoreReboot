@@ -84,14 +84,14 @@ void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* Ne
 		if (IsValid(ItemSlotWidget))
 		{
 			UBaseInventoryItem* Item = InventoryComponent->GetItemDataByIndex(SlotIndex);
-			ItemSlotWidget->InitWidget(Item, bCanDrag, bCanDrop);
+			ItemSlotWidget->InitWidget(InventoryComponent, Item, bCanDrag, bCanDrop);
 		}
 
 		SlotIndex++;
 	}
 }
 
-void UBaseInventoryWidget::UnBoundOnItemSlotChanged()
+void UBaseInventoryWidget::UnBoundWidgetDelegate()
 {
 	if (IsValid(InventoryComponent) &&
 		InventoryComponent->OnItemSlotChanged.IsAlreadyBound(this, &ThisClass::UpdateItemSlotWidget))

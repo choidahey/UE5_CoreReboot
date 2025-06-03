@@ -30,7 +30,7 @@ public:
 
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag, bool bCanDrop);
 
-	void UnBoundOnItemSlotChanged();
+	virtual void UnBoundWidgetDelegate();
 
 	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	
@@ -58,7 +58,7 @@ protected:
 
 protected:
 	UFUNCTION()
-	void UpdateItemSlotWidget(UBaseInventoryItem* Item);
+	virtual void UpdateItemSlotWidget(UBaseInventoryItem* Item);
 	
 	UPROPERTY()
 	TArray<TObjectPtr<UBaseItemSlotWidget>> ItemSlotWidgets;

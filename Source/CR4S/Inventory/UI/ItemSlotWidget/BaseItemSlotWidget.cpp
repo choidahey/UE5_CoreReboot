@@ -5,10 +5,9 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
-#include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
-#include "Inventory/UI/InventoryWidget/PlayerInventoryWidget.h"
 
 void UBaseItemSlotWidget::NativeConstruct()
 {
@@ -23,19 +22,21 @@ void UBaseItemSlotWidget::NativeConstruct()
 
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
 
+	bCanRemoveItem = true;
 	bCanMoveItem = true;
 
 	SetIsFocusable(true);
 }
 
-void UBaseItemSlotWidget::InitWidget(UBaseInventoryItem* NewItem, const bool bNewCanDrag, const bool bNewCanDrop)
+void UBaseItemSlotWidget::InitWidget(UBaseInventoryComponent* NewInventoryComponent, UBaseInventoryItem* NewItem,
+                                     const bool bNewCanDrag, const bool bNewCanDrop)
 {
-	const UBaseInventoryWidget* InventoryWidget = GetTypedOuter<UBaseInventoryWidget>();
-	if (IsValid(InventoryWidget))
+	if (IsValid(NewInventoryComponent))
 	{
-		bIsPlayerItemSlot = InventoryWidget->IsA(UPlayerInventoryWidget::StaticClass());
-		InventoryComponent = InventoryWidget->GetInventoryComponent();
+		bIsPlayerItemSlot = NewInventoryComponent->IsA(UPlayerInventoryComponent::StaticClass());
 	}
+
+	InventoryComponent = NewInventoryComponent;
 
 	CurrentItem = NewItem;
 
@@ -143,11 +144,14 @@ bool UBaseItemSlotWidget::IsItemAllowedByFilter(const UBaseInventoryItem* Item) 
 
 FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+	CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent));
+
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
-		!CR4S_VALIDATE(LogInventoryUI, CurrentItem->HasItemData()))
+		!CurrentItem->HasItemData())
 	{
 		return FReply::Unhandled();
 	}
+
 
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
@@ -246,7 +250,7 @@ FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const F
 		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}
 
-	if (InKeyEvent.GetKey() == EKeys::G)
+	if (InKeyEvent.GetKey() == EKeys::G && bCanRemoveItem)
 	{
 		CurrentItem->SetCurrentStackCount(0);
 		SetItem(CurrentItem);

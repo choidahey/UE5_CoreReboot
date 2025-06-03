@@ -23,7 +23,7 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UBaseInventoryWidget* InventoryWidget, UPlayerInventoryComponent* InPlayerInventoryComponent);
+	void InitWidget(UPlayerInventoryComponent* InPlayerInventoryComponent);
 
 private:
 	UPROPERTY()
