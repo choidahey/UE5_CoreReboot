@@ -116,6 +116,19 @@ protected:
 
 #pragma endregion
 
+#pragma region Accumulate Damage
+
+public:
+	FORCEINLINE float GetAccumulatedDamage() const { return AccumulatedDamage; }
+	FORCEINLINE void AddAccumulatedDamage(float Damage) { AccumulatedDamage += Damage; }
+	FORCEINLINE void ClearAccumulatedDamage() { AccumulatedDamage = 0.f; }
+
+private:
+	UPROPERTY()
+	float AccumulatedDamage = 0.f;
+
+#pragma endregion
+
 private:
 	FString MyHeader;
 

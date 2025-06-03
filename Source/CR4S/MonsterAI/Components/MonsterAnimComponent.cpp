@@ -75,3 +75,8 @@ void UMonsterAnimComponent::PlayStunnedMontage()
 {
 	PlayMontage(StunnedMontage);
 }
+
+void UMonsterAnimComponent::PlayHitReactMontage()
+{
+	PlayMontage(HitReactMontage);
+}
