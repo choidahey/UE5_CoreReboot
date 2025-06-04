@@ -5,6 +5,7 @@
 #include "Animation/AnimMontage.h"
 #include "MonsterAnimComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnimMontageEndedSignature, UAnimMontage*, Montage);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterAnimComponent : public UActorComponent
@@ -60,6 +61,13 @@ public:
 	void PlayDeathMontage();
 	void PlayStunnedMontage();
 	void PlayHitReactMontage();
+	
+	UPROPERTY(BlueprintAssignable, Category = "Animation")
+	FOnAnimMontageEndedSignature OnMontageEndedNotify;
+
+protected:
+	UFUNCTION()
+	void Handle_OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 #pragma endregion
 

@@ -1,4 +1,5 @@
 #include "MonsterAnimComponent.h"
+#include "CR4S.h"
 
 UMonsterAnimComponent::UMonsterAnimComponent()
 	: MyHeader(TEXT("MonsterAnimComponent"))
@@ -27,11 +28,33 @@ void UMonsterAnimComponent::PlayMontage(UAnimMontage* Montage)
 {
 	if (!Montage || !AnimInstance.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] PlayMontage: Invalid Montage or AnimInstance"), *MyHeader);
+		CR4S_Log(LogMonster, Warning, TEXT("[%s] PlayMontage: Invalid Montage or AnimInstance"), *MyHeader);
 		return;
 	}
 
+	AnimInstance->OnMontageEnded.RemoveAll(this);
+	AnimInstance->OnMontageEnded.AddDynamic(this, &UMonsterAnimComponent::Handle_OnMontageEnded);
+	
 	AnimInstance->Montage_Play(Montage, 1.f);
+}
+
+void UMonsterAnimComponent::Handle_OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (AnimInstance.IsValid())
+	{
+		AnimInstance->OnMontageEnded.RemoveAll(this);
+	}
+
+	if (!bInterrupted)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Montage success finished: %s"), *MyHeader, *Montage->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Montage was interrupted: %s"), *MyHeader, *Montage->GetName());
+	}
+	
+	OnMontageEndedNotify.Broadcast(Montage);
 }
 
 bool UMonsterAnimComponent::IsAnyMontagePlaying() const

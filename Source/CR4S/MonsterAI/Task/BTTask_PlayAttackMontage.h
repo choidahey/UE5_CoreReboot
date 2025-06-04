@@ -4,8 +4,6 @@
 #include "BehaviorTree/BTTaskNode.h"
 #include "BTTask_PlayAttackMontage.generated.h"
 
-class UMonsterSkillComponent;
-
 UCLASS()
 class CR4S_API UBTTask_PlayAttackMontage : public UBTTaskNode
 {
@@ -16,19 +14,18 @@ public:
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
+	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 	UFUNCTION()
-	void OnMontageEnded(bool bInterrupted);
+	void OnAnimMontageEnded(UAnimMontage* Montage);
 
-protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector SkillIndexKey;
+	FBlackboardKeySelector bIsPlayingAttackMontage;
 
+private:
 	UPROPERTY()
-	TObjectPtr<UBehaviorTreeComponent> CachedOwnerComp;
+	TObjectPtr<UBehaviorTreeComponent> CachedOwnerComp = nullptr;
 
-	UPROPERTY()
-	TObjectPtr<UMonsterSkillComponent> CachedSkillComp;
-
+	FString MyHeader = TEXT("UBTTask_PlayAttackMontage");
 };

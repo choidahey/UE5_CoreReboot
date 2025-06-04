@@ -16,11 +16,11 @@ public:
 	AColdFairyActor();
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Attack")
-	void Launch(AActor* TargetActor);
+	void InitialLaunch(AActor* InTarget, int32 InIndex, int32 TotalCount);
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
+	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Attack")
 	USceneComponent* RootComp;
@@ -32,16 +32,25 @@ protected:
 	UStaticMeshComponent* StaticMeshComp;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	UProjectileMovementComponent* MovementComp;
+	UProjectileMovementComponent* ProjectileMovementComp;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float Damage;
+	bool bSequentialLaunch = true;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Attack", meta=(ClampMin="0.0"))
+	float Interval = 0.05f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float Speed = 5000.f;
+	float Damage = 0.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float MaxSpeed = 5000.f;
+	float Speed = 1500.f;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
+	float MaxSpeed = 1500.f;
+	
+	UPROPERTY()
+	TObjectPtr<AActor> TargetActor = nullptr;
 
 	FVector LaunchDirection;
 
@@ -54,11 +63,18 @@ private:
 		FVector NormalImpulse,
 		const FHitResult& Hit
 		);
-	
-	UPROPERTY()
-	TObjectPtr<AActor> TargetActorPtr = nullptr;
 
-	FTimerHandle DisableTickTimerHandle;
+	void Launch();
+	void HandleSequenceLaunch();
+	void HandleImmediateLaunch() const;
+	
+	bool bHasLaunched = false;
+	int32 SpawnOrder = 0;
+	int32 TotalCount = 0;
+	float LaunchDelay = 0.f;
+
+	FTimerHandle LaunchTimerHandle;
 	FTimerHandle DestroyTimerHandle;
+	
 	FString MyHeader = TEXT("ColdFairyActor");
 };
