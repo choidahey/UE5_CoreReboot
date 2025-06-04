@@ -43,6 +43,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Rolling")
 	float MaxLifetime = 10.0f;
 
+	UPROPERTY()
+	bool bHasBroken = false;
+
 private:
 	UFUNCTION()
 	void OnRollingOverlap(

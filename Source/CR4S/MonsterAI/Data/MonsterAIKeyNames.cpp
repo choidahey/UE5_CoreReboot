@@ -13,8 +13,10 @@ const FName FAIKeys::SkillIndex = TEXT("SkillIndex");
 
 // Region Boss AI Key
 const FName FRegionBossAIKeys::CombatStartLocation = TEXT("CombatStartLocation");
+const FName FRegionBossAIKeys::PatrolTargetLocation = TEXT("PatrolTargetLocation");
 const FName FRegionBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
 const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
+const FName FRegionBossAIKeys::LastIdleBoredTime = TEXT("LastIdleBoredTime");
 
 // Season Boss AI Key
 const FName FSeasonBossAIKeys::InitializeTargetLocation = TEXT("InitializeTargetLocation");

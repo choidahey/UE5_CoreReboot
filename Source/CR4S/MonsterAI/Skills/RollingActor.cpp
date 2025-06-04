@@ -85,7 +85,8 @@ void ARollingActor::OnRollingOverlap(UPrimitiveComponent* OverlappedComp, AActor
 
 void ARollingActor::BreakAndDestroy()
 {
-	if (!IsValid(this)) return;
+	if (!IsValid(this) || bHasBroken) return;
+	bHasBroken = true;
 
 	GetWorld()->GetTimerManager().ClearTimer(BreakTimerHandle);
 
@@ -94,6 +95,16 @@ void ARollingActor::BreakAndDestroy()
 		UE_LOG(LogTemp, Error, TEXT("BreakGeometryClass is null!"));
 		return;
 	}
+
+#if WITH_EDITOR
+	if (GIsEditor && !GetWorld()->IsPlayInEditor())
+	{
+		// Prevent crash in Animation Preview or Fracture Editor
+		UE_LOG(LogTemp, Warning, TEXT("[RollingActor] Skipped BreakAndDestroy during editor preview."));
+		Destroy();
+		return;
+	}
+#endif
 
 	if (BreakGeometryClass)
 	{
@@ -109,11 +120,14 @@ void ARollingActor::BreakAndDestroy()
 		{
 			UGeometryCollectionComponent* GC = BreakActor->GetGeometryCollectionComponent();
 
-			const FVector ForwardDir = CollisionComp->GetPhysicsLinearVelocity().GetSafeNormal();
-			const FVector Impulse = ForwardDir * 1000.f + FVector(0, 0, 300.f);
+			if (GC->RestCollection)
+			{
+				const FVector ForwardDir = CollisionComp->GetPhysicsLinearVelocity().GetSafeNormal();
+				const FVector Impulse = ForwardDir * 1000.f + FVector(0, 0, 300.f);
 
-			GC->SetSimulatePhysics(true);
-			GC->AddImpulse(Impulse, NAME_None, true);
+				GC->SetSimulatePhysics(true);
+				GC->AddImpulse(Impulse, NAME_None, true);
+			}
 
 			BreakActor->SetLifeSpan(5.0f);
 		}
