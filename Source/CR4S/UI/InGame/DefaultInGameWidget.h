@@ -29,6 +29,7 @@ public:
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateStaminaWidget(const float InPercentage);
 	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
+
 #pragma endregion
 
 #pragma region Widgets
