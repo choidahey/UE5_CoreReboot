@@ -2,13 +2,11 @@
 
 
 #include "BaseBullet.h"
-#include "CR4S.h"
 #include "NiagaraComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "PhysicsEngine/RadialForceComponent.h"
 
 // Sets default values
 ABaseBullet::ABaseBullet()
@@ -26,13 +24,6 @@ ABaseBullet::ABaseBullet()
 
 	NiagaraComponent=CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
 	NiagaraComponent->SetupAttachment(CollisionComponent);
-
-	RadialForceComponent=CreateDefaultSubobject<URadialForceComponent>(TEXT("RadialForce"));
-	RadialForceComponent->SetupAttachment(CollisionComponent);
-	RadialForceComponent->Radius=300.f;
-	RadialForceComponent->ImpulseStrength=200.f;
-	RadialForceComponent->bAutoActivate=false;
-	RadialForceComponent->bIgnoreOwningActor=true;
 
 	ProjectileMovementComponent=CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovementComponent->InitialSpeed=2000.f;
@@ -70,11 +61,6 @@ void ABaseBullet::OnOverlapBegin(
 		const FHitResult & SweepResult
 	)
 {
-	if (RadialForceComponent)
-	{
-		RadialForceComponent->FireImpulse();
-	}
-
 	FVector OverlapLocation=GetActorLocation();
 	if (ImpactParticle)
 	{

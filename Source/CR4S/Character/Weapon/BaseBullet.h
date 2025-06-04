@@ -47,8 +47,6 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
 	UNiagaraComponent* NiagaraComponent;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
-	URadialForceComponent* RadialForceComponent;
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
 	UProjectileMovementComponent* ProjectileMovementComponent;
 #pragma endregion
 
