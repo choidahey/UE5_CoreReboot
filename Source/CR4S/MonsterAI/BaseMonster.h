@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Game/Interface/Spawnable.h" // Added Spawnable Interface Library 
+#include "Game/Interface/Spawnable.h"
 #include "Data/MonsterEnum.h"
 #include "BaseMonster.generated.h"
 
@@ -113,6 +113,19 @@ protected:
 
 	// Delegate Variable
 	FOnDied OnDied;
+
+#pragma endregion
+
+#pragma region Accumulate Damage
+
+public:
+	FORCEINLINE float GetAccumulatedDamage() const { return AccumulatedDamage; }
+	FORCEINLINE void AddAccumulatedDamage(float Damage) { AccumulatedDamage += Damage; }
+	FORCEINLINE void ClearAccumulatedDamage() { AccumulatedDamage = 0.f; }
+
+private:
+	UPROPERTY()
+	float AccumulatedDamage = 0.f;
 
 #pragma endregion
 

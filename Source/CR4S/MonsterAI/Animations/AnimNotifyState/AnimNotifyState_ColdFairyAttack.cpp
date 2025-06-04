@@ -14,7 +14,11 @@
 
 void UAnimNotifyState_ColdFairyAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
-    if (!MeshComp || !SpawnActorClass || NumSpawnActor <= 0) return;
+    if (!IsValid(MeshComp->GetWorld())
+        || !IsValid(MeshComp)
+        || !IsValid(SpawnActorClass)
+        || !IsValid(Animation)
+        || NumSpawnActor <= 0) return;
     
     APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
     if (!CR4S_VALIDATE(LogDa, IsValid(OwnerPawn))) return;

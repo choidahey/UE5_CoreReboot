@@ -27,8 +27,8 @@ public:
 	UFUNCTION(Exec)
 	void CMD_KillAll();
 
-	UFUNCTION(Exec)
-	void CMD_ImpregnateAll();
+	// UFUNCTION(Exec)
+	// void CMD_ImpregnateAll();
 
 	UFUNCTION(Exec)
 	void CMD_ChangeHelperBotState(EHelperBotState NewState);

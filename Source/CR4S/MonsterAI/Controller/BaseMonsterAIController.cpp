@@ -94,6 +94,8 @@ void ABaseMonsterAIController::OnTargetDetected(AActor* DetectedActor)
 
 	BlackboardComp->SetValueAsObject(FAIKeys::TargetActor, DetectedActor);
 	BlackboardComp->SetValueAsBool(FAIKeys::CanSeePlayer, true);
+	BlackboardComp->SetValueAsVector(FAIKeys::LastSeenLocation, DetectedActor->GetActorLocation());
+
 }
 
 void ABaseMonsterAIController::OnTargetLost(AActor* LostActor)
@@ -108,6 +110,7 @@ void ABaseMonsterAIController::OnTargetLost(AActor* LostActor)
 
 	if (BlackboardComp->GetValueAsObject(FAIKeys::TargetActor) == LostActor)
 	{
+		BlackboardComp->SetValueAsVector(FAIKeys::LastSeenLocation, LostActor->GetActorLocation());
 		BlackboardComp->ClearValue(FAIKeys::TargetActor);
 	}
 

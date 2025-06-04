@@ -27,12 +27,13 @@ ASpawnZoneVolume::ASpawnZoneVolume()
     SplineComponent->SetClosedLoop(true);
 }
 
+#if WITH_EDITOR
 void ASpawnZoneVolume::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
 }
-
+#endif
 
 void ASpawnZoneVolume::BeginPlay()
 {

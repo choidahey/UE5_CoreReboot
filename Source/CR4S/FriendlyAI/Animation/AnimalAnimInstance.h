@@ -42,4 +42,10 @@ protected:
 
 	UFUNCTION()
 	void AnimNotify_AnimalAttackHit();
+
+	UFUNCTION()
+	void AnimNotify_AnimalDash();
+
+	UFUNCTION()
+	void AnimNotify_AnimalRanged();
 };
