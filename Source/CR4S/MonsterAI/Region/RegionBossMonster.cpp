@@ -1,7 +1,9 @@
 #include "RegionBossMonster.h"
 #include "MonsterAI/Controller/RegionBossMonsterAIController.h"
-#include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/Region/PatrolRoute.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
+#include "MonsterAI/Components/MonsterAttributeComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -32,10 +34,7 @@ void ARegionBossMonster::BeginPlay()
 
 	if (UMonsterStateComponent* StateComp = FindComponentByClass<UMonsterStateComponent>())
 	{
-		if (!StateComp->IsInState(EMonsterState::Patrol))
-		{
-			StateComp->SetState(EMonsterState::Patrol);
-		}
+		StateComp->SetState(EMonsterState::Patrol);
 	}
 
 	SetCombatStartLocation();
@@ -43,6 +42,8 @@ void ARegionBossMonster::BeginPlay()
 
 void ARegionBossMonster::SetCombatStartLocation()
 {
+	CombatStartLocation = GetActorLocation();
+
 	ARegionBossMonsterAIController* AIC = Cast<ARegionBossMonsterAIController>(GetController());
 	if (!IsValid(AIC))	return;
 
@@ -54,8 +55,21 @@ void ARegionBossMonster::SetCombatStartLocation()
 
 bool ARegionBossMonster::IsOutsideCombatRange(float Tolerance) const
 {
-	const FVector CurrentLocation = GetActorLocation();
-	const float DistanceSqr = FVector::DistSquared(CombatStartLocation, CurrentLocation);
+	const ARegionBossMonsterAIController* AIC = Cast<ARegionBossMonsterAIController>(GetController());
+	if (!IsValid(AIC)) return false;
+
+	const UBlackboardComponent* BB = AIC->GetBlackboardComponent();
+	if (!IsValid(BB)) return false;
+
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+	if (!IsValid(Target))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[RegionBoss] ReturnCheck: Target is invalid"));
+		return false;
+	}
+
+	const FVector TargetLocation = Target->GetActorLocation();
+	const float DistanceSqr = FVector::DistSquared(CombatStartLocation, TargetLocation);
 	const float Limit = FMath::Square(CombatRange + Tolerance);
 
 	return DistanceSqr > Limit;
@@ -74,3 +88,30 @@ FVector ARegionBossMonster::GetNextPatrolLocation()
 	return NextPoint;
 }
 
+void ARegionBossMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)	 
+{
+	Super::OnMonsterStateChanged(Previous, Current);
+
+	const FMonsterAttributeRow& Attribute = AttributeComponent->GetMonsterAttribute();
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (!MoveComp) return;
+
+	float DesiredSpeed = Attribute.MoveSpeed;
+	switch (Current)
+	{
+	case EMonsterState::Patrol: 
+		DesiredSpeed *= 0.25f;
+		break;
+	case EMonsterState::Alert:
+		DesiredSpeed *= 0.4f;  
+		break;
+	case EMonsterState::Combat:
+		SetCombatStartLocation();
+		break;
+	}
+
+	if (!FMath::IsNearlyEqual(MoveComp->MaxWalkSpeed, DesiredSpeed, 1.f))
+	{
+		MoveComp->MaxWalkSpeed = DesiredSpeed;
+	}
+}

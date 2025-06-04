@@ -19,6 +19,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;
 
 #pragma endregion
 
