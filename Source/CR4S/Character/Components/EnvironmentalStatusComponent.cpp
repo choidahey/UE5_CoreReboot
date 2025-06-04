@@ -130,10 +130,7 @@ void UEnvironmentalStatusComponent::UpdateTemperature(float DeltaTime, float Spe
 		CurrentTemperature = TargetTemperature;
 	}
 
-	if (IsPlayer())
-	{
-		OnTemperatureChanged.Broadcast(CurrentTemperature);
-	}
+	OnTemperatureChanged.Broadcast(CurrentTemperature);
 
 	if (ShouldDisableTick())
 	{
@@ -157,10 +154,7 @@ void UEnvironmentalStatusComponent::UpdateHumidity(float DeltaTime, float Speed)
 		CurrentHumidity = TargetHumidity;
 	}
 
-	if (IsPlayer())
-	{
-		OnHumidityChanged.Broadcast(CurrentHumidity);
-	}
+	OnHumidityChanged.Broadcast(CurrentHumidity);
 
 	if (ShouldDisableTick())
 	{
@@ -207,11 +201,6 @@ float UEnvironmentalStatusComponent::GetBaseHumidityBySeason(ESeasonType Season)
 	}
 }
 
-bool UEnvironmentalStatusComponent::IsPlayer() const
-{
-	AActor* Owner = GetOwner();
-	return Owner && (Owner->IsA(APlayerCharacter::StaticClass()) || Owner->IsA(AModularRobot::StaticClass()));
-}
 
 void UEnvironmentalStatusComponent::SetMaxTemperature(float Max)
 {
