@@ -21,6 +21,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector SkillIndexKey;
+	
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector bIsPlayingAttackMontage;
 
 private:
