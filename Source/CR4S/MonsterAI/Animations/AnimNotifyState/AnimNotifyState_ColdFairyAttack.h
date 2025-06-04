@@ -4,6 +4,8 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "AnimNotifyState_ColdFairyAttack.generated.h"
 
+class UBlackboardComponent;
+class AAIController;
 class AColdFairyActor;
 
 UCLASS()
@@ -16,13 +18,13 @@ public:
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	TSubclassOf<AActor> ColdFairyActorClass;
+	TSubclassOf<AActor> SpawnActorClass;
 	
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
 	int32 NumSpawnActor = 10;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float Interval = 1.f;
+	float Interval = 0.05f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
 	float SpawnRadius = 500.f;
@@ -30,12 +32,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
 	float SpawnHeightOffset = 300.f;
 
-
 private:
-	FTimerHandle LaunchTimerHandle;
+	void SpawnOne(USkeletalMeshComponent* MeshComp, AAIController* AIC, UBlackboardComponent* BB);
 
 	UPROPERTY()
 	TArray<AColdFairyActor*> SpawnedFairies;
+	FTimerHandle SpawnTimerHandle;
+	int32 CurrentSpawnIndex = 0;
 
 	FString MyHeader = TEXT("NotifyState_ColdFairyAttack");
 };

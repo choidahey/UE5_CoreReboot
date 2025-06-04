@@ -20,17 +20,29 @@ class CR4S_API UBaseInventoryWidget : public UUserWidget
 #pragma region Initalize
 
 public:
+	virtual void NativeConstruct() override;
+
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	
 	UFUNCTION(BlueprintCallable, Category = "InventoryWidget|Initalize")
-	virtual void InitWidget(ASurvivalHUD* SurvivalHUD,
-	                        UInventoryContainerWidget* InventoryContainerWidget);
+	virtual void InitWidget(ASurvivalHUD* SurvivalHUD, bool bNewCanSort);
 
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag, bool bCanDrop);
 
-	void UnBoundOnItemSlotChanged();
+	virtual void UnBoundWidgetDelegate();
+
+	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	
 protected:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	
+	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController;
+
+	UPROPERTY()
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
 
 #pragma endregion
 
@@ -46,10 +58,23 @@ protected:
 
 protected:
 	UFUNCTION()
-	void UpdateItemSlotWidget(UBaseInventoryItem* Item);
+	virtual void UpdateItemSlotWidget(UBaseInventoryItem* Item);
 	
 	UPROPERTY()
 	TArray<TObjectPtr<UBaseItemSlotWidget>> ItemSlotWidgets;
 
 #pragma endregion
+
+#pragma region Input
+
+public:
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+
+	FORCEINLINE void SetCanSort(const bool bNewCanSort) { bCanSort = bNewCanSort; }
+	
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	bool bCanSort;
+	
+#pragma endregion 
 };
