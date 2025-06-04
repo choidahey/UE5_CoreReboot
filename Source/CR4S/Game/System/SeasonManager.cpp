@@ -31,6 +31,8 @@ void USeasonManager::OnPostWorldInit(UWorld* World, const UWorld::Initialization
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: EnvironmentManager not found"));
 	}
 
+
+	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
 
 void USeasonManager::LoadSeason()
@@ -39,7 +41,60 @@ void USeasonManager::LoadSeason()
 	// else Set Default Season
 	UE_LOG(LogTemp, Warning, TEXT("Loading Season"));
 	SetCurrentSeason(ESeasonType::BountifulSeason);
+
+	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
+
+void USeasonManager::HandleDayChange()
+{
+	if (!EnvironmentManager) return;
+
+	float Progress = static_cast<float>(CurrentSeasonDay) / static_cast<float>(SeasonLength);
+	CurrentDawnTime = FMath::Lerp(StartDawnTime, TargetDawnTime, Progress);
+	CurrentDuskTime = FMath::Lerp(StartDuskTime, TargetDuskTime, Progress);
+
+	EnvironmentManager->SetDayNightByTime(CurrentDawnTime, CurrentDuskTime);
+	OnDayChanged.Broadcast(CurrentDawnTime, CurrentDuskTime);
+
+	CurrentSeasonDay++;
+
+	if (CurrentSeasonDay > SeasonLength)
+	{
+		ChangeToNextSeason();
+		CurrentSeasonDay = 1;
+
+		StartDawnTime = CurrentDawnTime;
+		StartDuskTime = CurrentDuskTime;
+	}
+}
+
+void USeasonManager::GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime)
+{
+	switch (Season)
+	{
+	case ESeasonType::BountifulSeason:
+		OutDawnTime = 900.0f;
+		OutDuskTime = 1500.0f;
+		break;
+	case ESeasonType::FrostSeason:
+		OutDawnTime = 800.0f;
+		OutDuskTime = 1600.0f;
+		break;
+	case ESeasonType::RainySeason:
+		OutDawnTime = 500.0f;
+		OutDuskTime = 1900.0f;
+		break;
+	case ESeasonType::DrySeason:
+		OutDawnTime = 600.0f;
+		OutDuskTime = 1600.0f;
+		break;
+	default:
+		OutDawnTime = 600.0f;
+		OutDuskTime = 1800.0f;
+		break;
+	}
+}
+
 
 void USeasonManager::ChangeToNextSeason()
 {
@@ -53,6 +108,7 @@ void USeasonManager::ChangeToNextSeason()
 	}
 
 	SetCurrentSeason(NextSeason);
+	OnSeasonChanged.Broadcast(NextSeason);
 }
 
 
@@ -63,12 +119,12 @@ void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 
 	EnvironmentManager->SetWeatherBySeason(NewSeason);
 
-	HandleSeasonChange(NewSeason);
+	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
 
 void USeasonManager::HandleSeasonChange(ESeasonType NewSeason)
 {
-	// Handle the season change logic here
+
 
 	UE_LOG(LogTemp, Warning, TEXT("Handling season change to: %s"), *UEnum::GetValueAsString(NewSeason));
 }

@@ -4,6 +4,7 @@
 #include "BaseGimmick.h"
 #include "ItemPouchGimmick.generated.h"
 
+class UPlayerInventoryComponent;
 class UBaseInventoryItem;
 class UBaseInventoryComponent;
 class UInteractableComponent;
@@ -43,8 +44,14 @@ public:
 	void InitItemPouch(const TMap<FName, int32>& RemainingItems) const;
 	
 private:
+	UFUNCTION()
+	void DestroyItemPouch(int32 NumOccupiedSlots);
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+
+	UPROPERTY()
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
 	
 #pragma endregion
 };

@@ -1,20 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "BaseDataInfo.h"
+#include "GameplayTagContainer.h"
 
 #include "ItemData.generated.h"
-
-UENUM(BlueprintType)
-enum class EItemType : uint8
-{
-	Resources UMETA(DisplayName = "재료"),
-	Building UMETA(DisplayName = "건축물"),
-	Tool UMETA(DisplayName = "도구"),
-	Spawn UMETA(DisplayName = "소환"),
-	Animal UMETA(DisplayName = "동물"),
-	Consumable UMETA(DisplayName = "소모품")
-};
 
 USTRUCT(BlueprintType)
 struct FItemInfoData : public FTableRowBase
@@ -22,15 +11,18 @@ struct FItemInfoData : public FTableRowBase
 	GENERATED_BODY()
 
 	FItemInfoData()
-		: Type(EItemType::Resources),
-		  MaxStackCount(64)
+		: MaxStackCount(64)
 	{
 	}
 
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "기본 정보"))
-	FBaseDataInfo Info;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "종류"))
-	EItemType Type;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "이름"))
+	FText Name;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "설명"))
+	FText Description;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "아이콘"))
+	TObjectPtr<UTexture2D> Icon;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "태그"))
+	FGameplayTagContainer ItemTags;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "최대 중첩 개수", ClampMin = "1", ClampMax = "9999"))
 	int32 MaxStackCount;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "디테일 데이터"))
@@ -101,52 +93,20 @@ struct FAnimalItemData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
-struct FResistanceEffect
-{
-	GENERATED_BODY()
-
-	FResistanceEffect()
-		: Value(0),
-		  Duration(1)
-	{
-	}
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "저항 증감 수치"))
-	int32 Value;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "저항 증감 지속 시간", ToolTip = "단위: 분", ClampMin = "1"))
-	int32 Duration;
-};
-
-USTRUCT(BlueprintType)
-struct FConsumableItemEffect
-{
-	GENERATED_BODY()
-
-	FConsumableItemEffect()
-		: HungerRestore(0),
-		  HealthRestore(0)
-	{
-	}
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "허기 증감 수치"))
-	int32 HungerRestore;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "체력 증감 수치"))
-	int32 HealthRestore;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "더위 저항 데이터"))
-	FResistanceEffect HeatResistance;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "습도 저항 데이터"))
-	FResistanceEffect HumidityResistance;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "추위 저항 데이터"))
-	FResistanceEffect ColdResistance;
-};
-
-USTRUCT(BlueprintType)
 struct FConsumableItemData : public FTableRowBase
 {
 	GENERATED_BODY()
 
 	FConsumableItemData()
 		: bCanPlant(false),
+		  HungerRestore(0),
+		  HealthRestore(0),
+		  HeatResistanceValue(0),
+		  HeatResistanceDuration(1),
+		  HumidityResistanceValue(0),
+		  HumidityResistanceDuration(1),
+		  ColdResistanceValue(0),
+		  ColdResistanceDuration(1),
 		  ShelfLife(0)
 	{
 	}
@@ -157,8 +117,22 @@ struct FConsumableItemData : public FTableRowBase
 	FDataTableRowHandle CropsGimmickData;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "애니메이션 몽타주"))
 	TObjectPtr<UAnimMontage> AnimMontage;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "효과 목록"))
-	FConsumableItemEffect Effect;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "허기 증감 수치"))
+	int32 HungerRestore;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "체력 증감 수치"))
+	int32 HealthRestore;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "더위 저항 증감 수치"))
+	int32 HeatResistanceValue;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "더위 저항 증감 지속 시간", ToolTip = "단위: 분", ClampMin = "1"))
+	int32 HeatResistanceDuration;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "습도 증감 수치"))
+	int32 HumidityResistanceValue;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "습도 저항 증감 지속 시간", ToolTip = "단위: 분", ClampMin = "1"))
+	int32 HumidityResistanceDuration;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "추위 저항 증감 수치"))
+	int32 ColdResistanceValue;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "추위 저항 증감 지속 시간", ToolTip = "단위: 분", ClampMin = "1"))
+	int32 ColdResistanceDuration;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "보관 시간", ToolTip = "단위: 분", ClampMin = "0"))
 	int32 ShelfLife;
 };
