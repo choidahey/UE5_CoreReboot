@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class URobotCombatComponent;
 class UModularRobotStatusComponent;
 class APlayerCharacter;
 class UInteractableComponent;
@@ -110,6 +111,8 @@ private:
 	TObjectPtr<UCameraComponent> FollowCamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UModularRobotStatusComponent> Status;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<URobotCombatComponent> RobotCombat;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
 #pragma endregion

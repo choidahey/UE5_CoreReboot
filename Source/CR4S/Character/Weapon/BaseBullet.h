@@ -19,7 +19,7 @@ class CR4S_API ABaseBullet : public AActor
 public:
 	// Sets default values for this actor's properties
 	ABaseBullet();
-
+	
 public:
 	virtual void Tick(float DeltaTime) override;
 protected:
@@ -36,7 +36,7 @@ protected:
 	);
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Damage")
-	float BaseDamage;
+	float Damage;
 	
 #pragma region Components
 protected:

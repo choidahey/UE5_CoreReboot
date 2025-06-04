@@ -2,6 +2,8 @@
 
 
 #include "BaseBullet.h"
+
+#include "CR4S.h"
 #include "NiagaraComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Components/BoxComponent.h"
@@ -28,14 +30,15 @@ ABaseBullet::ABaseBullet()
 	ProjectileMovementComponent=CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovementComponent->InitialSpeed=2000.f;
 	ProjectileMovementComponent->MaxSpeed=3000.f;
-	ProjectileMovementComponent->bRotationFollowsVelocity=true;
+	ProjectileMovementComponent->bRotationFollowsVelocity=false;
 	ProjectileMovementComponent->bShouldBounce=false;
 	ProjectileMovementComponent->UpdatedComponent=RootComponent;
+	ProjectileMovementComponent->ProjectileGravityScale=0.f;
 	
 	ImpactParticle=nullptr;
 	ImpactSound=nullptr;
 
-	BaseDamage=100.f;
+	Damage=100.f;
 }
 
 // Called when the game starts or when spawned
@@ -44,11 +47,11 @@ void ABaseBullet::BeginPlay()
 	Super::BeginPlay();
 	if (CollisionComponent)
 	{
-		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this,&ABaseBullet::OnOverlapBegin);
 		if (AActor* OwnerActor=GetOwner())
 		{
 			CollisionComponent->IgnoreActorWhenMoving(OwnerActor,true);
 		}
+		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this,&ABaseBullet::OnOverlapBegin);
 	}
 }
 
@@ -86,18 +89,9 @@ void ABaseBullet::OnOverlapBegin(
 	if (OtherActor&&OtherActor!=this)
 	{
 		AActor* OwnerActor=GetOwner();
-		float FinalDamage=BaseDamage;
-		if (OwnerActor)
-		{
-			if (AModularRobot* OwnerRobot=Cast<AModularRobot>(OwnerActor))
-			{
-				float AttackMultiplier=OwnerRobot->GetAttackPowerMultiplier();
-				FinalDamage*=AttackMultiplier;
-			}
-		}
 		UGameplayStatics::ApplyDamage(
 			OtherActor,
-			FinalDamage,
+			Damage,
 			OwnerActor ? OwnerActor->GetInstigatorController():nullptr,
 			this,
 			UDamageType::StaticClass()

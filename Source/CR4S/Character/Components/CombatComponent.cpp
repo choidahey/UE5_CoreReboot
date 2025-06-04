@@ -47,7 +47,7 @@ void UCombatComponent::PerformWeaponTrace()
 	//Query
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex=true;
-	//QueryParams.AddIgnoredActor(OwningCharacter);
+	QueryParams.AddIgnoredActor(OwningCharacter);
 	//Box Trace by Multi
 	TArray<FHitResult> HitResults;
 	bool bHit=GetWorld()->SweepMultiByChannel(

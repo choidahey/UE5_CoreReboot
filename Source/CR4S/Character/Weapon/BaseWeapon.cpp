@@ -2,25 +2,22 @@
 
 
 #include "BaseWeapon.h"
+#include "Character/Characters/ModularRobot.h"
 
-
-// Sets default values
-ABaseWeapon::ABaseWeapon()
+UBaseWeapon::UBaseWeapon()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	AttackMontage=nullptr;
+	OwningCharacter=nullptr;
 }
 
-// Called when the game starts or when spawned
-void ABaseWeapon::BeginPlay()
+void UBaseWeapon::OnAttack(const int32 WeaponIdx)
 {
-	Super::BeginPlay();
-	
+	if (!AttackMontage) return;
+
+	OwningCharacter->PlayAnimMontage(AttackMontage);
 }
 
-// Called every frame
-void ABaseWeapon::Tick(float DeltaTime)
+void UBaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
-	Super::Tick(DeltaTime);
+	OwningCharacter=OwnerCharacter;
 }
-

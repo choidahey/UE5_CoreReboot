@@ -8,6 +8,7 @@
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
+#include "Character/Components/RobotCombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -70,6 +71,8 @@ AModularRobot::AModularRobot():
 	
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
+
+	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
 }
 
 void AModularRobot::MountRobot(AActor* InActor)

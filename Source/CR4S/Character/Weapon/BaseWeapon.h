@@ -3,23 +3,47 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "UObject/Object.h"
 #include "BaseWeapon.generated.h"
 
-UCLASS()
-class CR4S_API ABaseWeapon : public AActor
+class AModularRobot;
+/**
+ * 
+ */
+UCLASS(BlueprintType, Blueprintable, EditInlineNew, DefaultToInstanced)
+class CR4S_API UBaseWeapon : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
-	ABaseWeapon();
+	UBaseWeapon();
 
+#pragma region 
+	FORCEINLINE float GetDamageMultiplier() const { return DamageMultiplier; }
+	FORCEINLINE float GetStunAmount() const { return StunAmount; }
+	FORCEINLINE float GetWeight() const { return Weight; }
+#pragma endregion
+
+	void Initialize(AModularRobot* OwnerCharacter);
+	
+#pragma region Attack
+	virtual void OnAttack(const int32 WeaponIdx);
+#pragma endregion
+
+	
+#pragma region Properties
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	float DamageMultiplier;
+	float StunAmount;
+	float Weight;
 
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	TObjectPtr<UAnimMontage> AttackMontage;
+#pragma endregion
+
+#pragma region Owener
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
+	TObjectPtr<AModularRobot> OwningCharacter;
+#pragma endregion
 };
