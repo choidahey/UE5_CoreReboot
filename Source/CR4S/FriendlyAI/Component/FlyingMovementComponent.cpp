@@ -3,8 +3,12 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Character.h"
 #include "Engine/OverlapResult.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Engine/World.h" 
+#include "Kismet/GameplayStatics.h"
+#include "AIController.h"
+#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 UFlyingMovementComponent::UFlyingMovementComponent()
 {
@@ -36,14 +40,82 @@ UFlyingMovementComponent::UFlyingMovementComponent()
 void UFlyingMovementComponent::BeginPlay()
 {
     Super::BeginPlay();
-    if (ACharacter* OwnerChar = Cast<ACharacter>(GetOwner()))
+    StartFlightTick();
+    if (GetOwner()) GetOwner()->OnActorHit.AddDynamic(this, &UFlyingMovementComponent::OnHit);
+
+    TArray<AActor*> OutActors;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("SkyTarget"), OutActors);
+    for (AActor* Actor : OutActors)
     {
-        if (UCharacterMovementComponent* CharMove = OwnerChar->GetCharacterMovement())
-        {
-            CharMove->GravityScale = 0.f;
-        }
+        if (Actor) SkyTargets.Add(Actor);
     }
-    RandomStream.Initialize((int32)(PTRINT(this)));
+}
+
+void UFlyingMovementComponent::StartFlightTick()
+{
+    GetWorld()->GetTimerManager().SetTimer(
+        FlightTickTimer,
+        this,
+        &UFlyingMovementComponent::TickFlight,
+        0.01f,
+        true
+    );
+}
+
+void UFlyingMovementComponent::StopFlightTick()
+{
+    GetWorld()->GetTimerManager().ClearTimer(FlightTickTimer);
+}
+
+void UFlyingMovementComponent::TickFlight()
+{
+    //UE_LOG(LogTemp, Warning, TEXT("[TickFlight] Called"));
+    AActor* Owner = GetOwner();
+    if (!Owner) return;
+
+    const float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+    FVector MyLocation = Owner->GetActorLocation();
+    FVector ToTarget = (TargetLocation - MyLocation).GetSafeNormal();
+
+    CurrentDir = DetectObstacleDirection(ToTarget, /*bDoDownTrace=*/ true);
+
+    FVector LocalDir = Owner->GetTransform().InverseTransformVector(CurrentDir);
+    
+    LocalDir.Normalize();
+    
+    float TargetPitchInput = -LocalDir.Z;
+    CurrentPitch = FMath::FInterpTo(CurrentPitch, TargetPitchInput, DeltaTime, 2.f);
+
+    float TargetYawInput = LocalDir.Y;
+    CurrentYaw = FMath::FInterpTo(CurrentYaw, TargetYawInput, DeltaTime, 2.f);
+    
+    CurrentRoll = FMath::FInterpTo(CurrentRoll, TargetYawInput * 0.5f, DeltaTime, 2.f);
+
+    FRotator DeltaRot = FRotator(
+        PitchSpeed * DeltaTime * CurrentPitch,
+        YawSpeed * DeltaTime * CurrentYaw,
+        RollSpeed * DeltaTime * CurrentRoll
+    );
+    Owner->AddActorLocalRotation(DeltaRot);
+
+    FVector ForwardMove = CurrentDir * ForwardSpeed * DeltaTime;
+    Owner->AddActorLocalOffset(ForwardMove, true);
+
+    const float DistanceSq = FVector::DistSquared(MyLocation, TargetLocation);
+    const float ThresholdSq = FMath::Square(300.f);
+    if (DistanceSq < ThresholdSq)
+    {
+        FVector Forward = Owner->GetActorForwardVector();
+        FVector NewTarget = MyLocation + Forward * 1000.f;
+        SetTargetLocation(NewTarget);
+    }
+    // UE_LOG(LogTemp, Warning, TEXT("[TickFlight] Current Location: %s → Target: %s"), *GetOwner()->GetActorLocation().ToString(), *TargetLocation.ToString());
+    //
+    // UE_LOG(LogTemp, Warning, TEXT("[TickFlight] Phase: %d | CurrentDir: %s | Target: %s"), 
+    // static_cast<uint8>(Phase),
+    // *CurrentDir.ToString(),
+    // *TargetLocation.ToString());
 }
 
 void UFlyingMovementComponent::InitializeComponent()
@@ -56,20 +128,37 @@ void UFlyingMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    FVector Cur = GetOwner()->GetActorLocation();
-
+    if (bIsFlying && GroundTarget)
     {
-        FVector BaseDir = ChooseOptimalDirection(Cur);
-        FVector Jittered = CalculateJitter(BaseDir);
-        InterpolateDirection(Jittered);
+        const FVector CurrentLocation = GetOwner()->GetActorLocation();
+        const float DistanceToTarget = FVector::Dist(CurrentLocation, GroundTarget->GetActorLocation());
+
+        if (DistanceToTarget < 2000.0f)
+        {
+            bIsFlying = false;
+            
+            ACharacter* CharacterOwner = Cast<ACharacter>(GetOwner());
+            if (CharacterOwner)
+            {
+                UCharacterMovementComponent* CharMove = CharacterOwner->GetCharacterMovement();
+                if (CharMove)
+                {
+                    CharMove->SetMovementMode(EMovementMode::MOVE_Walking);
+                    CharMove->GravityScale = 0.6f;
+                    
+                    const FVector ForwardImpulse = CharacterOwner->GetActorForwardVector() * 700.0f;
+                    const FVector Up = CharacterOwner->GetActorUpVector() * 400.0f;
+                    CharMove->Velocity = ForwardImpulse + Up;
+                    
+                    UCapsuleComponent* Capsule = CharacterOwner->GetCapsuleComponent();
+                    if (Capsule)
+                    {
+                        Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+                    }
+                }
+            }
+        }
     }
-
-    FVector MoveDir = FMath::VInterpTo(CurrentDir, FlockDir, DeltaTime, TurnAccel).GetSafeNormal();
-
-    Cur += MoveDir * FlightSpeed * DeltaTime;
-    GetOwner()->SetActorLocation(Cur);
-
-    DrawMovementDebug(Cur, DeltaTime);
 }
 
 FTimerHandle& UFlyingMovementComponent::GetFlightTimerHandle()
@@ -95,11 +184,11 @@ void UFlyingMovementComponent::MoveToLocation(const FVector& Dest)
     }
 
     TargetLocation = ModifiedDest;
-    TargetZ        = OwnerCharacter->GetActorLocation().Z + MinPeak;
+    TargetZ        = FMath::Max(TargetLocation.Z, OwnerCharacter->GetActorLocation().Z + MinPeak);
     CruiseElapsed  = 0.f;
     SearchCount    = 0;
     Phase          = EPhase::Ascend;
-    CurrentDir     = OwnerCharacter->GetActorForwardVector().GetSafeNormal();
+    CurrentDir     = (TargetLocation - OwnerCharacter->GetActorLocation()).GetSafeNormal();
 
     auto* Move = OwnerCharacter->GetCharacterMovement();
     Move->SetMovementMode(MOVE_Flying);
@@ -109,11 +198,21 @@ void UFlyingMovementComponent::MoveToLocation(const FVector& Dest)
     GetWorld()->GetTimerManager().SetTimer(
         FlightTimer, this, &UFlyingMovementComponent::TickFlight,
         TraceInterval, true, 0.f);
+
+    UE_LOG(LogTemp, Warning, TEXT("[MoveToLocation] Moving to %s"), *TargetLocation.ToString());
+
+    if (TargetLocation != FVector::ZeroVector)
+    {
+        DrawDebugLine(GetWorld(), GetOwner()->GetActorLocation(), TargetLocation, FColor::Green, false, -1.f, 0, 2.f);
+    }
 }
 
 void UFlyingMovementComponent::MoveToActor(AActor* TargetActor)
 {
-    MoveToLocation(FVector::ZeroVector);
+    if (TargetActor)
+    {
+        MoveToLocation(TargetActor->GetActorLocation());
+    }
 }
 
 void UFlyingMovementComponent::StopMovement()
@@ -125,101 +224,14 @@ void UFlyingMovementComponent::StopMovement()
     }
 }
 
-void UFlyingMovementComponent::TickFlight()
-{
-    if (!OwnerCharacter)
-    {
-        return;
-    }
 
-    FVector Cur = OwnerCharacter->GetActorLocation();
 
-    UpdateDirection(Cur);
-    HandlePhase(TraceInterval, Cur);
-    ApplyMovement(Cur, TraceInterval);
-    ApplyRotation(TraceInterval);
-    DrawMovementDebug(Cur, TraceInterval);
-}
-
-void UFlyingMovementComponent::UpdateDirection(const FVector& Cur)
-{
-    FVector BaseDir   = DetectObstacleDirection(Cur);
-    FVector Jittered  = CalculateJitter(BaseDir);
-    InterpolateDirection(Jittered);
-}
-
-FVector UFlyingMovementComponent::DetectObstacleDirection(const FVector& Cur) const
-{
-    FVector PrevDir = CurrentDir;
-    FVector DesiredDir = PrevDir;
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(GetOwner());
-    
-    FVector ForwardStart = Cur;
-    FVector ForwardEnd   = Cur + PrevDir * TraceLen;
-    FHitResult HitForward;
-    if (GetWorld()->LineTraceSingleByChannel(HitForward, ForwardStart, ForwardEnd, ECC_WorldStatic, Params))
-    {
-        float YawOffset = (RandomStream.FRand() < 0.5f ? -15.f : 15.f);
-        DesiredDir = (PrevDir.RotateAngleAxis(YawOffset, FVector::UpVector)).GetSafeNormal();
-    }
-
-    FVector RightVec = FVector::CrossProduct(FVector::UpVector, PrevDir).GetSafeNormal();
-    for (int32 Side : { -1, 1 })
-    {
-        FVector SideStart = Cur;
-        FVector SideEnd   = Cur + RightVec * Side * SideTraceLen;
-        FHitResult HitSide;
-        if (GetWorld()->LineTraceSingleByChannel(HitSide, SideStart, SideEnd, ECC_WorldStatic, Params))
-        {
-            float YawOffset = Side * -15.f;
-            DesiredDir = (PrevDir.RotateAngleAxis(YawOffset, FVector::UpVector)).GetSafeNormal();
-            break;
-        }
-    }
-
-    FVector Fwd  = DesiredDir;
-    FVector L45  = Fwd.RotateAngleAxis(-45.f, FVector::UpVector);
-    FVector R45  = Fwd.RotateAngleAxis( 45.f, FVector::UpVector);
-    FVector Up   = FVector::UpVector;
-    FVector Down = -Up;
-    const FVector Cands[5] = { Fwd, L45, R45, Up, Down };
-
-    TArray<FVector> ValidDirs;
-    const float CheckDist = 500.f;
-    const float DownLen   = 1000.f;
-
-    for (const FVector& Dir : Cands)
-    {
-        FVector TestPt     = Cur + Dir * CheckDist;
-        FVector TraceStart = TestPt + FVector(0,0,50);
-        FVector TraceEnd   = TestPt - FVector(0,0,DownLen);
-
-        FHitResult FloorHit;
-        if (!GetWorld()->LineTraceSingleByChannel(FloorHit, TraceStart, TraceEnd, ECC_Visibility))
-        {
-            continue;
-        }
-
-        FVector Start2 = Cur + Dir * 50.f;
-        float Len = (Dir.Equals(L45, 0.01f) || Dir.Equals(R45, 0.01f)) ? SideTraceLen : TraceLen;
-        FVector End2 = Start2 + Dir * Len;
-
-        FHitResult Hit2;
-        bool bHit2 = GetWorld()->LineTraceSingleByChannel(Hit2, Start2, End2, ECC_Visibility);
-        if (!bHit2)
-        {
-            ValidDirs.Add(Dir);
-        }
-    }
-
-    if (ValidDirs.Num() > 0)
-    {
-        DesiredDir = ValidDirs[RandomStream.RandRange(0, ValidDirs.Num()-1)].GetSafeNormal();
-    }
-    
-    return FMath::VInterpTo(PrevDir, DesiredDir, TraceInterval, TurnAccel).GetSafeNormal();
-}
+// void UFlyingMovementComponent::UpdateDirection(const FVector& Cur)
+// {
+//     FVector BaseDir   = DetectObstacleDirection();
+//     FVector Jittered  = CalculateJitter(BaseDir);
+//     InterpolateDirection(Jittered);
+// }
 
 FVector UFlyingMovementComponent::CalculateJitter(const FVector& Dir) const
 {
@@ -375,6 +387,10 @@ bool UFlyingMovementComponent::CheckCanLand(const FVector& Cur)
                     40.f, 12, bCanLand ? FColor::Green : FColor::Red,
                     false, TraceInterval, 0, 2.f,
                     FVector::YAxisVector, FVector::ZAxisVector, false);
+
+    UE_LOG(LogTemp, Warning, TEXT("[CheckCanLand] CurZ: %.2f, GroundZ: %.2f, CanLand: %s"), 
+    Cur.Z, Z, bCanLand ? TEXT("Yes") : TEXT("No"));
+    
     return bCanLand;
 }
 
@@ -382,6 +398,8 @@ void UFlyingMovementComponent::ApplyMovement(FVector& Cur, float DeltaTime)
 {
     Cur += CurrentDir * ForwardSpeed * DeltaTime;
     OwnerCharacter->SetActorLocation(Cur, true);
+
+    UE_LOG(LogTemp, Warning, TEXT("[ApplyMovement] Moved to: %s"), *Cur.ToString());
 }
 
 void UFlyingMovementComponent::ApplyRotation(float DeltaTime)
@@ -538,4 +556,305 @@ bool UFlyingMovementComponent::CanLand(const FVector& CurPos) const
         false
     );
     return bCanLand;
+}
+
+//here
+void UFlyingMovementComponent::SetToFlyingMode()
+{
+    if (!OwnerCharacter)
+    {
+        OwnerCharacter = Cast<ACharacter>(GetOwner());
+    }
+    if (OwnerCharacter)
+    {
+        OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+        SetPhase(EPhase::Ascend);
+    }
+    UE_LOG(LogTemp, Warning, TEXT("[SetToFlyingMode] Called."));
+}
+
+void UFlyingMovementComponent::SetToWalkingMode()
+{
+    if (!OwnerCharacter)
+    {
+        OwnerCharacter = Cast<ACharacter>(GetOwner());
+    }
+    if (OwnerCharacter)
+    {
+        OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+        SetPhase(EPhase::Idle);
+    }
+}
+
+void UFlyingMovementComponent::SetTargetLocation(const FVector& NewLocation)
+{
+    TargetLocation = NewLocation;
+    UE_LOG(LogTemp, Warning, TEXT("[SetTargetLocation] Target = %s, Location = %s"), *GetOwner()->GetName(), *TargetLocation.ToString());
+}
+
+void UFlyingMovementComponent::HandleCollision()
+{
+    // TODO : 추후 충돌 세부 처리 구현 예정
+}
+
+void UFlyingMovementComponent::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
+{
+    if (!bUseCollisionToLand) return;
+
+    if (Hit.bBlockingHit)
+    {
+        if (ACharacter* Character = Cast<ACharacter>(SelfActor))
+        {
+            if (UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement())
+            {
+                MoveComp->SetMovementMode(MOVE_Walking);
+                MoveComp->GravityScale = FallGravityScale;
+            }
+        }
+    }
+}
+
+bool UFlyingMovementComponent::HasReachedDestination(const FVector& Dest, float AcceptanceRadius) const
+{
+    if (OwnerCharacter)
+    {
+        const float Distance = FVector::Dist(OwnerCharacter->GetActorLocation(), Dest);
+        return Distance <= AcceptanceRadius;
+    }
+    return false;
+}
+
+// BTTask_Bird_SetMovement_TO_Flying 이륙
+void UFlyingMovementComponent::BeginCruiseFromTakeOff()
+{
+    if (!OwnerCharacter)
+    {
+        OwnerCharacter = Cast<ACharacter>(GetOwner());
+    }
+
+    if (OwnerCharacter)
+    {
+        UCharacterMovementComponent* Move = OwnerCharacter->GetCharacterMovement();
+        if (Move)
+        {
+            Move->SetMovementMode(MOVE_Flying);
+        }
+
+        SetPhase(EPhase::Ascend);
+        bIsFlying = true;
+
+        StartFlightTick();
+    }
+
+    //UE_LOG(LogTemp, Warning, TEXT("[BeginCruiseFromTakeOff] Entered Ascend Phase"));
+}
+
+// BTTask_Bird_SetMovement_TO_Perched 착지?
+void UFlyingMovementComponent::BeginPerch()
+{
+    if (!OwnerCharacter)
+    {
+        OwnerCharacter = Cast<ACharacter>(GetOwner());
+    }
+
+    if (!OwnerCharacter) return;
+
+    StopFlightTick();
+    bIsFlying = false;
+
+    UCharacterMovementComponent* Move = OwnerCharacter->GetCharacterMovement();
+    if (Move)
+    {
+        Move->SetMovementMode(MOVE_None);
+    }
+
+    SetPhase(EPhase::Idle);
+    //UE_LOG(LogTemp, Warning, TEXT("[BeginPerch] Bird has perched and stopped flying."));
+}
+
+// BTTask_Bird_SetMovement_TO_Patrol
+void UFlyingMovementComponent::BeginWalkFromPerch()
+{
+    if (!OwnerCharacter)
+    {
+        OwnerCharacter = Cast<ACharacter>(GetOwner());
+    }
+
+    if (!OwnerCharacter) return;
+
+    StopFlightTick();
+    bIsFlying = false;
+
+    UCharacterMovementComponent* Move = OwnerCharacter->GetCharacterMovement();
+    if (Move)
+    {
+        Move->SetMovementMode(MOVE_Walking);
+        Move->GravityScale = 1.0f;
+    }
+
+    SetPhase(EPhase::Idle);
+    UE_LOG(LogTemp, Warning, TEXT("[BeginWalkFromPerch] Bird switched to walking mode."));
+}
+
+// BTService_Bird_LandWhenCloseToGroundTarget
+bool UFlyingMovementComponent::ShouldLandNearGroundTarget(float Threshold) const
+{
+    if (!OwnerCharacter || !GroundTarget) return false;
+
+    const float Distance = FVector::Dist(OwnerCharacter->GetActorLocation(), GroundTarget->GetActorLocation());
+    return Distance <= Threshold;
+}
+
+// BTService_Bird_Shuffle_SkyTarget_WhenNearCurrent
+void UFlyingMovementComponent::UpdateSkyTargetIfNear(float Threshold)
+{
+    if (!OwnerCharacter || !SkyTargets.Num()) return;
+
+    if (!CurrentSkyTarget)
+    {
+        CurrentSkyTarget = SkyTargets[FMath::RandRange(0, SkyTargets.Num() - 1)];
+        return;
+    }
+
+    const float Distance = FVector::Dist(OwnerCharacter->GetActorLocation(), CurrentSkyTarget->GetActorLocation());
+    if (Distance <= Threshold)
+    {
+        AActor* NewTarget = nullptr;
+        do
+        {
+            NewTarget = SkyTargets[FMath::RandRange(0, SkyTargets.Num() - 1)];
+        }
+        while (NewTarget == CurrentSkyTarget && SkyTargets.Num() > 1);
+
+        CurrentSkyTarget = NewTarget;
+
+        //UE_LOG(LogTemp, Warning, TEXT("[UpdateSkyTargetIfNear] New SkyTarget assigned."));
+    }
+}
+
+// BTService_Bird_FlyToARandomSkyTarget
+void UFlyingMovementComponent::UpdateFlightTowardSkyTarget(float DeltaTime)
+{
+    if (!OwnerCharacter || !CurrentSkyTarget) return;
+    
+    FVector ToTarget = (CurrentSkyTarget->GetActorLocation() - OwnerCharacter->GetActorLocation()).GetSafeNormal();
+    
+    FVector AdjustedDir = DetectObstacleDirection(ToTarget, /*bDoDownTrace=*/ true);
+    FVector CurrentForward = OwnerCharacter->GetActorForwardVector();
+    
+    FQuat CurrentRotation = OwnerCharacter->GetActorQuat();
+    FQuat TargetRotation  = FQuat::FindBetweenNormals(CurrentForward, AdjustedDir);
+    FQuat NewRotation     = FQuat::Slerp(CurrentRotation, TargetRotation * CurrentRotation, DeltaTime * 2.0f);
+    OwnerCharacter->SetActorRotation(NewRotation);
+    
+    FVector ForwardVelocity = AdjustedDir * MoveSpeed;
+    OwnerCharacter->GetCharacterMovement()->Velocity = ForwardVelocity;
+    
+    FVector GravityAdjust = FVector::UpVector * -200.f;
+    OwnerCharacter->GetCharacterMovement()->Velocity += GravityAdjust * DeltaTime;
+    
+    // if (!OwnerCharacter || !CurrentSkyTarget) return;
+    //
+    // FVector ToTarget = (CurrentSkyTarget->GetActorLocation() - OwnerCharacter->GetActorLocation()).GetSafeNormal();
+    // FVector CurrentForward = OwnerCharacter->GetActorForwardVector();
+    //
+    // float TurnAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(CurrentForward, ToTarget)));
+    // FVector TurnAxis = FVector::CrossProduct(CurrentForward, ToTarget).GetSafeNormal();
+    //
+    // FQuat CurrentRotation = OwnerCharacter->GetActorQuat();
+    // FQuat TargetRotation = FQuat::FindBetweenNormals(CurrentForward, ToTarget);
+    // FQuat NewRotation = FQuat::Slerp(CurrentRotation, TargetRotation * CurrentRotation, DeltaTime * 2.0f);
+    // OwnerCharacter->SetActorRotation(NewRotation);
+    //
+    // FVector ForwardVelocity = OwnerCharacter->GetActorForwardVector() * MoveSpeed;
+    // OwnerCharacter->GetCharacterMovement()->Velocity = ForwardVelocity;
+    //
+    // FVector GravityAdjust = FVector::UpVector * -200.f;
+    // OwnerCharacter->GetCharacterMovement()->Velocity += GravityAdjust * DeltaTime;
+}
+
+// BTService_Bird_ObstacleAvoidance
+FVector UFlyingMovementComponent::DetectObstacleDirection(const FVector& CurDir, bool bDoDownTrace) const
+{
+    if (!OwnerCharacter || !bDoDownTrace)
+    {
+        return CurDir;
+    }
+    
+    const FVector ActorLoc = OwnerCharacter->GetActorLocation();
+    const FVector TraceStart(ActorLoc.X, ActorLoc.Y, ActorLoc.Z - 120.0f);
+    
+    const FVector TraceEnd = TraceStart + FVector::UpVector * (-ObstacleAvoidanceDownDistance);
+    
+    FHitResult HitResult;
+    FCollisionQueryParams Params(TEXT("DetectGround"), true, OwnerCharacter);
+    bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, Params);
+
+    if (bHit)
+    {
+        return (CurDir + FVector::UpVector * VerticalThrustAmount).GetSafeNormal();
+    }
+
+    return CurDir;
+}
+
+// BTTask_Bird_ZeroOutPitchAndRoll
+void UFlyingMovementComponent::ResetPitchAndRoll()
+{
+    AActor* Owner = GetOwner();
+    if (!Owner) return;
+
+    FRotator CurrentRot = Owner->GetActorRotation();
+    FRotator UprightRot(0.0f, CurrentRot.Yaw, 0.0f);
+    Owner->SetActorRotation(UprightRot);
+
+    if (AAIController* AICont = Cast<AAIController>(Owner->GetInstigatorController()))
+    {
+        AICont->StopMovement();
+    }
+}
+
+void UFlyingMovementComponent::ChooseRandomGroundTarget()
+{
+    if (GroundTargets.Num() == 0)
+    {
+        UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(TEXT("GroundTarget")), GroundTargets);
+    }
+    
+    if (GroundTargets.Num() > 0)
+    {
+        int32 Index = RandomStream.RandRange(0, GroundTargets.Num() - 1);
+        GroundTarget = GroundTargets[Index];
+    }
+}
+
+void UFlyingMovementComponent::MoveToGroundTarget(float DeltaTime)
+{
+    if (!OwnerCharacter || !GroundTarget) return;
+    
+    FVector ActorLoc = OwnerCharacter->GetActorLocation();
+    FVector TargetLoc = GroundTarget->GetActorLocation();
+    FVector ToTarget = (TargetLoc - ActorLoc).GetSafeNormal();
+    
+    FVector LocalDir = OwnerCharacter->GetTransform().InverseTransformVector(ToTarget);
+    LocalDir.Normalize();
+    
+    float TargetPitchInput = -LocalDir.Z;
+    CurrentPitch = FMath::FInterpTo(CurrentPitch, TargetPitchInput, DeltaTime, 2.0f);
+    
+    float TargetYawInput = (FMath::Abs(LocalDir.Y) > 0.5f) ? LocalDir.Y : 0.0f;
+    CurrentYaw = FMath::FInterpTo(CurrentYaw, TargetYawInput, DeltaTime, 2.0f);
+    
+    float TargetRollInput = LocalDir.Y * -3.0f;
+    CurrentRoll = FMath::FInterpTo(CurrentRoll, TargetRollInput, DeltaTime, 2.0f);
+    
+    FRotator DeltaRot = FRotator(
+        2.0f * DeltaTime * CurrentPitch,
+        CurrentYaw * 0.5f * DeltaTime,
+        CurrentRoll * DeltaTime
+    );
+    OwnerCharacter->AddActorLocalRotation(DeltaRot);
+    
+    FVector ForwardMove = FVector(MoveSpeed * DeltaTime, 0.0f, 0.0f);
+    OwnerCharacter->AddActorLocalOffset(ForwardMove, true);
 }

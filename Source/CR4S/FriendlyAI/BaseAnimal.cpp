@@ -9,7 +9,7 @@
 #include "AnimalStatsSubsystem.h"
 #include "Components/SphereComponent.h"
 #include "UI/AnimalInteractWidget.h"
-#include "../Inventory/InventoryComponent.h"
+#include "../Inventory/Components/BaseInventoryComponent.h"
 #include "Component/AnimalRangedAttackComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Component/GroundMovementComponent.h"
@@ -66,41 +66,41 @@ void ABaseAnimal::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    DrawDebugSphere(
-    GetWorld(),
-    GetActorLocation(),
-    MeleeRange,
-    12,
-    FColor::Red,
-    false,
-    -1.0f,
-    0,
-    2.0f
-);
-
-    DrawDebugSphere(
-        GetWorld(),
-        GetActorLocation(),
-        DashRange,
-        12,
-        FColor::Blue,
-        false,
-        -1.0f,
-        0,
-        2.0f
-    );
-
-    DrawDebugSphere(
-        GetWorld(),
-        GetActorLocation(),
-        RangedRange,
-        12,
-        FColor::Green,
-        false,
-        -1.0f,
-        0,
-        2.0f
-    );
+//     DrawDebugSphere(
+//     GetWorld(),
+//     GetActorLocation(),
+//     MeleeRange,
+//     12,
+//     FColor::Red,
+//     false,
+//     -1.0f,
+//     0,
+//     2.0f
+// );
+//
+//     DrawDebugSphere(
+//         GetWorld(),
+//         GetActorLocation(),
+//         DashRange,
+//         12,
+//         FColor::Blue,
+//         false,
+//         -1.0f,
+//         0,
+//         2.0f
+//     );
+//
+//     DrawDebugSphere(
+//         GetWorld(),
+//         GetActorLocation(),
+//         RangedRange,
+//         12,
+//         FColor::Green,
+//         false,
+//         -1.0f,
+//         0,
+//         2.0f
+//     );
 }
 
 void ABaseAnimal::LoadStats()
@@ -340,7 +340,7 @@ void ABaseAnimal::Capture()
     APlayerCharacter* Interactor = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
     if (!IsValid(Interactor)) return;
 
-    UInventoryComponent* Inventory = Interactor->FindComponentByClass<UInventoryComponent>();
+    UBaseInventoryComponent* Inventory = Interactor->FindComponentByClass<UBaseInventoryComponent>();
     if (!IsValid(Inventory)) return;
 
     const FAddItemResult Result = Inventory->AddItem(RowName, 1);

@@ -39,23 +39,18 @@ EBTNodeResult::Type UBTTask_AnimalPatrol::ExecuteTask(UBehaviorTreeComponent& Ow
 
     Mem->PatrolDestination = Result.Location;
 
-    if (AAnimalFlying* FlyingPawn = Cast<AAnimalFlying>(Pawn))
+    if (UFlyingMovementComponent* FlyComp = Pawn->FindComponentByClass<UFlyingMovementComponent>())
     {
-        if (UFlyingMovementComponent* FlyComp = FlyingPawn->FindComponentByClass<UFlyingMovementComponent>())
-        {
-            FlyComp->MoveToLocation(Mem->PatrolDestination);
-            return EBTNodeResult::InProgress;
-        }
+        FlyComp->ResetPitchAndRoll();
+        FlyComp->MoveToLocation(Mem->PatrolDestination);
+        return EBTNodeResult::InProgress;
     }
-    else if (AAnimalGround* GroundPawn = Cast<AAnimalGround>(Pawn))
+    else if (UAnimalMovementComponent* MoveComp = Pawn->FindComponentByClass<UAnimalMovementComponent>())
     {
-        if (UGroundMovementComponent* GroundComp = GroundPawn->FindComponentByClass<UGroundMovementComponent>())
-        {
-            GroundComp->MoveToLocation(Mem->PatrolDestination);
-            return EBTNodeResult::InProgress;
-        }
+        MoveComp->MoveToLocation(Mem->PatrolDestination);
+        return EBTNodeResult::InProgress;
     }
-
+    
     return EBTNodeResult::Failed;
 }
 
@@ -78,19 +73,14 @@ void UBTTask_AnimalPatrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
     }
 
     bool bArrived = false;
-    if (AAnimalFlying* FlyingPawn = Cast<AAnimalFlying>(Pawn))
+    if (UFlyingMovementComponent* FlyComp = Pawn->FindComponentByClass<UFlyingMovementComponent>())
     {
-        if (UFlyingMovementComponent* FlyComp = FlyingPawn->FindComponentByClass<UFlyingMovementComponent>())
-        {
-            bArrived = FlyComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
-        }
+        bArrived = FlyComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
     }
-    else if (AAnimalGround* GroundPawn = Cast<AAnimalGround>(Pawn))
+
+    else if (UGroundMovementComponent* GroundComp = Pawn->FindComponentByClass<UGroundMovementComponent>())
     {
-        if (UGroundMovementComponent* GroundComp = GroundPawn->FindComponentByClass<UGroundMovementComponent>())
-        {
-            bArrived = GroundComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
-        }
+        bArrived = GroundComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
     }
 
     if (bArrived)

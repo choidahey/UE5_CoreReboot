@@ -18,8 +18,14 @@ enum class EAnimalState : uint8
 	Chase,
 	Attack,
 	Flee,
+	Perched,
 	Stun,
-	Dead
+	Dead,
+
+	// Flying
+	TakeOff,
+	Cruise,
+	Landing,
 };
 
 UENUM(BlueprintType)

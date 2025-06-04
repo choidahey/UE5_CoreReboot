@@ -35,3 +35,13 @@ void UGroundMovementComponent::StopMovement()
 		}
 	}
 }
+
+bool UGroundMovementComponent::HasReachedDestination(const FVector& Dest, float AcceptanceRadius) const
+{
+	if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+	{
+		const float Distance = FVector::Dist(OwnerPawn->GetActorLocation(), Dest);
+		return Distance <= AcceptanceRadius;
+	}
+	return false;
+}
