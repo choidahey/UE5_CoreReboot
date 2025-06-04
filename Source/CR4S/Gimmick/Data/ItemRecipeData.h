@@ -22,7 +22,7 @@ struct FItemRecipeData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "제작법 태그"))
-	FGameplayTagContainer RecipeTags = FGameplayTagContainer();
+	FGameplayTag RecipeTag = FGameplayTag();
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "결과 아이템 행 이름"))
 	FName ResultItemName = NAME_None;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "결과 아이템 개수", ClampMin = "0"))

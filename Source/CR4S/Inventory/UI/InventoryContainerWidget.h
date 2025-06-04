@@ -6,6 +6,7 @@
 #include "ItemSlotWidget/BaseItemSlotWidget.h"
 #include "InventoryContainerWidget.generated.h"
 
+class UCraftingContainerWidget;
 class UCompostBinWidget;
 class UStorageInventoryWidget;
 enum class EInventoryType : uint8;
@@ -39,8 +40,9 @@ private:
 #pragma region ToggleWidget
 
 public:
-	void OpenPlayerInventoryWidget();
+	void OpenPlayerInventoryWidget(bool bOpenCraftingWidget = false, int32 CraftingDifficulty = 0);
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
+	void OpenCraftingWidget(const int32 CraftingDifficulty);
 
 	UFUNCTION()
 	void CloseInventoryWidget();
@@ -83,6 +85,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCompostBinWidget> CompostBinWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUserWidget> OpenOtherWidget;

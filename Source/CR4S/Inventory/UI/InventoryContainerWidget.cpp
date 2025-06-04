@@ -8,6 +8,7 @@
 #include "InventoryWidget/BaseInventoryWidget.h"
 #include "InventoryWidget/QuickSlotBarWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
+#include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 void UInventoryContainerWidget::NativeConstruct()
@@ -41,14 +42,16 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	QuickSlotBarWidget->InitWidget(InPlayerInventoryComponent);
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
+	CraftingContainerWidget->InitWidget();
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InitToggleWidget(StorageInventoryWidget);
 	InitToggleWidget(PlanterBoxInventoryWidget);
 	InitToggleWidget(CompostBinWidget);
+	InitToggleWidget(CraftingContainerWidget);
 }
 
-void UInventoryContainerWidget::OpenPlayerInventoryWidget()
+void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget, const int32 CraftingDifficulty)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		bIsOpen ||
@@ -60,6 +63,11 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget()
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
+
+	if (bOpenCraftingWidget)
+	{
+		OpenCraftingWidget(CraftingDifficulty);
+	}
 
 	bIsOpen = true;
 }
@@ -90,6 +98,19 @@ void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType In
 	OpenOtherWidget = TargetWidget;
 }
 
+void UInventoryContainerWidget::OpenCraftingWidget(const int32 CraftingDifficulty)
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CraftingContainerWidget)))
+	{
+		return;
+	}
+
+	CraftingContainerWidget->UpdateWidget(CraftingDifficulty);
+	
+	SurvivalHUD->ToggleWidget(CraftingContainerWidget);
+	OpenOtherWidget = CraftingContainerWidget;
+}
+
 void UInventoryContainerWidget::CloseInventoryWidget()
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
@@ -116,6 +137,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	}
 
 	OpenOtherWidget = nullptr;
+	OtherInventoryComponent = nullptr;
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 

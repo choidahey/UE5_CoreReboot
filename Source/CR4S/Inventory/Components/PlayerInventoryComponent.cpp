@@ -69,7 +69,7 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 	return Result;
 }
 
-void UPlayerInventoryComponent::OpenPlayerInventoryWidget()
+void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDifficulty)
 {
 	if (!CR4S_VALIDATE(LogInventory, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
@@ -77,13 +77,11 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget()
 		return;
 	}
 
-	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget();
+	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
 }
 
-void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent)
+void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent) const
 {
-	OpenPlayerInventoryWidget();
-
 	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
 }
 

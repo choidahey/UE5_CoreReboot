@@ -28,8 +28,8 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent||InventoryContainerWidget")
-	void OpenPlayerInventoryWidget();
-	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
+	void OpenPlayerInventoryWidget(const int32 CraftingDifficulty = 0);
+	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
 
 	void CloseInventoryWidget() const;
 
