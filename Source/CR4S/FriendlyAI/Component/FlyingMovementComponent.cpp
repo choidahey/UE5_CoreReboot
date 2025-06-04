@@ -199,7 +199,7 @@ void UFlyingMovementComponent::MoveToLocation(const FVector& Dest)
         FlightTimer, this, &UFlyingMovementComponent::TickFlight,
         TraceInterval, true, 0.f);
 
-    UE_LOG(LogTemp, Warning, TEXT("[MoveToLocation] Moving to %s"), *TargetLocation.ToString());
+    //UE_LOG(LogTemp, Warning, TEXT("[MoveToLocation] Moving to %s"), *TargetLocation.ToString());
 
     if (TargetLocation != FVector::ZeroVector)
     {
@@ -388,8 +388,8 @@ bool UFlyingMovementComponent::CheckCanLand(const FVector& Cur)
                     false, TraceInterval, 0, 2.f,
                     FVector::YAxisVector, FVector::ZAxisVector, false);
 
-    UE_LOG(LogTemp, Warning, TEXT("[CheckCanLand] CurZ: %.2f, GroundZ: %.2f, CanLand: %s"), 
-    Cur.Z, Z, bCanLand ? TEXT("Yes") : TEXT("No"));
+    // UE_LOG(LogTemp, Warning, TEXT("[CheckCanLand] CurZ: %.2f, GroundZ: %.2f, CanLand: %s"), 
+    // Cur.Z, Z, bCanLand ? TEXT("Yes") : TEXT("No"));
     
     return bCanLand;
 }
@@ -399,7 +399,7 @@ void UFlyingMovementComponent::ApplyMovement(FVector& Cur, float DeltaTime)
     Cur += CurrentDir * ForwardSpeed * DeltaTime;
     OwnerCharacter->SetActorLocation(Cur, true);
 
-    UE_LOG(LogTemp, Warning, TEXT("[ApplyMovement] Moved to: %s"), *Cur.ToString());
+    //UE_LOG(LogTemp, Warning, TEXT("[ApplyMovement] Moved to: %s"), *Cur.ToString());
 }
 
 void UFlyingMovementComponent::ApplyRotation(float DeltaTime)
@@ -558,7 +558,6 @@ bool UFlyingMovementComponent::CanLand(const FVector& CurPos) const
     return bCanLand;
 }
 
-//here
 void UFlyingMovementComponent::SetToFlyingMode()
 {
     if (!OwnerCharacter)
@@ -570,7 +569,7 @@ void UFlyingMovementComponent::SetToFlyingMode()
         OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
         SetPhase(EPhase::Ascend);
     }
-    UE_LOG(LogTemp, Warning, TEXT("[SetToFlyingMode] Called."));
+    //UE_LOG(LogTemp, Warning, TEXT("[SetToFlyingMode] Called."));
 }
 
 void UFlyingMovementComponent::SetToWalkingMode()
@@ -589,12 +588,12 @@ void UFlyingMovementComponent::SetToWalkingMode()
 void UFlyingMovementComponent::SetTargetLocation(const FVector& NewLocation)
 {
     TargetLocation = NewLocation;
-    UE_LOG(LogTemp, Warning, TEXT("[SetTargetLocation] Target = %s, Location = %s"), *GetOwner()->GetName(), *TargetLocation.ToString());
+    //UE_LOG(LogTemp, Warning, TEXT("[SetTargetLocation] Target = %s, Location = %s"), *GetOwner()->GetName(), *TargetLocation.ToString());
 }
 
 void UFlyingMovementComponent::HandleCollision()
 {
-    // TODO : 추후 충돌 세부 처리 구현 예정
+    // TODO : 
 }
 
 void UFlyingMovementComponent::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
@@ -624,7 +623,7 @@ bool UFlyingMovementComponent::HasReachedDestination(const FVector& Dest, float 
     return false;
 }
 
-// BTTask_Bird_SetMovement_TO_Flying 이륙
+// BirdSetMovementTOFlying
 void UFlyingMovementComponent::BeginCruiseFromTakeOff()
 {
     if (!OwnerCharacter)
@@ -649,7 +648,7 @@ void UFlyingMovementComponent::BeginCruiseFromTakeOff()
     //UE_LOG(LogTemp, Warning, TEXT("[BeginCruiseFromTakeOff] Entered Ascend Phase"));
 }
 
-// BTTask_Bird_SetMovement_TO_Perched 착지?
+// SetMovementTOPerched
 void UFlyingMovementComponent::BeginPerch()
 {
     if (!OwnerCharacter)
@@ -672,7 +671,7 @@ void UFlyingMovementComponent::BeginPerch()
     //UE_LOG(LogTemp, Warning, TEXT("[BeginPerch] Bird has perched and stopped flying."));
 }
 
-// BTTask_Bird_SetMovement_TO_Patrol
+// SetMovementTOPatrol
 void UFlyingMovementComponent::BeginWalkFromPerch()
 {
     if (!OwnerCharacter)
@@ -693,10 +692,10 @@ void UFlyingMovementComponent::BeginWalkFromPerch()
     }
 
     SetPhase(EPhase::Idle);
-    UE_LOG(LogTemp, Warning, TEXT("[BeginWalkFromPerch] Bird switched to walking mode."));
+    //UE_LOG(LogTemp, Warning, TEXT("[BeginWalkFromPerch] Bird switched to walking mode."));
 }
 
-// BTService_Bird_LandWhenCloseToGroundTarget
+// LandWhenCloseToGroundTarget
 bool UFlyingMovementComponent::ShouldLandNearGroundTarget(float Threshold) const
 {
     if (!OwnerCharacter || !GroundTarget) return false;
@@ -705,7 +704,7 @@ bool UFlyingMovementComponent::ShouldLandNearGroundTarget(float Threshold) const
     return Distance <= Threshold;
 }
 
-// BTService_Bird_Shuffle_SkyTarget_WhenNearCurrent
+// ShuffleSkyTargetWhenNearCurrent
 void UFlyingMovementComponent::UpdateSkyTargetIfNear(float Threshold)
 {
     if (!OwnerCharacter || !SkyTargets.Num()) return;
@@ -732,7 +731,7 @@ void UFlyingMovementComponent::UpdateSkyTargetIfNear(float Threshold)
     }
 }
 
-// BTService_Bird_FlyToARandomSkyTarget
+// FlyToARandomSkyTarget
 void UFlyingMovementComponent::UpdateFlightTowardSkyTarget(float DeltaTime)
 {
     if (!OwnerCharacter || !CurrentSkyTarget) return;

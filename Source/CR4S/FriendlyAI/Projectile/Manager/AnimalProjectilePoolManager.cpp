@@ -11,11 +11,11 @@ UAnimalProjectilePoolManager* UAnimalProjectilePoolManager::Get(UWorld* World)
 
     if (UC4GameInstance* GI = Cast<UC4GameInstance>(World->GetGameInstance()))
     {
-        if (!GI->ProjectilePool)
-        {
-            GI->ProjectilePool = NewObject<UAnimalProjectilePoolManager>(GI);
-        }
-        return GI->ProjectilePool;
+        // if (!GI->ProjectilePool)
+        // {
+        //     GI->ProjectilePool = NewObject<UAnimalProjectilePoolManager>(GI);
+        // }
+        // return GI->ProjectilePool;
     }
     return nullptr;
 }
