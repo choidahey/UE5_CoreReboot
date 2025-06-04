@@ -74,6 +74,7 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 	// Apply damage via AttributeComponent
 	AttributeComponent->ApplyDamage(DamageAmount);
+	AddAccumulatedDamage(DamageAmount);
 
 	return DamageAmount;
 }

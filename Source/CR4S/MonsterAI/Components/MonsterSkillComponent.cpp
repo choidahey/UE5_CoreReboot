@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "GameFramework/Character.h"
 #include "TimerManager.h"
+#include "MonsterAI/Components/MonsterAnimComponent.h"
 
 UMonsterSkillComponent::UMonsterSkillComponent()
 	: MyHeader(TEXT("MonsterSkillComp"))
@@ -105,10 +106,14 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 
 	if (IsValid(Skill.SkillMontage))
 	{
-		if (UAnimInstance* Anim = GetAnimInstance())
+		if (UMonsterAnimComponent* AnimComponent = GetOwner()->GetComponentByClass<UMonsterAnimComponent>())
 		{
-			Anim->Montage_Play(Skill.SkillMontage);
+			AnimComponent->PlayMontage(Skill.SkillMontage);
 		}
+		// if (UAnimInstance* Anim = GetAnimInstance())
+		// {
+		// 	Anim->Montage_Play(Skill.SkillMontage);
+		// }
 	}
 
 	// Cooldown

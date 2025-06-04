@@ -6,7 +6,10 @@
 
 void UAnimNotify_IcicleWavesAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    if (!MeshComp || !IcicleWaveActorClass) return;
+    if (!IsValid(MeshComp->GetWorld())
+        || !IsValid(MeshComp)
+        || !IsValid(IcicleWaveActorClass)
+        || !IsValid(Animation)) return;
 
     ACharacter* OwnerChar = Cast<ACharacter>(MeshComp->GetOwner());
     if (!OwnerChar) return;

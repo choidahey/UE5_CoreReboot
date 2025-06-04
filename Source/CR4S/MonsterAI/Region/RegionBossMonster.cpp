@@ -1,5 +1,7 @@
 #include "RegionBossMonster.h"
 #include "MonsterAI/Controller/RegionBossMonsterAIController.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
+#include "MonsterAI/Region/PatrolRoute.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -28,10 +30,21 @@ void ARegionBossMonster::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ARegionBossMonsterAIController* AIC = Cast<ARegionBossMonsterAIController>(GetController());
-	if (!IsValid(AIC))	return;
+	if (UMonsterStateComponent* StateComp = FindComponentByClass<UMonsterStateComponent>())
+	{
+		if (!StateComp->IsInState(EMonsterState::Patrol))
+		{
+			StateComp->SetState(EMonsterState::Patrol);
+		}
+	}
 
 	SetCombatStartLocation();
+}
+
+void ARegionBossMonster::SetCombatStartLocation()
+{
+	ARegionBossMonsterAIController* AIC = Cast<ARegionBossMonsterAIController>(GetController());
+	if (!IsValid(AIC))	return;
 
 	if (auto* BB = AIC->GetBlackboardComponent())
 	{
@@ -47,3 +60,17 @@ bool ARegionBossMonster::IsOutsideCombatRange(float Tolerance) const
 
 	return DistanceSqr > Limit;
 }
+
+FVector ARegionBossMonster::GetNextPatrolLocation()
+{
+	if (!PatrolRouteActor) return GetActorLocation();
+
+	int32 PointCount = PatrolRouteActor->GetNumberOfPoints();
+	if (PointCount == 0) return GetActorLocation();
+
+	FVector NextPoint = PatrolRouteActor->GetPointAtIndex(CurrentPatrolIndex);
+	CurrentPatrolIndex = (CurrentPatrolIndex + 1) % PointCount;
+
+	return NextPoint;
+}
+

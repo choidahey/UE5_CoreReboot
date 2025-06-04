@@ -6,11 +6,15 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Skills/IceSpike.h"
 
 void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!MeshComp || !SpawnActorClass) return;
+	if (!IsValid(MeshComp->GetWorld())
+		|| !IsValid(MeshComp)
+		|| !IsValid(SpawnActorClass)
+		|| !IsValid(Animation)) return;
 	
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!OwnerPawn || !SpawnActorClass)
@@ -18,25 +22,18 @@ void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 		UE_LOG(LogTemp, Warning, TEXT("[%s] Invalid OwnerPawn or SpawnActorClass"), *MyHeader);
 		return;
 	}
-
-	AActor* TargetActor = nullptr;
+	
 	AAIController* AIC = Cast<AAIController>(OwnerPawn->GetController());
-	UBlackboardComponent* BlackboardComp = AIC->GetBlackboardComponent();
-	if (!AIC || !BlackboardComp)
-	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] Invalid AIC or Blackboard Component"), *MyHeader);
-		return;
-	}
+	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
+	if (!AIC || !BB) return;
 
-	TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor));
-	if (!TargetActor)
-	{
-		TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-	}
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
+	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(TEXT("NearestHouseActor")));
+	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
 
-	FVector CenterLoc = TargetActor->GetActorLocation();
+	FVector CenterLoc = Target->GetActorLocation();
 	float HalfHeight = 0.f;
-	if (ACharacter* Char = Cast<ACharacter>(TargetActor))
+	if (ACharacter* Char = Cast<ACharacter>(Target))
 	{
 		if (UCapsuleComponent* Cap = Char->GetCapsuleComponent())
 		{

@@ -14,7 +14,10 @@ void UAnimNotifyState_MudAmbust::NotifyBegin(
 	UAnimSequenceBase* Animation,
 	float TotalDuration)
 {
-	if (!MeshComp || !MudFieldClass) return;
+	if (!IsValid(MeshComp->GetWorld())
+		|| !IsValid(MeshComp)
+		|| !IsValid(MudFieldClass)
+		|| !IsValid(Animation)) return;
 
 	ElapsedTime = 0.f;
 	Duration = TotalDuration;
@@ -26,12 +29,9 @@ void UAnimNotifyState_MudAmbust::NotifyBegin(
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
 	if (!AIC || !BB) return;
     
-	AActor* Target = nullptr;
-	Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
-	if (!Target)
-		Target = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-	if (!Target)
-		Target = UGameplayStatics::GetPlayerCharacter(MeshComp->GetWorld(), 0);
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
+	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(TEXT("NearestHouseActor")));
+	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
 
 	TargetActor = Target;
 	StartLocation = OwnerPawn->GetActorLocation();
@@ -43,8 +43,7 @@ void UAnimNotifyState_MudAmbust::NotifyBegin(
 	FVector SpawnLoc = StartLocation + FVector(0,0, TraceStartZ);
 	FRotator SpawnRot = FRotator::ZeroRotator;
 	
-	AActor* Field = MeshComp->GetWorld()
-		->SpawnActor<AActor>(MudFieldClass, SpawnLoc, SpawnRot, SpawnParams);
+	AActor* Field = MeshComp->GetWorld()->SpawnActor<AActor>(MudFieldClass, SpawnLoc, SpawnRot, SpawnParams);
 
 	SpawnedMudField = Field;
 	
@@ -63,7 +62,7 @@ void UAnimNotifyState_MudAmbust::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 
 	FVector BossLoc = MeshComp->GetOwner()->GetActorLocation();
 	FVector TraceStart = BossLoc + FVector(0,0,TraceStartZ);
-	FVector TraceEnd   = BossLoc - FVector(0,0,TraceDownDistance);
+	FVector TraceEnd = BossLoc - FVector(0,0,TraceDownDistance);
 
 	FHitResult Hit;
 	FCollisionQueryParams Params;

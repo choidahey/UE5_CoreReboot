@@ -2,20 +2,17 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTTask_IdleBored.generated.h"
+#include "BTTask_MoveAlongPatrolRoute.generated.h"
 
 UCLASS()
-class CR4S_API UBTTask_IdleBored : public UBTTaskNode
+class CR4S_API UBTTask_MoveAlongPatrolRoute : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
 public:
-	UBTTask_IdleBored();
+	UBTTask_MoveAlongPatrolRoute();
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
-	UPROPERTY(EditAnywhere, Category = "Montage")
-	TArray<TObjectPtr<UAnimMontage>> MontageList;
 
 };
