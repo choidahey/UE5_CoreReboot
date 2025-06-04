@@ -3,11 +3,11 @@
 #include "CR4S.h"
 #include "Gimmick/GimmickObjects/ItemPouchGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
-	: MaxItemSlot(10),
-	  bIsInitializedInventorySize(false)
+	: MaxItemSlot(10)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -22,10 +22,10 @@ void UBaseInventoryComponent::BeginPlay()
 		return;
 	}
 
-	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
-	if (CR4S_VALIDATE(LogInventory, IsValid(GameInstance)))
+	const UWorld* World = GetWorld();
+	if (CR4S_VALIDATE(LogInventory, IsValid(World)))
 	{
-		ItemGimmickSubsystem = GameInstance->GetSubsystem<UItemGimmickSubsystem>();
+		ItemGimmickSubsystem = World->GetSubsystem<UItemGimmickSubsystem>();
 	}
 
 	InitInventorySize();
@@ -33,11 +33,6 @@ void UBaseInventoryComponent::BeginPlay()
 
 void UBaseInventoryComponent::InitInventorySize()
 {
-	if (CR4S_VALIDATE(LogInventory, bIsInitializedInventorySize))
-	{
-		return;
-	}
-
 	InventoryItems.Reserve(MaxItemSlot);
 	for (int32 Index = 0; Index < MaxItemSlot; ++Index)
 	{
@@ -45,8 +40,6 @@ void UBaseInventoryComponent::InitInventorySize()
 		Item->InitInventoryItem(OwnerActor, Index);
 		InventoryItems.Add(Item);
 	}
-
-	bIsInitializedInventorySize = true;
 }
 
 void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
@@ -73,7 +66,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 			ItemGimmickSubsystem->SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
 			                                                               OwnerActor->GetActorLocation(),
 			                                                               OwnerActor->GetActorRotation());
-		
+
 		ItemPouch->InitItemPouch(RemainingItems);
 	}
 }
@@ -81,7 +74,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32 Count)
 {
 	FAddItemResult Result;
-	Result.RemainingCount = 0;
+	Result.RemainingCount = Count;
 
 	if (!CR4S_VALIDATE(LogInventory, Count > 0) ||
 		!CR4S_VALIDATE(LogInventory, IsValid(ItemGimmickSubsystem)))
@@ -104,12 +97,13 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
                                                           TSet<int32>& ChangedItemSlots)
 {
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-	if (!CR4S_VALIDATE(LogInventory, ItemData))
+	if (!CR4S_VALIDATE(LogInventory, ItemData),
+		!CR4S_VALIDATE(LogInventory, IsItemAllowedByFilter(ItemData->ItemTags)))
 	{
 		return;
 	}
 
-	Result.Success = true;
+	Result.bSuccess = true;
 	int32 RemainingCount = Count;
 
 	TArray<UBaseInventoryItem*> SameItems;
@@ -164,6 +158,16 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 	Result.RemainingCount = RemainingCount;
 }
 
+bool UBaseInventoryComponent::IsItemAllowedByFilter(const FGameplayTagContainer& ItemTags) const
+{
+	if (!IsValid(FilterData))
+	{
+		return true;
+	}
+
+	return FilterData->IsAllowedItem(ItemTags);
+}
+
 // ReSharper disable once CppMemberFunctionMayBeStatic
 void UBaseInventoryComponent::GetSameItemSlotsAndEmptySlots(const FName& InRowName,
                                                             const TArray<TObjectPtr<UBaseInventoryItem>>& SlotBox,
@@ -194,6 +198,53 @@ void UBaseInventoryComponent::GetSameItemSlotsAndEmptySlots(const FName& InRowNa
 UBaseInventoryItem* UBaseInventoryComponent::GetItemDataByIndex(const int32 Index) const
 {
 	return CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(Index)) ? InventoryItems[Index] : nullptr;
+}
+
+int32 UBaseInventoryComponent::GetItemCountByRowName(const FName RowName) const
+{
+	int32 Count = 0;
+
+	for (const UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
+		{
+			Count += Item->GetCurrentStackCount();
+		}
+	}
+
+	return Count;
+}
+
+void UBaseInventoryComponent::RemoveItem(const FName RowName, const int32 Count)
+{
+	int32 RemainingCount = Count;
+	for (UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (RemainingCount <= 0)
+		{
+			return;
+		}
+
+		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
+		{
+			const int32 ItemCount = Item->GetCurrentStackCount();
+			const int32 RemoveCount = FMath::Min(ItemCount, RemainingCount);
+
+			Item->SetCurrentStackCount(ItemCount - RemoveCount);
+			RemainingCount -= RemoveCount;
+
+			NotifyInventoryItemChanged(Item->GetSlotIndex());
+		}
+	}
+}
+
+void UBaseInventoryComponent::RemoveItemByIndex(const int32 Index)
+{
+	if (InventoryItems.IsValidIndex(Index))
+	{
+		InventoryItems[Index]->SetCurrentStackCount(0);
+		NotifyInventoryItemChanged(Index);
+	}
 }
 
 void UBaseInventoryComponent::SortInventoryItems()

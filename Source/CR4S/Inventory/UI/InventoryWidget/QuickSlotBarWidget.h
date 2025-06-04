@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "BaseInventoryWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "QuickSlotBarWidget.generated.h"
 
