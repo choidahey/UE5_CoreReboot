@@ -12,11 +12,10 @@
 
 void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!MeshComp || !SpawnFieldActorClass)
-	{
-		CR4S_Log(LogDa, Log, TEXT("[%s] Missing MeshComp or SpawnFieldActorClass"), *MyHeader);
-		return;
-	}
+	if (!IsValid(MeshComp->GetWorld())
+		|| !IsValid(MeshComp)
+		|| !IsValid(SpawnFieldActorClass)
+		|| !IsValid(Animation)) return;
 
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!OwnerPawn) return;

@@ -14,8 +14,18 @@ public:
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
+	UFUNCTION()
+	void OnAnimMontageEnded(UAnimMontage* Montage);
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector SkillIndexKey;
+	FBlackboardKeySelector bIsPlayingAttackMontage;
 
+private:
+	UPROPERTY()
+	UBehaviorTreeComponent* CachedOwnerComp = nullptr;
+
+	FString MyHeader = TEXT("UBTTask_PlayAttackMontage");
 };

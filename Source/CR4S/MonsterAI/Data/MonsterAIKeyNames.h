@@ -13,6 +13,7 @@ struct FAIKeys
 	static const FName LastHitTime;
 	static const FName IsDead;
 	static const FName SkillIndex;
+	static const FName bIsPlayingAttackMontage;
 };
 
 struct FRegionBossAIKeys : public FAIKeys

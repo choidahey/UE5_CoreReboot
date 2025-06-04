@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraComponent.h"
 #include "GameFramework/Actor.h"
 #include "FieldActor.generated.h"
 
@@ -22,12 +23,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Boss|Skill")
 	void Initialize(AActor* OwnerMonster, AActor* TargetActor = nullptr);
 
+	FORCEINLINE void SetNiagaraActive(bool bActive) const { NiagaraComp->Activate(bActive); }
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	
 	UPROPERTY(VisibleAnywhere, Category="Boss|Skill")
-    class UNiagaraComponent* NiagaraComp;
+	class UNiagaraComponent* NiagaraComp;
 
     UPROPERTY(EditAnywhere, Category="Boss|Skill")
     class UCapsuleComponent* CapsuleComp;
