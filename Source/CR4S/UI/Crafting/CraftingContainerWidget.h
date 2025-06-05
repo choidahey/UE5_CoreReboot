@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CraftingContainerWidget.generated.h"
 
+struct FRecipeCategoryData;
 class UCraftingWidget;
 
 UCLASS()
@@ -23,7 +24,7 @@ public:
 
 public:
 	UFUNCTION()
-	void OpenRecipeSelectWidget();
+	void OpenRecipeSelectWidget(const FRecipeCategoryData& RecipeCategoryData);
 	void CloseRecipeSelectWidget();
 
 	UFUNCTION()

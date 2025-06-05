@@ -1,9 +1,13 @@
 ﻿#include "RecipeSelectWidget.h"
 
+#include "CR4S.h"
 #include "ButtonWidget/RecipeSelectButtonWidget.h"
+#include "Components/Image.h"
 #include "Components/PanelWidget.h"
+#include "Components/TextBlock.h"
+#include "Gimmick/Data/RecipeCategoryData.h"
 
-void URecipeSelectWidget::InitWidget()
+void URecipeSelectWidget::InitWidget() const
 {
 	if (IsValid(ButtonContainer))
 	{
@@ -12,14 +16,17 @@ void URecipeSelectWidget::InitWidget()
 			URecipeSelectButtonWidget* RecipeSelectButtonWidget = Cast<URecipeSelectButtonWidget>(Widget);
 			if (IsValid(RecipeSelectButtonWidget))
 			{
-				// RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Collapsed);
+				RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 		}
 	}
 }
 
-void URecipeSelectWidget::OpenWidget()
+void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryData)
 {
+	CraftingCategoryIcon->SetBrushFromTexture(RecipeCategoryData.Icon);
+	CraftingCategoryName->SetText(RecipeCategoryData.Name);
+
 	SetVisibility(ESlateVisibility::Visible);
 }
 

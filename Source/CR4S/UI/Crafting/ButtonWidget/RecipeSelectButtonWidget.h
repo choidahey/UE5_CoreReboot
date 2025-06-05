@@ -58,9 +58,9 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UButton> Button;
+	TObjectPtr<class UButton> RecipeButton;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UImage> Icon;
+	TObjectPtr<class UImage> RecipeIcon;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> RecipeName;
 

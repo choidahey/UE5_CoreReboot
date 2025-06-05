@@ -33,11 +33,11 @@ void UCraftingContainerWidget::UpdateWidget(const int32 NewCraftingDifficulty)
 	CloseRecipeSelectWidget();
 }
 
-void UCraftingContainerWidget::OpenRecipeSelectWidget()
+void UCraftingContainerWidget::OpenRecipeSelectWidget(const FRecipeCategoryData& RecipeCategoryData)
 {
 	if (IsValid(RecipeSelectWidget))
 	{
-		RecipeSelectWidget->OpenWidget();
+		RecipeSelectWidget->OpenWidget(RecipeCategoryData);
 	}
 
 	CloseCraftingWidget();

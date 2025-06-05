@@ -6,6 +6,7 @@
 #include "PlayerInventoryComponent.generated.h"
 
 
+class UQuickSlotInventoryComponent;
 class UInventoryContainerWidget;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -46,28 +47,14 @@ private:
 	
 #pragma endregion
 
-#pragma region QuickSlot
+#pragma region QuickSlotInventoryComponent
 
 public:
-	UBaseInventoryItem* GetQuickSlotItemDataByIndex(const int32 Index) const;
+	FORCEINLINE UBaseInventoryComponent* GetQuickSlotInventoryComponent() { return QuickSlotInventoryComponent; }
 	
 private:
-	UPROPERTY(VisibleAnywhere, Category = "QuickSlot")
-	TArray<TObjectPtr<UBaseInventoryItem>> QuickSlotItems;
-
-	int32 QuickSlotCount;
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryComponent> QuickSlotInventoryComponent;
 	
 #pragma endregion 
-
-#pragma region QuickSlotWidget
-
-public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuickSlotItemChanged, UBaseInventoryItem*, Item);
-	FOnQuickSlotItemChanged OnQuickSlotItemChanged;
-
-private:
-	void NotifyQuickSlotItemChanged(const int32 ItemSlotIndex) const;
-	void NotifyQuickSlotItemsChanged(const TArray<int32>& ChangedItemSlots) const;
-	
-#pragma endregion
 };

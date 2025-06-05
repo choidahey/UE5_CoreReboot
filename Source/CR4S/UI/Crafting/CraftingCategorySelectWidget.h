@@ -14,7 +14,7 @@ class CR4S_API UCraftingCategorySelectWidget : public UUserWidget
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* CraftingContainerWidget);
+	void InitWidget(UCraftingContainerWidget* CraftingContainerWidget) const;
 
 #pragma endregion
 
@@ -24,8 +24,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPanelWidget> ButtonContainer;
 
-	UPROPERTY()
-	TArray<TObjectPtr<class UCraftingCategoryButtonWidget>> CraftingCategoryButtonWidgets;
-
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UDataTable> RecipeCategoryDataTable;
+	
 #pragma endregion 
 };

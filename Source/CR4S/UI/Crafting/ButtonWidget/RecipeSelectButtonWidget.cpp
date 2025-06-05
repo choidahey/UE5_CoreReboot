@@ -14,9 +14,9 @@ void URecipeSelectButtonWidget::InitWidget(UCraftingContainerWidget* NewCrafting
 		CraftingWidget = CraftingContainerWidget->GetCraftingWidget();
 	}
 	
-	if (IsValid(Button))
+	if (IsValid(RecipeButton))
 	{
-		Button->OnClicked.AddUniqueDynamic(this, &ThisClass::OpenCraftingWidget);
+		RecipeButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OpenCraftingWidget);
 	}
 }
 
@@ -36,9 +36,9 @@ void URecipeSelectButtonWidget::OpenCraftingWidget()
 
 void URecipeSelectButtonWidget::SetRecipeData(const FRecipeSelectData& RecipeData) const
 {
-	if (IsValid(Icon))
+	if (IsValid(RecipeIcon))
 	{
-		Icon->SetBrushFromTexture(RecipeData.IconTexture);
+		RecipeIcon->SetBrushFromTexture(RecipeData.IconTexture);
 	}
 
 	if (IsValid(RecipeName))

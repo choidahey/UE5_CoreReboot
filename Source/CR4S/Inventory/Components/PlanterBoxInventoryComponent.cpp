@@ -6,6 +6,7 @@
 
 UPlanterBoxInventoryComponent::UPlanterBoxInventoryComponent()
 {
+	MaxInventorySize = 1;
 }
 
 FAddItemResult UPlanterBoxInventoryComponent::AddItem(const FName RowName, const int32 Count)
@@ -24,9 +25,13 @@ FAddItemResult UPlanterBoxInventoryComponent::AddItem(const FName RowName, const
 
 	if (!HasCrops())
 	{
-		InventoryItems[0]->SetInventoryItemData(FInventoryItemData(RowName, *ItemData), 1);
-		Result.AddedCount = 1;
-		Result.RemainingCount -= 1;
+		InventoryItems[0] = NewObject<UBaseInventoryItem>();
+		if (IsValid(InventoryItems[0]))
+		{
+			InventoryItems[0]->InitInventoryItemData(FInventoryItemData(RowName, *ItemData), 1);
+			Result.AddedCount = 1;
+			Result.RemainingCount -= 1;
+		}
 	}
 
 	NotifyInventoryItemChanged(0);
@@ -41,5 +46,5 @@ bool UPlanterBoxInventoryComponent::HasCrops() const
 		return false;
 	}
 
-	return InventoryItems[0]->HasItemData();
+	return IsValid(InventoryItems[0]);
 }

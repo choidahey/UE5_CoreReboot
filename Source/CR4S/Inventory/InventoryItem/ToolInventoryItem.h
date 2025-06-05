@@ -15,7 +15,7 @@ class CR4S_API UToolInventoryItem : public UBaseInventoryItem
 public:
 	virtual void UseItem() override;
 
-	virtual void SetInventoryItemData(const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0) override;
+	virtual void InitInventoryItemData(const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0) override;
 
 #pragma endregion
 

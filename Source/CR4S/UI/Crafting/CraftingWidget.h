@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CraftingWidget.generated.h"
 
+class UTextBlock;
 class UImage;
 
 UCLASS()
@@ -29,8 +30,12 @@ public:
 #pragma region BindWidget
 
 private:
-	// UPROPERTY(meta = (BindWidget))
-	// TObjectPtr<UImage> 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> ItemIcon;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ItemName;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ItemDescription;
 	
 #pragma endregion 
 };

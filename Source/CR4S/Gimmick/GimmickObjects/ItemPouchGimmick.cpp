@@ -13,7 +13,7 @@ AItemPouchGimmick::AItemPouchGimmick()
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
-	InventoryComponent->SetMaxInventorySlot(100);
+	InventoryComponent->SetMaxInventorySize(100);
 }
 
 void AItemPouchGimmick::BeginPlay()

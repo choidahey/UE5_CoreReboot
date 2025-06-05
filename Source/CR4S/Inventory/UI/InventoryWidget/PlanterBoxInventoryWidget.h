@@ -17,7 +17,7 @@ public:
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag,
 	                                       bool bCanDrop) override;
 
-	virtual void UpdateItemSlotWidget(UBaseInventoryItem* Item) override;
+	virtual void UpdateItemSlotWidget(int32 SlotIndex, UBaseInventoryItem* Item) override;
 	virtual void UnBoundWidgetDelegate() override;
 	
 #pragma endregion

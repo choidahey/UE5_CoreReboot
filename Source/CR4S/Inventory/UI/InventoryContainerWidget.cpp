@@ -6,7 +6,6 @@
 #include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
-#include "InventoryWidget/QuickSlotBarWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -27,6 +26,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InputGuideContainer)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
@@ -39,19 +39,29 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	PlayerInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlayerInventoryWidget->ConnectInventoryComponent(PlayerInventoryComponent, true, true);
-	QuickSlotBarWidget->InitWidget(InPlayerInventoryComponent);
+
+	QuickSlotBarWidget->InitWidget(SurvivalHUD, false);
+	if (IsValid(PlayerInventoryComponent))
+	{
+		QuickSlotBarWidget->ConnectInventoryComponent(PlayerInventoryComponent->GetQuickSlotInventoryComponent(),
+		                                              true,
+		                                              true);
+	}
+
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 	CraftingContainerWidget->InitWidget();
 
 	InitToggleWidget(PlayerInventoryWidget);
+	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
 	InitToggleWidget(StorageInventoryWidget);
 	InitToggleWidget(PlanterBoxInventoryWidget);
 	InitToggleWidget(CompostBinWidget);
 	InitToggleWidget(CraftingContainerWidget);
 }
 
-void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget, const int32 CraftingDifficulty)
+void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget,
+                                                          const int32 CraftingDifficulty)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		bIsOpen ||
@@ -63,6 +73,7 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
+	InputGuideContainer->SetVisibility(ESlateVisibility::Visible);
 
 	if (bOpenCraftingWidget)
 	{
@@ -106,7 +117,7 @@ void UInventoryContainerWidget::OpenCraftingWidget(const int32 CraftingDifficult
 	}
 
 	CraftingContainerWidget->UpdateWidget(CraftingDifficulty);
-	
+
 	SurvivalHUD->ToggleWidget(CraftingContainerWidget);
 	OpenOtherWidget = CraftingContainerWidget;
 }
@@ -208,7 +219,7 @@ FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, c
 	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
 
-void UInventoryContainerWidget::MoveItemToInventory(UBaseItemSlotWidget* ItemSlot, const bool bTargetIsPlayer) const
+void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* ItemSlot, const bool bTargetIsPlayer) const
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(OtherInventoryComponent)))
@@ -216,8 +227,7 @@ void UInventoryContainerWidget::MoveItemToInventory(UBaseItemSlotWidget* ItemSlo
 		return;
 	}
 
-	UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
-
+	const UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
 		return;
@@ -230,7 +240,6 @@ void UInventoryContainerWidget::MoveItemToInventory(UBaseItemSlotWidget* ItemSlo
 		                                                : OtherInventoryComponent;
 
 	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
-
-	Item->SetCurrentStackCount(Result.RemainingCount);
-	ItemSlot->SetItem(Item);
+	
+	ItemSlot->GetInventoryComponent()->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }

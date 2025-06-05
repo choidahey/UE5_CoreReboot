@@ -21,6 +21,7 @@ void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool b
 		UBaseItemSlotWidget* ItemSlotWidget = CreateWidget<UBaseItemSlotWidget>(this, ItemSlotWidgetClass);
 		if (CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlotWidget)))
 		{
+			ItemSlotWidget->InitSlotWidget(Index);
 			ItemSlotWidgetContainer->AddChild(ItemSlotWidget);
 			ItemSlotWidgets.Add(ItemSlotWidget);
 		}

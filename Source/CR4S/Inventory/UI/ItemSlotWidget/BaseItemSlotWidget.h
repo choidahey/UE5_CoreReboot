@@ -28,20 +28,24 @@ public:
 #pragma region Initalize
 
 public:
-	void InitWidget(UBaseInventoryComponent* NewInventoryComponent, UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
+	UBaseItemSlotWidget(const FObjectInitializer& ObjectInitializer);
+	void InitSlotWidget(int32 NewSlotIndex);
+	void InitSlotWidgetData(UBaseInventoryComponent* NewInventoryComponent, UBaseInventoryItem* NewItem, bool bNewCanDrag, bool bNewCanDrop);
 
+	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
+	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	FORCEINLINE void SetInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) { InventoryComponent = NewInventoryComponent; }
 	
 protected:
-	UPROPERTY()
-	TObjectPtr<APlayerController> PlayerController;
-
-	UPROPERTY()
-	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	int32 SlotIndex;
 	
 	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController;
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	UPROPERTY()
 	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
-
+	
 	bool bIsPlayerItemSlot;
 	
 #pragma endregion
@@ -62,7 +66,6 @@ private:
 
 public:
 	void SetItem(UBaseInventoryItem* InItem);
-	void EmptyItem();
 
 	FORCEINLINE UBaseInventoryItem* GetCurrentItem() const { return CurrentItem; }
 	

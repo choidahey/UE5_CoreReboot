@@ -54,12 +54,16 @@ void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNew
 		return;
 	}
 
+	int32 SlotIndex = 0;
 	for (UWidget* ChildWidget : ItemSlotWidgetContainer->GetAllChildren())
 	{
 		UBaseItemSlotWidget* ItemSlotWidget = Cast<UBaseItemSlotWidget>(ChildWidget);
 		if (IsValid(ItemSlotWidget))
 		{
+			ItemSlotWidget->InitSlotWidget(SlotIndex);
 			ItemSlotWidgets.AddUnique(ItemSlotWidget);
+
+			SlotIndex++;
 		}
 	}
 
@@ -84,7 +88,7 @@ void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* Ne
 		if (IsValid(ItemSlotWidget))
 		{
 			UBaseInventoryItem* Item = InventoryComponent->GetItemDataByIndex(SlotIndex);
-			ItemSlotWidget->InitWidget(InventoryComponent, Item, bCanDrag, bCanDrop);
+			ItemSlotWidget->InitSlotWidgetData(InventoryComponent, Item, bCanDrag, bCanDrop);
 		}
 
 		SlotIndex++;
@@ -100,14 +104,8 @@ void UBaseInventoryWidget::UnBoundWidgetDelegate()
 	}
 }
 
-void UBaseInventoryWidget::UpdateItemSlotWidget(UBaseInventoryItem* Item)
+void UBaseInventoryWidget::UpdateItemSlotWidget(const int32 SlotIndex, UBaseInventoryItem* Item)
 {
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
-	{
-		return;
-	}
-
-	const int32 SlotIndex = Item->GetSlotIndex();
 	if (ItemSlotWidgets.IsValidIndex(SlotIndex))
 	{
 		ItemSlotWidgets[SlotIndex]->SetItem(Item);

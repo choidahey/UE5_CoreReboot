@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "RecipeSelectWidget.generated.h"
 
+struct FRecipeCategoryData;
 class URecipeSelectButtonWidget;
 
 UCLASS()
@@ -14,14 +15,14 @@ class CR4S_API URecipeSelectWidget : public UUserWidget
 #pragma region Initialize
 
 public:
-	void InitWidget();
+	void InitWidget() const;
 	
 #pragma endregion 
 	
 #pragma region ToggleWidget
 
 public:
-	void OpenWidget();
+	void OpenWidget(const FRecipeCategoryData& RecipeCategoryData);
 	void CloseWidget();
 	
 #pragma endregion
@@ -30,7 +31,7 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UImage> CraftingCategoryImage;
+	TObjectPtr<class UImage> CraftingCategoryIcon;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> CraftingCategoryName;
@@ -42,6 +43,9 @@ private:
 	TSubclassOf<URecipeSelectButtonWidget> RecipeSelectButtonWidgetClass;
 	UPROPERTY()
 	TArray<TObjectPtr<URecipeSelectButtonWidget>> RecipeSelectButtonWidgets;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UDataTable> ItemRecipeData;
 	
 #pragma endregion 
 };

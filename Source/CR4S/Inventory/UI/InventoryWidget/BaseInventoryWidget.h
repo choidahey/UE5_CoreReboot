@@ -58,7 +58,7 @@ protected:
 
 protected:
 	UFUNCTION()
-	virtual void UpdateItemSlotWidget(UBaseInventoryItem* Item);
+	virtual void UpdateItemSlotWidget(int32 SlotIndex, UBaseInventoryItem* Item);
 	
 	UPROPERTY()
 	TArray<TObjectPtr<UBaseItemSlotWidget>> ItemSlotWidgets;

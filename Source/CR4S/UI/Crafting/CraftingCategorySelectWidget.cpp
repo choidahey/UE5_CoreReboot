@@ -2,19 +2,32 @@
 
 #include "ButtonWidget/CraftingCategoryButtonWidget.h"
 #include "Components/PanelWidget.h"
+#include "DeveloperSettings/CR4SDataTableSettings.h"
+#include "Gimmick/Data/RecipeCategoryData.h"
 
-void UCraftingCategorySelectWidget::InitWidget(UCraftingContainerWidget* CraftingContainerWidget)
+void UCraftingCategorySelectWidget::InitWidget(UCraftingContainerWidget* CraftingContainerWidget) const
 {
-	if (IsValid(ButtonContainer))
+	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(RecipeCategoryDataTable)) ||
+		!CR4S_VALIDATE(LogCraftingUI, IsValid(ButtonContainer)))
 	{
-		for (UWidget* Widget : ButtonContainer->GetAllChildren())
+		return;
+	}
+
+	TArray<FName> RowNames = RecipeCategoryDataTable->GetRowNames();
+
+	int32 Index = 0;
+	for (UWidget* Widget : ButtonContainer->GetAllChildren())
+	{
+		UCraftingCategoryButtonWidget* CraftingCategoryButtonWidget = Cast<UCraftingCategoryButtonWidget>(Widget);
+		if (IsValid(CraftingCategoryButtonWidget) && RowNames.IsValidIndex(Index))
 		{
-			UCraftingCategoryButtonWidget* CraftingCategoryButtonWidget = Cast<UCraftingCategoryButtonWidget>(Widget);
-			if (IsValid(CraftingCategoryButtonWidget))
-			{
-				CraftingCategoryButtonWidget->InitWidget(CraftingContainerWidget);
-				CraftingCategoryButtonWidgets.AddUnique(CraftingCategoryButtonWidget);
-			}
+			const FRecipeCategoryData* RecipeCategoryData
+				= RecipeCategoryDataTable->FindRow<FRecipeCategoryData>(RowNames[Index],
+				                                                         TEXT("RecipeCategoryData"));
+
+			CraftingCategoryButtonWidget->InitWidget(CraftingContainerWidget, *RecipeCategoryData);
+
+			Index++;
 		}
 	}
 }

@@ -62,7 +62,7 @@ private:
 public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
-	void MoveItemToInventory(UBaseItemSlotWidget* ItemSlot, bool bTargetIsPlayer) const;
+	void MoveItemToInventory(const UBaseItemSlotWidget* ItemSlot, bool bTargetIsPlayer) const;
 	
 #pragma endregion
 
@@ -75,7 +75,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBaseInventoryWidget> PlayerInventoryWidget;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UQuickSlotBarWidget> QuickSlotBarWidget;
+	TObjectPtr<UPanelWidget> InputGuideContainer;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBaseInventoryWidget> QuickSlotBarWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UStorageInventoryWidget> StorageInventoryWidget;

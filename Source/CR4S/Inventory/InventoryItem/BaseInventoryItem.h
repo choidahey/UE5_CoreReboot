@@ -27,6 +27,11 @@ struct FInventoryItemData
 	FName RowName;
 	UPROPERTY(VisibleAnywhere)
 	FItemInfoData ItemInfoData;
+
+	bool IsStackableItem() const
+	{
+		return ItemInfoData.MaxStackCount > 1;
+	}
 };
 
 UCLASS()
@@ -41,13 +46,6 @@ public:
 
 #pragma endregion
 
-#pragma region Initalize
-
-public:
-	void InitInventoryItem(AActor* NewOwner, int32 NewSlotIndex);
-
-#pragma endregion
-
 #pragma region UseItem
 
 public:
@@ -58,23 +56,17 @@ public:
 #pragma region Data
 
 public:
-	virtual void SetInventoryItemData(const FInventoryItemData& NewInventoryItemData,
-	                                  const int32 StackCount = 0);
+	virtual void InitInventoryItemData(const FInventoryItemData& NewInventoryItemData,
+	                                   const int32 StackCount = 0);
 	void SetCurrentStackCount(const int32 NewStackCount);
 
-	void SwapData(UBaseInventoryItem* OtherItem);
-
-	FORCEINLINE AActor* GetOwner() const { return Owner; }
-	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
+	FORCEINLINE bool IsStackableItem() const { return InventoryItemData.IsStackableItem(); }
+	FORCEINLINE int32 GetMaxStackCount() const { return InventoryItemData.ItemInfoData.MaxStackCount; }
 	FORCEINLINE int32 GetCurrentStackCount() const { return CurrentStackCount; }
-	FORCEINLINE bool HasItemData() const { return CurrentStackCount > 0; }
+	FORCEINLINE int32 IsEmpty() const { return CurrentStackCount <= 0; }
 
 private:
-	UPROPERTY()
-	TObjectPtr<AActor> Owner;
-	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
-	int32 SlotIndex;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	FInventoryItemData InventoryItemData;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
