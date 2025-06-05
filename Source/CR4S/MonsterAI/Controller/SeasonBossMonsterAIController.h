@@ -16,12 +16,6 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	UFUNCTION(BlueprintCallable, Category = "BossAI")
-	FVector GetPlayerInitialLocation() const;
-
-	UFUNCTION(BlueprintCallable, Category = "BossAI")
-	AActor* GetNearestHouseActor(const FVector& PlayerLocation) const;
-
 private:
 	FString MyHeader;
 };

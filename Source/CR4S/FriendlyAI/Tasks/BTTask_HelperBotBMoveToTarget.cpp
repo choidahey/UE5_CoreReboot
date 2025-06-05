@@ -15,13 +15,13 @@ UBTTask_HelperBotBMoveToTarget::UBTTask_HelperBotBMoveToTarget()
 
 EBTNodeResult::Type UBTTask_HelperBotBMoveToTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    if (APawn* Pawn = OwnerComp.GetAIOwner()->GetPawn())
-    {
-        if (UAIJumpComponent* JumpComp = Pawn->FindComponentByClass<UAIJumpComponent>())
-        {
-            JumpComp->Activate(true);
-        }
-    }
+    // if (APawn* Pawn = OwnerComp.GetAIOwner()->GetPawn())
+    // {
+    //     if (UAIJumpComponent* JumpComp = Pawn->FindComponentByClass<UAIJumpComponent>())
+    //     {
+    //         JumpComp->Activate(true);
+    //     }
+    // }
     return EBTNodeResult::InProgress;
 }
 
@@ -38,21 +38,18 @@ void UBTTask_HelperBotBMoveToTarget::TickTask(UBehaviorTreeComponent& OwnerComp,
     }
 
     const float Distance = FVector::Dist(Pawn->GetActorLocation(), PlayerPawn->GetActorLocation());
-
-    if (Distance > DistanceThreshold)
+    
+    if (UAIJumpComponent* JumpComp = Pawn->FindComponentByClass<UAIJumpComponent>())
     {
-        if (UAIJumpComponent* JumpComp = Pawn->FindComponentByClass<UAIJumpComponent>())
+        if (Distance >= DistanceThreshold)
         {
             if (!JumpComp->IsActive())
                 JumpComp->Activate(true);
         }
-    }
-    else
-    {
-        FAIMoveRequest MoveReq;
-        MoveReq.SetGoalActor(PlayerPawn);
-        MoveReq.SetAcceptanceRadius(DistanceThreshold);
-        AICon->MoveTo(MoveReq);
-        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        else
+        {
+            if (JumpComp->IsActive())
+                JumpComp->Deactivate();
+        }
     }
 }

@@ -5,6 +5,7 @@
 #include "RegionBossMonster.generated.h"
 
 class UNavigationInvokerComponent;
+class APatrolRoute;
 
 UCLASS()
 class CR4S_API ARegionBossMonster : public ABaseMonster
@@ -38,7 +39,8 @@ protected:
 #pragma region Combat Info
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
-	FORCEINLINE void SetCombatStartLocation() { CombatStartLocation = GetActorLocation(); }
+	void SetCombatStartLocation();
+
 	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
 	FORCEINLINE FVector GetCombatStartLocation() const { return CombatStartLocation; }
 
@@ -51,6 +53,17 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
 	float CombatRange = 4000.f;
+
+#pragma endregion
+
+#pragma region Patrol Route
+public:
+	FVector GetNextPatrolLocation();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster|Patrol")
+	TObjectPtr<APatrolRoute> PatrolRouteActor;
+
+	int32 CurrentPatrolIndex = 0;
 
 #pragma endregion
 

@@ -23,7 +23,7 @@ public:
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> InteractionKeyIcon;
+	TObjectPtr<UTextBlock> InteractionKeyTextBlock;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> InteractionTextBlock;
 	

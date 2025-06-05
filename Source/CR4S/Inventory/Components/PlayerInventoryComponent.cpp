@@ -53,10 +53,10 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 {
 	FAddItemResult Result = Super::AddItem(RowName, Count);
 
-	CR4S_Log(LogGimmick, Warning, TEXT("Remaining Test: %d"), Result.RemainingCount);
+	// CR4S_Log(LogGimmick, Warning, TEXT("Remaining Test: %d"), Result.RemainingCount);
 	
-	if (!CR4S_VALIDATE(LogInventory, Result.Success) ||
-		!CR4S_VALIDATE(LogInventory, Result.RemainingCount > 0))
+	if (!Result.bSuccess ||
+		Result.RemainingCount <= 0)
 	{
 		return Result;
 	}
@@ -85,6 +85,14 @@ void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType In
 	OpenPlayerInventoryWidget();
 
 	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
+}
+
+void UPlayerInventoryComponent::CloseInventoryWidget() const
+{
+	if (IsValid(InventoryContainerWidgetInstance))
+	{
+		InventoryContainerWidgetInstance->CloseInventoryWidget();
+	}
 }
 
 UBaseInventoryItem* UPlayerInventoryComponent::GetQuickSlotItemDataByIndex(const int32 Index) const

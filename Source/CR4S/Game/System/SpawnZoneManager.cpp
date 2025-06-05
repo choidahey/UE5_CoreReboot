@@ -1,7 +1,8 @@
 #include "Game/System/SpawnZoneManager.h"
 #include "Game/System/SpawnZoneVolume.h"
 #include "Game/System/EnvironmentManager.h"
-#include "EngineUtils.h"
+#include "EngineUtils.h"    
+#include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 
 bool USpawnZoneManager::ShouldCreateSubsystem(UObject* Outer) const
@@ -9,28 +10,30 @@ bool USpawnZoneManager::ShouldCreateSubsystem(UObject* Outer) const
 	UWorld* World = Cast<UWorld>(Outer);
 	if (World && World->GetName() == TEXT("SurvivalLevel"))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SpawnZoneManager: ShouldCreateSubsystem called for SurvivalLevel"));
 		return true;  // Creates this subsystem only in the SurvivalLevel world
 	}
-	UE_LOG(LogTemp, Warning, TEXT("SpawnZoneManager: ShouldCreateSubsystem called for other world"));
 	return false;
 }
 
 void USpawnZoneManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	UE_LOG(LogTemp, Warning, TEXT("SpawnZoneManager: Initialize called"));
 
 	FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &USpawnZoneManager::OnPostWorldInit);
 }
 
 void USpawnZoneManager::OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnPostWorldInit called for World: %s"), *World->GetName());
 	if (!World || World->WorldType != EWorldType::Game && World->WorldType != EWorldType::PIE)
 	{
 		return;
 	}
+
+    AEnvironmentManager* EnvManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(World, AEnvironmentManager::StaticClass()));
+    if (EnvManager)
+    {
+        GridSize = EnvManager->GetGridSize();
+    }
 }
 
 void USpawnZoneManager::Deinitialize()
