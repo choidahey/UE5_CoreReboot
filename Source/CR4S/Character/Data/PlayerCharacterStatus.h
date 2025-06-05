@@ -16,6 +16,12 @@ public:
 	float MaxHunger{100};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Hunger{100};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HungerInterval{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HungerDecreaseAmount{0.1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SpeedDebuffMultiplier{0.5};
 };
 
 UCLASS(Blueprintable, BlueprintType)

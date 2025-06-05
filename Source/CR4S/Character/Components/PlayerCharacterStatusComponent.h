@@ -7,7 +7,8 @@
 #include "Character/Data/PlayerCharacterStatus.h"
 #include "PlayerCharacterStatusComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHungerChangedDelegate, float /*InPercentage*/)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHungerChangedDelegate, float /*InPercentage*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHungerDebuffChanged, bool, bIsStarving);
 
 class UPlayerCharacterStatusAssets;
 class APlayerCharacter;
@@ -26,9 +27,15 @@ public:
 	FORCEINLINE float GetCurrentHunger() const { return PlayerStatus.Hunger; }
 #pragma endregion
 
-#pragma region Add
+#pragma region Hunger
 	void AddMaxHunger(const float InAmount);
 	void AddCurrentHunger(const float InAmount);
+
+	UFUNCTION()
+	void ApplyHungerDebuff();
+	UFUNCTION()
+	void RemoveHungerDebuff();
+	void ReduceCurrentHunger();
 #pragma endregion
 	
 #pragma region Override
@@ -57,10 +64,21 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FPlayerCharacterStats PlayerStatus;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	float OriginalMaxWalkSpeed{0};
+	
+	uint8 bIsStarving:1 {false};
+	FTimerHandle HungerTimerHandle;
 #pragma endregion
 
 #pragma region Delegate
 public:
 	FOnHungerChangedDelegate OnHungerChanged;
+	UPROPERTY(EditAnywhere, BlueprintAssignable)
+	FOnHungerDebuffChanged OnHungerDebuffChanged;
 #pragma endregion
 };
+
+
+
