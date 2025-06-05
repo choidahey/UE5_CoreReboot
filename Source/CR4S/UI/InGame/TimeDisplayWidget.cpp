@@ -23,14 +23,6 @@ void UTimeDisplayWidget::NativeConstruct()
 
 void UTimeDisplayWidget::UpdateTime(int32 Day, int32 Minute, int32 Second)
 {
-	FString DayString = FString::FromInt(Day);
-	FString MinuteString = FString::FromInt(Minute);
-	FString SecondString = FString::FromInt(Second);
-
-	DayNumber->SetText(FText::FromString(DayString));
-	MinuteNumber->SetText(FText::FromString(MinuteString));
-	SecondNumber->SetText(FText::FromString(SecondString));
-
 	float TimeValue = ((Minute * 60.0f) + Second) / (DayCycleLength*60.0f);
 	TimeValue = FMath::Clamp(TimeValue, 0.0f, 1.0f);
 	TimeSlider->SetValue(TimeValue);
