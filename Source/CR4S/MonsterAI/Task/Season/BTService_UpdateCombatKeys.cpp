@@ -9,7 +9,7 @@
 UBTService_UpdateCombatKeys::UBTService_UpdateCombatKeys()
 {
 	NodeName = TEXT("UpdateCombatKeys");
-	Interval = 0.5f;
+	Interval = 1.f;
 	bNotifyBecomeRelevant = true;
 	bCreateNodeInstance = true;
 }
@@ -22,6 +22,9 @@ void UBTService_UpdateCombatKeys::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 	if (!BB || !Pawn) return;
+
+	bool bIsPlayingAttackMontage = BB->GetValueAsBool(FAIKeys::bIsPlayingAttackMontage);
+	if (bIsPlayingAttackMontage) return;
 
 	const FVector PawnLoc = Pawn->GetActorLocation();
 

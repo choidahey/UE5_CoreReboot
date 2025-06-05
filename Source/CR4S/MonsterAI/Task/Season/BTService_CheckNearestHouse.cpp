@@ -7,8 +7,21 @@
 UBTService_CheckNearestHouse::UBTService_CheckNearestHouse()
 {
 	NodeName = TEXT("CheckNearestHouse");
-	Interval = 1.5f;
+	Interval = 1.0f;
 	bCreateNodeInstance = true;
+}
+
+void UBTService_CheckNearestHouse::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
+
+	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+	if (BlackboardComp)
+	{
+		FVector PlayerLoc = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetActorLocation();
+		AActor* Nearest = FindNearestHouse(PlayerLoc);
+		BlackboardComp->SetValueAsObject(NearestHouseActor.SelectedKeyName, Nearest);
+	}
 }
 
 void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -28,26 +41,6 @@ void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, u
 		
 		BlackboardComp->SetValueAsObject(NearestHouseActor.SelectedKeyName, NewNearestHouse);
 	}
-}
-
-void UBTService_CheckNearestHouse::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
-{
-	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
-
-	if (!NearestHouseActor.SelectedKeyName.IsValid())
-	{
-		CR4S_Log(LogDa, Warning, TEXT("[BTService_CheckNearestHouse] InValid NearestHouse"));
-		return;
-	}
-	
-	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-	if (BlackboardComp)
-	{
-		FVector PlayerLoc = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetActorLocation();
-		AActor* Nearest = FindNearestHouse(PlayerLoc);
-		BlackboardComp->SetValueAsObject(NearestHouseActor.SelectedKeyName, Nearest);
-	}
-	
 }
 
 AActor* UBTService_CheckNearestHouse::FindNearestHouse(const FVector& PlayerLocation) const
