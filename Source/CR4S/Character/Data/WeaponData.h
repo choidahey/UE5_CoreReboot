@@ -14,9 +14,9 @@ struct CR4S_API FBulletData
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	UParticleSystem* ImpactParticle;
+	TObjectPtr<UParticleSystem> ImpactParticle;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	USoundBase* ImpactSound;
+	TObjectPtr<USoundBase> ImpactSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float InitialBulletSpeed{2000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

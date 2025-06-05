@@ -45,13 +45,13 @@ protected:
 #pragma region Components
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
-	USceneComponent* SceneComponent;
+	TObjectPtr<USceneComponent> SceneComponent;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
-	UBoxComponent* CollisionComponent;
+	TObjectPtr<UBoxComponent> CollisionComponent;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
-	UNiagaraComponent* NiagaraComponent;
+	TObjectPtr<UNiagaraComponent> NiagaraComponent;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
-	UProjectileMovementComponent* ProjectileMovementComponent;
+	TObjectPtr<UProjectileMovementComponent> ProjectileMovementComponent;
 #pragma endregion
 
 #pragma region Properties
@@ -62,9 +62,9 @@ protected:
 	
 #pragma region Effects
 protected:
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
-	UParticleSystem* ImpactParticle;
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
-	USoundBase* ImpactSound;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UParticleSystem> ImpactParticle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> ImpactSound;
 #pragma endregion
 };
