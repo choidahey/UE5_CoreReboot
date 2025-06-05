@@ -72,5 +72,6 @@ void URangedWeapon::OnAttack(const int32 WeaponIdx)
 			SpawnRotation,
 			SpawnParameters
 		);
+		NewProjectile->Initialize();
 	}
 }

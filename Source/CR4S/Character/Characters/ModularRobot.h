@@ -57,17 +57,18 @@ protected:
 #pragma region MoveFunctions
 protected:
 	UFUNCTION()
-	void Move(const FInputActionValue& Value);
+	void Input_Move(const FInputActionValue& Value);
 	UFUNCTION()
-	void Look(const FInputActionValue& Value);
+	void Input_Look(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartJump(const FInputActionValue& Value);
+	void Input_StartJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopJump(const FInputActionValue& Value);
+	void Input_StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartSprint(const FInputActionValue& Value);
+	void Input_Dash(const FInputActionValue& Value);
+
 	UFUNCTION()
-	void StopSprint(const FInputActionValue& Value);
+	void ResetDashCooldown();
 #pragma endregion
 
 #pragma region InputActions
@@ -92,6 +93,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> AttackAction;
+	
 #pragma endregion
 
 #pragma region MountOffset
@@ -118,6 +120,8 @@ private:
 #pragma endregion
 
 #pragma region Cached
-	TObjectPtr<APlayerCharacter> MountedCharacter; 
+	TObjectPtr<APlayerCharacter> MountedCharacter;
+	FTimerHandle DashCooldownTimerHandle;
+	uint8 bIsDashing:1;
 #pragma endregion
 };

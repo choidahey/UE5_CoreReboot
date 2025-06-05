@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseStatusComponent.h"
-#include "Character/DataAsset/ModularRobotStatus.h"
+#include "Character/Data/ModularRobotStatus.h"
 #include "ModularRobotStatusComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float);

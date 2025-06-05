@@ -28,17 +28,22 @@ ABaseBullet::ABaseBullet()
 	NiagaraComponent->SetupAttachment(CollisionComponent);
 
 	ProjectileMovementComponent=CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovementComponent->InitialSpeed=2000.f;
-	ProjectileMovementComponent->MaxSpeed=3000.f;
 	ProjectileMovementComponent->bRotationFollowsVelocity=false;
 	ProjectileMovementComponent->bShouldBounce=false;
 	ProjectileMovementComponent->UpdatedComponent=RootComponent;
+	
+	ProjectileMovementComponent->InitialSpeed=2000.f;
+	ProjectileMovementComponent->MaxSpeed=3000.f;
 	ProjectileMovementComponent->ProjectileGravityScale=0.f;
 	
 	ImpactParticle=nullptr;
 	ImpactSound=nullptr;
+	
+}
 
-	Damage=100.f;
+void ABaseBullet::Initialize()
+{
+	
 }
 
 // Called when the game starts or when spawned
@@ -53,6 +58,7 @@ void ABaseBullet::BeginPlay()
 		}
 		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this,&ABaseBullet::OnOverlapBegin);
 	}
+	
 }
 
 void ABaseBullet::OnOverlapBegin(
@@ -93,7 +99,7 @@ void ABaseBullet::OnOverlapBegin(
 			OtherActor,
 			Damage,
 			OwnerActor ? OwnerActor->GetInstigatorController():nullptr,
-			this,
+			Owner,
 			UDamageType::StaticClass()
 		);
 	}

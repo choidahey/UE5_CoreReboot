@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/DataAsset/PlayerCharacterStatus.h"
+#include "Character/Data/PlayerCharacterStatus.h"
 #include "Components/ActorComponent.h"
 #include "BaseStatusComponent.generated.h"
 

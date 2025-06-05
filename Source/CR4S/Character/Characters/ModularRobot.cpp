@@ -2,6 +2,8 @@
 
 
 #include "ModularRobot.h"
+
+#include "CR4S.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlayerCharacter.h"
@@ -19,7 +21,8 @@
 // Sets default values
 AModularRobot::AModularRobot():
 	UnMountLocation(FVector(-200.f,0.f,0.f)),
-	MountSocketName("cockpit")
+	MountSocketName("cockpit"),
+	bIsDashing(false)
 {
 	//Set Tick
 	PrimaryActorTick.bCanEverTick = false;
@@ -235,7 +238,7 @@ void AModularRobot::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AModularRobot::Move(const FInputActionValue& Value)
+void AModularRobot::Input_Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;
 	//Move Logic
@@ -252,7 +255,7 @@ void AModularRobot::Move(const FInputActionValue& Value)
 	}
 }
 
-void AModularRobot::Look(const FInputActionValue& Value)
+void AModularRobot::Input_Look(const FInputActionValue& Value)
 {
 	FVector2D LookInput=Value.Get<FVector2D>();
 
@@ -260,7 +263,7 @@ void AModularRobot::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookInput.Y);
 }
 
-void AModularRobot::StartJump(const FInputActionValue& Value)
+void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
 	// Jump 함수는 Character가 기본 제공
 	if (Value.Get<bool>())
@@ -269,7 +272,7 @@ void AModularRobot::StartJump(const FInputActionValue& Value)
 	}
 }
 
-void AModularRobot::StopJump(const FInputActionValue& Value)
+void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
 	// StopJumping 함수도 Character가 기본 제공
 	if (!Value.Get<bool>())
@@ -278,21 +281,34 @@ void AModularRobot::StopJump(const FInputActionValue& Value)
 	}
 }
 
-void AModularRobot::StartSprint(const FInputActionValue& Value)
+void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (GetCharacterMovement())
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 800.f;
-	}
+	if (bIsDashing) return;
+
+	bIsDashing = true;
+	
+	FVector LastInput=GetLastMovementInputVector();
+	FVector ForwardVector=GetActorForwardVector();
+	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
+
+	float DashStrength=10000.f;
+	FVector LaunchVelocity=DashDirection*DashStrength;
+	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
+	LaunchCharacter(LaunchVelocity,true,false);
+	GetWorldTimerManager().SetTimer(
+		DashCooldownTimerHandle,
+		this,
+		&AModularRobot::ResetDashCooldown,
+		1.0f,
+		false
+	);
 }
 
-void AModularRobot::StopSprint(const FInputActionValue& Value)
+void AModularRobot::ResetDashCooldown()
 {
-	if (GetCharacterMovement())
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	}
+	bIsDashing = false;
 }
+
 
 // Called to bind functionality to input
 void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -304,15 +320,14 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		if (ACharacterController* MyController=Cast<ACharacterController>(GetController()))
 		{
 			// Moving
-			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Move);
+			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Move);
 			//Looking
-			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Look);
-			//Sprinting
-			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::StartSprint);
-			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AModularRobot::StopSprint);
-			// Jumping
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Jump);
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::StopJumping);
+			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
+			//Dash
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Dash);
+			// Jump
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
 		}
 	}
 }

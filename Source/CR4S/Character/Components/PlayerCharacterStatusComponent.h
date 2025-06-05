@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseStatusComponent.h"
-#include "Character/DataAsset/PlayerCharacterStatus.h"
+#include "Character/Data/PlayerCharacterStatus.h"
 #include "PlayerCharacterStatusComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHungerChangedDelegate, float /*InPercentage*/)

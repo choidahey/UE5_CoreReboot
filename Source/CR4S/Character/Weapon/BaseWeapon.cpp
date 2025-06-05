@@ -17,7 +17,16 @@ void UBaseWeapon::OnAttack(const int32 WeaponIdx)
 	OwningCharacter->PlayAnimMontage(AttackMontage);
 }
 
+void UBaseWeapon::SetGameplayTag(const FGameplayTag GameplayTag)
+{
+	WeaponTag=GameplayTag;
+}
+
 void UBaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
 	OwningCharacter=OwnerCharacter;
+}
+
+void UBaseWeapon::LoadFromDataTable()
+{
 }

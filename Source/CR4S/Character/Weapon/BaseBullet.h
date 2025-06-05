@@ -19,6 +19,9 @@ class CR4S_API ABaseBullet : public AActor
 public:
 	// Sets default values for this actor's properties
 	ABaseBullet();
+
+public:
+	void Initialize();
 	
 public:
 	virtual void Tick(float DeltaTime) override;
