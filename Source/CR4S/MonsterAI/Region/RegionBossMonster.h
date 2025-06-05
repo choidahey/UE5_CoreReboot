@@ -6,6 +6,7 @@
 
 class UNavigationInvokerComponent;
 class APatrolRoute;
+class ACombatRangeVisualizer;
 
 UCLASS()
 class CR4S_API ARegionBossMonster : public ABaseMonster
@@ -20,6 +21,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;
+	void HandlePhaseChanged(EBossPhase NewPhase);
 
 #pragma endregion
 
@@ -49,11 +51,23 @@ public:
 	virtual bool IsOutsideCombatRange(float Tolerance = 0.f) const;
 
 protected:
+	void ShowCombatRange();
+	void HideCombatRange();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Monster|Combat")
+	TSubclassOf<ACombatRangeVisualizer> RangeVisualizerClass;
+
+	UPROPERTY()
+	TObjectPtr<ACombatRangeVisualizer> RangeVisualizer;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	FVector CombatStartLocation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
 	float CombatRange = 4000.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
+	float CombatRangeVisualizerHeight = 1000.f;
 
 #pragma endregion
 

@@ -122,7 +122,9 @@ void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, floa
 
 	LandingTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	LandingTrigger->SetCollisionObjectType(ECC_WorldDynamic);
-	LandingTrigger->SetCollisionResponseToAllChannels(ECR_Overlap);
+	LandingTrigger->SetCollisionResponseToAllChannels(ECR_Ignore);
+	LandingTrigger->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	LandingTrigger->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	LandingTrigger->SetGenerateOverlapEvents(true);
 
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ARotatingProjectile::OnOverlap);

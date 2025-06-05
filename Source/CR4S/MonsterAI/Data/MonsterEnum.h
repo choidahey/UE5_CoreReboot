@@ -20,3 +20,11 @@ enum class EMonsterState : uint8
     AttackHouse = 11 UMETA(DisplayName = "AttackHouse"),
     MoveToHouse = 12 UMETA(DisplayName = "MoveToHouse")
 };
+
+UENUM(BlueprintType)
+enum class EBossPhase : uint8
+{
+    Normal = 0,
+    Berserk = 1,
+    Groggy = 2
+};

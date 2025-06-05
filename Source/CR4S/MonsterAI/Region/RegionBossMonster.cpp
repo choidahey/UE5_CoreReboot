@@ -1,6 +1,7 @@
 #include "RegionBossMonster.h"
 #include "MonsterAI/Controller/RegionBossMonsterAIController.h"
 #include "MonsterAI/Region/PatrolRoute.h"
+#include "MonsterAI/Region/CombatRangeVisualizer.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -35,6 +36,7 @@ void ARegionBossMonster::BeginPlay()
 	if (UMonsterStateComponent* StateComp = FindComponentByClass<UMonsterStateComponent>())
 	{
 		StateComp->SetState(EMonsterState::Patrol);
+		StateComp->OnPhaseChanged.AddUniqueDynamic(this, &ARegionBossMonster::HandlePhaseChanged);
 	}
 
 	SetCombatStartLocation();
@@ -75,6 +77,39 @@ bool ARegionBossMonster::IsOutsideCombatRange(float Tolerance) const
 	return DistanceSqr > Limit;
 }
 
+void ARegionBossMonster::ShowCombatRange()
+{
+	if (!RangeVisualizer && RangeVisualizerClass)
+	{
+		RangeVisualizer = GetWorld()->SpawnActor<ACombatRangeVisualizer>(RangeVisualizerClass);
+		if (!RangeVisualizer) return;
+
+		FHitResult Hit;
+		FVector TraceStart = GetCombatStartLocation() + FVector(0, 0, 500);
+		FVector TraceEnd = GetCombatStartLocation() - FVector(0, 0, 1000);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		FVector GroundLocation = GetCombatStartLocation();
+		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params))
+		{
+			GroundLocation = Hit.ImpactPoint;
+		}
+
+		RangeVisualizer->InitializeVisualizer(GroundLocation - FVector(0, 0, 10), CombatRange, CombatRangeVisualizerHeight);
+	}
+}
+
+void ARegionBossMonster::HideCombatRange()
+{
+	if (RangeVisualizer)
+	{
+		RangeVisualizer->Destroy();
+		RangeVisualizer = nullptr;
+	}
+}
+
 FVector ARegionBossMonster::GetNextPatrolLocation()
 {
 	if (!PatrolRouteActor) return GetActorLocation();
@@ -107,11 +142,29 @@ void ARegionBossMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterS
 		break;
 	case EMonsterState::Combat:
 		SetCombatStartLocation();
+		ShowCombatRange();
+		break;
+	case EMonsterState::Return:
+		if (Previous == EMonsterState::Combat)
+		{
+			HideCombatRange();
+		}
 		break;
 	}
 
 	if (!FMath::IsNearlyEqual(MoveComp->MaxWalkSpeed, DesiredSpeed, 1.f))
 	{
 		MoveComp->MaxWalkSpeed = DesiredSpeed;
+	}
+}
+
+void ARegionBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
+{
+	if (AAIController* AI = Cast<AAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+		{
+			BB->SetValueAsInt(TEXT("CurrentPhase"), static_cast<int32>(NewPhase));
+		}
 	}
 }
