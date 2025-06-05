@@ -57,7 +57,7 @@ public:
 	
 private:
 	UFUNCTION()
-	void HandlePlantingCropsGimmick(UBaseInventoryItem* Item);
+	void HandlePlantingCropsGimmick(int32 SlotIndex, UBaseInventoryItem* Item);
 	
 	UFUNCTION()
 	void HandleHarvest();

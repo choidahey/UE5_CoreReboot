@@ -5,6 +5,9 @@
 
 #include "ToolInventoryItem.generated.h"
 
+class UPlayerCharacterStatusComponent;
+class UPlayerInventoryComponent;
+
 UCLASS()
 class CR4S_API UToolInventoryItem : public UBaseInventoryItem
 {
@@ -13,18 +16,30 @@ class CR4S_API UToolInventoryItem : public UBaseInventoryItem
 #pragma region UBaseInventoryItem Override
 	
 public:
-	virtual void UseItem() override;
+	UToolInventoryItem();
+	
+	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0) override;
 
-	virtual void SetInventoryItemData(const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0) override;
+	virtual void UseItem(int32 Index) override;
 
 #pragma endregion
 
+#pragma region Equipment
+
+public:
+	void EquipItem() const;
+	void UnEquipItem() const;
+	
+#pragma endregion 
+	
 #pragma region Data
 public:
 	FORCEINLINE const FToolItemData& GetToolItemData() const { return ToolItemData; }
 	
 private:
 	FToolItemData ToolItemData;
+
+	FGameplayTag DefaultTag;
 
 #pragma endregion
 };

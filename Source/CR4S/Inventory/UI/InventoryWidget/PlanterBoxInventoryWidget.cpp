@@ -7,17 +7,16 @@
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 
-void UPlanterBoxInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent,
-                                                           const bool bCanDrag, const bool bCanDrop)
+void UPlanterBoxInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent)
 {
-	Super::ConnectInventoryComponent(NewInventoryComponent, bCanDrag, bCanDrop);
+	Super::ConnectInventoryComponent(NewInventoryComponent);
 
 	ConnectCropsGimmick();
 }
 
-void UPlanterBoxInventoryWidget::UpdateItemSlotWidget(UBaseInventoryItem* Item)
+void UPlanterBoxInventoryWidget::UpdateItemSlotWidget(const int32 SlotIndex, UBaseInventoryItem* Item)
 {
-	Super::UpdateItemSlotWidget(Item);
+	Super::UpdateItemSlotWidget(SlotIndex, Item);
 
 	ConnectCropsGimmick();
 }
@@ -92,6 +91,8 @@ void UPlanterBoxInventoryWidget::ConnectCropsGimmick()
 			PlantedCropsGimmick->OnGrow.AddUniqueDynamic(this, &ThisClass::UpdatePlanterBoxInfo);
 			PlantedCropsGimmick->OnHarvest.AddUniqueDynamic(this, &ThisClass::ClearPlanterBoxInfo);
 			PlantedCropsGimmick->OnCropComposted.AddUniqueDynamic(this, &ThisClass::ClearPlanterBoxInfo);
+
+			UpdatePlanterBoxInfo(PlantedCropsGimmick->GetCurrentGrowthPercent());
 		}
 		else
 		{

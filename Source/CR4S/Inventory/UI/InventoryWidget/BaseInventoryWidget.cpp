@@ -2,9 +2,20 @@
 
 #include "CR4S.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
+
+UBaseInventoryWidget::UBaseInventoryWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer),
+	  bCanSort(true),
+	  bCanDrag(true),
+	  bCanDrop(true),
+	  bCanRemoveItem(true),
+	  bCanMoveItem(true)
+{
+}
 
 void UBaseInventoryWidget::NativeConstruct()
 {
@@ -54,20 +65,23 @@ void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNew
 		return;
 	}
 
+	int32 SlotIndex = 0;
 	for (UWidget* ChildWidget : ItemSlotWidgetContainer->GetAllChildren())
 	{
 		UBaseItemSlotWidget* ItemSlotWidget = Cast<UBaseItemSlotWidget>(ChildWidget);
 		if (IsValid(ItemSlotWidget))
 		{
+			ItemSlotWidget->InitSlotWidget(SlotIndex);
 			ItemSlotWidgets.AddUnique(ItemSlotWidget);
+
+			SlotIndex++;
 		}
 	}
 
 	bCanSort = bNewCanSort;
 }
 
-void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent,
-                                                     const bool bCanDrag, const bool bCanDrop)
+void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(NewInventoryComponent)))
 	{
@@ -76,15 +90,20 @@ void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* Ne
 
 	InventoryComponent = NewInventoryComponent;
 
-	NewInventoryComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::UpdateItemSlotWidget);
+	if (IsValid(InventoryTitleTextBlock))
+	{
+		InventoryTitleTextBlock->SetText(InventoryComponent->GetInventoryTitleText());
+	}
+
+	InventoryComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::UpdateItemSlotWidget);
 
 	int32 SlotIndex = 0;
 	for (UBaseItemSlotWidget* ItemSlotWidget : ItemSlotWidgets)
 	{
 		if (IsValid(ItemSlotWidget))
 		{
-			UBaseInventoryItem* Item = InventoryComponent->GetItemDataByIndex(SlotIndex);
-			ItemSlotWidget->InitWidget(InventoryComponent, Item, bCanDrag, bCanDrop);
+			UBaseInventoryItem* Item = InventoryComponent->GetInventoryItemByIndex(SlotIndex);
+			ItemSlotWidget->InitSlotWidgetData(this, Item);
 		}
 
 		SlotIndex++;
@@ -100,14 +119,8 @@ void UBaseInventoryWidget::UnBoundWidgetDelegate()
 	}
 }
 
-void UBaseInventoryWidget::UpdateItemSlotWidget(UBaseInventoryItem* Item)
+void UBaseInventoryWidget::UpdateItemSlotWidget(const int32 SlotIndex, UBaseInventoryItem* Item)
 {
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
-	{
-		return;
-	}
-
-	const int32 SlotIndex = Item->GetSlotIndex();
 	if (ItemSlotWidgets.IsValidIndex(SlotIndex))
 	{
 		ItemSlotWidgets[SlotIndex]->SetItem(Item);
