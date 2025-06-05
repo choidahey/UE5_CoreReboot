@@ -1,4 +1,4 @@
-#include "MonsterAI/Task/Season/BTService_UpdateCombatKeys.h"
+#include "MonsterAI/Task/Season/BTService_UpdateState.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "MonsterAI/Components/MonsterPerceptionComponent.h"
@@ -6,15 +6,16 @@
 #include "AIController.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
-UBTService_UpdateCombatKeys::UBTService_UpdateCombatKeys()
+UBTService_UpdateState::UBTService_UpdateState()
 {
-	NodeName = TEXT("UpdateCombatKeys");
+	NodeName = TEXT("UpdateState");
 	Interval = 1.f;
 	bNotifyBecomeRelevant = true;
 	bCreateNodeInstance = true;
+	bCreateNodeInstance = true;
 }
 
-void UBTService_UpdateCombatKeys::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
@@ -49,16 +50,16 @@ void UBTService_UpdateCombatKeys::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 		bHouseInRange = (DistanceToHouse <= AttackDistanceThreshold);
 	}
 
-	if (auto* StateComp = Pawn->FindComponentByClass<UMonsterStateComponent>())
+	if (UMonsterStateComponent* StateComp = Pawn->FindComponentByClass<UMonsterStateComponent>())
 	{
-		if (TargetPlayer)
+		if (IsValid(TargetPlayer))
 		{
 			if (bPlayerInRange)
 				StateComp->SetState(EMonsterState::Attack);
 			else
 				StateComp->SetState(EMonsterState::Chase);
 		}
-		else if (TargetHouse)
+		else if (IsValid(TargetHouse))
 		{
 			if (bHouseInRange)
 			{

@@ -31,8 +31,17 @@ void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 	if (!Target)
 		Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 
-	if (Target)
-		SetFocus(Target, EAIFocusPriority::Gameplay);
-	else
+	bool bIsPlayingAttackMontage = BlackboardComp->GetValueAsBool(FAIKeys::bIsPlayingAttackMontage);
+	
+	if (bIsPlayingAttackMontage)
 		ClearFocus(EAIFocusPriority::Gameplay);
+	else
+	{
+		// SetFocus(Target, EAIFocusPriority::Gameplay);
+		if (Target)
+			SetFocus(Target, EAIFocusPriority::Gameplay);
+		else
+			ClearFocus(EAIFocusPriority::Gameplay);
+	}
+		
 }

@@ -2,16 +2,16 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTService.h"
-#include "BTService_UpdateCombatKeys.generated.h"
+#include "BTService_UpdateState.generated.h"
 
 
 UCLASS()
-class CR4S_API UBTService_UpdateCombatKeys : public UBTService
+class CR4S_API UBTService_UpdateState : public UBTService
 {
 	GENERATED_BODY()
 	
 public:
-	UBTService_UpdateCombatKeys();
+	UBTService_UpdateState();
 
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
