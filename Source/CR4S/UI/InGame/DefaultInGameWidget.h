@@ -4,9 +4,11 @@
 #include "Game/System/WorldTimeManager.h"
 #include "DefaultInGameWidget.generated.h"
 
+class UBaseStatusComponent;
 class UProgressBar;
 class UCharacterStatusWidget;
-class UBaseStatusComponent;
+class UPlayerCharacterStatusComponent;
+class UCharacterEnvironmentStatusWidget;
 class UTimeDisplayWidget;
 
 UCLASS()
@@ -40,6 +42,9 @@ protected:
 	TObjectPtr<UProgressBar> HungerWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UTimeDisplayWidget> TimeDisplayWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UCharacterEnvironmentStatusWidget> EnvironmentStatusWidget;
+
 #pragma endregion
 	
 };

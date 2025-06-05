@@ -65,18 +65,16 @@ public:
 	void SwapData(UBaseInventoryItem* OtherItem);
 
 	FORCEINLINE AActor* GetOwner() const { return Owner; }
-	FORCEINLINE bool HasItemData() const { return bHasItemData; }
 	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
 	FORCEINLINE int32 GetCurrentStackCount() const { return CurrentStackCount; }
+	FORCEINLINE bool HasItemData() const { return CurrentStackCount > 0; }
 
 private:
 	UPROPERTY()
 	TObjectPtr<AActor> Owner;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	int32 SlotIndex;
-	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
-	bool bHasItemData;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	FInventoryItemData InventoryItemData;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")

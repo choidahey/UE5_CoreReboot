@@ -1,0 +1,47 @@
+﻿#include "PlanterBoxItemSlotWidget.h"
+
+#include "CR4S.h"
+#include "Blueprint/DragDropOperation.h"
+#include "Inventory/Components/PlanterBoxInventoryComponent.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
+
+bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
+                                             UDragDropOperation* InOperation)
+{
+	// CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnDrop"));
+
+	UPlanterBoxInventoryComponent* PlanterBoxInventoryComponent = Cast<UPlanterBoxInventoryComponent>(
+		InventoryComponent);
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryComponent)) ||
+		!CR4S_VALIDATE(LogInventoryUI, bCanDrop) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InOperation)))
+	{
+		return false;
+	}
+
+	UBaseItemSlotWidget* FromSlot = Cast<UBaseItemSlotWidget>(InOperation->Payload);
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(FromSlot)))
+	{
+		return false;
+	}
+
+	UBaseInventoryItem* FromItem = FromSlot->GetCurrentItem();
+	if (!CR4S_VALIDATE(LogInventoryUI, FromItem) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)) ||
+		!CR4S_VALIDATE(LogInventoryUI, FromSlot->IsItemAllowedByFilter(CurrentItem)))
+	{
+		return false;
+	}
+
+	const FAddItemResult Result = PlanterBoxInventoryComponent->AddItem(FromItem->GetInventoryItemData()->RowName,
+	                                                                    FromItem->GetCurrentStackCount());
+	if (Result.AddedCount > 0)
+	{
+		FromItem->SetCurrentStackCount(Result.RemainingCount);
+		FromSlot->SetItem(FromItem);
+		SetItem(CurrentItem);
+	}
+
+	return true;
+}

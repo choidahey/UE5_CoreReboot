@@ -7,8 +7,13 @@
 #include "GameFramework/Actor.h"
 
 
-void UAnimNotifyState_IceRoadSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+void UAnimNotifyState_IceRoadSkill::NotifyBegin(
+	USkeletalMeshComponent* MeshComp,
+	UAnimSequenceBase* Animation,
+	float TotalDuration)
 {
+	if (!IsValid(MeshComp->GetWorld()) || !IsValid(MeshComp) || !IsValid(Animation)) return;
+	
 	ElapsedTime = 0.2f;
 	Duration = TotalDuration;
 

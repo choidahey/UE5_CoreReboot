@@ -1,6 +1,10 @@
 #include "BTTask_AnimalPatrol.h"
 #include "AIController.h"
-#include "../Component/AnimalMovementComponent.h"
+#include "../Component/FlyingMovementComponent.h"
+#include "../Component/GroundMovementComponent.h"
+#include "../AnimalGround.h"
+#include "../AnimalFlying.h"
+#include "../BaseAnimal.h"
 #include "../BaseAnimal.h"
 #include "NavigationSystem.h"
 
@@ -35,12 +39,18 @@ EBTNodeResult::Type UBTTask_AnimalPatrol::ExecuteTask(UBehaviorTreeComponent& Ow
 
     Mem->PatrolDestination = Result.Location;
 
-    if (UAnimalMovementComponent* MoveComp = Pawn->FindComponentByClass<UAnimalMovementComponent>())
+    if (UFlyingMovementComponent* FlyComp = Pawn->FindComponentByClass<UFlyingMovementComponent>())
+    {
+        FlyComp->ResetPitchAndRoll();
+        FlyComp->MoveToLocation(Mem->PatrolDestination);
+        return EBTNodeResult::InProgress;
+    }
+    else if (UAnimalMovementComponent* MoveComp = Pawn->FindComponentByClass<UAnimalMovementComponent>())
     {
         MoveComp->MoveToLocation(Mem->PatrolDestination);
         return EBTNodeResult::InProgress;
     }
-
+    
     return EBTNodeResult::Failed;
 }
 
@@ -62,8 +72,18 @@ void UBTTask_AnimalPatrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
         return;
     }
 
-    const float Distance = FVector::Dist(Pawn->GetActorLocation(), Mem->PatrolDestination);
-    if (Distance <= AcceptanceRadius)
+    bool bArrived = false;
+    if (UFlyingMovementComponent* FlyComp = Pawn->FindComponentByClass<UFlyingMovementComponent>())
+    {
+        bArrived = FlyComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
+    }
+
+    else if (UGroundMovementComponent* GroundComp = Pawn->FindComponentByClass<UGroundMovementComponent>())
+    {
+        bArrived = GroundComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
+    }
+
+    if (bArrived)
     {
         FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
     }
