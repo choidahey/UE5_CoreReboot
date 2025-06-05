@@ -27,7 +27,7 @@ protected:
 
 private:
 	UPROPERTY()
-	UBehaviorTreeComponent* CachedOwnerComp = nullptr;
+	TObjectPtr<UBehaviorTreeComponent> CachedOwnerComp = nullptr;
 
 	FString MyHeader = TEXT("UBTTask_PlayAttackMontage");
 };

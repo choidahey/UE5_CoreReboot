@@ -24,13 +24,13 @@ void UBTService_CheckPlayerDistance::TickNode(UBehaviorTreeComponent& OwnerComp,
 
 	if (UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>())
 	{
-		if (StateComp->IsInState(EMonsterState::Idle) && Distance <= FMath::Square(Attribute.SightRadius))
+		if (StateComp->IsInState(EMonsterState::Patrol) && Distance <= FMath::Square(Attribute.SightRadius))
 		{
 			StateComp->SetState(EMonsterState::Alert);
 		}
 		else if (StateComp->IsInState(EMonsterState::Alert) && Distance > FMath::Square(Attribute.SightRadius))
 		{
-			StateComp->SetState(EMonsterState::Idle);
+			StateComp->SetState(EMonsterState::Patrol);
 		}
 		else if(StateComp->IsInState(EMonsterState::Alert) && Distance <= FMath::Square(Attribute.CombatRadius))
 		{

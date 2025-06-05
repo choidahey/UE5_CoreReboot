@@ -17,51 +17,52 @@ EBTNodeResult::Type UBTTask_AnimalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 {
 	StoredOwnerComp = &OwnerComp;
 	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!Animal || !Animal->AttackMontage || !Animal->GetCurrentStats().AttackInterval)
+	if (!Animal || !Animal->MeleeAttackMontage || !Animal->GetCurrentStats().AttackInterval)
 		return EBTNodeResult::Failed;
 
 	if (!Animal->AttackRange || !Animal->CurrentTarget) return EBTNodeResult::Failed;
 	
-	const float TimeNow = Animal->GetWorld()->GetTimeSeconds();
-	if (!Animal->AttackRange->IsOverlappingActor(Animal->CurrentTarget)
-		|| (TimeNow - Animal->LastAttackTime < Animal->CachedAttackInterval))
+	const float Distance = FVector::Dist(
+	Animal->GetActorLocation(),
+	Animal->CurrentTarget->GetActorLocation()
+);
+	float RandValue = FMath::FRand();
+	
+	if (Animal->CurrentState != EAnimalState::Attack ||
+		(!Animal->bCanMelee && !Animal->bCanCharge && !Animal->bCanRanged))
 	{
 		if (AAnimalAIController* C = Cast<AAnimalAIController>(Animal->GetController()))
 		{
-			C->SetTargetActor(Animal->CurrentTarget);
 			C->SetAnimalState(EAnimalState::Chase);
 		}
+		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Failed);
+		return EBTNodeResult::Failed;
+	}
+	
+	if (Distance <= Animal->RangedRange && Animal->bCanRanged && !Animal->bIsRangedOnCooldown && RandValue < Animal->RangedProbability)
+	{
+		Animal->PlayRangedAttackMontage();
+	}
+	else if (Distance <= Animal->DashRange && Animal->bCanCharge && !Animal->bIsChargeOnCooldown && RandValue < Animal->RangedProbability + Animal->ChargeProbability)
+	{
+		Animal->PlayChargeAttackMontage();
+	}
+	else if (Distance <= Animal->MeleeRange && Animal->bCanMelee && !Animal->bIsMeleeOnCooldown && RandValue < Animal->MeleeProbability)
+	{
+		Animal->PlayAttackMontage();
+	}
+	else
+	{
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(Animal->GetController()))
+		{
+			C->SetAnimalState(EAnimalState::Chase);
+		}
+		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
 		return EBTNodeResult::Succeeded;
 	}
 	
-	UAnimInstance* Anim = Animal->GetMesh()->GetAnimInstance();
-	Animal->LastAttackTime = TimeNow;
-	float MontageDuration = Anim->Montage_Play(Animal->AttackMontage);
-	float TotalDelay = MontageDuration + Animal->GetCurrentStats().AttackInterval;
-	
-	if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
-	{
-		if (TargetAnimal->CurrentState == EAnimalState::Dead)
-		{
-			Animal->ClearTarget();
-			if (AAnimalAIController* C = Cast<AAnimalAIController>(Animal->GetController()))
-			{
-				C->SetAnimalState(EAnimalState::Patrol);
-			}
-			bCanFollowUp = false;
-		}
-	}
-	else if (!Animal->AttackRange->IsOverlappingActor(Animal->CurrentTarget))
-	{
-		bCanFollowUp = true;
-	}
-	
-	FTimerDelegate FinishDel = FTimerDelegate::CreateUObject(
-		this, &UBTTask_AnimalAttack::OnAttackFinished);
-	OwnerComp.GetWorld()->GetTimerManager()
-		.SetTimer(AttackTimerHandle, FinishDel, TotalDelay, false);
-
-	return EBTNodeResult::InProgress;
+	FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
+	return EBTNodeResult::Succeeded;
 }
 
 void UBTTask_AnimalAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)

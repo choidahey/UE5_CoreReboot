@@ -144,11 +144,11 @@ void UBTTask_AnimalFlee::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 	}
 	
 	FAIMoveRequest MoveReq;
-	MoveReq.SetGoalLocation(ProjectedLocation.Location);
-	MoveReq.SetAcceptanceRadius(100.f);
+	MoveReq.SetGoalLocation(TargetLocation);
+	MoveReq.SetAcceptanceRadius(Animal->MeleeRange);
 
-	if (Controller)
+	if (AAIController* AIController = Cast<AAIController>(Animal->GetController()))
 	{
-		Controller->MoveTo(MoveReq);
+		AIController->MoveTo(MoveReq);
 	}
 }

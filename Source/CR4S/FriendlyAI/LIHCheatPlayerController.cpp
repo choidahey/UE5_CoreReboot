@@ -93,24 +93,24 @@ void ALIHCheatPlayerController::CMD_KillAll()
     UE_LOG(LogTemp, Warning, TEXT("CMD_KillAll: Killed %d animals"), Count);
 }
 
-void ALIHCheatPlayerController::CMD_ImpregnateAll()
-{
-    UWorld* World = GetWorld();
-    if (!World) return;
-
-    for (TActorIterator<ABaseAnimal> It(World); It; ++It)
-    {
-        ABaseAnimal* Animal = *It;
-        if (!Animal || !Animal->bIsFemale) 
-            continue;
-
-        if (UAnimalBreedingComponent* BreedComp = Animal->FindComponentByClass<UAnimalBreedingComponent>())
-        {
-            BreedComp->StartGestation(nullptr);
-            UE_LOG(LogTemp, Log, TEXT("CMD_ImpregnateAll : %s is now pregnant"), *Animal->GetName());
-        }
-    }
-}
+// void ALIHCheatPlayerController::CMD_ImpregnateAll()
+// {
+//     UWorld* World = GetWorld();
+//     if (!World) return;
+//
+//     for (TActorIterator<ABaseAnimal> It(World); It; ++It)
+//     {
+//         ABaseAnimal* Animal = *It;
+//         if (!Animal || !Animal->bIsFemale) 
+//             continue;
+//
+//         if (UAnimalBreedingComponent* BreedComp = Animal->FindComponentByClass<UAnimalBreedingComponent>())
+//         {
+//             BreedComp->StartGestation(nullptr);
+//             UE_LOG(LogTemp, Log, TEXT("CMD_ImpregnateAll : %s is now pregnant"), *Animal->GetName());
+//         }
+//     }
+// }
 
 void ALIHCheatPlayerController::CMD_ChangeHelperBotState(EHelperBotState NewState)
 {

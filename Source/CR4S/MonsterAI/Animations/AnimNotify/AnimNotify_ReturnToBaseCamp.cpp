@@ -19,13 +19,12 @@ void UAnimNotify_ReturnToBaseCamp::Notify(USkeletalMeshComponent* MeshComp, UAni
 	AAIController* AIC = Cast<AAIController>(Monster->GetController());
 	if (!AIC || !AIC->GetBlackboardComponent())	return;
 
-	// Return
 	const FVector TargetLocation = AIC->GetBlackboardComponent()->GetValueAsVector(FRegionBossAIKeys::CombatStartLocation) + FVector(0.f, 0.f, 100.f);
 	Monster->SetActorLocation(TargetLocation);
 
 	if (UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>())
 	{
-		StateComp->SetState(EMonsterState::Idle);	
+		StateComp->SetState(EMonsterState::Patrol);	
 	}
 
 	if (UMonsterAttributeComponent* AttrComp = Monster->FindComponentByClass<UMonsterAttributeComponent>())

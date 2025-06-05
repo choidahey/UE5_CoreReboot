@@ -1,6 +1,7 @@
 #include "MonsterAI/Controller/RegionBossMonsterAIController.h"
 #include "MonsterAI/Region/RegionBossMonster.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
 
@@ -17,12 +18,14 @@ void ARegionBossMonsterAIController::OnPossess(APawn* InPawn)
 	{
 		if (UMonsterStateComponent* StateComp = RegionBoss->FindComponentByClass<UMonsterStateComponent>())
 		{
-			StateComp->SetState(EMonsterState::Idle);
+			StateComp->SetState(EMonsterState::Patrol);
 		}
 
-		if (Blackboard)
+		if (RegionBoss->BehaviorTree)
 		{
-			Blackboard->SetValueAsVector(FRegionBossAIKeys::CombatStartLocation, RegionBoss->GetCombatStartLocation());
+			UBlackboardComponent* RawBBComp = BlackboardComp.Get();
+			UseBlackboard(RegionBoss->BehaviorTree->BlackboardAsset, RawBBComp);
+			RunBehaviorTree(RegionBoss->BehaviorTree);
 		}
 	}
 }

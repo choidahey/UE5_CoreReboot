@@ -97,8 +97,20 @@ void UAIJumpComponent::OnEQSQueryFinished(UEnvQueryInstanceBlueprintWrapper* Que
         return;
 
     UCapsuleComponent* Capsule = OwnerCharacter->GetCapsuleComponent();
-    FVector Start = Capsule->GetComponentLocation() - FVector(0,0,Capsule->GetScaledCapsuleHalfHeight());
-    const FVector End   = Results[0];
+    FVector RawStart = Capsule->GetComponentLocation() - FVector(0,0,Capsule->GetScaledCapsuleHalfHeight());
+    FVector Start;
+    if (Results[0].Z > RawStart.Z)
+    {
+        const float StartOffset = -50.f;
+        Start = RawStart - GetOwner()->GetActorForwardVector() * StartOffset;
+    }
+    else
+    {
+        Start = RawStart;
+    }
+
+    const float EndOffset = 50.f;
+    FVector End = Results[0] + GetOwner()->GetActorForwardVector() * EndOffset;
 
     DrawDebugSphere(GetWorld(), Start, 30.f, 12, FColor::Green, false, 2.f);
     DrawDebugSphere(GetWorld(), End,   30.f, 12, FColor::Red,   false, 2.f);
@@ -144,45 +156,43 @@ void UAIJumpComponent::OnEQSQueryFinished(UEnvQueryInstanceBlueprintWrapper* Que
     
     if (UWorld* World = GetWorld())
     {
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        ANavLinkProxy* LinkProxy = World->SpawnActor<ANavLinkProxy>(Start, FRotator::ZeroRotator, SpawnParams);
-        if (LinkProxy)
+        ANavLinkProxy* LinkProxy = CurrentLinkProxy.IsValid() ? CurrentLinkProxy.Get() : nullptr;
+        if (!LinkProxy)
         {
-            LinkProxy->PointLinks.Empty();
-            FVector NavLeft = Start;
-            FVector NavRight = End;
-            UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
-            if (NavSys)
-            {
-                FNavLocation Projected;
-                if (NavSys->ProjectPointToNavigation(Start, Projected))
-                    NavLeft = Projected.Location;
-                if (NavSys->ProjectPointToNavigation(End, Projected))
-                    NavRight = Projected.Location;
-            }
-
-            FNavigationLink NavLink;
-            NavLink.Left      = NavLeft;
-            NavLink.Right     = NavRight;
-            NavLink.Direction = ENavLinkDirection::BothWays;
-            LinkProxy->PointLinks.Add(NavLink);
+            FActorSpawnParameters SpawnParams;
+            SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            LinkProxy = World->SpawnActor<ANavLinkProxy>(Start, FRotator::ZeroRotator, SpawnParams);
             CurrentLinkProxy = LinkProxy;
 
             if (UNavLinkCustomComponent* Old = LinkProxy->GetSmartLinkComp())
                 Old->DestroyComponent();
-
             UJumpNavLinkComponent* JumpComp = NewObject<UJumpNavLinkComponent>(LinkProxy);
             JumpComp->JumpPower = OwnerCharacter && OwnerCharacter->GetCharacterMovement()
                 ? OwnerCharacter->GetCharacterMovement()->JumpZVelocity
                 : JumpPower;
             JumpComp->RegisterComponent();
             LinkProxy->AddInstanceComponent(JumpComp);
-            JumpComp->SetRelativeStartAndEnd(NavLeft, NavRight, LinkProxy);
-
-            LinkProxy->SetSmartLinkEnabled(true);
-            LinkProxy->RegisterAllComponents();
         }
+        else
+        {
+            LinkProxy->SetActorLocation(Start);
+            LinkProxy->PointLinks.Empty();
+        }
+
+        FNavigationLink NavLink;
+        NavLink.Left      = Start;
+        NavLink.Right     = End;
+        NavLink.Direction = ENavLinkDirection::BothWays;
+        LinkProxy->PointLinks.Add(NavLink);
+
+        if (UJumpNavLinkComponent* JumpComp = LinkProxy->FindComponentByClass<UJumpNavLinkComponent>())
+            JumpComp->SetRelativeStartAndEnd(Start, End, LinkProxy);
+
+        if (UNavLinkCustomComponent* SmartComp = LinkProxy->GetSmartLinkComp())
+        {
+            SmartComp->SetEnabled(true);
+        }
+        LinkProxy->RegisterAllComponents();
     }
     
     if (AAIController* AICon = Cast<AAIController>(OwnerCharacter->GetController()))
@@ -232,4 +242,5 @@ void UAIJumpComponent::OnNavMoveCompleted(FAIRequestID RequestID, EPathFollowing
         CurrentLinkProxy->Destroy();
         CurrentLinkProxy = nullptr;
     }
+    Deactivate();
 }
