@@ -5,9 +5,10 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
+#include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
+#include "Inventory/UI/InventoryWidget/PlayerInventoryWidget.h"
 
 UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer),
@@ -32,30 +33,31 @@ void UBaseItemSlotWidget::NativeConstruct()
 	PlayerController = GetOwningPlayer();
 
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
-
+	
 	SetIsFocusable(true);
 }
 
-void UBaseItemSlotWidget::InitSlotWidget(int32 NewSlotIndex)
+void UBaseItemSlotWidget::InitSlotWidget(const int32 NewSlotIndex)
 {
 	SlotIndex = NewSlotIndex;
 }
 
-void UBaseItemSlotWidget::InitSlotWidgetData(UBaseInventoryComponent* NewInventoryComponent,
-                                             UBaseInventoryItem* NewItem, const bool bNewCanDrag,
-                                             const bool bNewCanDrop)
+void UBaseItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget,
+                                             UBaseInventoryItem* NewItem)
 {
-	if (IsValid(NewInventoryComponent))
+	if (IsValid(NewInventoryWidget))
 	{
-		bIsPlayerItemSlot = NewInventoryComponent->IsA(UPlayerInventoryComponent::StaticClass());
+		bIsPlayerItemSlot = NewInventoryWidget->IsA(UPlayerInventoryWidget::StaticClass());
+
+		bCanDrag = NewInventoryWidget->CanDrag();
+		bCanDrop = NewInventoryWidget->CanDrop();
+		bCanRemoveItem = NewInventoryWidget->CanRemoveItem();
+		bCanMoveItem = NewInventoryWidget->CanMoveItem();
 	}
 
-	InventoryComponent = NewInventoryComponent;
+	InventoryComponent = NewInventoryWidget->GetInventoryComponent();
 
 	SetItem(NewItem);
-
-	bCanDrag = bNewCanDrag;
-	bCanDrop = bNewCanDrop;
 }
 
 void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)

@@ -51,7 +51,7 @@ public:
 
 private:
 	void InitToggleWidget(UUserWidget* Widget) const;
-	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const;
+	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType) const;
 
 	bool bIsOpen;
 
@@ -63,11 +63,14 @@ public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
 	void MoveItemToInventory(const UBaseItemSlotWidget* ItemSlot, bool bTargetIsPlayer) const;
+
+private:
+	bool CanMoveItem(const bool bTargetIsPlayer) const;
 	
 #pragma endregion
 
 #pragma region BindWidget
-
+	
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> BackgroundBorder;

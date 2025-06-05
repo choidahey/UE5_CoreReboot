@@ -6,6 +6,16 @@
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 
+UBaseInventoryWidget::UBaseInventoryWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer),
+	  bCanSort(true),
+	  bCanDrag(true),
+	  bCanDrop(true),
+	  bCanRemoveItem(true),
+	  bCanMoveItem(true)
+{
+}
+
 void UBaseInventoryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -70,8 +80,7 @@ void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNew
 	bCanSort = bNewCanSort;
 }
 
-void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent,
-                                                     const bool bCanDrag, const bool bCanDrop)
+void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(NewInventoryComponent)))
 	{
@@ -88,7 +97,7 @@ void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* Ne
 		if (IsValid(ItemSlotWidget))
 		{
 			UBaseInventoryItem* Item = InventoryComponent->GetItemDataByIndex(SlotIndex);
-			ItemSlotWidget->InitSlotWidgetData(InventoryComponent, Item, bCanDrag, bCanDrop);
+			ItemSlotWidget->InitSlotWidgetData(this, Item);
 		}
 
 		SlotIndex++;

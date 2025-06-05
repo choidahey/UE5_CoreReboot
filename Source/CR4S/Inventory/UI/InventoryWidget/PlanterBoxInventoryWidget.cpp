@@ -7,10 +7,9 @@
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 
-void UPlanterBoxInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent,
-                                                           const bool bCanDrag, const bool bCanDrop)
+void UPlanterBoxInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent)
 {
-	Super::ConnectInventoryComponent(NewInventoryComponent, bCanDrag, bCanDrop);
+	Super::ConnectInventoryComponent(NewInventoryComponent);
 
 	ConnectCropsGimmick();
 }
