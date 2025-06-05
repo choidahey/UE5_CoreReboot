@@ -28,7 +28,7 @@ FAddItemResult UPlanterBoxInventoryComponent::AddItem(const FName RowName, const
 		InventoryItems[0] = NewObject<UBaseInventoryItem>();
 		if (IsValid(InventoryItems[0]))
 		{
-			InventoryItems[0]->InitInventoryItemData(FInventoryItemData(RowName, *ItemData), 1);
+			InventoryItems[0]->InitInventoryItem(this, FInventoryItemData(RowName, *ItemData), 1);
 			Result.AddedCount = 1;
 			Result.RemainingCount -= 1;
 		}

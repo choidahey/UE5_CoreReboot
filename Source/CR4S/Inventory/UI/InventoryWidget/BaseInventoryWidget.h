@@ -51,6 +51,8 @@ protected:
 #pragma region BindWidget
 
 protected:
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> InventoryTitleTextBlock;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPanelWidget> ItemSlotWidgetContainer;
 

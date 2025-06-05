@@ -135,6 +135,12 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	}
 
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
+
+	if (IsValid(InputGuideContainer))
+	{
+		InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	SurvivalHUD->ToggleWidget(OpenOtherWidget);
 
 	UBaseInventoryWidget* OtherInventoryWidget = Cast<UBaseInventoryWidget>(OpenOtherWidget);
@@ -163,7 +169,6 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 	const EInventoryType InventoryType) const
 {
 	UUserWidget* TargetWidget = nullptr;
-	UBaseInventoryWidget* TargetInventoryWidget;
 
 	switch (InventoryType)
 	{
@@ -172,24 +177,22 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 		return nullptr;
 	case EInventoryType::Storage:
 		{
-			TargetWidget = StorageInventoryWidget;
-			TargetInventoryWidget = Cast<UBaseInventoryWidget>(TargetWidget);
-			if (IsValid(TargetInventoryWidget))
+			if (IsValid(StorageInventoryWidget))
 			{
-				TargetInventoryWidget->SetCanSort(true);
-				TargetInventoryWidget->SetCanDrop(true);
+				StorageInventoryWidget->SetCanSort(true);
+				StorageInventoryWidget->SetCanDrop(true);
 			}
+			TargetWidget = StorageInventoryWidget;
 			break;
 		}
 	case EInventoryType::ItemPouch:
 		{
-			TargetWidget = StorageInventoryWidget;
-			TargetInventoryWidget = Cast<UBaseInventoryWidget>(TargetWidget);
-			if (IsValid(TargetInventoryWidget))
+			if (IsValid(StorageInventoryWidget))
 			{
-				TargetInventoryWidget->SetCanSort(false);
-				TargetInventoryWidget->SetCanDrop(false);
+				StorageInventoryWidget->SetCanSort(false);
+				StorageInventoryWidget->SetCanDrop(false);
 			}
+			TargetWidget = StorageInventoryWidget;
 			break;
 		}
 	case EInventoryType::PlantBox:
@@ -224,7 +227,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 	{
 		return;
 	}
-	
+
 	const UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
@@ -251,11 +254,11 @@ bool UInventoryContainerWidget::CanMoveItem(const bool bTargetIsPlayer) const
 	{
 		return false;
 	}
-	
+
 	const UBaseInventoryWidget* ToInventoryWidget = bTargetIsPlayer
-												  ? PlayerInventoryWidget.Get()
-												  : Cast<UBaseInventoryWidget>(OpenOtherWidget);
-	
+		                                                ? PlayerInventoryWidget.Get()
+		                                                : Cast<UBaseInventoryWidget>(OpenOtherWidget);
+
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(ToInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, ToInventoryWidget->CanDrop()))
 	{

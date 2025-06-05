@@ -6,6 +6,9 @@
 
 #include "BaseInventoryItem.generated.h"
 
+class UPlayerInventoryComponent;
+class UPlayerCharacterStatusComponent;
+class UBaseInventoryComponent;
 class APlayerCharacter;
 
 USTRUCT(BlueprintType)
@@ -46,18 +49,44 @@ public:
 
 #pragma endregion
 
-#pragma region UseItem
+#pragma region Initialize
 
 public:
-	virtual void UseItem();
+	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
+	                               const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0);
+
+	FORCEINLINE void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
+	{
+		InventoryComponent = NewInventoryComponent;
+	}
+
+protected:
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	
+	UPROPERTY()
+	TObjectPtr<APlayerCharacter> OwnerPlayer;
+
+	UPROPERTY()
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UPlayerCharacterStatusComponent> PlayerStatusComponent;
+
+#pragma endregion
+
+#pragma region Item Behavior
+
+public:
+	virtual void UseItem(int32 Index);
+
+	virtual void HandlePassiveEffect();
 
 #pragma endregion
 
 #pragma region Data
 
 public:
-	virtual void InitInventoryItemData(const FInventoryItemData& NewInventoryItemData,
-	                                   const int32 StackCount = 0);
 	void SetCurrentStackCount(const int32 NewStackCount);
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
@@ -66,7 +95,7 @@ public:
 	FORCEINLINE int32 GetCurrentStackCount() const { return CurrentStackCount; }
 	FORCEINLINE int32 IsEmpty() const { return CurrentStackCount <= 0; }
 
-private:
+protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	FInventoryItemData InventoryItemData;
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")

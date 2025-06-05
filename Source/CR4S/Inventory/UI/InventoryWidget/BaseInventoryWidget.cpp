@@ -2,6 +2,7 @@
 
 #include "CR4S.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
@@ -89,14 +90,19 @@ void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* Ne
 
 	InventoryComponent = NewInventoryComponent;
 
-	NewInventoryComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::UpdateItemSlotWidget);
+	if (IsValid(InventoryTitleTextBlock))
+	{
+		InventoryTitleTextBlock->SetText(InventoryComponent->GetInventoryTitleText());
+	}
+
+	InventoryComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::UpdateItemSlotWidget);
 
 	int32 SlotIndex = 0;
 	for (UBaseItemSlotWidget* ItemSlotWidget : ItemSlotWidgets)
 	{
 		if (IsValid(ItemSlotWidget))
 		{
-			UBaseInventoryItem* Item = InventoryComponent->GetItemDataByIndex(SlotIndex);
+			UBaseInventoryItem* Item = InventoryComponent->GetInventoryItemByIndex(SlotIndex);
 			ItemSlotWidget->InitSlotWidgetData(this, Item);
 		}
 

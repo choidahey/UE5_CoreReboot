@@ -16,6 +16,8 @@ struct FItemInfoData : public FTableRowBase
 	FText Description = FText::FromString("");
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "아이콘"))
 	TObjectPtr<UTexture2D> Icon = nullptr;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "사용 효과음"))
+	TObjectPtr<USoundBase> UseSound = nullptr;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "태그"))
 	FGameplayTagContainer ItemTags = FGameplayTagContainer();
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "최대 중첩 개수", ClampMin = "1", ClampMax = "9999"))
@@ -31,8 +33,8 @@ struct FToolItemData : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "스태틱 메시"))
 	TObjectPtr<UStaticMesh> StaticMesh = nullptr;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "애니메이션 몽타주"))
-	TObjectPtr<UAnimMontage> AnimMontage = nullptr;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "도구 태그"))
+	FGameplayTag ToolTag = FGameplayTag();
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "공격력", ClampMin = "0"))
 	int32 Damage = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "기절 수치", ClampMin = "0"))
@@ -77,8 +79,6 @@ struct FConsumableItemData : public FTableRowBase
 	bool bCanPlant = false;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "작물 기믹 데이터"))
 	FDataTableRowHandle CropsGimmickData = FDataTableRowHandle();
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "애니메이션 몽타주"))
-	TObjectPtr<UAnimMontage> AnimMontage = nullptr;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "허기 증감 수치"))
 	int32 HungerRestore = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "체력 증감 수치"))

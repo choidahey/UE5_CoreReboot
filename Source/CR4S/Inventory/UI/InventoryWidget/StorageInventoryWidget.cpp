@@ -2,6 +2,7 @@
 
 #include "CR4S.h"
 #include "Components/PanelWidget.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/ItemSlotWidget/BaseItemSlotWidget.h"
 
 void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNewCanSort)
@@ -24,6 +25,41 @@ void UStorageInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool b
 			ItemSlotWidget->InitSlotWidget(Index);
 			ItemSlotWidgetContainer->AddChild(ItemSlotWidget);
 			ItemSlotWidgets.Add(ItemSlotWidget);
+		}
+	}
+}
+
+void UStorageInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent)
+{
+	Super::ConnectInventoryComponent(NewInventoryComponent);
+
+	SetVisibleItemSlots();
+}
+
+void UStorageInventoryWidget::SetVisibleItemSlots()
+{
+	if (!IsValid(InventoryComponent))
+	{
+		return;
+	}
+
+	const int32 VisibleCount = InventoryComponent->GetMaxInventorySize();
+	
+	for (int32 Index = 0; Index < ItemSlotWidgets.Num(); Index++)
+	{
+		UBaseItemSlotWidget* ItemSlotWidget = ItemSlotWidgets[Index];
+		if (!IsValid(ItemSlotWidget))
+		{
+			continue;
+		}
+		
+		if (Index < VisibleCount)
+		{
+			ItemSlotWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+		else
+		{
+			ItemSlotWidget->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 }

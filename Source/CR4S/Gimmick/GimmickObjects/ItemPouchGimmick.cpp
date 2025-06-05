@@ -14,6 +14,7 @@ AItemPouchGimmick::AItemPouchGimmick()
 
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
 	InventoryComponent->SetMaxInventorySize(100);
+	InventoryComponent->SetInventoryTitleText(FText::FromString("ITEM POUCH"));
 }
 
 void AItemPouchGimmick::BeginPlay()
@@ -53,6 +54,8 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 	{
 		InventoryComponent->OnOccupiedSlotsChanged.BindDynamic(this, &ThisClass::DestroyItemPouch);
 
+		InventoryComponent->SetMaxInventorySize(InventoryComponent->GetUseSlotCount());
+		
 		PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::ItemPouch, InventoryComponent);
 	}
 }

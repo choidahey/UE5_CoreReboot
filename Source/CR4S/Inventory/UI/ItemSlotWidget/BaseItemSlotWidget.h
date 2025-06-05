@@ -21,6 +21,8 @@ class CR4S_API UBaseItemSlotWidget : public UUserWidget
 #pragma region UUserWidget Override
 
 public:
+	UBaseItemSlotWidget(const FObjectInitializer& ObjectInitializer);
+	
 	virtual void NativeConstruct() override;
 
 #pragma endregion
@@ -28,9 +30,8 @@ public:
 #pragma region Initalize
 
 public:
-	UBaseItemSlotWidget(const FObjectInitializer& ObjectInitializer);
 	void InitSlotWidget(int32 NewSlotIndex);
-	void InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem);
+	virtual void InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem);
 
 	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
 	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }

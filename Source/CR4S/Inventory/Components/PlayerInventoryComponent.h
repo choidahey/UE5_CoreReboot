@@ -41,20 +41,27 @@ private:
 	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
 	UPROPERTY()
 	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidgetInstance;
-	
+
 	UPROPERTY()
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
-	
+
 #pragma endregion
 
 #pragma region QuickSlotInventoryComponent
 
 public:
+	UFUNCTION(BlueprintCallable)
+	void UseItem(const int32 Index) const;
+
 	FORCEINLINE UBaseInventoryComponent* GetQuickSlotInventoryComponent() { return QuickSlotInventoryComponent; }
-	
+	FORCEINLINE const FGameplayTag& GetHeldToolTag() const { return HeldToolTag; }
+	FORCEINLINE void SetHeldToolTag(const FGameplayTag& NewHeldToolTags) { HeldToolTag = NewHeldToolTags; }
+
 private:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryComponent> QuickSlotInventoryComponent;
-	
-#pragma endregion 
+
+	FGameplayTag HeldToolTag;
+
+#pragma endregion
 };

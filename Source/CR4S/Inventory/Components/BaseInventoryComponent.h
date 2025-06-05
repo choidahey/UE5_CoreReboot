@@ -48,8 +48,8 @@ public:
 
 public:
 	void InitInventory();
-	
-#pragma endregion 
+
+#pragma endregion
 
 #pragma region InventorySystem
 
@@ -62,7 +62,7 @@ public:
 	void RemoveItemByIndex(const int32 Index, const int32 Count = -1);
 
 	void SortInventoryItems();
-	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
+	UBaseInventoryItem* GetInventoryItemByIndex(const int32 Index) const;
 	int32 GetItemCountByRowName(const FName RowName) const;
 
 	void SwapItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
@@ -71,6 +71,7 @@ public:
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
 
 	FORCEINLINE int32 GetMaxInventorySize() const { return MaxInventorySize; }
+
 	FORCEINLINE void SetMaxInventorySize(const int32 InMaxInventorySlot) { MaxInventorySize = InMaxInventorySlot; }
 	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex)
 	{
@@ -84,7 +85,14 @@ public:
 		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
 	}
 
+	int32 GetUseSlotCount();
 	FORCEINLINE int32 GetNumOccupiedSlots() const { return OccupiedSlots.Num(); }
+
+	FORCEINLINE const FText& GetInventoryTitleText() const { return InventoryTitleText; }
+	FORCEINLINE void SetInventoryTitleText(const FText& NewInventoryTitleText)
+	{
+		InventoryTitleText = NewInventoryTitleText;
+	}
 
 protected:
 	void GetSameItemSlotsAndEmptySlots(const FName& InRowName,
@@ -107,9 +115,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 
+	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
+	FText InventoryTitleText;
+
 	UPROPERTY()
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
-
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor;
 

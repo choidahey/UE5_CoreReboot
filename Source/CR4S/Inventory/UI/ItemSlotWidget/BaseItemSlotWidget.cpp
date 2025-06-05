@@ -8,7 +8,6 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
-#include "Inventory/UI/InventoryWidget/PlayerInventoryWidget.h"
 
 UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer),
@@ -33,7 +32,7 @@ void UBaseItemSlotWidget::NativeConstruct()
 	PlayerController = GetOwningPlayer();
 
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
-	
+
 	SetIsFocusable(true);
 }
 
@@ -47,8 +46,6 @@ void UBaseItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInve
 {
 	if (IsValid(NewInventoryWidget))
 	{
-		bIsPlayerItemSlot = NewInventoryWidget->IsA(UPlayerInventoryWidget::StaticClass());
-
 		bCanDrag = NewInventoryWidget->CanDrag();
 		bCanDrop = NewInventoryWidget->CanDrop();
 		bCanRemoveItem = NewInventoryWidget->CanRemoveItem();
@@ -251,7 +248,9 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 
 FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (!IsValid(CurrentItem) || !IsValid(InventoryComponent))
+	if (!IsValid(CurrentItem) ||
+		!IsValid(InventoryComponent) ||
+		!IsValid(InventoryContainerWidget))
 	{
 		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}
@@ -262,18 +261,12 @@ FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const F
 		return FReply::Handled();
 	}
 
-	const bool bPressedE = InKeyEvent.GetKey() == EKeys::E;
-	const bool bPressedQ = InKeyEvent.GetKey() == EKeys::Q;
-
-	const bool bCanMoveToPlayer = bPressedE && !bIsPlayerItemSlot;
-	const bool bCanMoveToOther = bPressedQ && bIsPlayerItemSlot;
-
-	if ((bCanMoveToPlayer || bCanMoveToOther) &&
+	if (InKeyEvent.GetKey() == EKeys::E &&
+		!bIsPlayerItemSlot &&
 		CR4S_VALIDATE(LogInventoryUI, bCanDrag) &&
-		CR4S_VALIDATE(LogInventoryUI, bCanMoveItem) &&
-		IsValid(InventoryContainerWidget))
+		CR4S_VALIDATE(LogInventoryUI, bCanMoveItem))
 	{
-		InventoryContainerWidget->MoveItemToInventory(this, bCanMoveToPlayer);
+		InventoryContainerWidget->MoveItemToInventory(this, true);
 		return FReply::Handled();
 	}
 
