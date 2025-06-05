@@ -3,7 +3,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
-class UButton;
+class UButtonWidget;
 class UTextBlock;
 class UConfirmWidget;
 class USettingsWidget;
@@ -70,21 +70,18 @@ protected:
 	UAudioComponent* BGMComponent;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* PlayGameButton;
+	UButtonWidget* PlayGameButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* SettingsButton;
+	UButtonWidget* SettingsButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* CreditsButton;
+	UButtonWidget* CreditsButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* QuitButton;
+	UButtonWidget* QuitButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* NewGameButton;
-	UPROPERTY(Meta = (BindWidget))
-	UTextBlock* NewGameText;
+	UButtonWidget* NewGameButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* LoadGameButton;
-	UPROPERTY(Meta = (BindWidget))
-	UTextBlock* LoadGameText;
+	UButtonWidget* LoadGameButton;
+
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* FadeIn;
