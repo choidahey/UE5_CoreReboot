@@ -6,6 +6,7 @@
 #include "CR4S.h"
 #include "NiagaraComponent.h"
 #include "Character/Characters/ModularRobot.h"
+#include "Character/Data/WeaponData.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -41,9 +42,14 @@ ABaseBullet::ABaseBullet()
 	
 }
 
-void ABaseBullet::Initialize()
+void ABaseBullet::Initialize(const FBulletData& InData)
 {
-	
+	ImpactParticle=InData.ImpactParticle;
+	ImpactSound=InData.ImpactSound;
+	ProjectileMovementComponent->InitialSpeed=InData.InitialBulletSpeed;
+	ProjectileMovementComponent->MaxSpeed=InData.MaxBulletSpeed;
+	ExplosionRadius=InData.ExplosionRadius;
+	//Homing
 }
 
 // Called when the game starts or when spawned
@@ -71,6 +77,37 @@ void ABaseBullet::OnOverlapBegin(
 	)
 {
 	FVector OverlapLocation=GetActorLocation();
+	AActor* OwnerActor=GetOwner();
+	if (ExplosionRadius<=KINDA_SMALL_NUMBER) // 
+	{
+		if (OtherActor&&OtherActor!=this)
+		{
+			UGameplayStatics::ApplyDamage(
+				OtherActor,
+				Damage,
+				OwnerActor ? OwnerActor->GetInstigatorController():nullptr,
+				Owner,
+				UDamageType::StaticClass()
+			);
+		}
+	}
+	else // Explosion Bullet
+	{
+		TArray<AActor*> IgnoreList;
+		IgnoreList.Add(this);
+
+		UGameplayStatics::ApplyRadialDamage(
+			GetWorld(),
+			Damage,
+			SweepResult.ImpactPoint,
+			ExplosionRadius,
+			UDamageType::StaticClass(),
+			IgnoreList,
+			Owner,
+			OwnerActor ? OwnerActor->GetInstigatorController():nullptr,
+			true
+		);
+	}
 	if (ImpactParticle)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
@@ -89,18 +126,6 @@ void ABaseBullet::OnOverlapBegin(
 			OverlapLocation,
 			1.0f,
 			1.0f
-		);
-	}
-
-	if (OtherActor&&OtherActor!=this)
-	{
-		AActor* OwnerActor=GetOwner();
-		UGameplayStatics::ApplyDamage(
-			OtherActor,
-			Damage,
-			OwnerActor ? OwnerActor->GetInstigatorController():nullptr,
-			Owner,
-			UDamageType::StaticClass()
 		);
 	}
 	

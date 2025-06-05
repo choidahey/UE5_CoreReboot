@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseBullet.generated.h"
 
+struct FBulletData;
 class UBoxComponent;
 class UNiagaraComponent;
 class URadialForceComponent;
@@ -21,7 +22,7 @@ public:
 	ABaseBullet();
 
 public:
-	void Initialize();
+	void Initialize(const FBulletData& InData);
 	
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -53,6 +54,12 @@ protected:
 	UProjectileMovementComponent* ProjectileMovementComponent;
 #pragma endregion
 
+#pragma region Properties
+protected:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Explosion")
+	float ExplosionRadius{0};
+#pragma endregion
+	
 #pragma region Effects
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")

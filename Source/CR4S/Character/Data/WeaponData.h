@@ -4,11 +4,31 @@
 
 #include "CoreMinimal.h"
 #include "WeaponData.generated.h"
+class ABaseBullet;
 /**
  * 
  */
 USTRUCT(BlueprintType)
-struct CR4S_API FBaseWeaponData : public FTableRowBase 
+struct CR4S_API FBulletData
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	UParticleSystem* ImpactParticle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	USoundBase* ImpactSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float InitialBulletSpeed{2000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxBulletSpeed{2000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ExplosionRadius{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HomingStrength{0};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FBaseWeaponData
 {
 	GENERATED_BODY()
 public:
@@ -19,8 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Weight{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	uint8 bHasRecoil:1 {false};
+	uint8 bHasSelfStun:1 {false};
 };
+
 
 USTRUCT(BlueprintType)
 struct CR4S_API FMeleeWeaponData : public FBaseWeaponData 
@@ -41,5 +62,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Range{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MagazineCapacity{10};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 CurrentAmmo{10};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float FireRate{5};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ReloadTime{2};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Recoil{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float LockOnTime{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 BulletPerShot{1};
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletsPerShot > 1"))
+	float SpreadAngle = 5.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<ABaseBullet> ProjectileClass{nullptr};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FBulletData BulletData;
 };
