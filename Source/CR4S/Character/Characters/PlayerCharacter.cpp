@@ -44,6 +44,11 @@ APlayerCharacter::APlayerCharacter()
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
 }
 
+void APlayerCharacter::SetToolStaticMesh(UStaticMesh* InMesh)
+{
+	ToolStaticMesh=InMesh;
+}
+
 void APlayerCharacter::InitializeWidgets()
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))

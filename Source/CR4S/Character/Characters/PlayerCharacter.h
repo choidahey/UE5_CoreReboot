@@ -26,7 +26,9 @@ public:
 
 #pragma region Get
 	FORCEINLINE UStaticMeshComponent* GetOverlayStaticMesh() { return OverlayStaticMesh; }
-	FORCEINLINE int32 GetAttackPower() const { return Status->GetAttackPower(); }
+
+	UFUNCTION(BlueprintCallable)
+	void SetToolStaticMesh(UStaticMesh* InMesh);
 #pragma endregion
 	
 #pragma region Widget
@@ -157,7 +159,10 @@ protected:
 	float LookRightRate{240.0f};
 #pragma endregion
 	
-
+#pragma region Properties
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Tool")
+	TObjectPtr<UStaticMesh> ToolStaticMesh;
+#pragma endregion
 
 #pragma region Navigation Invokers
 

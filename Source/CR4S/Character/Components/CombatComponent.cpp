@@ -59,6 +59,11 @@ void UCombatComponent::PerformWeaponTrace()
 		FCollisionShape::MakeBox(BoxHalfSize),
 		QueryParams
 	);
+	float Damage=0;
+	if (UPlayerCharacterStatusComponent* StatusComp=OwningCharacter->FindComponentByClass<UPlayerCharacterStatusComponent>())
+	{
+		Damage=StatusComp->GetAttackPower();
+	}
 	//Result process
 	if (bHit)
 	{
@@ -72,7 +77,7 @@ void UCombatComponent::PerformWeaponTrace()
 					UE_LOG(LogTemp, Warning, TEXT("Applying damage to: %s"), *HitActor->GetName());
 					UGameplayStatics::ApplyDamage(
 						HitActor,
-						OwningCharacter->GetAttackPower(),
+						Damage,
 						OwningCharacter->GetController(),
 						OwningCharacter,
 						UDamageType::StaticClass()
