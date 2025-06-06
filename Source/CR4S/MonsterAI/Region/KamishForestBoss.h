@@ -22,9 +22,6 @@ protected:
 	void SpawnCloudEffect();
 	void DestroyActiveClouds();
 	
-public:
-	FORCEINLINE FVector GetCloudOriginLocation() const { return CloudOriginLocation; }
-
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Cloud")
 	TObjectPtr<UNiagaraSystem> CloudAsset;
@@ -32,11 +29,11 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> ActiveCloudEffect;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Kamish|Cloud")
-	FVector CloudOriginLocation;
+	UPROPERTY(EditDefaultsOnly)
+	float CloudVerticalOffset = 2000.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Cloud")
-	float CloudHeight = 1000.f;
+	float CloudVisualRadius = 4000.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Cloud")
 	float NiagaraRadiusBase = 100.0f;

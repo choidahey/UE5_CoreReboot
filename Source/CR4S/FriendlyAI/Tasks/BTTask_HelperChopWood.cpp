@@ -6,6 +6,8 @@
 #include "../../Gimmick/Components/DestructibleComponent.h"
 #include "../../Gimmick/GimmickObjects/ResourceGimmick/TreeGimmick.h"
 #include "../BaseHelperBot.h"
+#include "../../Inventory/Components/PlayerInventoryComponent.h"
+#include "Gimmick/GimmickObjects/ResourceGimmick/TreeGimmick.h"
 #include "../Controller/HelperBotAIController.h"
 
 UBTTask_HelperChopWood::UBTTask_HelperChopWood()
@@ -21,6 +23,9 @@ EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& 
 
 	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(ResourceTargetKey.SelectedKeyName));
 	if (!TargetActor) return EBTNodeResult::Failed;
+	
+	ATreeGimmick* Tree = Cast<ATreeGimmick>(TargetActor);
+	if (Tree && Tree->IsTrunkDestroyed()) return EBTNodeResult::Failed;
 
 	CachedTarget = TargetActor;
 	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
@@ -29,7 +34,14 @@ EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& 
 	if (Helper)
 	{
 		CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
+		Helper->bIsChopping = true;
 	}
+
+	if (Helper && TargetActor)
+	{
+		Helper->UpdateChopSplineTarget(TargetActor);
+	}
+	
 	return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
 }
 
@@ -47,19 +59,40 @@ void UBTTask_HelperChopWood::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
-
+	
 	const float DamageThisFrame = CachedDamagePerSecond * DeltaSeconds;
 		
+	ATreeGimmick* Tree = Cast<ATreeGimmick>(CachedTarget);
+	if (Tree && Tree->IsTrunkDestroyed())
+	{
+		if (Helper)
+		{
+			Helper->bIsChopping = false;
+		}
+		if (Helper && Helper->ActiveChopVFX)
+		{
+			Helper->ActiveChopVFX->Deactivate();
+			Helper->ActiveChopVFX = nullptr;
+		}
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
+
 	if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed())
 	{
+		if (Helper)
+		{
+			Helper->bIsChopping = false;
+		}
+    
+		if (Helper && Helper->ActiveChopVFX)
+		{
+			Helper->ActiveChopVFX->Deactivate();
+			Helper->ActiveChopVFX = nullptr;
+		}
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;
 	}
 
-	AHelperBotAIController* HelperBotController = Cast<AHelperBotAIController>(OwnerComp.GetAIOwner());
-	ATreeGimmick* Tree = Cast<ATreeGimmick>(CachedTarget);
-	if (IsValid(Tree) && IsValid(Tree->GetDestructibleComponent()))
-	{
-		Tree->GetDestructibleComponent()->TakeDamage(HelperBotController, DamageThisFrame);
-	}
+	UGameplayStatics::ApplyDamage(CachedTarget, DamageThisFrame, Helper->GetController(), Helper, UDamageType::StaticClass());
 }

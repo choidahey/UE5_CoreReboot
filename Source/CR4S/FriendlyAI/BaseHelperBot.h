@@ -5,10 +5,14 @@
 #include "HelperBotState.h"
 #include "Data/HelperBotStatsRow.h"
 #include "../UI/InGame/HelperBotStateManagerWidget.h"
+#include "Components/SplineComponent.h"
+#include "NiagaraComponent.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
 #include "BaseHelperBot.generated.h"
 
 class UInteractableComponent;
 class UHelperBotInfoWidget;
+class UBaseInventoryComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
@@ -74,10 +78,13 @@ protected:
 #pragma endregion
 
 #pragma region Miscellaneous Variables
-	
 protected:
 	UPROPERTY()
 	UMaterialInstanceDynamic* HighlightMaterialInstance = nullptr;
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsChopping = false;
 	
 #pragma endregion
 
@@ -89,6 +96,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+#pragma endregion
+
+#pragma region Inventory Component
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
 #pragma endregion
 
 #pragma region Info Widget
@@ -112,4 +126,24 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDetectionStateChanged OnDetectionStateChanged;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Chopping")
+	TObjectPtr<USplineComponent> ChopSpline = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Chopping")
+	void UpdateChopSplineTarget(AActor* TargetActor);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chopping")
+	UNiagaraSystem* ChopVFXSystem = nullptr;
+
+	UPROPERTY()
+	UNiagaraComponent* ActiveChopVFX = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidgetInstance;
+
 };

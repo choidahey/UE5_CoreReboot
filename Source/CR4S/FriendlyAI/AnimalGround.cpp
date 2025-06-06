@@ -1,19 +1,34 @@
 #include "AnimalGround.h"
 #include "Component/AIJumpComponent.h"
+#include "../Gimmick/Components/InteractableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AAnimalGround::AAnimalGround()
 {
 	AIJumpComponent = CreateDefaultSubobject<UAIJumpComponent>(TEXT("AIJumpComponent"));
+	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+	InteractableComponent->SetActive(false);
 }
 
 void AAnimalGround::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (InteractableComponent)
+	{
+		InteractableComponent->OnTryInteract.BindDynamic(this, &ABaseAnimal::OnInteract);
+	}
 	
 	if (AIJumpComponent)
 	{
 		AIJumpComponent->SetJumpPower(JumpPower);
+	}
+
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (Move)
+	{
+		Move->bOrientRotationToMovement = true;
+		Move->RotationRate = FRotator(0.f, 120.f, 0.f);
 	}
 }
 

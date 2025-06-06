@@ -1,95 +1,88 @@
 #include "MonsterAI/Task/Season/BTTask_SelectSkill_Hiems.h"
-#include "MonsterAI/BaseMonster.h"
-#include "MonsterAI/Components/MonsterSkillComponent.h"
-#include "BehaviorTree/BlackboardComponent.h"
-#include "MonsterAI/Data/MonsterAIKeyNames.h"
-#include "MonsterAI/MonsterAIHelper.h"
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "MonsterAI/BaseMonster.h"
 
 UBTTask_SelectSkill_Hiems::UBTTask_SelectSkill_Hiems()
 {
     NodeName = "SelectSkill_Hiems";
     bCreateNodeInstance = true;
+    CurrentShuffleIndex = 0;
 }
 
 int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
-	if (!CachedMonster.IsValid()) return INDEX_NONE;
+    if (!CachedMonster.IsValid()) return INDEX_NONE;
     
-    ABaseMonsterAIController* AICon = Cast<ABaseMonsterAIController>(CachedMonster->GetController());
-    if (!AICon)
-        return INDEX_NONE;
+    ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(CachedMonster->GetController());
+    if (!IsValid(AIC)) return INDEX_NONE;
 
-    UBlackboardComponent* BB = AICon->GetBlackboardComponent();
+    UBlackboardComponent* BB = AIC->GetBlackboardComponent();
+    if (!IsValid(BB)) return INDEX_NONE;
 
-    float Distance = 0.f;
-    if (Target)
+    if (AvailableSkills.Num() == 0)
     {
-        Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
+        return INDEX_NONE;
+    }
+
+    bool bNeedReshuffle = false;
+    
+    if (ShuffledSkills.Num() != AvailableSkills.Num())
+    {
+        bNeedReshuffle = true;
     }
     else
     {
-        UObject* Obj = BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor);
-        if (AActor* HouseActor = Cast<AActor>(Obj))
+        if (ShuffledSkills.Num() == 0 || CurrentShuffleIndex >= ShuffledSkills.Num())
         {
-            Distance = FVector::Dist(CachedMonster->GetActorLocation(), HouseActor->GetActorLocation());
+            bNeedReshuffle = true;
         }
         else
         {
-            return INDEX_NONE;
+            bool bSame = true;
+            for (int32 ID : AvailableSkills)
+            {
+                if (!ShuffledSkills.Contains(ID))
+                {
+                    bSame = false;
+                    break;
+                }
+            }
+            if (!bSame)
+            {
+                bNeedReshuffle = true;
+            }
         }
     }
 
-    // TODO :: 이 부분 태스크로 뺄 것
-    // if (Distance >= IceRoadForwardTreshold || Distance <= IceRoadAwayTreshold)
-    // {
-    //     const bool bToward = (Distance >= IceRoadForwardTreshold);
-    //     BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
-    //
-    //     return 3;
-    // }
-	
-	TArray<FSkillWeight> Weights;
-	Weights.Reserve(AvailableSkills.Num());
-
-    for (int32 SkillID : AvailableSkills)
+    if (bNeedReshuffle)
     {
-        int32 Weight = 1;
-
-        if (Distance >= IceRoadForwardTreshold && SkillID == 5)
-        {
-            Weight = 5;
-        }
-        else if (Distance >= IceRoadAwayTreshold && Distance < IceRoadForwardTreshold && SkillID == 2)
-        {
-            Weight = 5;
-        }
-        else if (Distance < IceRoadAwayTreshold && SkillID == 5)
-        {
-            Weight = 5;
-        }
-
-        Weights.Add({ SkillID, Weight });
+        ReshuffleSkills(AvailableSkills);
     }
     
-    int32 TotalWeight = 0;
-    for (const FSkillWeight& SkillWeight : Weights)
+    if (CurrentShuffleIndex < 0 || CurrentShuffleIndex >= ShuffledSkills.Num())
     {
-        TotalWeight += SkillWeight.Weight;
+        ReshuffleSkills(AvailableSkills);
     }
-    if (TotalWeight <= 0)
-        return INDEX_NONE;
     
-    int32 RandomIndex = FMath::RandRange(1, TotalWeight);
-    for (const FSkillWeight& SkillWeight : Weights)
+    int32 ChosenSkillID = ShuffledSkills[CurrentShuffleIndex];
+    CurrentShuffleIndex++;
+    
+    return ChosenSkillID;
+}
+
+void UBTTask_SelectSkill_Hiems::ReshuffleSkills(const TArray<int32>& AvailableSkills)
+{
+    ShuffledSkills = AvailableSkills;
+
+    for (int32 i = ShuffledSkills.Num() - 1; i > 0; --i)
     {
-        RandomIndex -= SkillWeight.Weight;
-        if (RandomIndex <= 0)
+        int32 j = FMath::RandRange(0, i);
+        if (i != j)
         {
-            return SkillWeight.SkillID;
-            // return 2;
+            ShuffledSkills.Swap(i, j);
         }
     }
 
-    return INDEX_NONE;
+    CurrentShuffleIndex = 0;
 }

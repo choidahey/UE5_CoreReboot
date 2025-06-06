@@ -140,8 +140,6 @@ protected:
     UPROPERTY(EditAnywhere)
     float FallGravityScale = 1.0f;
 
-    bool bIsFlying = true;
-
 public:
     UFUNCTION()
     void BeginCruiseFromTakeOff();
@@ -193,6 +191,36 @@ public:
 
     void MoveToGroundTarget(float DeltaTime);
     
+    //anim
+    void UpdateAnimaion();
+    
     UPROPERTY()
     AActor* GroundTarget = nullptr;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    uint8 bFlapFast : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    uint8 bFlyingDownward : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    uint8 bIdleLoop : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    uint8 bIsWalking : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    uint8 bIsFlying : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    uint8 bIsAir : 1;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    float WalkingSpeed = 0.f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    float Direction = 0.f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
+    int32 RandomIdleAnim = 0;
 };

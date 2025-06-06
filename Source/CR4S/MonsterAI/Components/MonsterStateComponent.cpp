@@ -63,3 +63,11 @@ void UMonsterStateComponent::ForceInterrupt()
 	// Force reset to Idle state
 	SetState(EMonsterState::Idle);
 }
+
+void UMonsterStateComponent::SetPhase(EBossPhase NewPhase)
+{
+	if (CurrentPhase == NewPhase) return;
+
+	CurrentPhase = NewPhase;
+	OnPhaseChanged.Broadcast(NewPhase);
+}

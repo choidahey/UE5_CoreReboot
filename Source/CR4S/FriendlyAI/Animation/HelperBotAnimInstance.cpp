@@ -45,4 +45,7 @@ void UHelperBotAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	HorizontalVelocity.Z = 0.f;
 	GroundSpeed = HorizontalVelocity.Size();
 	bShouldMove = GroundSpeed > 3.f && !OwnerCharacterMovementComponent->IsFalling();
+	bIsJumping = OwnerCharacterMovementComponent->IsFalling();
+	bIsChopping = OwnerCharacter->bIsChopping;
+	bIsFalling = OwnerCharacterMovementComponent->IsFalling();
 }
