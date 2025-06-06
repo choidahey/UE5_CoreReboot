@@ -32,4 +32,7 @@ protected:
 
 private:
 	AActor* FindNearestHouse(const FVector& PlayerLocation) const;
+
+	UPROPERTY()
+	APawn* CachedOwnerPawn = nullptr;
 };

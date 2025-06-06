@@ -21,6 +21,8 @@ AAcidWaveActor::AAcidWaveActor()
 	BoxCollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	BoxCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	BoxCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	BoxCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	BoxCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	BoxCollisionComp->SetGenerateOverlapEvents(true);
 	BoxCollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AAcidWaveActor::OnOverlapBegin);
 }

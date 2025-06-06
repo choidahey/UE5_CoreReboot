@@ -68,7 +68,8 @@ int32 UBTTask_SelectSkill_Ceres::SelectSkillFromAvailable(const TArray<int32>& A
     int32 ChosenSkillID = ShuffledSkills[CurrentShuffleIndex];
     CurrentShuffleIndex++;
     
-    return ChosenSkillID;
+    // return ChosenSkillID;
+    return 1;
 }
 
 void UBTTask_SelectSkill_Ceres::ReshuffleSkills(const TArray<int32>& AvailableSkills)

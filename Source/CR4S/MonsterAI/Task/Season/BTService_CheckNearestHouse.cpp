@@ -1,4 +1,6 @@
 #include "MonsterAI/Task/Season/BTService_CheckNearestHouse.h"
+
+#include "AIController.h"
 #include "CR4S.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
@@ -19,15 +21,17 @@ void UBTService_CheckNearestHouse::OnBecomeRelevant(UBehaviorTreeComponent& Owne
 	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
 
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-	if (!BlackboardComp)
-		return;
-	
-	ACharacter* PlayerChar = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	if (!IsValid(PlayerChar))
-		return;
+	if (!IsValid(BlackboardComp)) return;
 
-	const FVector PlayerLoc = PlayerChar->GetActorLocation();
-	AActor* NearestHouse = FindNearestHouse(PlayerLoc);
+	AAIController* AIC = OwnerComp.GetAIOwner();
+	if (!IsValid(AIC)) return;
+	
+	APawn* OwnerPawn = AIC->GetPawn();
+	if (!IsValid(OwnerPawn)) return;
+
+	CachedOwnerPawn = OwnerPawn;
+	const FVector OwnerPawnLoc = CachedOwnerPawn->GetActorLocation();
+	AActor* NearestHouse = FindNearestHouse(OwnerPawnLoc);
 
 	BlackboardComp->SetValueAsObject(FSeasonBossAIKeys::NearestHouseActor, NearestHouse);
 }
@@ -39,16 +43,15 @@ void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, u
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 	if (!IsValid(BlackboardComp)) return;
 	
-	AActor* CurrentNearest = Cast<AActor>(BlackboardComp->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+	AActor* CurrentNearest = Cast<AActor>(BlackboardComp->GetValueAsObject(NearestHouseActor.SelectedKeyName));
 	
 	if (!IsValid(CurrentNearest))
 	{
 		CR4S_Log(LogDa, Warning, TEXT("Invalid NearestHouse"));
-		ACharacter* PlayerChar = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-		if (!IsValid(PlayerChar)) return;
+		if (!IsValid(CachedOwnerPawn)) return;
 
-		const FVector PlayerLoc = PlayerChar->GetActorLocation();
-		AActor* NewNearestHouse = FindNearestHouse(PlayerLoc);
+		const FVector OwnerPawnLoc = CachedOwnerPawn->GetActorLocation();
+		AActor* NewNearestHouse = FindNearestHouse(OwnerPawnLoc);
 
 		BlackboardComp->SetValueAsObject(FSeasonBossAIKeys::NearestHouseActor, NewNearestHouse);
 	}
