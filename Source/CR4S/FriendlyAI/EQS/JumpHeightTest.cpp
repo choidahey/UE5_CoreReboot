@@ -6,21 +6,26 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/World.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "NavigationSystem.h"
 #include "DrawDebugHelpers.h"
 
 UJumpHeightTest::UJumpHeightTest()
 {
 	Cost = EEnvTestCost::Low;
 	ValidItemType = UEnvQueryItemType_Point::StaticClass();
-	MaxJumpHeight = 300.f;
-	TestPurpose = EEnvTestPurpose::Filter;
-	FilterType = EEnvTestFilterType::Maximum;
+	MaxJumpHeight = 1000.f;
+	// TestPurpose = EEnvTestPurpose::Filter;
+	// FilterType = EEnvTestFilterType::Maximum;
+	TestPurpose = EEnvTestPurpose::Score;
+	FilterType = EEnvTestFilterType::Range;
 }
 
 void UJumpHeightTest::RunTest(FEnvQueryInstance& QueryInstance) const
 {
 	UObject* QuerierObj = QueryInstance.Owner.Get();
-	AAIController* AICon = Cast<AAIController>(QuerierObj);
+	ACharacter* Character = Cast<ACharacter>(QuerierObj);
+	AAIController* AICon = Character ? Cast<AAIController>(Character->GetController()) : nullptr;
 	if (!AICon)
 	{
 		return;
@@ -50,22 +55,60 @@ void UJumpHeightTest::RunTest(FEnvQueryInstance& QueryInstance) const
 
 	const FVector StartLoc = Pawn->GetActorLocation();
 
+	FVector TargetLoc = StartLoc;
+	{
+		const UBlackboardComponent* BBComp = AICon->GetBlackboardComponent();
+		if (BBComp)
+		{
+			UObject* TargetObj = BBComp->GetValueAsObject(TEXT("TargetActor"));
+			if (AActor* TargetActor = Cast<AActor>(TargetObj))
+			{
+				TargetLoc = TargetActor->GetActorLocation();
+			}
+		}
+	}
+
 	for (FEnvQueryInstance::FItemIterator It(this, QueryInstance); It; ++It)
 	{
 		const FVector ItemLoc = GetItemLocation(QueryInstance, It.GetIndex());
-		const float DeltaZ = FMath::Abs(ItemLoc.Z - StartLoc.Z);
 		const float DeltaXY = FVector2D(ItemLoc - StartLoc).Size();
-		const bool bPass = (DeltaZ <= MaxJumpHeight) && (DeltaXY <= MaxHorizontalDistance);
+		const float DeltaZ = ItemLoc.Z - StartLoc.Z;
+		if (MaxJumpHeight <= 0.f)
+		{
+			bool bDown = (DeltaZ <= 0.f);
+			float Score = bDown ? 1.f : 0.f;
+			//It.SetScore(TestPurpose, FilterType, Score, 0.f, 1.f);
+			It.SetScore(EEnvTestPurpose::Score, EEnvTestFilterType::Range, Score, 0.f, 1.f);
+			continue;
+		}
 		
-		if (bPass)
-		{
-			DrawDebugCapsule(World, ItemLoc, 10.f, 5.f, FQuat::Identity, FColor::Green, false, 1.f);
-		}
-		else
-		{
-			DrawDebugCapsule(World, ItemLoc, 10.f, 5.f, FQuat::Identity, FColor::Red, false, 1.f);
-		}
+		bool bDown = (DeltaZ < 0.f);
+		bool bPass = bDown || (DeltaZ <= MaxJumpHeight);
+		bool bJumpNeeded = (DeltaZ > 0.f) && (DeltaZ <= MaxJumpHeight);
+		
+		UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
+		const ANavigationData* NavData = NavSys ? NavSys->GetDefaultNavDataInstance() : nullptr;
+		FPathFindingQuery PathQuery(nullptr, *NavData, ItemLoc, TargetLoc);
 
-		It.SetScore(TestPurpose, FilterType, bPass ? 1.f : 0.f, 0.f, MaxJumpHeight);
+		const float MinScore = 0.1f;
+		float Score = 0.f;
+		if (bPass && NavSys && NavData)
+		{
+			FPathFindingResult Result = NavSys->FindPathSync(PathQuery);
+			float PathLen = Result.Path.IsValid()
+				? Result.Path->GetLength()
+				: TNumericLimits<float>::Max();
+
+			if (bJumpNeeded)
+			{
+				Score = FMath::Clamp(1.5f - (PathLen / MaxHorizontalDistance), MinScore, 1.f);
+			}
+			else
+			{
+				Score = FMath::Clamp(1.f - (PathLen / MaxHorizontalDistance), MinScore, 1.f);
+			}
+		}
+		//It.SetScore(TestPurpose, FilterType, Score, 0.f, 1.f);
+		It.SetScore(EEnvTestPurpose::Score, EEnvTestFilterType::Range, Score, 0.f, 1.f);
 	}
 }

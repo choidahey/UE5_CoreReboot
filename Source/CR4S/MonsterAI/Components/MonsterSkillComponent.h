@@ -6,7 +6,7 @@
 #include "MonsterSkillComponent.generated.h"
 
 class USkillDataSubsystem;
-class UCapsuleComponent;
+class UPrimitiveComponent;
 class AHiemsIceSpike;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -91,10 +91,10 @@ public:
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
-	TArray<TObjectPtr<UCapsuleComponent>> WeaponColliders;
+	TArray<TObjectPtr<UPrimitiveComponent>> WeaponColliders;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
-	TArray<TObjectPtr<UCapsuleComponent>> BodyColliders;
+	TArray<TObjectPtr<UPrimitiveComponent>> BodyColliders;
 
 	UPROPERTY()
 	TSet<AActor*> AlreadyHitActors;

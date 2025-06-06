@@ -1,15 +1,16 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/GimmickObjects/DestructibleResourceGimmick.h"
+#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "PlanterBoxGimmick.generated.h"
 
-class AGrowableGimmick;
-struct FBaseItemData;
+class UPlanterBoxInventoryComponent;
+class ACropsGimmick;
 class UInteractableComponent;
 
 UCLASS()
-class CR4S_API APlanterBoxGimmick : public ADestructibleResourceGimmick
+class CR4S_API APlanterBoxGimmick : public ADestructibleGimmick
 {
 	GENERATED_BODY()
 
@@ -20,7 +21,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void OnGimmickDestroy() override;
+	virtual void OnGimmickDestroy(AActor* DamageCauser) override;
 
 #pragma endregion
 	
@@ -32,17 +33,17 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnGimmickInteracted(AController* Controller);
+	virtual void OnGimmickInteracted(AActor* Interactor);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 
 private:
 	UFUNCTION()
-	void OnDetectionStateChanged(AController* InDetectingController, bool bInIsDetected);
+	void OnDetectionStateChanged(AActor* InDetectingActor, bool bInIsDetected);
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	AController* DetectingController;
+	AActor* DetectingActor;
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
 	bool bIsDetected;
@@ -51,17 +52,29 @@ private:
 
 #pragma region Farming
 
+public:
+	FORCEINLINE ACropsGimmick* GetPlantedGimmick() const { return PlantedGimmick; }
+	
 private:
 	UFUNCTION()
-	void OnHarvest();
+	void HandlePlantingCropsGimmick(int32 SlotIndex, UBaseInventoryItem* Item);
+	
+	UFUNCTION()
+	void HandleHarvest();
 	
 	UPROPERTY(VisibleAnywhere, Category = "Farming")
 	TObjectPtr<USceneComponent> SpawnPoint;
 
 	UPROPERTY()
-	TObjectPtr<AGrowableGimmick> PlantedGimmick;
+	TObjectPtr<ACropsGimmick> PlantedGimmick;
 	
-	bool IsHeldItemSeed() const;
+#pragma endregion
+
+#pragma region Inventory
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	TObjectPtr<UPlanterBoxInventoryComponent> PlanterBoxInventoryComponent;
 	
 #pragma endregion
 	

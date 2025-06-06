@@ -2,51 +2,110 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
+#include "../Controller/AnimalAIController.h"
 #include "../BaseAnimal.h"
+#include "Components/SphereComponent.h"
 
 UBTTask_AnimalAttack::UBTTask_AnimalAttack()
 {
-	NodeName = TEXT("AnimalAttack");
+	NodeName = TEXT("Animal Attack");
+	bNotifyTick = true;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_AnimalAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	bNotifyTick = true;
-
+	StoredOwnerComp = &OwnerComp;
 	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!Animal || !Animal->AttackMontage || !Animal->CurrentTarget) return EBTNodeResult::Failed;
+	if (!Animal || !Animal->MeleeAttackMontage || !Animal->GetCurrentStats().AttackInterval)
+		return EBTNodeResult::Failed;
 
-	Animal->PlayAttackMontage();
-
-	return EBTNodeResult::InProgress;
+	if (!Animal->AttackRange || !Animal->CurrentTarget) return EBTNodeResult::Failed;
+	
+	const float Distance = FVector::Dist(
+	Animal->GetActorLocation(),
+	Animal->CurrentTarget->GetActorLocation()
+);
+	float RandValue = FMath::FRand();
+	
+	if (Animal->CurrentState != EAnimalState::Attack ||
+		(!Animal->bCanMelee && !Animal->bCanCharge && !Animal->bCanRanged))
+	{
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(Animal->GetController()))
+		{
+			C->SetAnimalState(EAnimalState::Chase);
+		}
+		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Failed);
+		return EBTNodeResult::Failed;
+	}
+	
+	if (Distance <= Animal->RangedRange && Animal->bCanRanged && !Animal->bIsRangedOnCooldown && RandValue < Animal->RangedProbability)
+	{
+		Animal->PlayRangedAttackMontage();
+	}
+	else if (Distance <= Animal->DashRange && Animal->bCanCharge && !Animal->bIsChargeOnCooldown && RandValue < Animal->RangedProbability + Animal->ChargeProbability)
+	{
+		Animal->PlayChargeAttackMontage();
+	}
+	else if (Distance <= Animal->MeleeRange && Animal->bCanMelee && !Animal->bIsMeleeOnCooldown && RandValue < Animal->MeleeProbability)
+	{
+		Animal->PlayAttackMontage();
+	}
+	else
+	{
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(Animal->GetController()))
+		{
+			C->SetAnimalState(EAnimalState::Chase);
+		}
+		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
+		return EBTNodeResult::Succeeded;
+	}
+	
+	FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
+	return EBTNodeResult::Succeeded;
 }
 
 void UBTTask_AnimalAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!IsValid(Animal) || Animal->IsActorBeingDestroyed())
+	AAnimalAIController* Controller = Cast<AAnimalAIController>(OwnerComp.GetAIOwner());
+	ABaseAnimal* Animal = Controller ? Cast<ABaseAnimal>(Controller->GetPawn()) : nullptr;
+	if (!Animal || !IsValid(Animal->CurrentTarget) || Animal->CurrentState == EAnimalState::Stun)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
 
-	if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
-	{
-		if (TargetAnimal->CurrentState == EAnimalState::Dead)
-		{
-			Animal->ClearTarget();
-			OwnerComp.GetBlackboardComponent()->ClearValue(TEXT("TargetActor"));
-			Animal->SetAnimalState(EAnimalState::Patrol);
-			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-			return;
-		}
-	}
+	const float Distance = FVector::Dist(Animal->GetActorLocation(), Animal->CurrentTarget->GetActorLocation());
+	const float LostRange = Animal->GetCurrentStats().TargetLostRange;
 
-	UAnimInstance* Anim = Animal->GetMesh()->GetAnimInstance();
-	if (!Anim || !Anim->Montage_IsPlaying(Animal->AttackMontage))
+	if (!IsValid(Animal->CurrentTarget) || Animal->CurrentState == EAnimalState::Dead || Distance > LostRange)
 	{
-		Animal->SetAnimalState(EAnimalState::Chase);
-		Animal->bIsAttacking = false;
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+	}
+}
+
+void UBTTask_AnimalAttack::OnAttackFinished()
+{
+	if (UBehaviorTreeComponent* OwnerComp = StoredOwnerComp.Get())
+	{
+		if (bCanFollowUp)
+		{
+			if (AAnimalAIController* C = Cast<AAnimalAIController>(StoredOwnerComp->GetAIOwner()))
+			{
+				if (ABaseAnimal* Animal = Cast<ABaseAnimal>(C->GetPawn()))
+				{
+					if (IsValid(Animal->CurrentTarget))
+					{
+						C->SetTargetActor(Animal->CurrentTarget);
+						C->SetAnimalState(EAnimalState::Chase);
+					}
+					else
+					{
+						C->SetAnimalState(EAnimalState::Patrol);
+					}
+				}
+			}
+		}
+		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
 	}
 }

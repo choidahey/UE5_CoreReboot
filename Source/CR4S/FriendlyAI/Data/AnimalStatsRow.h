@@ -12,10 +12,10 @@ struct FAnimalStatsRow : public FTableRowBase
     FString BehaviorType = TEXT("");
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    uint8 bCanBeTamed = 0;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float MaxHealth = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float JumpPower = 0.0f;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float AttackDamage = 0.0f;
@@ -25,10 +25,7 @@ struct FAnimalStatsRow : public FTableRowBase
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float AttackInterval = 0.0f;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float KnockbackForce = 0.0f;
-    
+        
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float StunAmount = 0.0f;
     
@@ -67,22 +64,25 @@ struct FAnimalStatsRow : public FTableRowBase
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float TargetLostRange = 0.0f;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Mood = 0.0f;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Hunger = 0.0f;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    uint8 bIsMale = 0;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float GestationPeriod = 0.0f;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 OffspringCount = 0;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float GrowthTime = 0.0f;
+
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    // uint8 bCanBeTamed = 0;
+    //
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    // float Mood = 0.0f;
+    //
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    // float Hunger = 0.0f;
+    //
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    // uint8 bIsMale = 0;
+    //
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    // float GestationPeriod = 0.0f;
+    //
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    // int32 OffspringCount = 0;
+    //
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    // float GrowthTime = 0.0f;
 };

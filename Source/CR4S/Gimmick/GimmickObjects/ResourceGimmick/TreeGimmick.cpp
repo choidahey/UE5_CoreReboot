@@ -1,133 +1,75 @@
 ﻿#include "TreeGimmick.h"
 
 #include "Gimmick/Components/DestructibleComponent.h"
-#include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
 ATreeGimmick::ATreeGimmick()
-	: bIsActorDestroyOnDestroyAction(true)
-	  , DestroyDelay(0.f)
-	  , StumpHealth(50.f)
-	  , bIsTrunkDestroyed(false)
-	  , ShakeDuration(0.5f)
-	  , ShakeInterval(0.02f)
-	  , ShakeIntensity(5.0f)
-	  , OriginalLocation(FVector::ZeroVector)
-	  , ElapsedTime(0.f)
+	: 
+	  bIsTrunkDestroyed(false),
+	  StumpHealth(50.f),
+	  ImpulseStrength(100.f),
+	  RemoveTrunkDelay(5.f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
-
 	TrunkMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TrunkMeshComponent"));
 	TrunkMeshComponent->SetupAttachment(RootComponent);
-
-	bIsActorDestroyOnDestroyAction = false;
 }
 
 void ATreeGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(DestructibleComponent))
+	if (IsValid(TrunkMeshComponent))
 	{
-		DestructibleComponent->OnTakeDamage.BindUObject(this, &ThisClass::OnGimmickTakeDamage);
-		DestructibleComponent->OnDestroy.BindUObject(this, &ThisClass::OnGimmickDestroy);
-
-		const UItemGimmickSubsystem* GimmickSubsystem = GetGameInstance()->GetSubsystem<UItemGimmickSubsystem>();
-		if (IsValid(GimmickSubsystem))
-		{
-			// check(GimmickData);
-			if (const FBaseGimmickData* GimmickData = GimmickSubsystem->FindGimmickData(GetGimmickDataRowName()))
-			{
-				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("%s is not found in GimmickData"), *GetGimmickDataRowName().ToString());
-			}
-		}
+		OriginTrunkTransform = TrunkMeshComponent->GetRelativeTransform();
 	}
-	
-	OriginalLocation = GetActorLocation();
 }
 
-void ATreeGimmick::OnGimmickTakeDamage(const float DamageAmount, const float CurrentHealth)
+void ATreeGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
-		   CurrentHealth);
-	
-	StartShake();
-}
-
-void ATreeGimmick::OnGimmickDestroy()
-{
-	/** BEFORE THE TRUNK IS DESTROYED */
+	// Before The Trunk Is Destroyed
 	if (!bIsTrunkDestroyed)
 	{
-		bIsTrunkDestroyed = true;
-
-		TrunkMeshComponent->SetVisibility(false);
-		TrunkMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		bIsActorDestroyOnDestroyAction = true;
-		DestructibleComponent->SetMaxHealth(StumpHealth);
+		GetResources(DamageCauser);
+		HandleDestroyTrunk(DamageCauser);
 	}
-	/** AFTER THE TRUNK IS DESTROYED */
+	// After The Trunk Is Destroyed
 	else
 	{
-		if (!bIsActorDestroyOnDestroyAction)
-		{
-			return;
-		}
-
-		if (DestroyDelay == 0.f)
-		{
-			DelayedDestroy();
-		}
-
-		GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DelayedDestroy, DestroyDelay, false);
+		GetWorldTimerManager().ClearTimer(RemoveTrunkTimerHandle);
+		Super::OnGimmickDestroy(DamageCauser);
 	}
 }
 
-void ATreeGimmick::DelayedDestroy()
+void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Gimmick is destroyed"));
+	bIsTrunkDestroyed = true;
 
-	Destroy();
-}
+	TrunkMeshComponent->SetSimulatePhysics(true);
 
-void ATreeGimmick::StartShake()
-{
-	UE_LOG(LogTemp, Warning, TEXT("==== ShakeStart ===="));
+	FVector Direction = GetActorLocation() - DamageCauser->GetActorLocation();
+	Direction.Z = 0.f;
+	Direction.Normalize();
+
+	const float Strength = TrunkMeshComponent->GetMass() * ImpulseStrength;
+
+	TrunkMeshComponent->AddImpulse(Direction * Strength);
+	
+	DestructibleComponent->SetMaxHealth(StumpHealth);
+
 	GetWorldTimerManager().SetTimer(
-		ShakeTimerHandle,
+		RemoveTrunkTimerHandle,
 		this,
-		&ThisClass::PerformShake,
-		ShakeInterval,
-		true
+		&ThisClass::RemoveTrunk,
+		RemoveTrunkDelay,
+		false
 	);
 }
 
-void ATreeGimmick::PerformShake()
+void ATreeGimmick::RemoveTrunk() const
 {
-	ElapsedTime += ShakeInterval;
-
-	if (ElapsedTime >= ShakeDuration)
-	{
-		StopShake();
-		return;
-	}
-
-	const FVector RandomOffset = FMath::VRand() * ShakeIntensity;
-
-	SetActorLocation(OriginalLocation + RandomOffset, false, nullptr, ETeleportType::TeleportPhysics);
-}
-
-void ATreeGimmick::StopShake()
-{
-	UE_LOG(LogTemp, Warning, TEXT("==== ShakeEnd ===="));
-	ElapsedTime = 0.f;
-	GetWorldTimerManager().ClearTimer(ShakeTimerHandle);
-
-	SetActorLocation(OriginalLocation, false, nullptr, ETeleportType::TeleportPhysics);
+	TrunkMeshComponent->SetSimulatePhysics(false);
+	TrunkMeshComponent->SetVisibility(false);
+	TrunkMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TrunkMeshComponent->SetRelativeTransform(OriginTrunkTransform);
 }

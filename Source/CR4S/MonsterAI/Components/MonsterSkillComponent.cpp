@@ -1,11 +1,12 @@
 #include "MonsterSkillComponent.h"
 #include "MonsterAI/Data/MonsterDataSubsystem.h"
 #include "MonsterAI/BaseMonster.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/Character.h"
 #include "TimerManager.h"
+#include "MonsterAI/Components/MonsterAnimComponent.h"
 
 UMonsterSkillComponent::UMonsterSkillComponent()
 	: MyHeader(TEXT("MonsterSkillComp"))
@@ -24,22 +25,20 @@ void UMonsterSkillComponent::BeginPlay()
 
 	if (const AActor* Owner = GetOwner())
 	{
-		TArray<UCapsuleComponent*> CapsuleComps;
-		GetOwner()->GetComponents<UCapsuleComponent>(CapsuleComps);
+		TArray<UPrimitiveComponent*> CapsuleComps;
+		GetOwner()->GetComponents<UPrimitiveComponent>(CapsuleComps);
 
-		for (UCapsuleComponent* Comp : CapsuleComps)
+		for (UPrimitiveComponent* Comp : CapsuleComps)
 		{
 			if (Comp->ComponentHasTag("WeaponCollider"))
 			{
 				WeaponColliders.Add(Comp);
 				Comp->OnComponentBeginOverlap.AddDynamic(this, &UMonsterSkillComponent::OnAttackHit);
-				UE_LOG(LogTemp, Warning, TEXT("[SkillComp] BeginPlay : Bind Overlap function with WeaponCollider."));
 			}
 			else if (Comp->ComponentHasTag("BodyCollider"))
 			{
 				BodyColliders.Add(Comp);
 				Comp->OnComponentBeginOverlap.AddDynamic(this, &UMonsterSkillComponent::OnAttackHit);
-				UE_LOG(LogTemp, Warning, TEXT("[SkillComp] BeginPlay : Bind Overlap function with BodyCollider."));
 			}
 		}
 	}
@@ -107,10 +106,14 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 
 	if (IsValid(Skill.SkillMontage))
 	{
-		if (UAnimInstance* Anim = GetAnimInstance())
+		if (UMonsterAnimComponent* AnimComponent = GetOwner()->GetComponentByClass<UMonsterAnimComponent>())
 		{
-			Anim->Montage_Play(Skill.SkillMontage);
+			AnimComponent->PlayMontage(Skill.SkillMontage);
 		}
+		// if (UAnimInstance* Anim = GetAnimInstance())
+		// {
+		// 	Anim->Montage_Play(Skill.SkillMontage);
+		// }
 	}
 
 	// Cooldown
@@ -139,8 +142,6 @@ TArray<int32> UMonsterSkillComponent::GetAvailableSkillIndices() const
 	TArray<int32> SkillIndices;
 	for (int32 i = 0; i < SkillList.Num(); ++i)
 	{
-		UE_LOG(LogTemp, Log, TEXT("%s : bSkillReday = %d"), *SkillList[i].SkillName.ToString(), (bSkillReady[i] ? 1 : 0));
-
 		if (bSkillReady.IsValidIndex(i) && bSkillReady[i])
 		{
 			SkillIndices.Add(i);
@@ -177,22 +178,35 @@ void UMonsterSkillComponent::ResetCooldown(int32 Index)
 void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable, int32 InSkillIndex)
 {
 	CurrentSkillIndex = InSkillIndex;
+	bIsAttackActive = bEnable;
 	const FMonsterSkillData& Skill = SkillList[CurrentSkillIndex];
+
+	auto ConfigureColliders = [bEnable](const TArray<UPrimitiveComponent*>& Colliders)
+		{
+			for (UPrimitiveComponent* Collider : Colliders)
+			{
+				if (bEnable)
+				{
+					Collider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+					Collider->SetCollisionResponseToAllChannels(ECR_Overlap);
+					Collider->SetGenerateOverlapEvents(true);
+				}
+				else
+				{
+					Collider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+					Collider->SetGenerateOverlapEvents(false);
+				}
+			}
+		};
 
 	if (Skill.bUseWeaponCollision && !WeaponColliders.IsEmpty())
 	{
-		for (UCapsuleComponent* Collider : WeaponColliders)
-		{
-			Collider->SetCollisionEnabled(bEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-		}
+		ConfigureColliders(WeaponColliders);
 	}
 
 	if (Skill.bUseBodyCollision && !BodyColliders.IsEmpty())
 	{
-		for (UCapsuleComponent* Collider : WeaponColliders)
-		{
-			Collider->SetCollisionEnabled(bEnable ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
-		}
+		ConfigureColliders(BodyColliders);
 	}
 
 	if (bEnable)
@@ -228,13 +242,26 @@ void UMonsterSkillComponent::OnAttackHit(
 	}
 	else if (BodyColliders.Contains(HitComp) && CurrentSkillData.bUseBodyCollision)
 	{
-		Damage *= CurrentSkillData.BodyDamage;
+		Damage = CurrentSkillData.BodyDamage;
 	}
 	else
 	{
 		return;
 	}
 
-	UGameplayStatics::ApplyDamage(OtherActor, Damage, GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+	UE_LOG(LogTemp, Log, TEXT("[%s] OnAttackHit : Hit %s with SkillIndex %d | Damage: %.2f"),
+		*MyHeader,
+		*OtherActor->GetName(),
+		CurrentSkillIndex,
+		Damage);
+
+	UGameplayStatics::ApplyDamage(
+		OtherActor,
+		Damage,
+		GetOwner()->GetInstigatorController(),
+		GetOwner(),
+		UDamageType::StaticClass()
+	);
+
 	AlreadyHitActors.Add(OtherActor);
 }

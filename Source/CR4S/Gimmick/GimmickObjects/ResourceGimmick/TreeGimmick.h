@@ -1,14 +1,14 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/GimmickObjects/BaseGimmick.h"
+#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
 
 #include "TreeGimmick.generated.h"
 
 class UDestructibleComponent;
 
 UCLASS()
-class CR4S_API ATreeGimmick : public ABaseGimmick
+class CR4S_API ATreeGimmick : public ADestructibleGimmick
 {
 	GENERATED_BODY()
 
@@ -23,67 +23,41 @@ public:
 
 #pragma region UDestructibleComponent
 
-public:
-	UFUNCTION(BlueprintPure, Category = "ATreeGimmick|Components")
-	FORCEINLINE UDestructibleComponent* GetDestructibleComponent() const { return DestructibleComponent; }
-
-	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
-
 protected:
-	UFUNCTION()
-	virtual void OnGimmickTakeDamage(float DamageAmount, float CurrentHealth);
-	UFUNCTION()
-	virtual void OnGimmickDestroy();
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
-	TObjectPtr<UDestructibleComponent> DestructibleComponent;
-
-private:
-	void DelayedDestroy();
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	bool bIsActorDestroyOnDestroyAction;
-
-	FTimerHandle DestroyTimerHandle;
-	
-	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
-	float DestroyDelay;
+	virtual void OnGimmickDestroy(AActor* DamageCauser) override;
 
 #pragma endregion
 
 #pragma region Destroy
+
+public:
+	void HandleDestroyTrunk(const AActor* DamageCauser);
+
+	FORCEINLINE bool IsTrunkDestroyed() const { return bIsTrunkDestroyed; }
 	
 private:
+	void RemoveTrunk() const;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UStaticMeshComponent> TrunkMeshComponent;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
-	float StumpHealth;
-	
+	UPROPERTY(VisibleAnywhere, Category = "Destroy")
 	bool bIsTrunkDestroyed;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
+	float StumpHealth;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
+	float ImpulseStrength;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
+	float RemoveTrunkDelay;
+
+	FTransform OriginTrunkTransform;
+	
+	FTimerHandle RemoveTrunkTimerHandle;
+	
+
 #pragma endregion
 	
-#pragma region Shake
-
-private:
-	void StartShake();
-	void PerformShake();
-	void StopShake();
-
-	FTimerHandle ShakeTimerHandle;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeDuration;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeInterval;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeIntensity;
-
-	UPROPERTY(VisibleAnywhere, Category = "Shake")
-	FVector OriginalLocation;
-	UPROPERTY(VisibleAnywhere, Category = "Shake")
-	float ElapsedTime;
-	
-#pragma endregion
 };

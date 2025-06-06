@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HelperBotStatsSubsystem.h"
 #include "../Gimmick/Components/InteractableComponent.h"
+#include "UI/HelperBotInfoWidget.h"
 
 /**
  * 
@@ -16,7 +17,6 @@ ABaseHelperBot::ABaseHelperBot()
 
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
 	InteractableComp->SetInteractionText(FText::FromString("MySon"));
-	InteractableComp->OnTryInteract.BindUObject(this, &ABaseHelperBot::HandleInteract);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -28,6 +28,12 @@ void ABaseHelperBot::BeginPlay()
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
 		MoveComp->SetAvoidanceEnabled(true);
+	}
+
+	if (InteractableComp)
+	{
+		InteractableComp->OnTryInteract.BindDynamic(this, &ABaseHelperBot::HandleInteract);
+		InteractableComp->OnDetectionStateChanged.BindDynamic(this, &ABaseHelperBot::OnDetectedChange);
 	}
 }
 
@@ -56,6 +62,33 @@ void ABaseHelperBot::LoadStats()
 	}
 }
 
+void ABaseHelperBot::OnDetectedChange(AActor* InteractableActor, bool bIsDetected)
+{
+	if (bIsDetected)
+	{
+		if (!InfoUIInstance && InfoUIClass)
+		{
+			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+			{
+				InfoUIInstance = CreateWidget<UHelperBotInfoWidget>(PC, InfoUIClass);
+				if (InfoUIInstance)
+				{
+					InfoUIInstance->SetHealth(GetCurrentHealth(), CurrentStats.MaxHealth);
+					InfoUIInstance->AddToViewport();
+				}
+			}
+		}
+	}
+	else
+	{
+		if (InfoUIInstance)
+		{
+			InfoUIInstance->RemoveFromParent();
+			InfoUIInstance = nullptr;
+		}
+	}
+}
+
 void ABaseHelperBot::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -66,7 +99,7 @@ void ABaseHelperBot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void ABaseHelperBot::HandleInteract(AController* InteractingController)
+void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 {
 	if (StateUIInstance && StateUIInstance->IsInViewport())
 	{

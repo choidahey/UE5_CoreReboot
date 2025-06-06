@@ -1,0 +1,6 @@
+﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
+MudAmbust,MudAmbust,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_MudAmbust.AM_MudAmbust,3500,15,400,600,0,0,0,0,0
+ThornField,ThornField,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_ThronField.AM_ThronField,2000,20,600,500,0,0,0,0,0
+ThunderRoad,ThunderRoad,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_ThunderRoad.AM_ThunderRoad,1000,20,400,300,0,0,0,0,0
+AcidWaves,AcidWaves,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_AcidWaves.AM_AcidWaves,1800,5,500,300,0,0,0,0,0
+AcidFairy,AcidFairy,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_AcidFairy.AM_AcidFairy,2000,5,0,600,0,0,0,0,0

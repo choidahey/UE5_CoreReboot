@@ -20,7 +20,10 @@ public class CR4S : ModuleRules
 			"SlateCore",
 			"ChaosSolverEngine",
 			"GeometryCollectionEngine",
-			"NavigationSystem"
+			"NavigationSystem",
+			"DeveloperSettings",
+			"Niagara",
+			"GameplayTags"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });

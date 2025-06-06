@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Game/Interface/Spawnable.h"
 #include "Data/MonsterEnum.h"
 #include "BaseMonster.generated.h"
 
@@ -12,7 +13,7 @@ class UMonsterAnimComponent;
 class UBehaviorTree;
 
 UCLASS()
-class CR4S_API ABaseMonster : public ACharacter
+class CR4S_API ABaseMonster : public ACharacter, public ISpawnable
 {
 	GENERATED_BODY()
 
@@ -106,6 +107,25 @@ protected:
 	/* Called when monster state changes */
 	UFUNCTION()
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
+
+	//Function to Return OnDied Delegate by Spawnable Interface
+	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
+
+	// Delegate Variable
+	FOnDied OnDied;
+
+#pragma endregion
+
+#pragma region Accumulate Damage
+
+public:
+	FORCEINLINE float GetAccumulatedDamage() const { return AccumulatedDamage; }
+	FORCEINLINE void AddAccumulatedDamage(float Damage) { AccumulatedDamage += Damage; }
+	FORCEINLINE void ClearAccumulatedDamage() { AccumulatedDamage = 0.f; }
+
+private:
+	UPROPERTY()
+	float AccumulatedDamage = 0.f;
 
 #pragma endregion
 

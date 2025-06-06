@@ -5,6 +5,7 @@
 #include "Animation/AnimMontage.h"
 #include "MonsterAnimComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnimMontageEndedSignature, UAnimMontage*, Montage);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterAnimComponent : public UActorComponent
@@ -27,13 +28,16 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
+	TObjectPtr<UAnimMontage> CombatMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
 	TObjectPtr<UAnimMontage> DeathMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	TObjectPtr<UAnimMontage> HitReactMontage;
+	TObjectPtr<UAnimMontage> StunnedMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	TObjectPtr<UAnimMontage> StunnedMontage;
+	TObjectPtr<UAnimMontage> HitReactMontage;
 
 #pragma endregion
 
@@ -46,15 +50,24 @@ protected:
 
 #pragma region Montage Controls
 public:
-	void PlayMontange(UAnimMontage* Montage);
+	void PlayMontage(UAnimMontage* Montage);
 	bool IsAnyMontagePlaying() const;
 	bool IsPlayingMontage(UAnimMontage* Montage) const;
 	void StopAllMontages();
 
+
 	/* Explicit Play Calls */
+	void PlayCombatMontage();
 	void PlayDeathMontage();
-	void PlayHitReactMontage();
 	void PlayStunnedMontage();
+	void PlayHitReactMontage();
+	
+	UPROPERTY(BlueprintAssignable, Category = "Animation")
+	FOnAnimMontageEndedSignature OnMontageEndedNotify;
+
+protected:
+	UFUNCTION()
+	void Handle_OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 #pragma endregion
 
