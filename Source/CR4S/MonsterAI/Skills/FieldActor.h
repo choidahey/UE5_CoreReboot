@@ -32,7 +32,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Boss|Skill")
 	class UNiagaraComponent* NiagaraComp;
 
-    UPROPERTY(EditAnywhere, Category="Boss|Skill")
+    UPROPERTY(VisibleAnywhere, Category="Boss|Skill")
     class UCapsuleComponent* CapsuleComp;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
