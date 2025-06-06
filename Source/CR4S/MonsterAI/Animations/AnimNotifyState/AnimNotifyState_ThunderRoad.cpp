@@ -117,32 +117,32 @@ void UAnimNotifyState_ThunderRoad::NotifyTick(
 		FRotator WallRotation = SpawnedActor->GetActorRotation();
 		FVector BoxExtent(50.f, 200.f, 400.f);
 
-		DrawDebugBox(
-			OwnerPawn->GetWorld(),
-			WallLocation,
-			BoxExtent,
-			WallRotation.Quaternion(),
-			FColor::Red,
-			false,
-			0.f,
-			0,
-			2.f
-		);
+		// DrawDebugBox(
+		// 	OwnerPawn->GetWorld(),
+		// 	WallLocation,
+		// 	BoxExtent,
+		// 	WallRotation.Quaternion(),
+		// 	FColor::Red,
+		// 	false,
+		// 	0.f,
+		// 	0,
+		// 	2.f
+		// );
 
 		FVector ForwardDir = SpawnedActor->GetActorForwardVector();
 		float LineLength = 300.f;
 		FVector LineEnd = WallLocation + ForwardDir * LineLength;
 
-		DrawDebugLine(
-			OwnerPawn->GetWorld(),
-			WallLocation,
-			LineEnd,
-			FColor::Yellow,
-			false,
-			0.f,
-			0,
-			2.f
-		);
+		// DrawDebugLine(
+		// 	OwnerPawn->GetWorld(),
+		// 	WallLocation,
+		// 	LineEnd,
+		// 	FColor::Yellow,
+		// 	false,
+		// 	0.f,
+		// 	0,
+		// 	2.f
+		// );
 	}
 }
 

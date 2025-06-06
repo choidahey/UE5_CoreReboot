@@ -26,7 +26,4 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Chase")
 	float AcceptanceRadius = 1000.f;
-
-// private:
-	// FAIRequestID MoveRequestID = -1;
 };

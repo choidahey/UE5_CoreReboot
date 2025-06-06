@@ -1,16 +1,16 @@
-#include "MonsterAI/Task/Season/BTTask_SelectSkill_Hiems.h"
+#include "MonsterAI/Task/Season/BTTask_SelectSkill_Ceres.h"
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/BaseMonster.h"
 
-UBTTask_SelectSkill_Hiems::UBTTask_SelectSkill_Hiems()
+UBTTask_SelectSkill_Ceres::UBTTask_SelectSkill_Ceres()
 {
-    NodeName = "SelectSkill_Hiems";
+    NodeName = "SelectSkill_Ceres";
     bCreateNodeInstance = true;
     CurrentShuffleIndex = 0;
 }
 
-int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
+int32 UBTTask_SelectSkill_Ceres::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
     if (!CachedMonster.IsValid()) return INDEX_NONE;
     
@@ -71,7 +71,7 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     return ChosenSkillID;
 }
 
-void UBTTask_SelectSkill_Hiems::ReshuffleSkills(const TArray<int32>& AvailableSkills)
+void UBTTask_SelectSkill_Ceres::ReshuffleSkills(const TArray<int32>& AvailableSkills)
 {
     ShuffledSkills = AvailableSkills;
 
