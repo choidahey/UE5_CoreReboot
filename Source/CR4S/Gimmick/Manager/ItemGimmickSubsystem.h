@@ -1,14 +1,16 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Gimmick/Data/BaseDataInfo.h"
+#include "Gimmick/Data/GimmickData.h"
+#include "Gimmick/Data/ItemData.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 
 #include "ItemGimmickSubsystem.generated.h"
 
+class ABaseGimmick;
 
 UCLASS()
-class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
+class CR4S_API UItemGimmickSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -16,6 +18,9 @@ class CR4S_API UItemGimmickSubsystem : public UGameInstanceSubsystem
 
 public:
 	UItemGimmickSubsystem();
+
+	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
 #pragma endregion
 
@@ -23,16 +28,16 @@ public:
 
 public:
 	TArray<FName> GetItemDataRowNames() const;
-	const FBaseItemData* FindItemData(const FName& RowName) const;
-	const FBaseGimmickData* FindGimmickData(const FName& RowName) const;
+	const FItemInfoData* FindItemInfoData(const FName& RowName) const;
+	const FGimmickInfoData* FindGimmickInfoData(const FName& RowName) const;
 	
 private:
-	template<typename RowType>
-	const RowType* FindRowFromDataTable(const TSoftObjectPtr<UDataTable>& DataTable, const FName& RowName, const FString& Context) const
+	template<typename RowStruct>
+	const RowStruct* FindDataFromDataTable(const TSoftObjectPtr<UDataTable>& DataTable, const FName& RowName, const FString& Context) const
 	{
 		if (DataTable.IsValid() && IsValid(DataTable.Get()))
 		{
-			if (const RowType* Row = DataTable->FindRow<RowType>(RowName, Context))
+			if (const RowStruct* Row = DataTable->FindRow<RowStruct>(RowName, Context))
 			{
 				return Row;
 			}
@@ -42,9 +47,9 @@ private:
 	}
 
 	UPROPERTY()
-	TObjectPtr<UDataTable> ItemDataTable;
+	TObjectPtr<UDataTable> ItemInfoDataTable;
 	UPROPERTY()
-	TObjectPtr<UDataTable> GimmickDataTable;
+	TObjectPtr<UDataTable> GimmickInfoDataTable;
 	
 #pragma endregion
 	
@@ -52,16 +57,16 @@ private:
 
 public:
 	template<typename GimmickClass>
-	GimmickClass* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation)
+	GimmickClass* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation)
 	{
-		ABaseGimmick* BaseGimmick = SpawnGimmick(RowName, SpawnLocation);
+		ABaseGimmick* BaseGimmick = SpawnGimmick(RowName, SpawnLocation, SpawnRotation);
 		GimmickClass* Gimmick = Cast<GimmickClass>(BaseGimmick);
 
 		return Gimmick;
 	}
 
 private:
-	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation) const;
+	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
 #pragma endregion
 };

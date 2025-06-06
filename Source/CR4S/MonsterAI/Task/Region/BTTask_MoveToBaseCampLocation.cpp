@@ -18,7 +18,7 @@ EBTNodeResult::Type UBTTask_MoveToBaseCampLocation::ExecuteTask(UBehaviorTreeCom
 
     if (UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>())
     {
-        AnimComp->PlayMontange(ReturnMontage);
+        AnimComp->PlayMontage(ReturnMontage);
     }
 
 	return EBTNodeResult::Type();

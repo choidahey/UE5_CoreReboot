@@ -74,6 +74,7 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 	// Apply damage via AttributeComponent
 	AttributeComponent->ApplyDamage(DamageAmount);
+	AddAccumulatedDamage(DamageAmount);
 
 	return DamageAmount;
 }
@@ -106,6 +107,8 @@ void ABaseMonster::HandleDeath()
 
 	bIsDead = true;
 	StateComponent->SetState(EMonsterState::Dead);
+
+	OnDied.Broadcast(this); // Delegate Broadcast On Death for Spawner
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		MoveComp->DisableMovement();

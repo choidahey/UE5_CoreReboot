@@ -1,5 +1,6 @@
 ﻿#include "DoorGimmick.h"
 
+#include "CR4S.h"
 #include "Gimmick/Components/InteractableComponent.h"
 
 ADoorGimmick::ADoorGimmick()
@@ -23,11 +24,11 @@ void ADoorGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(InteractableComponent))
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
-		InteractableComponent->OnTryInteract.BindUObject(this, &ThisClass::OnGimmickInteracted);
+		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
-	
+
 	ClosedRotation = GetActorRotation();
 	OpenRotation = FRotator(ClosedRotation.Pitch, ClosedRotation.Yaw + OpenAngle, ClosedRotation.Roll);
 
@@ -53,14 +54,13 @@ void ADoorGimmick::Tick(const float DeltaSeconds)
 	}
 }
 
-void ADoorGimmick::OnGimmickInteracted(AController* Controller)
+void ADoorGimmick::OnGimmickInteracted(AActor* Interactor)
 {
-	if (!IsValid(Controller))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(Interactor)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Controller is not valid"));
 		return;
 	}
-	
+
 	if (!bIsMoving)
 	{
 		bNextStateIsOpen = !bIsOpen;
@@ -80,9 +80,11 @@ void ADoorGimmick::OnGimmickInteracted(AController* Controller)
 
 void ADoorGimmick::UpdateInteractionText() const
 {
-	if (InteractableComponent)
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
-		const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
-		InteractableComponent->SetInteractionText(bNextWillOpen ? InteractionTextOpen : InteractionTextClose);
+		return;
 	}
+
+	const bool bNextWillOpen = bIsMoving ? !bNextStateIsOpen : !bIsOpen;
+	InteractableComponent->SetInteractionText(bNextWillOpen ? InteractionTextOpen : InteractionTextClose);
 }

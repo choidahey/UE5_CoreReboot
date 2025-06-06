@@ -24,18 +24,16 @@ void UDestructibleComponent::TakeDamage(AActor* DamageCauser, const float Damage
 
 	bCanTakeDamage = false;
 
-	LastDamageCauser = DamageCauser;
-
 	CurrentHealth = FMath::Max(CurrentHealth - DamageAmount, 0.f);
 
 	if (OnTakeDamage.IsBound())
 	{
-		OnTakeDamage.ExecuteIfBound(DamageAmount, CurrentHealth);
+		OnTakeDamage.ExecuteIfBound(DamageCauser, DamageAmount, CurrentHealth);
 	}
 
 	if (IsDestructed())
 	{
-		OnDestroy.ExecuteIfBound();
+		OnDestroy.ExecuteIfBound(DamageCauser);
 	}
 
 	FTimerHandle TimerHandle;

@@ -1,4 +1,5 @@
 #include "MonsterAnimComponent.h"
+#include "CR4S.h"
 
 UMonsterAnimComponent::UMonsterAnimComponent()
 	: MyHeader(TEXT("MonsterAnimComponent"))
@@ -23,15 +24,37 @@ void UMonsterAnimComponent::Initialize(USkeletalMeshComponent* InMesh)
 	}
 }
 
-void UMonsterAnimComponent::PlayMontange(UAnimMontage* Montage)
+void UMonsterAnimComponent::PlayMontage(UAnimMontage* Montage)
 {
 	if (!Montage || !AnimInstance.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] PlayMontage: Invalid Montage or AnimInstance"), *MyHeader);
+		CR4S_Log(LogMonster, Warning, TEXT("[%s] PlayMontage: Invalid Montage or AnimInstance"), *MyHeader);
 		return;
 	}
 
+	AnimInstance->OnMontageEnded.RemoveAll(this);
+	AnimInstance->OnMontageEnded.AddDynamic(this, &UMonsterAnimComponent::Handle_OnMontageEnded);
+	
 	AnimInstance->Montage_Play(Montage, 1.f);
+}
+
+void UMonsterAnimComponent::Handle_OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (AnimInstance.IsValid())
+	{
+		AnimInstance->OnMontageEnded.RemoveAll(this);
+	}
+
+	if (!bInterrupted)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Montage success finished: %s"), *MyHeader, *Montage->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Montage was interrupted: %s"), *MyHeader, *Montage->GetName());
+	}
+	
+	OnMontageEndedNotify.Broadcast(Montage);
 }
 
 bool UMonsterAnimComponent::IsAnyMontagePlaying() const
@@ -61,20 +84,22 @@ void UMonsterAnimComponent::StopAllMontages()
 	AnimInstance->StopAllMontages(0.2f);
 }
 
-void UMonsterAnimComponent::PlayDeathMontage()
+void UMonsterAnimComponent::PlayCombatMontage()
 {
-	UE_LOG(LogTemp, Log, TEXT("[%s] PlayDeathMontage"), *MyHeader);
-	PlayMontange(DeathMontage);
+	PlayMontage(CombatMontage);
 }
 
-void UMonsterAnimComponent::PlayHitReactMontage()
+void UMonsterAnimComponent::PlayDeathMontage()
 {
-	UE_LOG(LogTemp, Log, TEXT("[%s] PlayHitReactMontage"), *MyHeader);
-	PlayMontange(HitReactMontage);
+	PlayMontage(DeathMontage);
 }
 
 void UMonsterAnimComponent::PlayStunnedMontage()
 {
-	UE_LOG(LogTemp, Log, TEXT("[%s] PlayStunnedMontage"), *MyHeader);
-	PlayMontange(StunnedMontage);
+	PlayMontage(StunnedMontage);
+}
+
+void UMonsterAnimComponent::PlayHitReactMontage()
+{
+	PlayMontage(HitReactMontage);
 }

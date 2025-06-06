@@ -1,22 +1,57 @@
 #include "BTTask_AnimalPatrol.h"
 #include "AIController.h"
-#include "../Component/AnimalMovementComponent.h"
+#include "../Component/FlyingMovementComponent.h"
+#include "../Component/GroundMovementComponent.h"
+#include "../AnimalGround.h"
+#include "../AnimalFlying.h"
 #include "../BaseAnimal.h"
-#include "BehaviorTree/BlackboardComponent.h"
+#include "../BaseAnimal.h"
 #include "NavigationSystem.h"
-#include "Kismet/KismetMathLibrary.h"
 
 UBTTask_AnimalPatrol::UBTTask_AnimalPatrol()
 {
+    NodeName = TEXT("Animal Patrol");
     bNotifyTick = true;
+    bCreateNodeInstance = true;
+}
+
+uint16 UBTTask_AnimalPatrol::GetInstanceMemorySize() const
+{
+    return sizeof(FPatrolMemory);
 }
 
 EBTNodeResult::Type UBTTask_AnimalPatrol::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    WaitTime    = FMath::FRandRange(IdleTimeMin, IdleTimeMax);
-    WaitElapsed = 0.0f;
-    bMoving     = false;
-    return EBTNodeResult::InProgress;
+    APawn* Pawn = OwnerComp.GetAIOwner()->GetPawn();
+    if (!IsValid(Pawn)) return EBTNodeResult::Failed;
+
+    FPatrolMemory* Mem = (FPatrolMemory*)NodeMemory;
+    Mem->Elapsed = 0.f;
+
+    const FVector Origin = Pawn->GetActorLocation();
+    FNavLocation Result;
+
+    const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+    if (!NavSys || !NavSys->GetRandomPointInNavigableRadius(Origin, PatrolRadius, Result))
+    {
+        return EBTNodeResult::Failed;
+    }
+
+    Mem->PatrolDestination = Result.Location;
+
+    if (UFlyingMovementComponent* FlyComp = Pawn->FindComponentByClass<UFlyingMovementComponent>())
+    {
+        FlyComp->ResetPitchAndRoll();
+        FlyComp->MoveToLocation(Mem->PatrolDestination);
+        return EBTNodeResult::InProgress;
+    }
+    else if (UAnimalMovementComponent* MoveComp = Pawn->FindComponentByClass<UAnimalMovementComponent>())
+    {
+        MoveComp->MoveToLocation(Mem->PatrolDestination);
+        return EBTNodeResult::InProgress;
+    }
+    
+    return EBTNodeResult::Failed;
 }
 
 void UBTTask_AnimalPatrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -27,55 +62,29 @@ void UBTTask_AnimalPatrol::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
         FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
-    
-    ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-    if (!IsValid(Animal) || Animal->IsActorBeingDestroyed())
+
+    FPatrolMemory* Mem = (FPatrolMemory*)NodeMemory;
+
+    Mem->Elapsed += DeltaSeconds;
+    if (Mem->Elapsed >= MaxWaitTime)
     {
         FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
-    
-    if (!bMoving)
-    {
-        WaitElapsed += DeltaSeconds;
-        if (WaitElapsed < WaitTime)
-        {
-            return;
-        }
-        
-        const FVector Origin = Pawn->GetActorLocation();
 
-        if (const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
-        {
-            FNavLocation ResultLocation;
-            if (NavSys->GetRandomPointInNavigableRadius(Origin, PatrolRadius, ResultLocation))
-            {
-                PatrolDestination = ResultLocation.Location;
-            }
-            else
-            {
-                FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-                return;
-            }
-        }
-        else
-        {
-            FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-            return;
-        }
-        
-        if (UAnimalMovementComponent* MoveComp = Pawn->FindComponentByClass<UAnimalMovementComponent>())
-        {
-            MoveComp->MoveToLocation(PatrolDestination);
-        }
-        bMoving = true;
-    }
-    else
+    bool bArrived = false;
+    if (UFlyingMovementComponent* FlyComp = Pawn->FindComponentByClass<UFlyingMovementComponent>())
     {
-        const float Distance = FVector::Dist(Pawn->GetActorLocation(), PatrolDestination);
-        if (Distance <= 100.0f)
-        {
-            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-        }
+        bArrived = FlyComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
+    }
+
+    else if (UGroundMovementComponent* GroundComp = Pawn->FindComponentByClass<UGroundMovementComponent>())
+    {
+        bArrived = GroundComp->HasReachedDestination(Mem->PatrolDestination, AcceptanceRadius);
+    }
+
+    if (bArrived)
+    {
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
     }
 }

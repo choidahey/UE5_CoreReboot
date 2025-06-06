@@ -13,18 +13,21 @@ struct FAIKeys
 	static const FName LastHitTime;
 	static const FName IsDead;
 	static const FName SkillIndex;
+	static const FName bIsPlayingAttackMontage;
 };
 
 struct FRegionBossAIKeys : public FAIKeys
 {
-	static const FName BaseCampLocation;
+	static const FName CombatStartLocation;
+	static const FName PatrolTargetLocation;
 	static const FName CurrentPhase;
 	static const FName ShouldReturn;
+	static const FName LastIdleBoredTime;
 };
 
 struct FSeasonBossAIKeys : public FAIKeys
 {
 	static const FName InitializeTargetLocation;
-	static const FName NearestHouseLocation;
-	static const FName bIsAttackRange;
+	static const FName NearestHouseActor;
+	static const FName bIsIceRoadForward;
 };

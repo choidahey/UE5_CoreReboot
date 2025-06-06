@@ -72,7 +72,7 @@ void UCombatComponent::PerformWeaponTrace()
 					UE_LOG(LogTemp, Warning, TEXT("Applying damage to: %s"), *HitActor->GetName());
 					UGameplayStatics::ApplyDamage(
 						HitActor,
-						10,
+						OwningCharacter->GetAttackPower(),
 						OwningCharacter->GetController(),
 						OwningCharacter,
 						UDamageType::StaticClass()

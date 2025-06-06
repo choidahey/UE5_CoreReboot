@@ -1,6 +1,10 @@
 #include "Game/System/EnvironmentManager.h"
 #include "Engine/DataAsset.h"
+#include "Game/System/WorldTimeManager.h"
 #include "Game/System/SeasonType.h"
+#include "Game/System/SpawnZoneManager.h"
+#include "Game/System/SeasonManager.h"
+#include "Game/System/EnvironmentalModifierVolume.h"
 
 AEnvironmentManager::AEnvironmentManager()
 {
@@ -12,6 +16,24 @@ void AEnvironmentManager::BeginPlay()
     // Load Weather if there is Save
 
     //For NewGame, Season Starts with Bountiful Season
+
+    TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
+    if (TimeManager)
+    {
+        TimeManager->SetWorldTimeMultiplier(WorldTimeMultiplier);
+        TimeManager->StartWorldTime();
+    }
+
+    Super::BeginPlay();
+}
+
+void AEnvironmentManager::SetDayNightByTime(float DawnTime, float DuskTime)
+{
+
+    DawnTime = FMath::Clamp(DawnTime, 0.0f, 2400.0f);
+    DuskTime = FMath::Clamp(DuskTime, 0.0f, 2400.0f);
+
+    SetDawnDuskTime(DawnTime, DuskTime);
 }
 
 void AEnvironmentManager::SetWeatherByName(const FString& WeatherName, float TransitionTime)
@@ -23,7 +45,7 @@ void AEnvironmentManager::SetWeatherByName(const FString& WeatherName, float Tra
     if (UDataAsset* WeatherAsset = Cast<UDataAsset>(LoadedObject))
     {
         UE_LOG(LogTemp, Log, TEXT("Weather preset loaded: %s"), *WeatherName);
-        SetWeather(WeatherAsset, TransitionTime);
+        ApplyWeather(WeatherAsset, TransitionTime);
     }
     else
     {
@@ -56,11 +78,28 @@ void AEnvironmentManager::SetWeatherBySeason(ESeasonType Season, float Transitio
 
     if (SelectedPreset)
     {
-        SetWeather(SelectedPreset, TransitionTime);
+        ApplyWeather(SelectedPreset, TransitionTime);
         UE_LOG(LogTemp, Log, TEXT("SetWeatherBySeason: Weather set for season %s"), *UEnum::GetValueAsString(Season));
     }
     else
     {
         UE_LOG(LogTemp, Error, TEXT("SetWeatherBySeason: Preset is not assigned for season %s"), *UEnum::GetValueAsString(Season));
     }
+}
+
+void AEnvironmentManager::SpawnEnvironmentalModifierVolume(
+    const FVector& Location,
+    float Radius,
+    float Height,
+    float Duration,
+    float TemperatureDelta,
+    float HumidityDelta,
+    float Speed)
+{
+
+}
+
+void AEnvironmentManager::SetWorldTimeMultiplier_Implementation(int32 Multiplier)
+{
+    TimeManager->SetWorldTimeMultiplier(Multiplier);
 }

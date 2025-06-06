@@ -1,6 +1,6 @@
 ﻿#include "InteractableComponent.h"
 
-#include "Gimmick/GimmickObjects/BaseGimmick.h"
+#include "CR4S.h"
 
 UInteractableComponent::UInteractableComponent()
 	: InteractionTraceChannel(ECC_GameTraceChannel1),
@@ -41,25 +41,25 @@ void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewRes
 }
 
 
-void UInteractableComponent::TryInteract(AController* Controller) const
+void UInteractableComponent::TryInteract(AActor* Interactor) const
 {
-	OnTryInteract.ExecuteIfBound(Controller);
+	OnTryInteract.ExecuteIfBound(Interactor);
 }
 
-void UInteractableComponent::DetectionStateChanged(AController* DetectingController,
+void UInteractableComponent::DetectionStateChanged(AActor* DetectingActor,
                                                    const bool bIsDetected) const
 {
 	SetHighlight(bIsDetected);
 
-	OnDetectionStateChanged.ExecuteIfBound(DetectingController, bIsDetected);
+	OnDetectionStateChanged.ExecuteIfBound(DetectingActor, bIsDetected);
 }
 
 void UInteractableComponent::InitHighlightMaterial()
 {
 	const AActor* Owner = GetOwner();
-	if (!IsValid(Owner))
+	
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(Owner)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Owner is invalid"));
 		return;
 	}
 
@@ -67,9 +67,8 @@ void UInteractableComponent::InitHighlightMaterial()
 	Owner->GetComponents<UMeshComponent>(MeshComponents);
 	HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
 
-	if (!IsValid(HighlightMaterialInstance))
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(HighlightMaterialInstance)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HighlightMaterialInstance is invalid"));
 		return;
 	}
 

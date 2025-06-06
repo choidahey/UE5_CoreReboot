@@ -1,4 +1,6 @@
 #include "MonsterAI/Skills/ColdFairyActor.h"
+
+#include "CR4S.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -6,7 +8,6 @@
 #include "Kismet/KismetMathLibrary.h"
 
 AColdFairyActor::AColdFairyActor()
-	: MyHeader(TEXT("ColdFairyActor"))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -15,28 +16,29 @@ AColdFairyActor::AColdFairyActor()
 
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
 	CollisionComp->InitSphereRadius(20.f);
-	CollisionComp->SetCollisionProfileName("OverlapAll");
-	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	CollisionComp->SetupAttachment(RootComp);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
+	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	CollisionComp->SetNotifyRigidBodyCollision(true);
+	CollisionComp->OnComponentHit.AddDynamic(this, &AColdFairyActor::OnHit);
 
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
 	StaticMeshComp->SetupAttachment(RootComp);
 	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
-	MovementComp->bAutoActivate = false;
-	//MovementComp->bIsHomingProjectile = true;
-	//MovementComp->bRotationFollowsVelocity = true;
-	MovementComp->bIsHomingProjectile = false;
-	MovementComp->bRotationFollowsVelocity = true;
-	MovementComp->HomingAccelerationMagnitude = 5000.f;
-	MovementComp->InitialSpeed = 5000.f;
-	MovementComp->MaxSpeed = 5000.f;
-	MovementComp->ProjectileGravityScale = 0.f;
-
-	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AColdFairyActor::OnHit);
+	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
+	ProjectileMovementComp->UpdatedComponent = CollisionComp;
+	ProjectileMovementComp->InitialSpeed = Speed;
+	ProjectileMovementComp->MaxSpeed = MaxSpeed;
+	ProjectileMovementComp->ProjectileGravityScale = 1.0f;
+	ProjectileMovementComp->bRotationFollowsVelocity = true;
+	ProjectileMovementComp->bShouldBounce = false;
+	ProjectileMovementComp->bAutoActivate = false;
+	ProjectileMovementComp->bIsHomingProjectile = false;
+	ProjectileMovementComp->HomingAccelerationMagnitude = 0.f;
 }
 
 void AColdFairyActor::BeginPlay()
@@ -49,49 +51,143 @@ void AColdFairyActor::BeginPlay()
 		{
 			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
 			Damage = SkillData.Damage;
-
 		}
 	}
 }
 
-void AColdFairyActor::Tick(float DeltaSeconds)
+void AColdFairyActor::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaSeconds);
+	Super::Tick(DeltaTime);
+	
+	if (!bHasLaunched && IsValid(TargetActor))
+	{
+		FVector ToTarget = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		if (!ToTarget.IsNearlyZero())
+		{
+			SetActorRotation(ToTarget.Rotation());
+		}
+	}
+}
 
-	APawn* TargetPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (!TargetPlayer) return;
+void AColdFairyActor::InitialLaunch(AActor* InTarget, int32 InIndex, int32 InTotalCount)
+{
+	if (!InTarget) return;
+	
+	TargetActor = InTarget;
+	SpawnOrder = InIndex;
+	TotalCount = InTotalCount;
 
-	FVector ToTarget = (TargetPlayer->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	LaunchDirection = ToTarget;
-	FRotator LookAtRot = ToTarget.Rotation();
-	LookAtRot.Roll = 0.f;
-	SetActorRotation(LookAtRot);
+	if (APawn* InstPawn = GetInstigator<APawn>())
+		CollisionComp->IgnoreActorWhenMoving(InstPawn, true);
+	
+	bSequentialLaunch ? HandleSequenceLaunch() : HandleImmediateLaunch();
+}
+
+void AColdFairyActor::HandleSequenceLaunch()
+{
+	LaunchDelay = SpawnOrder * Interval;
+
+	if (LaunchDelay <= KINDA_SMALL_NUMBER)
+	{
+		Launch();
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			LaunchTimerHandle,
+			this,
+			&AColdFairyActor::Launch,
+			LaunchDelay,
+			false
+		);
+	}
+}
+
+void AColdFairyActor::HandleImmediateLaunch() const
+{
+	TArray<AActor*> SpawnedActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AColdFairyActor::StaticClass(), SpawnedActors);
+
+	TArray<AColdFairyActor*> FairyActors;
+	for (AActor* Actor : SpawnedActors)
+	{
+		AColdFairyActor* CF = Cast<AColdFairyActor>(Actor);
+		if (CF && CF->GetOwner() == GetOwner())
+			FairyActors.Add(CF);
+	}
+    	
+	if (FairyActors.Num() < TotalCount) return;
+    	
+	for (AColdFairyActor* FairyActor : FairyActors)
+	{
+		if (IsValid(FairyActor))
+			FairyActor->Launch();
+	}
 }
 
 void AColdFairyActor::Launch()
 {
-	SetActorTickEnabled(false);
+	if (!CR4S_VALIDATE(LogDa, IsValid(this))) return;
+	if (!CR4S_VALIDATE(LogDa, IsValid(TargetActor))) return;
+	if (bHasLaunched) return;
 
-	APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!Player || !MovementComp)
+	bHasLaunched = true;
+	
+	if (!ProjectileMovementComp->IsActive())
+		ProjectileMovementComp->Activate(true);
+	
+	ProjectileMovementComp->bIsHomingProjectile = true;
+	ProjectileMovementComp->HomingAccelerationMagnitude = 5000.f;
+	ProjectileMovementComp->HomingTargetComponent = TargetActor->GetRootComponent();
+	
+	FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	if (Direction.IsNearlyZero())
+	{
+		CR4S_Log(LogDa, Warning, TEXT("[%s][LaunchSelf] Direction is nearly zero. Aborting."), *GetName());
 		return;
+	}
 
-	FVector Dir = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	LaunchDirection = Dir;
-
-	FRotator LookAtRot = Dir.Rotation();
-	LookAtRot.Roll = 0.f;
-	SetActorRotation(LookAtRot);
-
-	MovementComp->Velocity = Dir * MovementComp->InitialSpeed;
-	MovementComp->Activate(true);
+	FRotator NewRot = Direction.Rotation();
+	SetActorRotation(NewRot);
+	ProjectileMovementComp->Velocity = Direction * ProjectileMovementComp->InitialSpeed;
+	
+	CR4S_Log(LogDa, Log,
+		TEXT("[%s] Launch: Homeing activated → Target=%s, InitialDir=%s"),
+		*MyHeader,
+		*TargetActor->GetName(),
+		*Direction.ToString()
+	);
 }
 
-void AColdFairyActor::OnHit(UPrimitiveComponent* Overlapped, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Sweep)
+void AColdFairyActor::OnHit(
+    UPrimitiveComponent* HitComp,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    FVector NormalImpulse,
+    const FHitResult& Hit)
 {
-	if (Other && Other != this)
-	{
-		UGameplayStatics::ApplyDamage(Other, Damage, GetInstigatorController(), this, nullptr);
-		Destroy();
-	}
+    if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
+
+    UGameplayStatics::ApplyDamage(
+        OtherActor,
+        Damage,
+        GetInstigatorController(),
+        this,
+        UDamageType::StaticClass()
+    );
+	
+    ProjectileMovementComp->StopMovementImmediately();
+    SetActorLocation(Hit.ImpactPoint);
+
+    if (CollisionComp->IsRegistered())
+        CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+    
+    AttachToComponent(OtherComp, FAttachmentTransformRules::KeepWorldTransform);
+
+    GetWorld()->GetTimerManager().SetTimer(
+        DestroyTimerHandle,
+        FTimerDelegate::CreateLambda([this]() { Destroy(); }),
+        2.0f,
+        false
+    );
 }
