@@ -5,13 +5,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
-void UAnimNotifyState_ThunderRoad::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+void UAnimNotifyState_ThunderRoad::NotifyBegin(
+	USkeletalMeshComponent* MeshComp,
+	UAnimSequenceBase* Animation,
+	float TotalDuration)
 {
 	if (!IsValid(MeshComp->GetWorld())
 	|| !IsValid(MeshComp)
 	|| !IsValid(SpawnActorClass)
 	|| !IsValid(Animation)) return;
-
+	
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!IsValid(OwnerPawn)) return;
 	
@@ -85,10 +88,11 @@ void UAnimNotifyState_ThunderRoad::NotifyBegin(USkeletalMeshComponent* MeshComp,
 		FVector NewWorldLoc = FVector(SocketWorldLocation.X, SocketWorldLocation.Y, GroundZ);
 		SpawnedActor->SetActorLocation(NewWorldLoc);
 	}
-	
 }
 
-void UAnimNotifyState_ThunderRoad::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UAnimNotifyState_ThunderRoad::NotifyTick(
+	USkeletalMeshComponent* MeshComp,
+	UAnimSequenceBase* Animation,
 	float FrameDeltaTime)
 {
 	if (!IsValid(MeshComp)) return;
@@ -140,7 +144,6 @@ void UAnimNotifyState_ThunderRoad::NotifyTick(USkeletalMeshComponent* MeshComp, 
 			2.f
 		);
 	}
-
 }
 
 void UAnimNotifyState_ThunderRoad::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)

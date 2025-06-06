@@ -4,6 +4,7 @@
 #include "MonsterAI/Components/MonsterPerceptionComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
+#include "CR4S.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 UBTService_UpdateState::UBTService_UpdateState()
@@ -11,7 +12,7 @@ UBTService_UpdateState::UBTService_UpdateState()
 	NodeName = TEXT("UpdateState");
 	Interval = 1.f;
 	bNotifyBecomeRelevant = true;
-	bCreateNodeInstance = true;
+	bNotifyTick = true;  
 	bCreateNodeInstance = true;
 }
 
@@ -19,10 +20,14 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
-	if (!BB || !Pawn) return;
+	if (!AIController) return;
+	
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB) return;
+	
+	APawn* Pawn = AIController->GetPawn();
+	if (!Pawn) return;
 
 	bool bIsPlayingAttackMontage = BB->GetValueAsBool(FAIKeys::bIsPlayingAttackMontage);
 	if (bIsPlayingAttackMontage) return;
@@ -33,46 +38,54 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	AActor* TargetHouse = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 
 	float DistanceToPlayer = TNumericLimits<float>::Max();
-	bool  bPlayerInRange = false;
-
-	float DistanceToHouse = TNumericLimits<float>::Max();
-	bool  bHouseInRange = false;
-
-	if (TargetPlayer)
+	if (IsValid(TargetPlayer))
 	{
 		DistanceToPlayer = FVector::Dist(PawnLoc, TargetPlayer->GetActorLocation());
-		bPlayerInRange = (DistanceToPlayer <= AttackDistanceThreshold);
+		bIsPlayerInAttackRange = (DistanceToPlayer <= AttackDistanceThreshold);
 	}
-
-	if (TargetHouse)
+	
+	float DistanceToHouse = TNumericLimits<float>::Max();
+	if (IsValid(TargetHouse))
 	{
 		DistanceToHouse = FVector::Dist(PawnLoc, TargetHouse->GetActorLocation());
-		bHouseInRange = (DistanceToHouse <= AttackDistanceThreshold);
+		bIsHouseInAttackRange = (DistanceToHouse <= AttackDistanceThreshold);
 	}
 
 	if (UMonsterStateComponent* StateComp = Pawn->FindComponentByClass<UMonsterStateComponent>())
 	{
 		if (IsValid(TargetPlayer))
 		{
-			if (bPlayerInRange)
+			if (bIsPlayerInAttackRange)
+			{
 				StateComp->SetState(EMonsterState::Attack);
+				BB->SetValueAsInt(FSeasonBossAIKeys::CurrentState, (int)EMonsterState::Attack);
+			}
 			else
+			{
 				StateComp->SetState(EMonsterState::Chase);
+				BB->SetValueAsInt(FSeasonBossAIKeys::CurrentState, (int)EMonsterState::Chase);
+			}
+				
 		}
 		else if (IsValid(TargetHouse))
 		{
-			if (bHouseInRange)
+			if (bIsHouseInAttackRange)
 			{
 				StateComp->SetState(EMonsterState::AttackHouse);
+				BB->SetValueAsInt(FSeasonBossAIKeys::CurrentState, (int)EMonsterState::AttackHouse);
 			}
 			else
 			{
 				StateComp->SetState(EMonsterState::MoveToHouse);
+				BB->SetValueAsInt(FSeasonBossAIKeys::CurrentState, (int)EMonsterState::MoveToHouse);
 			}
 		}
 		else
 		{
 			StateComp->SetState(EMonsterState::Chase);
+			BB->SetValueAsInt(FSeasonBossAIKeys::CurrentState, (int)EMonsterState::Chase);
 		}
+
+		CR4S_Log(LogDa, Log, TEXT("[UpdateState] Current State : %d"), BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));
 	}
 }

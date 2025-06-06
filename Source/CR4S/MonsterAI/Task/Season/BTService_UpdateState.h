@@ -23,14 +23,10 @@ protected:
 	FBlackboardKeySelector HouseActor;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector bIsPlayerAttackRange;
+	float AttackDistanceThreshold = 1000.f;
 
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector bIsHouseAttackRange;
 
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector CurrentDistance;
-
-	UPROPERTY(EditAnywhere, Category = "Configuration", meta = (ClampMin = "0.0"))
-	float AttackDistanceThreshold = 1200.f;
+private:
+	bool bIsPlayerInAttackRange = false;
+	bool bIsHouseInAttackRange = false;
 };

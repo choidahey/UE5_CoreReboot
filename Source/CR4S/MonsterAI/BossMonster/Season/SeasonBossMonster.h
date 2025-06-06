@@ -20,12 +20,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "MonsterAI")
 	UNavigationInvokerComponent* NavInvoker;
-
-	UPROPERTY(EditAnywhere, Category = "MonsterAI")
-	float NavInvokerRadius = 3000.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "MonsterAI")
-	float NavInvokerRemovalRadius = 3500.f;
+	float NavInvokerRadius = 5000.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "MonsterAI")
+	float NavInvokerRemovalRadius = 5500.f;
 
 private:
 	FString MyHeader = TEXT("SeasonMonster");

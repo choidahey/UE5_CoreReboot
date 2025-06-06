@@ -1,12 +1,7 @@
 #include "MonsterAI/Controller/SeasonBossMonsterAIController.h"
-#include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BehaviorTree/BehaviorTree.h"
-#include "Navigation/PathFollowingComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
-#include "Character/Characters/PlayerCharacter.h"
 
 ASeasonBossMonsterAIController::ASeasonBossMonsterAIController()
 	: MyHeader(TEXT("SeasonBossAIController"))
@@ -43,5 +38,4 @@ void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 		else
 			ClearFocus(EAIFocusPriority::Gameplay);
 	}
-		
 }
