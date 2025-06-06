@@ -2,5 +2,4 @@
 KamishForestBoss,KamishForestBoss,250000,10,15,10,1200,13000,1.25,3,25,100,1,2500,2000,5000,180,2500,/Game/CR4S/_Blueprint/MonsterAI/Data/KamishSkillDataTable.KamishSkillDataTable
 HiemsFrostBoss,HiemsFrostBoss,100000,20,15,10,700,10000,1.6,4.5,25,100,1,2000,2000,3000,90,1500,/Game/CR4S/_Blueprint/MonsterAI/Data/HiemsSkillDataTable.HiemsSkillDataTable
 LavaBruteRockBoss,LavaBruteRockBoss,270000,30,15,10,1000,14000,1.35,4,25,120,1,2500,2000,5000,180,2500,/Game/CR4S/_Blueprint/MonsterAI/Data/LavaBruteSkillDataTable.LavaBruteSkillDataTable
-MonsterTest4,MonsterTest4,100,40,15,10,5,,,,,,,,,,,,
-MonsterTest5,MonsterTest5,100,50,15,10,5,,,,,,,,,,,,
+CeresRainyBoss,CeresRainyBoss,100000,20,15,10,700,10000,1.6,4.5,25,100,1,2000,2000,3000,90,1500,/Game/CR4S/_Blueprint/MonsterAI/Data/CeresSkillDataTable.CeresSkillDataTable
