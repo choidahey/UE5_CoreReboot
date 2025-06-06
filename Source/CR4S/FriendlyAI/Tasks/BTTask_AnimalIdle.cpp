@@ -4,6 +4,7 @@ UBTTask_AnimalIdle::UBTTask_AnimalIdle()
 {
 	NodeName = TEXT("Animal Idle");
 	bNotifyTick = true;
+	bCreateNodeInstance = true;
 }
 
 uint16 UBTTask_AnimalIdle::GetInstanceMemorySize() const
