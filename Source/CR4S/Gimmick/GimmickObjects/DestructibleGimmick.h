@@ -30,8 +30,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "ADestructibleResourceGimmick|Components")
 	FORCEINLINE UDestructibleComponent* GetDestructibleComponent() const { return DestructibleComponent; }
 
+	FORCEINLINE bool IsDestroyed() const { return bIsDestroyed; }
 	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
-
+	
 protected:
 	UFUNCTION()
 	virtual void OnGimmickTakeDamage(AActor* DamageCauser, float DamageAmount, float CurrentHealth);
@@ -45,6 +46,8 @@ protected:
 	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
 	
 private:
+	bool bIsDestroyed;
+	
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
 	float DestroyDelay;
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))

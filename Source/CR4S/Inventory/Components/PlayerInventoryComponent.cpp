@@ -45,7 +45,7 @@ void UPlayerInventoryComponent::BeginPlay()
 		InventoryContainerWidgetInstance->InitWidget(SurvivalHUD, this);
 	}
 
-	// AddItem(FName("StoneAxe"), 1);
+	AddItem(FName("StoneAxe"), 1);
 }
 
 FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count)
