@@ -20,24 +20,26 @@ class CR4S_API UBaseInventoryWidget : public UUserWidget
 #pragma region Initalize
 
 public:
+	UBaseInventoryWidget(const FObjectInitializer& ObjectInitializer);
+
 	virtual void NativeConstruct() override;
 
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "InventoryWidget|Initalize")
 	virtual void InitWidget(ASurvivalHUD* SurvivalHUD, bool bNewCanSort);
 
-	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent, bool bCanDrag, bool bCanDrop);
+	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent);
 
 	virtual void UnBoundWidgetDelegate();
 
 	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
-	
+
 protected:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
-	
+
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController;
 
@@ -49,17 +51,19 @@ protected:
 #pragma region BindWidget
 
 protected:
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> InventoryTitleTextBlock;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPanelWidget> ItemSlotWidgetContainer;
 
 #pragma endregion
 
-#pragma region ItemWidget
+#pragma region ItemSlotWidget
 
 protected:
 	UFUNCTION()
-	virtual void UpdateItemSlotWidget(UBaseInventoryItem* Item);
-	
+	virtual void UpdateItemSlotWidget(int32 SlotIndex, UBaseInventoryItem* Item);
+
 	UPROPERTY()
 	TArray<TObjectPtr<UBaseItemSlotWidget>> ItemSlotWidgets;
 
@@ -70,11 +74,31 @@ protected:
 public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
+	FORCEINLINE bool CanSort() const { return bCanSort; }
+	FORCEINLINE bool CanDrag() const { return bCanDrag; }
+	FORCEINLINE bool CanDrop() const { return bCanDrop; }
+	FORCEINLINE bool CanRemoveItem() const { return bCanRemoveItem; }
+	FORCEINLINE bool CanMoveItem() const { return bCanMoveItem; }
+
 	FORCEINLINE void SetCanSort(const bool bNewCanSort) { bCanSort = bNewCanSort; }
-	
-protected:
-	UPROPERTY(EditDefaultsOnly)
+	FORCEINLINE void SetCanDrag(const bool bNewCanDrag) { bCanDrag = bNewCanDrag; }
+	FORCEINLINE void SetCanDrop(const bool bNewCanDrop) { bCanDrop = bNewCanDrop; }
+	FORCEINLINE void SetCanRemoveItem(const bool bNewCanRemoveItem) { bCanRemoveItem = bNewCanRemoveItem; }
+	FORCEINLINE void SetCanMoveItem(const bool bNewCanMoveItem) { bCanMoveItem = bNewCanMoveItem; }
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	bool bCanSort;
-	
-#pragma endregion 
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	bool bCanDrag;
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	bool bCanDrop;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	bool bCanRemoveItem;
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	bool bCanMoveItem;
+
+#pragma endregion
 };

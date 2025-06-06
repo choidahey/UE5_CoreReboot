@@ -29,6 +29,7 @@ EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& Own
 	if (SelectedSkillIndex == INDEX_NONE) return EBTNodeResult::Failed;
 
 	CachedBlackboard->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);	
+
 	return EBTNodeResult::Succeeded;
 }
 

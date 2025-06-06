@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseInventoryComponent.h"
+#include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "PlayerInventoryComponent.generated.h"
 
@@ -28,46 +29,41 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent||InventoryContainerWidget")
-	void OpenPlayerInventoryWidget();
-	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
+	void OpenPlayerInventoryWidget(const int32 CraftingDifficulty = 0) const;
+	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
 
 	void CloseInventoryWidget() const;
 
 private:
+	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
+	
 	UPROPERTY(EditDefaultsOnly)
 	int32 InventoryContainerWidgetOrder;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
 	UPROPERTY()
 	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidgetInstance;
-	
+
 	UPROPERTY()
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
-	
+
 #pragma endregion
 
-#pragma region QuickSlot
+#pragma region QuickSlotInventoryComponent
 
 public:
-	UBaseInventoryItem* GetQuickSlotItemDataByIndex(const int32 Index) const;
-	
-private:
-	UPROPERTY(VisibleAnywhere, Category = "QuickSlot")
-	TArray<TObjectPtr<UBaseInventoryItem>> QuickSlotItems;
+	UFUNCTION(BlueprintCallable)
+	void UseItem(const int32 Index) const;
 
-	int32 QuickSlotCount;
-	
-#pragma endregion 
-
-#pragma region QuickSlotWidget
-
-public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuickSlotItemChanged, UBaseInventoryItem*, Item);
-	FOnQuickSlotItemChanged OnQuickSlotItemChanged;
+	FORCEINLINE UBaseInventoryComponent* GetQuickSlotInventoryComponent() { return QuickSlotInventoryComponent; }
+	FORCEINLINE const FGameplayTag& GetHeldToolTag() const { return HeldToolTag; }
+	FORCEINLINE void SetHeldToolTag(const FGameplayTag& NewHeldToolTags) { HeldToolTag = NewHeldToolTags; }
 
 private:
-	void NotifyQuickSlotItemChanged(const int32 ItemSlotIndex) const;
-	void NotifyQuickSlotItemsChanged(const TArray<int32>& ChangedItemSlots) const;
-	
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryComponent> QuickSlotInventoryComponent;
+
+	FGameplayTag HeldToolTag;
+
 #pragma endregion
 };

@@ -4,12 +4,6 @@
 #include "MonsterAI/Task/BTTask_SelectSkill.h"
 #include "BTTask_SelectSkill_Hiems.generated.h"
 
-struct FSkillWeight
-{
-	int32 SkillID;
-	int32 Weight;
-};
-
 UCLASS()
 class CR4S_API UBTTask_SelectSkill_Hiems : public UBTTask_SelectSkill
 {
@@ -21,11 +15,11 @@ public:
 	virtual int32 SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target) override;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	float IceRoadForwardTreshold = 1100.f;
+	void ReshuffleSkills(const TArray<int32>& AvailableSkills);
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	float IceRoadAwayTreshold = 500.f;
-
+	UPROPERTY()
+	TArray<int32> ShuffledSkills;
+	int32 CurrentShuffleIndex = 0;
+	
 	FString MyHeader = TEXT("Task_SelectSkillHiems");
 };

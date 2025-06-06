@@ -22,16 +22,7 @@ void UInteractionComponent::BeginPlay()
 
 	InitComponent();
 
-	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractionWidgetInstance)))
-	{
-		// Start the UpdateDetectProcess
-		GetWorld()->GetTimerManager().SetTimer(
-			FindProcessTimerHandle,
-			this,
-			&ThisClass::UpdateDetectProcess,
-			0.1f,
-			true);
-	}
+	StartDetectProcess();
 }
 
 void UInteractionComponent::InitComponent()
@@ -56,6 +47,38 @@ void UInteractionComponent::InitComponent()
 	}
 
 	InteractionWidgetInstance = SurvivalHUD->CreateAndAddWidget(InteractionWidgetClass, 0, ESlateVisibility::Collapsed);
+}
+
+void UInteractionComponent::StartDetectProcess()
+{
+	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractionWidgetInstance)))
+	{
+		if (GetWorld()->GetTimerManager().IsTimerActive(FindProcessTimerHandle))
+		{
+			return;
+		}
+		
+		// Start the UpdateDetectProcess
+		GetWorld()->GetTimerManager().SetTimer(
+			FindProcessTimerHandle,
+			this,
+			&ThisClass::UpdateDetectProcess,
+			0.1f,
+			true);
+	}
+}
+
+void UInteractionComponent::StopDetectProcess()
+{
+	GetWorld()->GetTimerManager().ClearTimer(FindProcessTimerHandle);
+
+	HideInteractionWidget();
+
+	if (IsValid(DetectedInteractableComponent))
+	{
+		DetectedInteractableComponent->DetectionStateChanged(nullptr, false);
+		DetectedInteractableComponent = nullptr;
+	}
 }
 
 void UInteractionComponent::ShowInteractionWidget() const
