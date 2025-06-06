@@ -208,9 +208,9 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 
 FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (InKeyEvent.GetKey() == EKeys::Nine)
+	if (InKeyEvent.GetKey() == EKeys::RightBracket && PlayerInventoryComponent)
 	{
-		CloseInventoryWidget();
+		PlayerInventoryComponent->CloseInventoryWidget();
 		return FReply::Handled();
 	}
 
