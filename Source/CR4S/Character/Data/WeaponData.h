@@ -12,7 +12,7 @@ class ABaseBullet;
  * 
  */
 USTRUCT(BlueprintType)
-struct CR4S_API FBulletData
+struct CR4S_API FBulletInfo
 {
 	GENERATED_BODY()
 public:
@@ -28,13 +28,18 @@ public:
 	float ExplosionRadius{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HomingStrength{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxLifeTime{3};
 };
 
 USTRUCT(BlueprintType)
-struct CR4S_API FBaseWeaponData
+struct CR4S_API FBaseWeaponInfo
 {
 	GENERATED_BODY()
 public:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UAnimMontage> AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DamageMultiplier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -49,7 +54,7 @@ public:
 
 
 USTRUCT(BlueprintType)
-struct CR4S_API FMeleeWeaponData : public FBaseWeaponData 
+struct CR4S_API FMeleeWeaponInfo
 {
 	GENERATED_BODY()
 public:
@@ -58,7 +63,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct CR4S_API FRangedWeaponData : public FBaseWeaponData 
+struct CR4S_API FRangedWeaponInfo
 {
 	GENERATED_BODY()
 public:
@@ -79,58 +84,61 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletsPerShot > 1"))
 	float SpreadAngle = 5.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<ABaseBullet> ProjectileClass{nullptr};
+	TSubclassOf<ABaseBullet> ProjectileClass {nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FBulletData BulletData;
+	FBulletInfo BulletInfo;
 };
 
 UCLASS(BlueprintType)
-class CR4S_API UWeaponData : public UPrimaryDataAsset
+class CR4S_API UWeaponInfoDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Melee")
-	TMap<FGameplayTag,FMeleeWeaponData> MeleeData
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
+	TMap<FGameplayTag,FBaseWeaponInfo> BaseInfo
 	{
 		{ WeaponTags::Chainsaw,{} },
-		{ WeaponTags::CrystalSword,{} },
 		{ WeaponTags::DemolitionGear,{} },
-		{ WeaponTags::ShockBat,{} }
-	};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ranged")
-	TMap<FGameplayTag,FRangedWeaponData> RangedData
-	{
-		{ WeaponTags::Comet,{} },
+		{ WeaponTags::ShockBat,{} },
+		{ WeaponTags::CrystalSword,{} },
+		{ WeaponTags::CrystalShotgun,{} },
+		{ WeaponTags::CrystalRifle,{} },
 		{ WeaponTags::CrystalBurstRifle,{} },
 		{ WeaponTags::CrystalGatling,{} },
-		{ WeaponTags::CrystalHomingHighSpeed4,{} },
-		{ WeaponTags::CrystalHomingLauncher4,{} },
+		{ WeaponTags::CrystalSMG,{} },
 		{ WeaponTags::CrystalLauncher2,{} },
+		{ WeaponTags::CrystalHomingLauncher4,{} },
+		{ WeaponTags::CrystalHomingHighSpeed4,{} },
 		{ WeaponTags::Fireball,{} },
 		{ WeaponTags::HomingFireball,{} },
 		{ WeaponTags::IceShotgun,{} },
-		{ WeaponTags::ThunderStrike,{} }
+		{ WeaponTags::ThunderStrike,{} },
+		{ WeaponTags::Comet,{} }
 	};
 	
-	template<typename T>
-	bool GetWeaponDataByTag(const FGameplayTag Tag, T& OutData)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Melee")
+	TMap<FGameplayTag,FMeleeWeaponInfo> MeleeInfo
 	{
-		if constexpr (std::is_same_v<T, FMeleeWeaponData>)
-		{
-			if (const FMeleeWeaponData* Data = MeleeData.Find(Tag))
-			{
-				OutData = *Data;
-				return true;
-			}
-		}
-		else if constexpr (std::is_same_v<T, FRangedWeaponData>)
-		{
-			if (const FRangedWeaponData* Data = RangedData.Find(Tag))
-			{
-				OutData = *Data;
-				return true;
-			}
-		}
-		return false;
-	}
+			{ WeaponTags::Chainsaw,{} },
+			{ WeaponTags::DemolitionGear,{} },
+			{ WeaponTags::ShockBat,{} },
+			{ WeaponTags::CrystalSword,{} },
+	};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ranged")
+	TMap<FGameplayTag,FRangedWeaponInfo> RangedInfo
+	{
+			{ WeaponTags::CrystalShotgun,{} },
+			{ WeaponTags::CrystalRifle,{} },
+			{ WeaponTags::CrystalBurstRifle,{} },
+			{ WeaponTags::CrystalGatling,{} },
+			{ WeaponTags::CrystalSMG,{} },
+			{ WeaponTags::CrystalLauncher2,{} },
+			{ WeaponTags::CrystalHomingLauncher4,{} },
+			{ WeaponTags::CrystalHomingHighSpeed4,{} },
+			{ WeaponTags::Fireball,{} },
+			{ WeaponTags::HomingFireball,{} },
+			{ WeaponTags::IceShotgun,{} },
+			{ WeaponTags::ThunderStrike,{} },
+			{ WeaponTags::Comet,{} }
+	};
 };

@@ -15,16 +15,19 @@ namespace WeaponTags
 	UE_DEFINE_GAMEPLAY_TAG(ShockBat, FName(TEXT("Weapon.Melee.ShockBat")));
 
 	// Ranged
-	UE_DEFINE_GAMEPLAY_TAG(Comet, FName(TEXT("Weapon.Ranged.Comet")));
+	UE_DEFINE_GAMEPLAY_TAG(CrystalShotgun, FName(TEXT("Weapon.Ranged.CrystalShotgun")));
+	UE_DEFINE_GAMEPLAY_TAG(CrystalRifle, FName(TEXT("Weapon.Ranged.CrystalRifle")));
 	UE_DEFINE_GAMEPLAY_TAG(CrystalBurstRifle, FName(TEXT("Weapon.Ranged.CrystalBurstRifle")));
 	UE_DEFINE_GAMEPLAY_TAG(CrystalGatling, FName(TEXT("Weapon.Ranged.CrystalGatling")));
-	UE_DEFINE_GAMEPLAY_TAG(CrystalHomingHighSpeed4, FName(TEXT("Weapon.Ranged.CrystalHomingHighSpeed4")));
-	UE_DEFINE_GAMEPLAY_TAG(CrystalHomingLauncher4, FName(TEXT("Weapon.Ranged.CrystalHomingLauncher4")));
+	UE_DEFINE_GAMEPLAY_TAG(CrystalSMG, FName(TEXT("Weapon.Ranged.CrystalSMG")));
 	UE_DEFINE_GAMEPLAY_TAG(CrystalLauncher2, FName(TEXT("Weapon.Ranged.CrystalLauncher2")));
+	UE_DEFINE_GAMEPLAY_TAG(CrystalHomingLauncher4, FName(TEXT("Weapon.Ranged.CrystalHomingLauncher4")));
+	UE_DEFINE_GAMEPLAY_TAG(CrystalHomingHighSpeed4, FName(TEXT("Weapon.Ranged.CrystalHomingHighSpeed4")));
 	UE_DEFINE_GAMEPLAY_TAG(Fireball, FName(TEXT("Weapon.Ranged.Fireball")));
 	UE_DEFINE_GAMEPLAY_TAG(HomingFireball, FName(TEXT("Weapon.Ranged.HomingFireball")));
 	UE_DEFINE_GAMEPLAY_TAG(IceShotgun, FName(TEXT("Weapon.Ranged.IceShotgun")));
 	UE_DEFINE_GAMEPLAY_TAG(ThunderStrike, FName(TEXT("Weapon.Ranged.ThunderStrike")));
+	UE_DEFINE_GAMEPLAY_TAG(Comet, FName(TEXT("Weapon.Ranged.Comet")));
 }
 
 

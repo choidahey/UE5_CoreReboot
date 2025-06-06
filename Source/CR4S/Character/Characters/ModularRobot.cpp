@@ -19,10 +19,7 @@
 
 
 // Sets default values
-AModularRobot::AModularRobot():
-	UnMountLocation(FVector(-200.f,0.f,0.f)),
-	MountSocketName("cockpit"),
-	bIsDashing(false)
+AModularRobot::AModularRobot()
 {
 	//Set Tick
 	PrimaryActorTick.bCanEverTick = false;

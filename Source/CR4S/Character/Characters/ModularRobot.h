@@ -102,9 +102,9 @@ protected:
 #pragma region MountOffset
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
-	FVector UnMountLocation;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	FName MountSocketName;
+	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
+	FName MountSocketName {FName("cockpit")};
 #pragma endregion
 	
 #pragma region Components
@@ -125,6 +125,6 @@ private:
 #pragma region Cached
 	TObjectPtr<APlayerCharacter> MountedCharacter;
 	FTimerHandle DashCooldownTimerHandle;
-	uint8 bIsDashing:1;
+	uint8 bIsDashing:1 {false};
 #pragma endregion
 };
