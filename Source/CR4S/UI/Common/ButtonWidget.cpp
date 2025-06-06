@@ -28,7 +28,7 @@ void UButtonWidget::OnButtonHovered()
 {
 	if (ButtonHoverSound)
 	{
-		UGameplayStatics::PlaySound2D(GetWorld(), ButtonHoverSound);
+		UGameplayStatics::PlaySound2D(GetWorld(), ButtonHoverSound, 1.0f, 1.0f, HoverSoundStartTime);
 	}
 }
 

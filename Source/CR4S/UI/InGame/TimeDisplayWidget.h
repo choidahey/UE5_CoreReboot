@@ -19,13 +19,6 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* DayNumber;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* MinuteNumber;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* SecondNumber;
-
-	UPROPERTY(meta = (BindWidget))
 	USlider* SeasonSlider;
 	UPROPERTY(meta = (BindWidget))
 	USlider* TimeSlider;

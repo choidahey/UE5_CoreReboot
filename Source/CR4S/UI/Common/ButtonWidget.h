@@ -30,10 +30,15 @@ protected:
 
 	virtual void NativePreConstruct() override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound|Effect")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound|Click")
 	USoundBase* ButtonClickSound;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound|Effect")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound|Click")
+	float ClickSoundStartTime=0.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound|Hover")
 	USoundBase* ButtonHoverSound;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound|Hover")
+	float HoverSoundStartTime=0.0f;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* CR4S_Button;
