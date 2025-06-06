@@ -7,24 +7,20 @@
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
 	: InventoryContainerWidgetOrder(0),
-	  QuickSlotCount(10)
+	  HeldToolTag(FGameplayTag())
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	MaxItemSlot = 50;
+	MaxInventorySize = 50;
 }
 
 void UPlayerInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	QuickSlotItems.Reserve(QuickSlotCount);
-	for (int32 Index = 0; Index < QuickSlotCount; ++Index)
-	{
-		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
-		Item->InitInventoryItem(OwnerActor, Index);
-		QuickSlotItems.Add(Item);
-	}
+	QuickSlotInventoryComponent = NewObject<UBaseInventoryComponent>(this);
+	QuickSlotInventoryComponent->SetMaxInventorySize(10);
+	QuickSlotInventoryComponent->InitInventory();
 
 	const APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (!CR4S_VALIDATE(LogInventory, IsValid(PlayerController)))
@@ -47,29 +43,24 @@ void UPlayerInventoryComponent::BeginPlay()
 	{
 		InventoryContainerWidgetInstance->InitWidget(SurvivalHUD, this);
 	}
+
+	AddItem(FName("StoneAxe"), 1);
 }
 
 FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count)
 {
-	FAddItemResult Result = Super::AddItem(RowName, Count);
+	const FAddItemResult Result = Super::AddItem(RowName, Count);
 
-	// CR4S_Log(LogGimmick, Warning, TEXT("Remaining Test: %d"), Result.RemainingCount);
-	
 	if (!Result.bSuccess ||
 		Result.RemainingCount <= 0)
 	{
 		return Result;
 	}
 
-	TSet<int32> ChangedItemSlots;
-	StackItemsAndFillEmptySlots(RowName, Result.RemainingCount, QuickSlotItems, Result, ChangedItemSlots);
-
-	NotifyQuickSlotItemsChanged(ChangedItemSlots.Array());
-
-	return Result;
+	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount);
 }
 
-void UPlayerInventoryComponent::OpenPlayerInventoryWidget()
+void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDifficulty)
 {
 	if (!CR4S_VALIDATE(LogInventory, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
@@ -77,13 +68,12 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget()
 		return;
 	}
 
-	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget();
+	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
 }
 
-void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent)
+void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType,
+                                                         UBaseInventoryComponent* InventoryComponent) const
 {
-	OpenPlayerInventoryWidget();
-
 	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
 }
 
@@ -95,26 +85,14 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 	}
 }
 
-UBaseInventoryItem* UPlayerInventoryComponent::GetQuickSlotItemDataByIndex(const int32 Index) const
+void UPlayerInventoryComponent::UseItem(const int32 Index) const
 {
-	return CR4S_VALIDATE(LogInventory, QuickSlotItems.IsValidIndex(Index)) ? QuickSlotItems[Index] : nullptr;
-}
-
-void UPlayerInventoryComponent::NotifyQuickSlotItemChanged(const int32 ItemSlotIndex) const
-{
-	if (CR4S_VALIDATE(LogInventory, QuickSlotItems.IsValidIndex(ItemSlotIndex)))
+	if (IsValid(QuickSlotInventoryComponent))
 	{
-		if (OnQuickSlotItemChanged.IsBound())
+		UBaseInventoryItem* Item = QuickSlotInventoryComponent->GetInventoryItemByIndex(Index);
+		if (IsValid(Item))
 		{
-			OnQuickSlotItemChanged.Broadcast(QuickSlotItems[ItemSlotIndex]);
+			Item->UseItem(Index);
 		}
-	}
-}
-
-void UPlayerInventoryComponent::NotifyQuickSlotItemsChanged(const TArray<int32>& ChangedItemSlots) const
-{
-	for (const int32 ItemSlotIndex : ChangedItemSlots)
-	{
-		NotifyQuickSlotItemChanged(ItemSlotIndex);
 	}
 }

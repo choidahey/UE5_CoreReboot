@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 #include "DestructibleGimmick.generated.h"
@@ -55,6 +56,17 @@ private:
 	
 #pragma endregion
 
+#pragma region BonusDamageTag
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "BonusDamage")
+	FGameplayTag ToolBonusDamageTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "BonusDamage")
+	float ToolBonusDamageMultiplier;
+	
+#pragma endregion
+	
 #pragma region Shake
 
 private:

@@ -5,9 +5,20 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
+#include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
+
+UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer),
+	  SlotIndex(0),
+	  bIsPlayerItemSlot(false),
+	  bCanDrag(true),
+	  bCanDrop(true),
+	  bCanRemoveItem(true),
+	  bCanMoveItem(true)
+{
+}
 
 void UBaseItemSlotWidget::NativeConstruct()
 {
@@ -22,47 +33,46 @@ void UBaseItemSlotWidget::NativeConstruct()
 
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
 
-	bCanRemoveItem = true;
-	bCanMoveItem = true;
-
 	SetIsFocusable(true);
 }
 
-void UBaseItemSlotWidget::InitWidget(UBaseInventoryComponent* NewInventoryComponent, UBaseInventoryItem* NewItem,
-                                     const bool bNewCanDrag, const bool bNewCanDrop)
+void UBaseItemSlotWidget::InitSlotWidget(const int32 NewSlotIndex)
 {
-	if (IsValid(NewInventoryComponent))
+	SlotIndex = NewSlotIndex;
+}
+
+void UBaseItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget,
+                                             UBaseInventoryItem* NewItem)
+{
+	if (IsValid(NewInventoryWidget))
 	{
-		bIsPlayerItemSlot = NewInventoryComponent->IsA(UPlayerInventoryComponent::StaticClass());
+		bCanDrag = NewInventoryWidget->CanDrag();
+		bCanDrop = NewInventoryWidget->CanDrop();
+		bCanRemoveItem = NewInventoryWidget->CanRemoveItem();
+		bCanMoveItem = NewInventoryWidget->CanMoveItem();
 	}
 
-	InventoryComponent = NewInventoryComponent;
+	InventoryComponent = NewInventoryWidget->GetInventoryComponent();
 
-	CurrentItem = NewItem;
-
-	SetItem(CurrentItem);
-
-	bCanDrag = bNewCanDrag;
-	bCanDrop = bNewCanDrop;
+	SetItem(NewItem);
 }
 
 void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 {
 	CurrentItem = InItem;
 
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(IconImage)) ||
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(IconImage)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(CountTextBlock)))
 	{
 		return;
 	}
 
-	if (CurrentItem->HasItemData())
+	if (IsValid(CurrentItem))
 	{
 		IconImage->SetVisibility(ESlateVisibility::Visible);
 		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Icon);
 
-		if (CurrentItem->GetInventoryItemData()->ItemInfoData.MaxStackCount > 1)
+		if (CurrentItem->IsStackableItem())
 		{
 			CountTextBlock->SetVisibility(ESlateVisibility::Visible);
 			CountTextBlock->SetText(FText::AsNumber(CurrentItem->GetCurrentStackCount()));
@@ -74,7 +84,7 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 
 		if (IsValid(InventoryComponent))
 		{
-			InventoryComponent->AddOccupiedSlot(CurrentItem->GetSlotIndex());
+			InventoryComponent->AddOccupiedSlot(SlotIndex);
 		}
 	}
 	else
@@ -84,14 +94,9 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 
 		if (IsValid(InventoryComponent))
 		{
-			InventoryComponent->RemoveOccupiedSlot(CurrentItem->GetSlotIndex());
+			InventoryComponent->RemoveOccupiedSlot(SlotIndex);
 		}
 	}
-}
-
-void UBaseItemSlotWidget::EmptyItem()
-{
-	CurrentItem = nullptr;
 }
 
 void UBaseItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -146,8 +151,7 @@ FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 {
 	CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent));
 
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
-		!CurrentItem->HasItemData())
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)))
 	{
 		return FReply::Unhandled();
 	}
@@ -193,8 +197,8 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 	// CR4S_Log(LogInventoryUI, Warning, TEXT("NativeOnDrop"));
 
 	if (!CR4S_VALIDATE(LogInventoryUI, bCanDrop) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(InOperation)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InOperation)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent)))
 	{
 		return false;
 	}
@@ -207,37 +211,36 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 
 	UBaseInventoryItem* FromItem = FromSlot->CurrentItem;
 	if (!CR4S_VALIDATE(LogInventoryUI, FromItem) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)) ||
-		!CR4S_VALIDATE(LogInventoryUI, FromSlot->IsItemAllowedByFilter(CurrentItem)))
+		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)))
 	{
 		return false;
 	}
 
-	if (FromItem != CurrentItem)
+	if (IsValid(CurrentItem))
 	{
-		// Same Item
-		if (FromItem->GetInventoryItemData()->RowName == CurrentItem->GetInventoryItemData()->RowName)
+		if (!FromSlot->IsItemAllowedByFilter(CurrentItem))
 		{
-			const int32 ToItemCount = CurrentItem->GetCurrentStackCount();
-			const int32 MaxStackCount = CurrentItem->GetInventoryItemData()->ItemInfoData.MaxStackCount;
-			if (ToItemCount < MaxStackCount)
+			return false;
+		}
+
+		if (FromItem != CurrentItem)
+		{
+			// Same Item
+			if (FromItem->GetInventoryItemData()->RowName == CurrentItem->GetInventoryItemData()->RowName)
 			{
-				const int32 CanAddCount = MaxStackCount - ToItemCount;
-				const int32 ActualAddCount = FMath::Min(CanAddCount, FromItem->GetCurrentStackCount());
-
-				CurrentItem->SetCurrentStackCount(ToItemCount + ActualAddCount);
-				FromItem->SetCurrentStackCount(FromItem->GetCurrentStackCount() - ActualAddCount);
+				InventoryComponent->MergeItem(FromSlot->InventoryComponent, FromSlot->SlotIndex, SlotIndex);
 			}
-		}
-		else
-		{
-			FromItem->SwapData(CurrentItem);
-		}
+			else
+			{
+				InventoryComponent->SwapItem(FromSlot->InventoryComponent, FromSlot->SlotIndex, SlotIndex);
+			}
 
-		FromSlot->SetItem(FromItem);
-		SetItem(CurrentItem);
-
-		return true;
+			return true;
+		}
+	}
+	else
+	{
+		InventoryComponent->SwapItem(FromSlot->InventoryComponent, FromSlot->SlotIndex, SlotIndex);
 	}
 
 	return false;
@@ -245,30 +248,25 @@ bool UBaseItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragD
 
 FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (!IsValid(CurrentItem) || !CurrentItem->HasItemData())
+	if (!IsValid(CurrentItem) ||
+		!IsValid(InventoryComponent) ||
+		!IsValid(InventoryContainerWidget))
 	{
 		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}
 
 	if (InKeyEvent.GetKey() == EKeys::G && bCanRemoveItem)
 	{
-		CurrentItem->SetCurrentStackCount(0);
-		SetItem(CurrentItem);
+		InventoryComponent->RemoveItemByIndex(SlotIndex, -1);
 		return FReply::Handled();
 	}
 
-	const bool bPressedE = InKeyEvent.GetKey() == EKeys::E;
-	const bool bPressedQ = InKeyEvent.GetKey() == EKeys::Q;
-
-	const bool bCanMoveToPlayer = bPressedE && !bIsPlayerItemSlot;
-	const bool bCanMoveToOther = bPressedQ && bIsPlayerItemSlot;
-
-	if ((bCanMoveToPlayer || bCanMoveToOther) &&
+	if (InKeyEvent.GetKey() == EKeys::E &&
+		!bIsPlayerItemSlot &&
 		CR4S_VALIDATE(LogInventoryUI, bCanDrag) &&
-		CR4S_VALIDATE(LogInventoryUI, bCanMoveItem) &&
-		IsValid(InventoryContainerWidget))
+		CR4S_VALIDATE(LogInventoryUI, bCanMoveItem))
 	{
-		InventoryContainerWidget->MoveItemToInventory(this, bCanMoveToPlayer);
+		InventoryContainerWidget->MoveItemToInventory(this, true);
 		return FReply::Handled();
 	}
 
