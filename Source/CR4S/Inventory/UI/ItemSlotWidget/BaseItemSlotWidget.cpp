@@ -6,8 +6,22 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
+
+const TArray<FKey> UBaseItemSlotWidget::QuickSlotKeys = {
+	EKeys::One,
+	EKeys::Two,
+	EKeys::Three,
+	EKeys::Four,
+	EKeys::Five,
+	EKeys::Six,
+	EKeys::Seven,
+	EKeys::Eight,
+	EKeys::Nine,
+	EKeys::Zero,
+};
 
 UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer),
@@ -271,4 +285,17 @@ FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const F
 	}
 
 	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+}
+
+void UBaseItemSlotWidget::UnEquipItem(const UBaseInventoryComponent* QuickSlotInventoryComponent,const int32 Index)
+{
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotInventoryComponent)))
+	{
+		const UToolInventoryItem* ToolItem
+			= Cast<UToolInventoryItem>(QuickSlotInventoryComponent->GetInventoryItemByIndex(Index));
+		if (IsValid(ToolItem))
+		{
+			ToolItem->UnEquipItem();
+		}
+	}
 }
