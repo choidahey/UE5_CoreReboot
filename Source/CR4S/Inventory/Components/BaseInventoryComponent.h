@@ -44,25 +44,35 @@ public:
 
 #pragma endregion
 
+#pragma region Initialize
+
+public:
+	void InitInventory();
+
+#pragma endregion
+
 #pragma region InventorySystem
 
 public:
-	void InitInventorySize();
-
 	void AddItems(const TMap<FName, int32>& Items);
 	virtual FAddItemResult AddItem(FName RowName, int32 Count);
 
-	void RemoveItem(const FName RowName, const int32 Count);
-	void RemoveItemByIndex(const int32 Index);
+	void RemoveItemByRowName(const FName RowName, const int32 Count);
+	void RemoveAllItemByRowName(const FName RowName);
+	void RemoveItemByIndex(const int32 Index, const int32 Count = -1);
 
 	void SortInventoryItems();
-	UBaseInventoryItem* GetItemDataByIndex(const int32 Index) const;
+	UBaseInventoryItem* GetInventoryItemByIndex(const int32 Index) const;
 	int32 GetItemCountByRowName(const FName RowName) const;
+
+	void SwapItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
+	void MergeItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
 
-	FORCEINLINE int32 GetMaxInventorySlot() const { return MaxItemSlot; }
-	FORCEINLINE void SetMaxInventorySlot(const int32 InMaxInventorySlot) { MaxItemSlot = InMaxInventorySlot; }
+	FORCEINLINE int32 GetMaxInventorySize() const { return MaxInventorySize; }
+
+	FORCEINLINE void SetMaxInventorySize(const int32 InMaxInventorySlot) { MaxInventorySize = InMaxInventorySlot; }
 	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex)
 	{
 		OccupiedSlots.Add(SlotIndex);
@@ -75,31 +85,41 @@ public:
 		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
 	}
 
+	int32 GetUseSlotCount();
 	FORCEINLINE int32 GetNumOccupiedSlots() const { return OccupiedSlots.Num(); }
+
+	FORCEINLINE const FText& GetInventoryTitleText() const { return InventoryTitleText; }
+	FORCEINLINE void SetInventoryTitleText(const FText& NewInventoryTitleText)
+	{
+		InventoryTitleText = NewInventoryTitleText;
+	}
 
 protected:
 	void GetSameItemSlotsAndEmptySlots(const FName& InRowName,
 	                                   const TArray<TObjectPtr<UBaseInventoryItem>>& SlotBox,
-	                                   TArray<UBaseInventoryItem*>& OutSameItems,
-	                                   TArray<UBaseInventoryItem*>& OutEmptySlots);
+	                                   TArray<int32>& OutSameItemsIndex,
+	                                   TArray<int32>& OutEmptySlotsIndex);
 
 	void StackItemsAndFillEmptySlots(FName RowName,
 	                                 int32 Count,
-	                                 const TArray<TObjectPtr<UBaseInventoryItem>>& SlotBox,
 	                                 FAddItemResult& Result,
 	                                 TSet<int32>& ChangedItemSlots);
 
+	UBaseInventoryItem* CreateInventoryItem(const FGameplayTagContainer& ItemTags);
+
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
-	int32 MaxItemSlot;
+	int32 MaxInventorySize;
 
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TSet<int32> OccupiedSlots;
 	UPROPERTY(VisibleAnywhere, Category = "InventorySystem")
 	TArray<TObjectPtr<UBaseInventoryItem>> InventoryItems;
 
+	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
+	FText InventoryTitleText;
+
 	UPROPERTY()
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
-
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor;
 
@@ -119,7 +139,7 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemSlotChanged, UBaseInventoryItem*, Item);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemSlotChanged, const int32, SlotIndex, UBaseInventoryItem*, Item);
 
 	FOnItemSlotChanged OnItemSlotChanged;
 
