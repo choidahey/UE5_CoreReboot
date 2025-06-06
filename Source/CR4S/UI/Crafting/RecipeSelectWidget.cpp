@@ -1,10 +1,11 @@
 ﻿#include "RecipeSelectWidget.h"
 
+#include "CR4S.h"
 #include "CraftingContainerWidget.h"
 #include "ButtonWidget/RecipeSelectButtonWidget.h"
-#include "Chaos/Deformable/MuscleActivationConstraints.h"
 #include "Components/Image.h"
 #include "Components/PanelWidget.h"
+#include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Gimmick/Data/ItemData.h"
 #include "Gimmick/Data/RecipeCategoryData.h"
@@ -21,6 +22,7 @@ void URecipeSelectWidget::InitWidget(UCraftingContainerWidget* NewCraftingContai
 			if (IsValid(RecipeSelectButtonWidget))
 			{
 				RecipeSelectButtonWidgets.AddUnique(RecipeSelectButtonWidget);
+				RecipeSelectButtonWidget->InitWidget(CraftingContainerWidget);
 				RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 		}
@@ -29,49 +31,56 @@ void URecipeSelectWidget::InitWidget(UCraftingContainerWidget* NewCraftingContai
 
 void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryData)
 {
+	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(ScrollBox)) ||
+		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingCategoryIcon)) ||
+		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingCategoryName)) ||
+		!CR4S_VALIDATE(LogCraftingUI, IsValid(ItemRecipeData)) ||
+		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingContainerWidget)))
+	{
+		return;
+	}
+
 	CraftingCategoryIcon->SetBrushFromTexture(RecipeCategoryData.Icon, true);
 	CraftingCategoryName->SetText(RecipeCategoryData.Name);
 
-	if (IsValid(ItemRecipeData) && IsValid(CraftingContainerWidget))
+	TArray<const FItemRecipeData*> RecipeItems;
+	for (auto& Pair : ItemRecipeData->GetRowMap())
 	{
-		TArray<const FItemRecipeData*> RecipeItems;
-		for (auto& Pair : ItemRecipeData->GetRowMap())
+		if (const FItemRecipeData* Data = reinterpret_cast<FItemRecipeData*>(Pair.Value))
 		{
-			if (const FItemRecipeData* Data = reinterpret_cast<FItemRecipeData*>(Pair.Value))
+			if (Data->RecipeTag == RecipeCategoryData.RecipeTag &&
+				Data->CraftingDifficulty <= CraftingContainerWidget->GetCraftingDifficulty())
 			{
-				if (Data->RecipeTag == RecipeCategoryData.RecipeTag &&
-					Data->CraftingDifficulty <= CraftingContainerWidget->GetCraftingDifficulty())
-				{
-					RecipeItems.AddUnique(Data);
-				}
+				RecipeItems.AddUnique(Data);
 			}
 		}
+	}
 
-		for (int32 Index = 0; Index < RecipeSelectButtonWidgets.Num(); Index++)
+	for (int32 Index = 0; Index < RecipeSelectButtonWidgets.Num(); Index++)
+	{
+		URecipeSelectButtonWidget* RecipeSelectButtonWidget = RecipeSelectButtonWidgets[Index];
+		if (!IsValid(RecipeSelectButtonWidget))
 		{
-			URecipeSelectButtonWidget* RecipeSelectButtonWidget = RecipeSelectButtonWidgets[Index];
-			if (!IsValid(RecipeSelectButtonWidget))
-			{
-				continue;
-			}
+			continue;
+		}
 
-			if (RecipeItems.IsValidIndex(Index))
-			{
-				const FItemRecipeData* RecipeItem = RecipeItems[Index];
+		if (RecipeItems.IsValidIndex(Index))
+		{
+			const FItemRecipeData* RecipeItem = RecipeItems[Index];
 
-				if (const FItemInfoData* ItemData = CraftingContainerWidget->
-					GetItemInfoData(RecipeItem->ResultItemName))
-				{
-					RecipeSelectButtonWidget->SetRecipeData(FRecipeSelectData(*RecipeItem,
-					                                                          ItemData->Icon,
-					                                                          ItemData->Name));
-					RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Visible);
-				}
-			}
-			else
+			if (const FItemInfoData* ItemData = CraftingContainerWidget->
+				GetItemInfoData(RecipeItem->ResultItemName))
 			{
-				RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Collapsed);
+				RecipeSelectButtonWidget->SetRecipeData(FRecipeSelectData(*RecipeItem,
+				                                                          ItemData->Icon,
+				                                                          ItemData->Name,
+				                                                          ItemData->Description));
+				RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Visible);
 			}
+		}
+		else
+		{
+			RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 

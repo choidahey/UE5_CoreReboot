@@ -37,10 +37,10 @@ public:
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UImage> CraftingCategoryIcon;
-	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> CraftingCategoryName;
-	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UScrollBox> ScrollBox;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPanelWidget> ButtonContainer;
 	

@@ -25,24 +25,26 @@ void URecipeSelectButtonWidget::OpenCraftingWidget()
 {
 	if (IsValid(CraftingWidget))
 	{
-		CraftingWidget->InitWidget();
+		
 	}
 	
 	if (IsValid(CraftingContainerWidget))
 	{
-		CraftingContainerWidget->OpenCraftingWidget();
+		CraftingContainerWidget->OpenCraftingWidget(RecipeSelectData);
 	}
 }
 
-void URecipeSelectButtonWidget::SetRecipeData(const FRecipeSelectData& RecipeData) const
+void URecipeSelectButtonWidget::SetRecipeData(const FRecipeSelectData& NewRecipeData)
 {
+	RecipeSelectData = NewRecipeData;
+	
 	if (IsValid(RecipeIcon))
 	{
-		RecipeIcon->SetBrushFromTexture(RecipeData.IconTexture, true);
+		RecipeIcon->SetBrushFromTexture(NewRecipeData.Icon, true);
 	}
 
 	if (IsValid(RecipeName))
 	{
-		RecipeName->SetText(RecipeData.RecipeName);
+		RecipeName->SetText(NewRecipeData.Name);
 	}
 }

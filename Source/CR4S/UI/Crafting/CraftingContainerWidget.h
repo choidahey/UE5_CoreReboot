@@ -4,6 +4,9 @@
 #include "Blueprint/UserWidget.h"
 #include "CraftingContainerWidget.generated.h"
 
+struct FItemRecipeData;
+class UPlayerInventoryComponent;
+struct FRecipeSelectData;
 class UItemGimmickSubsystem;
 struct FItemInfoData;
 struct FRecipeCategoryData;
@@ -17,10 +20,13 @@ class CR4S_API UCraftingContainerWidget : public UUserWidget
 #pragma region Initialize
 
 public:
-	void InitWidget();
+	void InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent);
 	void UpdateWidget(const int32 NewCraftingDifficulty);
 
 private:
+	UPROPERTY()
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
+	
 	UPROPERTY()
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
 	
@@ -30,12 +36,12 @@ private:
 
 public:
 	UFUNCTION()
-	void OpenRecipeSelectWidget(const FRecipeCategoryData& RecipeCategoryData);
-	void CloseRecipeSelectWidget();
+	void OpenRecipeSelectWidget(const FRecipeCategoryData& RecipeCategoryData) const;
+	void CloseRecipeSelectWidget() const;
 
 	UFUNCTION()
-	void OpenCraftingWidget();
-	void CloseCraftingWidget();
+	void OpenCraftingWidget(const FRecipeSelectData& NewRecipeSelectData) const;
+	void CloseCraftingWidget() const;
 	
 #pragma endregion 
 
@@ -61,10 +67,19 @@ private:
 public:
 	const FItemInfoData* GetItemInfoData(const FName RowName) const;
 
+	int32 GetItemCountByRowName(const FName RowName) const;
+	
 	FORCEINLINE int32 GetCraftingDifficulty() const { return CraftingDifficulty; }
 	
 private:
 	int32 CraftingDifficulty = 0;
+	
+#pragma endregion
+
+#pragma region Crafting
+
+public:
+	void CraftItem(const FItemRecipeData& ItemRecipeData) const;
 	
 #pragma endregion 
 };
