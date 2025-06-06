@@ -22,13 +22,12 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;	
 
-#pragma region IMC
-	/** MappingContext */
+#pragma region Inputs
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* InputMappingContext;
-	/** Move Input Action */
+	TObjectPtr<UInputMappingContext> InputMappingContext;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> MenuAction;
+	
 	
 #pragma endregion
 
