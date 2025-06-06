@@ -1,6 +1,7 @@
 ﻿#include "PlayerInventoryComponent.h"
 
 #include "CR4S.h"
+#include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -60,28 +61,58 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount);
 }
 
-void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDifficulty)
+bool UPlayerInventoryComponent::PrepareOpenInventory(UInteractionComponent* InteractionComponent) const
 {
-	if (!CR4S_VALIDATE(LogInventory, IsValid(SurvivalHUD)) ||
+	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerActor)) ||
 		!CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
+	{
+		return false;
+	}
+
+	InteractionComponent = OwnerActor->FindComponentByClass<UInteractionComponent>();
+	if (IsValid(InteractionComponent))
+	{
+		InteractionComponent->StopDetectProcess();
+	}
+
+	return true;
+}
+
+void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDifficulty) const
+{
+	if (!PrepareOpenInventory())
 	{
 		return;
 	}
-
+	
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
 }
 
 void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType,
                                                          UBaseInventoryComponent* InventoryComponent) const
 {
+	if (!PrepareOpenInventory())
+	{
+		return;
+	}
+	
 	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
 }
 
 void UPlayerInventoryComponent::CloseInventoryWidget() const
 {
-	if (IsValid(InventoryContainerWidgetInstance))
+	UInteractionComponent* InteractionComponent = nullptr;
+	if (!PrepareOpenInventory(InteractionComponent))
 	{
-		InventoryContainerWidgetInstance->CloseInventoryWidget();
+		return;
+	}
+
+	InventoryContainerWidgetInstance->CloseInventoryWidget();
+
+	InteractionComponent = OwnerActor->FindComponentByClass<UInteractionComponent>();
+	if (IsValid(InteractionComponent))
+	{
+		InteractionComponent->StartDetectProcess();
 	}
 }
 
