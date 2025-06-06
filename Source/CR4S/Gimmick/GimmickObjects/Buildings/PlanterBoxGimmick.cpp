@@ -19,7 +19,7 @@ APlanterBoxGimmick::APlanterBoxGimmick()
 	SpawnPoint->SetMobility(EComponentMobility::Movable);
 
 	PlanterBoxInventoryComponent = CreateDefaultSubobject<UPlanterBoxInventoryComponent>(TEXT("InventoryComponent"));
-	PlanterBoxInventoryComponent->SetMaxInventorySlot(1);
+	PlanterBoxInventoryComponent->SetMaxInventorySize(1);
 }
 
 void APlanterBoxGimmick::BeginPlay()
@@ -79,11 +79,10 @@ void APlanterBoxGimmick::OnDetectionStateChanged(AActor* InDetectingActor,
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
-void APlanterBoxGimmick::HandlePlantingCropsGimmick(UBaseInventoryItem* Item)
+void APlanterBoxGimmick::HandlePlantingCropsGimmick(const int32 SlotIndex, UBaseInventoryItem* Item)
 {
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)) ||
-		!CR4S_VALIDATE(LogGimmick, IsValid(Item)) ||
-		!Item->HasItemData())
+		!CR4S_VALIDATE(LogGimmick, IsValid(Item)))
 	{
 		return;
 	}
@@ -110,5 +109,5 @@ void APlanterBoxGimmick::HandleHarvest()
 	{
 		return;
 	}
-	PlanterBoxInventoryComponent->RemoveItemByIndex(0);
+	PlanterBoxInventoryComponent->RemoveItemByIndex(0, -1);
 }

@@ -13,11 +13,16 @@ class CR4S_API UStorageInventoryWidget : public UBaseInventoryWidget
 
 public:
 	virtual void InitWidget(ASurvivalHUD* SurvivalHUD, bool bNewCanSort) override;
+
+	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) override;
 	
 #pragma endregion
 
 #pragma region StorageInventoryWidget
 
+public:
+	void SetVisibleItemSlots();
+	
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UBaseItemSlotWidget> ItemSlotWidgetClass;

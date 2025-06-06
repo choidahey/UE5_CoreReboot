@@ -20,13 +20,13 @@ bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 		return false;
 	}
 
-	UBaseItemSlotWidget* FromSlot = Cast<UBaseItemSlotWidget>(InOperation->Payload);
+	const UBaseItemSlotWidget* FromSlot = Cast<UBaseItemSlotWidget>(InOperation->Payload);
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(FromSlot)))
 	{
 		return false;
 	}
 
-	UBaseInventoryItem* FromItem = FromSlot->GetCurrentItem();
+	const UBaseInventoryItem* FromItem = FromSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, FromItem) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)) ||
 		!CR4S_VALIDATE(LogInventoryUI, FromSlot->IsItemAllowedByFilter(CurrentItem)))
@@ -38,9 +38,7 @@ bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 	                                                                    FromItem->GetCurrentStackCount());
 	if (Result.AddedCount > 0)
 	{
-		FromItem->SetCurrentStackCount(Result.RemainingCount);
-		FromSlot->SetItem(FromItem);
-		SetItem(CurrentItem);
+		FromSlot->GetInventoryComponent()->RemoveItemByIndex(FromSlot->GetSlotIndex(), 1);
 	}
 
 	return true;

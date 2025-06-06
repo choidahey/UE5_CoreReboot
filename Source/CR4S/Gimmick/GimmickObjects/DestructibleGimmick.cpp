@@ -5,11 +5,13 @@
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
 	: DestroyDelay(1.f),
 	  DestroyImpulseRadius(50.f),
 	  DestroyImpulseStrength(50.f),
+	  ToolBonusDamageMultiplier(2.f),
 	  bCanShake(true),
 	  ShakeDuration(0.5f),
 	  ShakeInterval(0.02f),
@@ -41,10 +43,11 @@ void ADestructibleGimmick::BeginPlay()
 	{
 		DestructibleComponent->OnTakeDamage.BindDynamic(this, &ThisClass::OnGimmickTakeDamage);
 		DestructibleComponent->OnDestroy.BindDynamic(this, &ThisClass::OnGimmickDestroy);
-		
+
 		if (CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
 		{
-			if (const FGimmickInfoData* GimmickData = ItemGimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
+			if (const FGimmickInfoData* GimmickData = ItemGimmickSubsystem->
+				FindGimmickInfoData(GetGimmickDataRowName()))
 			{
 				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
 			}
@@ -63,11 +66,18 @@ void ADestructibleGimmick::BeginPlay()
 float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageEvent const& DamageEvent,
                                        AController* EventInstigator, AActor* DamageCauser)
 {
-	const float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(DestructibleComponent)))
 	{
 		return 0.f;
+	}
+
+	const UPlayerInventoryComponent* PlayerInventoryComponent
+		= DamageCauser->FindComponentByClass<UPlayerInventoryComponent>();
+	if (IsValid(PlayerInventoryComponent) && ToolBonusDamageTag == PlayerInventoryComponent->GetHeldToolTag())
+	{
+		Damage *= ToolBonusDamageMultiplier;
 	}
 
 	DestructibleComponent->TakeDamage(DamageCauser, Damage);

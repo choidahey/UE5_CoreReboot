@@ -1,40 +1,52 @@
 ﻿#include "BaseInventoryItem.h"
 
 #include "CR4S.h"
+#include "Character/Characters/PlayerCharacter.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UBaseInventoryItem::UBaseInventoryItem()
-	: SlotIndex(0),
-	  CurrentStackCount(0)
+	: CurrentStackCount(0)
 {
 }
 
-void UBaseInventoryItem::InitInventoryItem(AActor* NewOwner, const int32 NewSlotIndex)
+void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
+											   const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
 {
-	Owner = NewOwner;
-	SlotIndex = NewSlotIndex;
-}
+	UpdateInventoryItem(NewInventoryComponent);
 
-void UBaseInventoryItem::UseItem()
-{
-}
+	if (IsValid(InventoryComponent))
+	{
+		PlayerInventoryComponent = Cast<UPlayerInventoryComponent>(InventoryComponent);
+		OwnerPlayer = Cast<APlayerCharacter>(InventoryComponent->GetOwner());
 
-void UBaseInventoryItem::SetInventoryItemData(const FInventoryItemData& NewInventoryItemData,
-                                              const int32 StackCount)
-{
+		if (IsValid(OwnerPlayer))
+		{
+			PlayerStatusComponent = OwnerPlayer->FindComponentByClass<UPlayerCharacterStatusComponent>();
+		}
+		else
+		{
+			PlayerStatusComponent = nullptr;
+		}
+	}
+	
 	InventoryItemData = NewInventoryItemData;
 	CurrentStackCount = StackCount;
 }
 
-void UBaseInventoryItem::SwapData(UBaseInventoryItem* OtherItem)
+void UBaseInventoryItem::UseItem(const int32 Index)
 {
-	if (!CR4S_VALIDATE(LogInventory, IsValid(OtherItem)) ||
-		CR4S_VALIDATE(LogInventory, this == OtherItem))
+	USoundBase* UseSound = InventoryItemData.ItemInfoData.UseSound;
+	if (IsValid(UseSound))
 	{
-		return;
+		UGameplayStatics::PlaySound2D(GetWorld(), UseSound);
 	}
-	
-	Swap(InventoryItemData, OtherItem->InventoryItemData);
-	Swap(CurrentStackCount, OtherItem->CurrentStackCount);
+}
+
+void UBaseInventoryItem::HandlePassiveEffect()
+{
+	CR4S_Log(LogInventory, Warning, TEXT("Begin"));
 }
 
 void UBaseInventoryItem::SetCurrentStackCount(const int32 NewStackCount)
