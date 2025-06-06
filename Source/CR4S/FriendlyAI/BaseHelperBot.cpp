@@ -6,17 +6,27 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HelperBotStatsSubsystem.h"
 #include "../Gimmick/Components/InteractableComponent.h"
+#include "Components/SplineComponent.h" 
 #include "UI/HelperBotInfoWidget.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "UI/InGame/SurvivalHUD.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
 
-/**
- * 
- */
+
 ABaseHelperBot::ABaseHelperBot()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
 	InteractableComp->SetInteractionText(FText::FromString("MySon"));
+
+	ChopSpline = CreateDefaultSubobject<USplineComponent>(TEXT("ChopSpline"));
+	ChopSpline->SetupAttachment(RootComponent);
+
+	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -105,30 +115,68 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 	{
 		StateUIInstance->RemoveFromParent();
 		StateUIInstance = nullptr;
-	
+
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
-			PC->SetInputMode(FInputModeGameOnly());
-			PC->bShowMouseCursor = false;
+			if (ASurvivalHUD* HUD = Cast<ASurvivalHUD>(PC->GetHUD()))
+			{
+				HUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+			}
 		}
 		return;
 	}
-	
+
 	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
 	{
 		if (StateUIClass)
 		{
 			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 			{
-				StateUIInstance = CreateWidget<UHelperBotStateManagerWidget>(PC, StateUIClass);
-				if (StateUIInstance)
+				if (ASurvivalHUD* HUD = Cast<ASurvivalHUD>(PC->GetHUD()))
 				{
-					StateUIInstance->InitializeWithController(BotAI);
-					StateUIInstance->AddToViewport();
-					PC->SetInputMode(FInputModeGameAndUI());
-					PC->bShowMouseCursor = true;
+					StateUIInstance = HUD->CreateAndAddWidget<UHelperBotStateManagerWidget>(
+						StateUIClass, 15, ESlateVisibility::Visible);
+
+					if (StateUIInstance)
+					{
+						StateUIInstance->InitializeWithController(BotAI);
+						HUD->SetInputMode(ESurvivalInputMode::GameAndUI, StateUIInstance, true);
+					}
 				}
 			}
+		}
+	}
+}
+
+void ABaseHelperBot::UpdateChopSplineTarget(AActor* TargetActor)
+{
+	if (!ChopSpline || !TargetActor) return;
+	
+	const FVector Start = GetMesh()
+		? GetMesh()->GetSocketLocation(TEXT("test"))
+		: GetActorLocation();
+
+	const FVector End = TargetActor->GetActorLocation();
+
+	ChopSpline->ClearSplinePoints(false);
+	ChopSpline->AddSplinePoint(Start, ESplineCoordinateSpace::World, false);
+	ChopSpline->AddSplinePoint(End, ESplineCoordinateSpace::World, true);
+	
+	if (ChopVFXSystem && !ActiveChopVFX)
+	{
+		FVector SpawnLocation = Start;
+		FRotator SpawnRotation = FRotator::ZeroRotator;
+		UNiagaraComponent* Spawned = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			ChopVFXSystem,
+			SpawnLocation,
+			SpawnRotation
+		);
+		if (Spawned)
+		{
+			// Spawned->SetNiagaraVariableVec3(FName("Start"), Start);
+			// Spawned->SetNiagaraVariableVec3(FName("End"), End);
+			ActiveChopVFX = Spawned;
 		}
 	}
 }

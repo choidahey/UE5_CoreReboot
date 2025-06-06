@@ -24,12 +24,12 @@ protected:
 		uint8* NodeMemory
 	) override;
 
-private:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector NearestHouseActor;
 
 	UPROPERTY(EditAnywhere, Category = "Service")
 	FName HouseTag = TEXT("House");
 
+private:
 	AActor* FindNearestHouse(const FVector& PlayerLocation) const;
 };

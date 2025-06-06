@@ -26,6 +26,10 @@ enum class EAnimalState : uint8
 	TakeOff,
 	Cruise,
 	Landing,
+
+	// Monster
+	AttackPrimaryTarget,  
+	ReturnToPrimaryTarget 
 };
 
 UENUM(BlueprintType)
@@ -55,10 +59,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName RowName;
 
+protected:
+	void LoadStats();
+	
 private:
 	const FAnimalStatsRow* StatsRow = nullptr;
 	FAnimalStatsRow CurrentStats;
-	void LoadStats();
 
 public:
 	const FAnimalStatsRow* GetStatsRowPtr() const { return StatsRow; }
@@ -165,9 +171,9 @@ public:
 	virtual void PerformChargeAttack();
 	virtual void PerformRangedAttack();
 	
-	void PlayAttackMontage();
-	void PlayChargeAttackMontage();
-	void PlayRangedAttackMontage();
+	float PlayAttackMontage();
+	float PlayChargeAttackMontage();
+	float PlayRangedAttackMontage();
 
 	void ResetAttackFlag() { bIsAttacking = false; }
 	void ResetMeleeAttack() { bIsMeleeOnCooldown = false; }
@@ -234,5 +240,16 @@ public:
 	float RangedProbability = 0.0f;
 
 	
+#pragma endregion
+
+#pragma region Debug
+public:
+	void DrawDebugVisuals();
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	uint8 bDrawSightDebug : 1 = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	uint8 bDrawAttackRangeDebug : 1 = 0;
 #pragma endregion
 };

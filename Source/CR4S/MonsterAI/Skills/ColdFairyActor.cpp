@@ -35,7 +35,6 @@ AColdFairyActor::AColdFairyActor()
 	ProjectileMovementComp->MaxSpeed = MaxSpeed;
 	ProjectileMovementComp->ProjectileGravityScale = 1.0f;
 	ProjectileMovementComp->bRotationFollowsVelocity = true;
-	ProjectileMovementComp->bShouldBounce = false;
 	ProjectileMovementComp->bAutoActivate = false;
 	ProjectileMovementComp->bIsHomingProjectile = false;
 	ProjectileMovementComp->HomingAccelerationMagnitude = 0.f;

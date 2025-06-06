@@ -1,5 +1,6 @@
 #include "KamishForestBoss.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
+#include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 
@@ -14,8 +15,8 @@ void AKamishForestBoss::OnMonsterStateChanged(EMonsterState Previous, EMonsterSt
 
 	if (Current == EMonsterState::Combat)
 	{
-		AnimComponent->PlayCombatMontage();
 		SpawnCloudEffect();
+		SkillComponent->UseSkill(0);
 	}
 
 	if (Previous == EMonsterState::Combat && Current != EMonsterState::Combat)
@@ -34,11 +35,7 @@ void AKamishForestBoss::SpawnCloudEffect()
 {
 	if (!CloudAsset || ActiveCloudEffect) return;
 
-	const float CloudSizeParam = CombatRange / NiagaraRadiusBase;
-	const float AdjustedHeight = CloudHeight * CloudSizeParam;
-
-	const FVector SpawnLocation = GetActorLocation() + FVector(0, 0, CloudHeight);
-	CloudOriginLocation = SpawnLocation;
+	const FVector SpawnLocation = GetActorLocation() + FVector(0, 0, CloudVerticalOffset);
 
 	ActiveCloudEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(),
@@ -54,7 +51,8 @@ void AKamishForestBoss::SpawnCloudEffect()
 
 	if (ActiveCloudEffect)
 	{
-		ActiveCloudEffect->SetVariableFloat(FName("User_CloudSize"), CloudSizeParam);
+		const float SizeParam = CloudVisualRadius / NiagaraRadiusBase;
+		// ActiveCloudEffect->SetVariableFloat(FName("User_CloudSize"), SizeParam);
 	}
 }
 

@@ -1,12 +1,7 @@
 #include "MonsterAI/Controller/SeasonBossMonsterAIController.h"
-#include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BehaviorTree/BehaviorTree.h"
-#include "Navigation/PathFollowingComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
-#include "Character/Characters/PlayerCharacter.h"
 
 ASeasonBossMonsterAIController::ASeasonBossMonsterAIController()
 	: MyHeader(TEXT("SeasonBossAIController"))
@@ -31,8 +26,16 @@ void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 	if (!Target)
 		Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 
-	if (Target)
-		SetFocus(Target, EAIFocusPriority::Gameplay);
-	else
+	bool bIsPlayingAttackMontage = BlackboardComp->GetValueAsBool(FAIKeys::bIsPlayingAttackMontage);
+	
+	if (bIsPlayingAttackMontage)
 		ClearFocus(EAIFocusPriority::Gameplay);
+	else
+	{
+		// SetFocus(Target, EAIFocusPriority::Gameplay);
+		if (Target)
+			SetFocus(Target, EAIFocusPriority::Gameplay);
+		else
+			ClearFocus(EAIFocusPriority::Gameplay);
+	}
 }

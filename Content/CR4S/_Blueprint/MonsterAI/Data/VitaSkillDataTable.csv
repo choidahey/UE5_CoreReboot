@@ -1,7 +1,7 @@
-﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
-Blizzard,Blizzard,/Game/DarkElementalBundle02/Animation/Attack/AM_BlizzardAttack.AM_BlizzardAttack,3500,15,400,600,0,0,0,0,0
-ColdBeam,ColdBeam,/Game/DarkElementalBundle02/Animation/Attack/AM_ColdBeamAttack.AM_ColdBeamAttack,2000,20,600,500,0,0,0,0,0
-IcicleWaves,IcicleWaves,/Game/DarkElementalBundle02/Animation/Attack/AM_IcicleWavesAttack.AM_IcicleWavesAttack,1000,20,400,300,0,0,0,0,0
-IceRoad,IceRoad,/Game/DarkElementalBundle02/Animation/Attack/AM_IceRoad.AM_IceRoad,1800,5,500,300,0,0,0,0,0
-IceSpike,IceSpike,/Game/DarkElementalBundle02/Animation/Attack/AM_IceSpikeAttack.AM_IceSpikeAttack,2000,5,0,600,0,0,0,0,0
-ColdFairy,ColdFairy,/Game/DarkElementalBundle02/Animation/Attack/AM_ColdFairyAttack.AM_ColdFairyAttack,1000,0,0,200,0,0,0,0,0
+---,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt,ProbabilityList
+Blizzard,"IgnitionLeap","None","3500.000000","3.000000","400.000000","600.000000","False","False","False","0.000000","0.000000","((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000),(MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+ColdBeam,"Explosion","None","2000.000000","3.000000","600.000000","500.000000","False","False","False","0.000000","0.000000","((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+IcicleWaves,"TurnOf Madness","None","1000.000000","3.000000","400.000000","300.000000","False","False","False","0.000000","0.000000","((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+IceRoad,"FireRing","None","1800.000000","3.000000","500.000000","300.000000","False","False","False","0.000000","0.000000","((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+IceSpike,"FireBall","None","2000.000000","3.000000","0.000000","600.000000","False","False","False","0.000000","0.000000","((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+ColdFairy,"Corona","None","1000.000000","3.000000","0.000000","200.000000","False","False","False","0.000000","0.000000","((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"

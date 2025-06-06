@@ -21,5 +21,5 @@ EBTNodeResult::Type UBTTask_MoveToBaseCampLocation::ExecuteTask(UBehaviorTreeCom
         AnimComp->PlayMontage(ReturnMontage);
     }
 
-	return EBTNodeResult::Type();
+	return EBTNodeResult::Succeeded;
 }

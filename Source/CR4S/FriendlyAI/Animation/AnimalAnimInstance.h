@@ -18,12 +18,21 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	UFUNCTION()
+	void AnimNotify_AnimalAttackHit();
+
+	UFUNCTION()
+	void AnimNotify_AnimalDash();
+
+	UFUNCTION()
+	void AnimNotify_AnimalRanged();
+	
 protected:
 	UPROPERTY()
-	TObjectPtr<ACharacter> OwnerCharacter;
-
-	UPROPERTY()
 	ABaseAnimal* OwnerAnimal;
+	
+	UPROPERTY()
+	TObjectPtr<ACharacter> OwnerCharacter;
 
 	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> OwnerCharacterMovementComponent;
@@ -39,13 +48,4 @@ protected:
 
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	uint8 bIsFalling : 1;
-
-	UFUNCTION()
-	void AnimNotify_AnimalAttackHit();
-
-	UFUNCTION()
-	void AnimNotify_AnimalDash();
-
-	UFUNCTION()
-	void AnimNotify_AnimalRanged();
 };
