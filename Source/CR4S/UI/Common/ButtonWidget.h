@@ -20,6 +20,7 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativePreConstruct() override;
 
 	UFUNCTION()
 	void OnButtonHovered();
@@ -28,7 +29,6 @@ protected:
 	UFUNCTION()
 	void OnButtonClicked();
 
-	virtual void NativePreConstruct() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound|Click")
 	USoundBase* ButtonClickSound;

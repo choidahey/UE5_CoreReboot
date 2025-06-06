@@ -36,7 +36,7 @@ void UMainMenuWidget::NativeConstruct()
 	}
 	if (CreditsButton)
 	{
-		CreditsButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnCreditsButtonClicked);
+		//CreditsButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnCreditsButtonClicked);
 	}
 
 	if (QuitButton)
@@ -147,9 +147,14 @@ void UMainMenuWidget::OnNewGameButtonClicked()
 {
 	if (DifficultyOptionsWidgetInstance)
 	{
-		DifficultyOptionsWidgetInstance->AddToViewport(10);
+		if (!DifficultyOptionsWidgetInstance->IsInViewport())
+		{
+			DifficultyOptionsWidgetInstance->AddToViewport();
+		}
 
+		HideMenuButtons();
 		DifficultyOptionsWidgetInstance->MainMenuWidgetRef = this;
+		DifficultyOptionsWidgetInstance->HandleOpenWindow();
 	}
 }
 
@@ -159,9 +164,11 @@ void UMainMenuWidget::OnSettingsButtonClicked()
 	{
 		if (!SettingsWidgetInstance->IsInViewport())
 		{
-			SettingsWidgetInstance->AddToViewport();
+			SettingsWidgetInstance->AddToViewport();	
 		}
-		
+
+		HideMenuButtons();
+		SettingsWidgetInstance->MainMenuWidgetRef = this;
 		SettingsWidgetInstance->HandleOpenWindow();
 	}
 }
@@ -171,34 +178,48 @@ void UMainMenuWidget::OnCreditsButtonClicked()
 	if (CreditsWidgetInstance)
 	{
 		CreditsWidgetInstance->AddToViewport(10);
+		HideMenuButtons();
 	}
 }
 
 void UMainMenuWidget::ShowGameButtons()
 {
-	if (NewGameButton)
-	{
-		NewGameButton->SetVisibility(ESlateVisibility::Visible);
-	}
-
-	if (LoadGameButton)
-	{
-		LoadGameButton->SetVisibility(ESlateVisibility::Visible);
-	}
+	SetWidgetVisibility(NewGameButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(LoadGameButton, ESlateVisibility::Visible);
 }
 
 void UMainMenuWidget::HideGameButtons()
 {
-	if (NewGameButton)
-	{
-		NewGameButton->SetVisibility(ESlateVisibility::Hidden);
-	}
+	SetWidgetVisibility(NewGameButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(LoadGameButton, ESlateVisibility::Hidden);
+}
 
-	if (LoadGameButton)
+void UMainMenuWidget::ShowMenuButtons()
+{
+	SetWidgetVisibility(PlayGameButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(SettingsButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(CreditsButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(QuitButton, ESlateVisibility::Visible);
+}
+
+void UMainMenuWidget::HideMenuButtons()
+{
+	SetWidgetVisibility(PlayGameButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(SettingsButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(CreditsButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(QuitButton, ESlateVisibility::Hidden);
+}
+
+
+
+void UMainMenuWidget::SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility InVisibility)
+{
+	if (Widget)
 	{
-		LoadGameButton->SetVisibility(ESlateVisibility::Hidden);
+		Widget->SetVisibility(InVisibility);
 	}
 }
+
 
 void UMainMenuWidget::FadeOutBGM(float FadeDuration)
 {

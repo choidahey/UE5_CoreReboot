@@ -5,6 +5,7 @@
 
 class UButton;
 class UBaseWindowWidget;
+class UMainMenuWidget;
 
 UCLASS()
 class CR4S_API USettingsWidget : public UUserWidget
@@ -17,6 +18,9 @@ public:
 	UFUNCTION()
 	void HandleOpenWindow();
 
+	UPROPERTY()
+	TObjectPtr<UMainMenuWidget> MainMenuWidgetRef;
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -26,4 +30,5 @@ protected:
 	UWidgetAnimation* FadeIn;
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* FadeOut;
+
 };

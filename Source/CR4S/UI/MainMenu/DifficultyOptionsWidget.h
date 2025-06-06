@@ -16,13 +16,14 @@ class CR4S_API UDifficultyOptionsWidget : public UUserWidget
 public:
 	UPROPERTY()
 	UMainMenuWidget* MainMenuWidgetRef;
-
+	UFUNCTION()
+	void HandleCloseWindow();
+	UFUNCTION()
+	void HandleOpenWindow();
 protected:
 
 	UFUNCTION()
 	void HandleOpenLevel();
-	UFUNCTION()
-	void HandleCloseWindow();
 
 	virtual void NativeConstruct() override;
 

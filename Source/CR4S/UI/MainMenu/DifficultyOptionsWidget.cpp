@@ -20,9 +20,31 @@ void UDifficultyOptionsWidget::NativeConstruct()
 	}
 }
 
+void UDifficultyOptionsWidget::HandleOpenWindow()
+{
+	SetVisibility(ESlateVisibility::Visible);
+	PlayAnimation(FadeIn);
+}
+
+
 void UDifficultyOptionsWidget::HandleCloseWindow()
 {
-	RemoveFromParent();
+	PlayAnimation(FadeOut);
+
+	FTimerHandle HideTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		HideTimerHandle,
+		[this]()
+		{
+			SetVisibility(ESlateVisibility::Collapsed);
+			if (MainMenuWidgetRef)
+			{
+				MainMenuWidgetRef->ShowMenuButtons();
+			}
+		},
+		0.3f,
+		false
+	);
 }
 
 void UDifficultyOptionsWidget::HandleOpenLevel()

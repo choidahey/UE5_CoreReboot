@@ -44,9 +44,16 @@ protected:
 
 
 	void CreateChildWidgets();
+
+	void SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility InVisibility);
+
+public:
+	void HideMenuButtons();
+	void ShowMenuButtons();
 	void ShowGameButtons();
 	void HideGameButtons();
 
+protected:
 	UPROPERTY()
 	UConfirmWidget* ConfirmWidgetInstance;
 	UPROPERTY()
