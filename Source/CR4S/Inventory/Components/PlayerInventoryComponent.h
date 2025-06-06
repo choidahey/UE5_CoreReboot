@@ -2,11 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "BaseInventoryComponent.h"
+#include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "PlayerInventoryComponent.generated.h"
 
 
-class UQuickSlotInventoryComponent;
 class UInventoryContainerWidget;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -29,12 +29,14 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent||InventoryContainerWidget")
-	void OpenPlayerInventoryWidget(const int32 CraftingDifficulty = 0);
+	void OpenPlayerInventoryWidget(const int32 CraftingDifficulty = 0) const;
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
 
 	void CloseInventoryWidget() const;
 
 private:
+	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
+	
 	UPROPERTY(EditDefaultsOnly)
 	int32 InventoryContainerWidgetOrder;
 	UPROPERTY(EditDefaultsOnly)

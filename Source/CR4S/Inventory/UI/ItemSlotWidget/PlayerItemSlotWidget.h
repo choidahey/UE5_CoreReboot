@@ -32,7 +32,6 @@ public:
 
 private:
 	void MoveItemToQuickSlot(const int32 Index) const;
-	void UnEquipItem(const UBaseInventoryComponent* QuickSlotInventoryComponent, const int32 Index) const;
 
 #pragma endregion
 };

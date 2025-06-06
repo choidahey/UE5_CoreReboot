@@ -40,7 +40,7 @@ void AFieldActor::BeginPlay()
 		}
 	}
 
-	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
+	// CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
 
 void AFieldActor::Initialize(AActor* OwnerMonster, AActor* Target)
@@ -83,28 +83,28 @@ void AFieldActor::ApplyInitialScale()
 	const float CapsuleHalfHeight = NiagaraBounds.BoxExtent.Z * InitCapsuleHalfHeight;
 	CapsuleComp->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 	
-	CR4S_Log(LogDa, Warning, TEXT(
-		"[%s] NiagaraBounds=(%.2f,%.2f,%.2f)" "→ CapsuleRadius=%.2f, CapsuleHalfHeight=%.2f")
-		, *MyHeader
-		, NiagaraBounds.BoxExtent.X
-		, NiagaraBounds.BoxExtent.Y
-		, NiagaraBounds.BoxExtent.Z
-		, CapsuleRadius
-		, CapsuleHalfHeight
-	);
+	// CR4S_Log(LogDa, Warning, TEXT(
+	// 	"[%s] NiagaraBounds=(%.2f,%.2f,%.2f)" "→ CapsuleRadius=%.2f, CapsuleHalfHeight=%.2f")
+	// 	, *MyHeader
+	// 	, NiagaraBounds.BoxExtent.X
+	// 	, NiagaraBounds.BoxExtent.Y
+	// 	, NiagaraBounds.BoxExtent.Z
+	// 	, CapsuleRadius
+	// 	, CapsuleHalfHeight
+	// );
 	
-	DrawDebugCapsule(
-		GetWorld(),
-		CapsuleComp->GetComponentLocation(),
-		CapsuleComp->GetScaledCapsuleHalfHeight(),
-		CapsuleComp->GetScaledCapsuleRadius(),
-		CapsuleComp->GetComponentQuat(),
-		FColor::Cyan,
-		false,
-		LifeTime,
-		0,
-		2.f
-	);
+	// DrawDebugCapsule(
+	// 	GetWorld(),
+	// 	CapsuleComp->GetComponentLocation(),
+	// 	CapsuleComp->GetScaledCapsuleHalfHeight(),
+	// 	CapsuleComp->GetScaledCapsuleRadius(),
+	// 	CapsuleComp->GetComponentQuat(),
+	// 	FColor::Cyan,
+	// 	false,
+	// 	LifeTime,
+	// 	0,
+	// 	2.f
+	// );
 }
 
 void AFieldActor::PerformGroundTrace()
@@ -115,16 +115,16 @@ void AFieldActor::PerformGroundTrace()
 
 	const FVector Start = Base + FVector(0,0,TraceHeight);
 	const FVector End = Base - FVector(0,0,TraceHeight);
-	DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		FColor::Yellow,
-		false,
-		LifeTime,
-		0,
-		2.f
-	);
+	// DrawDebugLine(
+	// 	GetWorld(),
+	// 	Start,
+	// 	End,
+	// 	FColor::Yellow,
+	// 	false,
+	// 	LifeTime,
+	// 	0,
+	// 	2.f
+	// );
 
 	FHitResult Hit;
 	FCollisionQueryParams Params(NAME_None, false, OwnerActor);
@@ -190,18 +190,18 @@ void AFieldActor::FollowOwner()
         SetActorLocation(Hit.Location);
     	NiagaraComp->SetWorldLocation(Hit.Location);
 
-    	DrawDebugCapsule(
-			GetWorld(),
-			CapsuleComp->GetComponentLocation(),
-			CapsuleComp->GetScaledCapsuleHalfHeight(),
-			CapsuleComp->GetScaledCapsuleRadius(),
-			CapsuleComp->GetComponentQuat(),
-			FColor::Blue,
-			false,
-			LifeTime,
-			0,
-			2.f
-		);
+  //   	DrawDebugCapsule(
+		// 	GetWorld(),
+		// 	CapsuleComp->GetComponentLocation(),
+		// 	CapsuleComp->GetScaledCapsuleHalfHeight(),
+		// 	CapsuleComp->GetScaledCapsuleRadius(),
+		// 	CapsuleComp->GetComponentQuat(),
+		// 	FColor::Blue,
+		// 	false,
+		// 	LifeTime,
+		// 	0,
+		// 	2.f
+		// );
     }
 }
 

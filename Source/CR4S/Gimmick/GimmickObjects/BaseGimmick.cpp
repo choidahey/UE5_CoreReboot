@@ -45,26 +45,28 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 		return;
 	}
 
-	UBaseInventoryComponent* InventorySystem
-		= InventoryOwnerActor->FindComponentByClass<UBaseInventoryComponent>();
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventorySystem)))
-	{
-		return;
-	}
-
+	TMap<FName, int32> Resources;
+	
 	if (const FGimmickInfoData* GimmickData = ItemGimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
 	{
-		TMap<FName, int32> Resources;
-
 		for (const auto& [RowName, MinCount, MaxCount] : GimmickData->Resources)
 		{
 			const int32 RandomCount = FMath::RandRange(MinCount, MaxCount);
 
 			Resources.FindOrAdd(RowName, RandomCount);
 		}
-
-		InventorySystem->AddItems(Resources);
 	}
+
+	UBaseInventoryComponent* InventorySystem
+		= InventoryOwnerActor->FindComponentByClass<UBaseInventoryComponent>();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventorySystem)))
+	{
+		ItemGimmickSubsystem->SpawnItemPouch(this, Resources);
+		
+		return;
+	}
+
+	InventorySystem->AddItems(Resources);
 }
 
 void ABaseGimmick::GimmickDestroy()
