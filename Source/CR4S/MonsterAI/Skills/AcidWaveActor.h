@@ -31,9 +31,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	float Damage{0.f};
-
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	FVector PositionOffset = FVector::ZeroVector;
 	
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	bool bIsRotating{false};

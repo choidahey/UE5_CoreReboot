@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "NiagaraComponent.h"
 #include "GameFramework/Actor.h"
 #include "FieldActor.generated.h"
 
@@ -22,12 +23,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Boss|Skill")
 	void Initialize(AActor* OwnerMonster, AActor* TargetActor = nullptr);
 
+	FORCEINLINE void SetNiagaraActive(bool bActive) const { NiagaraComp->Activate(bActive); }
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	
 	UPROPERTY(VisibleAnywhere, Category="Boss|Skill")
-    class UNiagaraComponent* NiagaraComp;
+	class UNiagaraComponent* NiagaraComp;
 
     UPROPERTY(EditAnywhere, Category="Boss|Skill")
     class UCapsuleComponent* CapsuleComp;
@@ -37,9 +40,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	ESpawnSource SpawnSource = ESpawnSource::Owner;
-	
-	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	float TraceHeight = 1000.f;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float LifeTime = 5.f;
@@ -92,11 +92,14 @@ private:
 	
 	UPROPERTY()
 	TSet<AActor*> OverlappingActors;
-	FTimerHandle LifeTimerHandle;
-	FTimerHandle DamageTimerHandle;
-	float ElapsedTime = 0.f;
 	
+	float ElapsedTime = 0.f;
+	float TraceHeight = 1000.f;
 	float InitCapsuleRadius = 100.f;
 	float InitCapsuleHalfHeight = 100.f;
+
+	FTimerHandle LifeTimerHandle;
+	FTimerHandle DamageTimerHandle;
+	
 	FString MyHeader = TEXT("FieldActor");
 };

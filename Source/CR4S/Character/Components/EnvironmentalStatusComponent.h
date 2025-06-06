@@ -61,8 +61,6 @@ public:
 
 	bool ShouldDisableTick();
 
-	bool IsPlayer() const;
-
 #pragma endregion
 
 #pragma region Environment Parameters

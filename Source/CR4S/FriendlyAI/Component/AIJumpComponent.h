@@ -33,6 +33,9 @@ public:
 	virtual void Activate(bool bReset = false) override;
 	virtual void Deactivate() override;
 
+	UFUNCTION()
+	void SetJumpPower(float NewPower) { JumpPower = NewPower; CurrentJumpPower = NewPower; }
+	
 protected:
 	virtual void BeginPlay() override;
 	

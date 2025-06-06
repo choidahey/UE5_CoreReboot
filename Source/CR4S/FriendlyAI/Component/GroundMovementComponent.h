@@ -13,4 +13,5 @@ public:
 	virtual void MoveToLocation(const FVector& Dest) override;
 	virtual void MoveToActor(AActor* TargetActor) override;
 	virtual void StopMovement() override;
+	virtual bool HasReachedDestination(const FVector& Dest, float AcceptanceRadius) const override;
 };
