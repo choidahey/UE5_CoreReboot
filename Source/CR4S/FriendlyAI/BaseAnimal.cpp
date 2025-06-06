@@ -9,18 +9,19 @@
 #include "AnimalStatsSubsystem.h"
 #include "Components/SphereComponent.h"
 #include "UI/AnimalInteractWidget.h"
+#include "../Inventory/Components/BaseInventoryComponent.h"
+#include "Component/AnimalRangedAttackComponent.h"
+#include "Components/ArrowComponent.h"
+#include "Component/GroundMovementComponent.h"
+#include "AnimalFlying.h"
+#include "AnimalGround.h"
 #include "../Character/Characters/PlayerCharacter.h"
-#include "Inventory/Components/BaseInventoryComponent.h"
 
 ABaseAnimal::ABaseAnimal()
 {
     PrimaryActorTick.bCanEverTick = true;
-
-    // Possess AI Automatically when Spawned
+    
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-
-    StunValue     = 0.f;
-    CurrentTarget = nullptr;
 
     InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
     InteractableComponent->SetActive(false);
@@ -29,6 +30,13 @@ ABaseAnimal::ABaseAnimal()
     AttackRange->SetupAttachment(RootComponent);
     AttackRange->SetSphereRadius(150.f);
     AttackRange->SetCollisionProfileName(TEXT("Trigger"));
+
+    RangedAttackComponent = CreateDefaultSubobject<UAnimalRangedAttackComponent>(TEXT("RangedAttackComponent"));
+    
+    MuzzleArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleArrow"));
+    MuzzleArrow->SetupAttachment(RootComponent);
+
+    GroundComp = CreateDefaultSubobject<UGroundMovementComponent>(TEXT("GroundMovementComponent"));
 }
 
 void ABaseAnimal::BeginPlay()
@@ -54,6 +62,47 @@ void ABaseAnimal::BeginPlay()
     }
 }
 
+void ABaseAnimal::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+//     DrawDebugSphere(
+//     GetWorld(),
+//     GetActorLocation(),
+//     MeleeRange,
+//     12,
+//     FColor::Red,
+//     false,
+//     -1.0f,
+//     0,
+//     2.0f
+// );
+//
+//     DrawDebugSphere(
+//         GetWorld(),
+//         GetActorLocation(),
+//         DashRange,
+//         12,
+//         FColor::Blue,
+//         false,
+//         -1.0f,
+//         0,
+//         2.0f
+//     );
+//
+//     DrawDebugSphere(
+//         GetWorld(),
+//         GetActorLocation(),
+//         RangedRange,
+//         12,
+//         FColor::Green,
+//         false,
+//         -1.0f,
+//         0,
+//         2.0f
+//     );
+}
+
 void ABaseAnimal::LoadStats()
 {
     if (auto* Subsys = GetGameInstance()->GetSubsystem<UAnimalStatsSubsystem>())
@@ -65,7 +114,13 @@ void ABaseAnimal::LoadStats()
             CurrentStats = *Row;
             bStatsReady = true;
             CurrentHealth = Row->MaxHealth;
-            CachedAttackInterval = Row->AttackInterval;
+            JumpPower = Row->JumpPower;
+            
+            //CachedAttackInterval = Row->AttackInterval;
+
+            bCanMelee  = (MeleeAttackMontage != nullptr);
+            bCanCharge = (ChargeMontage != nullptr);
+            bCanRanged = (RangedMontage != nullptr);
 
             const UEnum* EnumPtr = StaticEnum<EAnimalBehavior>();
             if (EnumPtr)
@@ -74,7 +129,7 @@ void ABaseAnimal::LoadStats()
                     EnumPtr->GetValueByName(FName(*Row->BehaviorType))
                 );
             }
-
+            
             if (GetCharacterMovement())
             {
                 GetCharacterMovement()->MaxWalkSpeed = CurrentStats.WalkSpeed;
@@ -89,13 +144,24 @@ void ABaseAnimal::LoadStats()
                 {
                     AnimalAI->ApplyPerceptionStats(CurrentStats);
 
-                    if (UBehaviorTree* BTAsset = AnimalAI->GetBehaviorTreeAsset())
+                    UBehaviorTree* BTAsset = nullptr;
+                    if (Cast<AAnimalGround>(this))
+                    {
+                        BTAsset = AnimalAI->GroundBehaviorTree;
+                    }
+                    else if (Cast<AAnimalFlying>(this))
+                    {
+                        BTAsset = AnimalAI->FlyingBehaviorTree;
+                    }
+                    // else if (Cast<AMonster>(this))
+                    // {
+                    //     BTAsset = AnimalAI->MonsterBehaviorTree;
+                    // }
+
+                    if (BTAsset)
                     {
                         AnimalAI->RunBehaviorTree(BTAsset);
-                        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-                        {
-                            C->SetAnimalState(EAnimalState::Patrol);
-                        }
+                        AnimalAI->SetAnimalState(EAnimalState::Patrol);
                     }
                 }
             }
@@ -109,96 +175,19 @@ void ABaseAnimal::LoadStats()
     }
 }
 
-void ABaseAnimal::MoveToLocation(const FVector& Dest)
-{   
-    if (AAIController* AIC = Cast<AAIController>(GetController()))
-    {
-        FAIMoveRequest Req;
-        Req.SetGoalLocation(Dest);
-        Req.SetAcceptanceRadius(5.f);
-        AIC->MoveTo(Req);
-    }
-}
-
-void ABaseAnimal::PerformAttack()
-{
-    if (!AttackRange || !CurrentTarget) return;
-
-    TArray<AActor*> OverlappedActors;
-    AttackRange->GetOverlappingActors(OverlappedActors);
-
-    if (!OverlappedActors.Contains(CurrentTarget)) return;
-
-    if (!IsValid(CurrentTarget)) return;
-
-    if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
-    {
-        if (HitAnimal->CurrentState == EAnimalState::Dead)
-        {
-            if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-            {
-                C->OnTargetDied();
-            }
-            return;
-        }
-    }
-
-    if (!AttackRange->IsOverlappingActor(CurrentTarget))
-    {
-        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-        {
-            C->OnTargetOutOfRange();
-        }
-        return;
-    }
-
-    if (UCharacterMovementComponent* Move = GetCharacterMovement())
-    {
-        Move->StopMovementImmediately();
-    }
-
-    // TODO: player dead
-
-    float Damage = CurrentStats.AttackDamage;
-    UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);
-}
-
-
 void ABaseAnimal::ApplyStun(float Amount)
 {
     if (!bStatsReady || !StatsRow) return;
+
     StunValue += Amount;
-    UE_LOG(LogTemp, Log,
-        TEXT("[%s] StunValue %.1f / %.1f"),
-        *GetClass()->GetName(),
-        StunValue,
-        CurrentStats.StunThreshold
-    );
+
     if (StunValue >= CurrentStats.StunThreshold)
     {
-        UE_LOG(LogTemp, Log,
-            TEXT("[%s] stun"), *GetClass()->GetName());
-        
         if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
         {
             C->OnStunned();
         }
         bIsStunned = true;
-
-        bUseControllerRotationYaw = false;
-        GetCharacterMovement()->bOrientRotationToMovement = false;
-
-        if (GetController())
-        {
-            GetController()->StopMovement();
-        }
-        GetCharacterMovement()->StopMovementImmediately();
-        GetCharacterMovement()->DisableMovement();
-
-        FName BoneName = GetMesh()->GetSocketBoneName(TEXT("TS"));
-        GetMesh()->SetSimulatePhysics(false);
-        GetMesh()->SetAllBodiesBelowSimulatePhysics(BoneName, true, true);
-        GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
         GetWorldTimerManager().SetTimer(StunRecoverTimer, this, &ABaseAnimal::RecoverFromStun, StatsRow->StunDuration, false);
     }
@@ -208,14 +197,6 @@ void ABaseAnimal::RecoverFromStun()
 {
     bIsStunned = false;
 
-    bUseControllerRotationYaw = true;
-    GetCharacterMovement()->bOrientRotationToMovement = true;
-
-    GetMesh()->bBlendPhysics = true;
-    GetMesh()->SetAllBodiesSimulatePhysics(false);
-    GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-
-    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
         C->OnRecoveredFromStun();
@@ -227,6 +208,7 @@ void ABaseAnimal::RecoverFromStun()
         ActiveInteractWidget = nullptr;
     }
 }
+
 
 void ABaseAnimal::Die()
 {
@@ -242,20 +224,23 @@ void ABaseAnimal::Die()
         ActiveInteractWidget->RemoveFromParent();
         ActiveInteractWidget = nullptr;
     }
-    
-    OnDied.Broadcast(this); // One Param
+    OnDied.Broadcast(this);
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
     {
         if (UAIPerceptionComponent* Perception = AIController->FindComponentByClass<UAIPerceptionComponent>())
         {
-            Perception->ForgetActor(this);
+            Perception->SetSenseEnabled(UAISense_Sight::StaticClass(), false);
         }
+        if (UBrainComponent* Brain = AIController->BrainComponent)
+        {
+            Brain->StopLogic("Dead");  
+        }
+        AIController->StopMovement();
+        AIController->UnPossess(); 
+        SetAnimalState(EAnimalState::Dead);
     }
-
-    UE_LOG(LogTemp, Log,
-        TEXT("[%s] Die"), *GetClass()->GetName());
-
+    
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
 
@@ -294,18 +279,6 @@ void ABaseAnimal::ClearTarget()
     CurrentTarget = nullptr;
 }
 
-void ABaseAnimal::PlayAttackMontage()
-{
-    if (bIsAttacking || !AttackMontage) return;
-
-    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-    if (AnimInstance)
-    {
-        AnimInstance->Montage_Play(AttackMontage);
-        bIsAttacking = true;
-    }
-}
-
 float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
     if (ABaseAnimal* Damager = Cast<ABaseAnimal>(DamageCauser))
@@ -333,20 +306,20 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     return ActualDamage;
 }
 
-void ABaseAnimal::SetbIsTamed(bool bNewValue)
-{
-    if (bIsTamed == bNewValue) return;
-
-    bIsTamed = bNewValue;
-
-    if (AAnimalAIController* AIController = Cast<AAnimalAIController>(GetController()))
-    {
-        if (UBlackboardComponent* BB = AIController->GetBlackboardComponent())
-        {
-            BB->SetValueAsBool(TEXT("IsTamed"), bNewValue);
-        }
-    }
-}
+// void ABaseAnimal::SetbIsTamed(bool bNewValue)
+// {
+//     if (bIsTamed == bNewValue) return;
+//
+//     bIsTamed = bNewValue;
+//
+//     if (AAnimalAIController* AIController = Cast<AAnimalAIController>(GetController()))
+//     {
+//         if (UBlackboardComponent* BB = AIController->GetBlackboardComponent())
+//         {
+//             BB->SetValueAsBool(TEXT("IsTamed"), bNewValue);
+//         }
+//     }
+// }
 
 void ABaseAnimal::OnInteract(AActor* Interactor)
 {
@@ -388,3 +361,203 @@ void ABaseAnimal::Butcher()
     // TODO : AddItem
     Destroy();
 }
+
+void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) const
+{
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        Location = MeshComp->GetSocketLocation(TEXT("head"));
+        Rotation = MeshComp->GetSocketRotation(TEXT("head"));
+    }
+    else
+    {
+        Super::GetActorEyesViewPoint(Location, Rotation);
+    }
+}
+
+#pragma region Attack
+
+void ABaseAnimal::PlayAttackMontage()
+{
+    if (bIsAttacking || !MeleeAttackMontage) return;
+
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance)
+    {
+        float MontageDuration = AnimInstance->Montage_Play(MeleeAttackMontage);
+        bIsAttacking = true;
+        bIsMeleeOnCooldown = true;
+
+        if (UCharacterMovementComponent* Move = GetCharacterMovement())
+        {
+            Move->StopMovementImmediately();
+        }
+        
+        GetWorldTimerManager().SetTimer(
+            AttackTimerHandle,
+            this,
+            &ABaseAnimal::ResetAttackFlag,
+            MontageDuration,
+            false
+        );
+        
+        GetWorldTimerManager().SetTimer(
+            MeleeAttackTimerHandle,
+            this,
+            &ABaseAnimal::ResetMeleeAttack,
+            MeleeAttackCooldown,
+            false
+        );
+    }
+}
+
+void ABaseAnimal::PlayChargeAttackMontage()
+{
+    if (bIsAttacking || !ChargeMontage) return;
+
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance)
+    {
+        if (UCharacterMovementComponent* Move = GetCharacterMovement())
+        {
+            Move->StopMovementImmediately();
+        }
+        
+        float MontageDuration = AnimInstance->Montage_Play(ChargeMontage);
+        bIsAttacking = true;
+        bIsChargeOnCooldown = true;
+        
+        GetWorldTimerManager().SetTimer(
+            AttackTimerHandle,
+            this,
+            &ABaseAnimal::ResetAttackFlag,
+            MontageDuration,
+            false
+        );
+        
+        GetWorldTimerManager().SetTimer(
+            ChargeAttackTimerHandle,
+            this,
+            &ABaseAnimal::ResetChargeAttack,
+            ChargeAttackCooldown,
+            false
+        );
+    }
+}
+
+void ABaseAnimal::PlayRangedAttackMontage()
+{
+    if (bIsAttacking || !RangedMontage) return;
+
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance)
+    {
+        if (UCharacterMovementComponent* Move = GetCharacterMovement())
+        {
+            Move->StopMovementImmediately();
+        }
+        float MontageDuration = AnimInstance->Montage_Play(RangedMontage);
+        bIsAttacking = true;
+        bIsRangedOnCooldown = true;
+        
+        GetWorldTimerManager().SetTimer(
+            AttackTimerHandle,
+            this,
+            &ABaseAnimal::ResetAttackFlag,
+            MontageDuration,
+            false
+        );
+        
+        GetWorldTimerManager().SetTimer(
+            RangedAttackTimerHandle,
+            this,
+            &ABaseAnimal::ResetRangedAttack,
+            RangedAttackCooldown,
+            false
+        );
+    }
+}
+
+
+void ABaseAnimal::PerformMeleeAttack()
+{
+    if (!AttackRange || !CurrentTarget) return;
+    
+    if (!bCanMelee || bIsMeleeOnCooldown) return;
+    
+    TArray<AActor*> OverlappedActors;
+    AttackRange->GetOverlappingActors(OverlappedActors);
+
+    if (!OverlappedActors.Contains(CurrentTarget)) return;
+
+    if (!IsValid(CurrentTarget)) return;
+
+    if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
+    {
+        if (HitAnimal->CurrentState == EAnimalState::Dead)
+        {
+            if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+            {
+                C->OnTargetDied();
+            }
+            return;
+        }
+    }
+    
+    if (!AttackRange->IsOverlappingActor(CurrentTarget))
+    {
+        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+        {
+            C->OnTargetOutOfRange();
+        }
+        return;
+    }
+
+    bIsMeleeOnCooldown = true;
+    GetWorldTimerManager().SetTimer(
+        MeleeAttackTimerHandle,
+        this,
+        &ABaseAnimal::ResetMeleeCooldown,
+        MeleeAttackCooldown,
+        false
+    );
+    
+    // TODO: player dead
+
+    float Damage = CurrentStats.AttackDamage;
+    UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);
+}
+
+void ABaseAnimal::PerformChargeAttack()
+{
+    if (!bCanCharge || bIsChargeOnCooldown) return;
+
+    bIsChargeOnCooldown = true;
+    GetWorldTimerManager().SetTimer(
+        ChargeAttackTimerHandle,
+        this,
+        &ABaseAnimal::ResetChargeCooldown,
+        ChargeAttackCooldown,
+        false
+    );
+}
+
+void ABaseAnimal::PerformRangedAttack()
+{
+    if (!bCanRanged || bIsRangedOnCooldown) return;
+
+    if (RangedAttackComponent)
+    {
+        RangedAttackComponent->FireProjectile();
+    }
+
+    bIsRangedOnCooldown = true;
+    GetWorldTimerManager().SetTimer(
+        RangedAttackTimerHandle,
+        this,
+        &ABaseAnimal::ResetRangedCooldown,
+        RangedAttackCooldown,
+        false
+    );
+}
+#pragma endregion

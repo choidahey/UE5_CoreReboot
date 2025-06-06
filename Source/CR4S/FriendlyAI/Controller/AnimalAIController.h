@@ -24,7 +24,7 @@ public:
 	
 	void ApplyPerceptionStats(const FAnimalStatsRow& Stats);
 
-	UBehaviorTree* GetBehaviorTreeAsset() const { return BehaviorTreeAsset; }
+	//UBehaviorTree* GetBehaviorTreeAsset() const { return BehaviorTreeAsset; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetAnimalState(EAnimalState NewState);
@@ -42,9 +42,6 @@ protected:
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	UBehaviorTree* BehaviorTreeAsset;
-
 	UPROPERTY(VisibleAnywhere)
 	UBehaviorTreeComponent* BehaviorTreeComponent;
 
@@ -73,4 +70,13 @@ public:
 public:
 	void SetTargetActor(AActor* Target);
 	void ClearTargetActor();
+
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* GroundBehaviorTree;
+
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* FlyingBehaviorTree;
+
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* MonsterBehaviorTree;
 };

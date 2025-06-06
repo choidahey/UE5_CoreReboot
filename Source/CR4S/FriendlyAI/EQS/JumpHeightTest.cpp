@@ -15,8 +15,10 @@ UJumpHeightTest::UJumpHeightTest()
 	Cost = EEnvTestCost::Low;
 	ValidItemType = UEnvQueryItemType_Point::StaticClass();
 	MaxJumpHeight = 1000.f;
-	TestPurpose = EEnvTestPurpose::Filter;
-	FilterType = EEnvTestFilterType::Maximum;
+	// TestPurpose = EEnvTestPurpose::Filter;
+	// FilterType = EEnvTestFilterType::Maximum;
+	TestPurpose = EEnvTestPurpose::Score;
+	FilterType = EEnvTestFilterType::Range;
 }
 
 void UJumpHeightTest::RunTest(FEnvQueryInstance& QueryInstance) const
@@ -75,7 +77,8 @@ void UJumpHeightTest::RunTest(FEnvQueryInstance& QueryInstance) const
 		{
 			bool bDown = (DeltaZ <= 0.f);
 			float Score = bDown ? 1.f : 0.f;
-			It.SetScore(TestPurpose, FilterType, Score, 0.f, 1.f);
+			//It.SetScore(TestPurpose, FilterType, Score, 0.f, 1.f);
+			It.SetScore(EEnvTestPurpose::Score, EEnvTestFilterType::Range, Score, 0.f, 1.f);
 			continue;
 		}
 		
@@ -105,6 +108,7 @@ void UJumpHeightTest::RunTest(FEnvQueryInstance& QueryInstance) const
 				Score = FMath::Clamp(1.f - (PathLen / MaxHorizontalDistance), MinScore, 1.f);
 			}
 		}
-		It.SetScore(TestPurpose, FilterType, Score, 0.f, 1.f);
+		//It.SetScore(TestPurpose, FilterType, Score, 0.f, 1.f);
+		It.SetScore(EEnvTestPurpose::Score, EEnvTestFilterType::Range, Score, 0.f, 1.f);
 	}
 }

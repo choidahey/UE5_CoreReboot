@@ -49,7 +49,7 @@ void ABarnGimmick::SpawnAnimalByRowName(FName RowName)
 			{
 				if (ABaseAnimal* Animal = Cast<ABaseAnimal>(Spawned))
 				{
-					Animal->SetbIsTamed(true);
+					//Animal->SetbIsTamed(true);
 				}
 			}
 		}

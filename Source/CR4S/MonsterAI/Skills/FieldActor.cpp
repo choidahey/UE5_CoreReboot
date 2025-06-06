@@ -159,7 +159,6 @@ void AFieldActor::UpdateDynamicScale(float DeltaTime)
 	NiagaraComp->SetWorldScale3D(CalculatedNiagaraScale);
 	SetActorScale3D(CalculatedNiagaraScale);
 	
-	// TODO :: I will fix capsule collision size(blizzard is good fit size)
 	CapsuleComp->SetAbsolute(true, true, true);
 	const FBoxSphereBounds NiagaraBounds = NiagaraComp->CalcBounds(NiagaraComp->GetComponentTransform());
 	const float NewRadius = NiagaraBounds.BoxExtent.X;

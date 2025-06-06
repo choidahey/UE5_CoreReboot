@@ -17,6 +17,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	TSubclassOf<AActor> SpawnFieldActorClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	FVector SpawnLocationOffset = FVector::ZeroVector;
+
 private:
 	const float TraceHeight = 1000.f;
 	FString MyHeader = TEXT("Notify_SpawnActor");

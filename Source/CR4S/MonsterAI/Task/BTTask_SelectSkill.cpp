@@ -5,6 +5,7 @@
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/MonsterAIHelper.h"
 #include "AIController.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -31,6 +32,8 @@ EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& Own
 	UE_LOG(LogTemp, Warning, TEXT("[UBTTask_SelectSkill] SelectedSkill Index is %d"), SelectedSkillIndex);
 
 	OwnerComp.GetBlackboardComponent()->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);
+	OwnerComp.GetBlackboardComponent()->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, true);
+	
 	return EBTNodeResult::Succeeded;
 }
 

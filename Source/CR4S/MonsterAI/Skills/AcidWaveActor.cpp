@@ -48,17 +48,6 @@ void AAcidWaveActor::Initialize(AActor* InOwner, AActor* InTarget)
 	OwnerActor = InOwner;
 	TargetActor = InTarget;
 	
-	if (MeshComp)
-	{
-		FVector Current = MeshComp->GetRelativeLocation();
-		MeshComp->SetRelativeLocation(Current + PositionOffset);
-	}
-	if (BoxCollisionComp)
-	{
-		FVector Current = BoxCollisionComp->GetRelativeLocation();
-		BoxCollisionComp->SetRelativeLocation(Current + PositionOffset);
-	}
-
 	if (MeshComp && MeshComp->GetStaticMesh())
 	{
 		const FVector LocalExtent = MeshComp->GetStaticMesh()->GetBoundingBox().GetExtent();
@@ -66,7 +55,18 @@ void AAcidWaveActor::Initialize(AActor* InOwner, AActor* InTarget)
 		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, HalfHeight));
 	}
 
-	if (bDynamicScale && MeshComp)
+	if (BoxCollisionComp)
+	{
+		float BoxHalfHeight = 0.f;
+		if (MeshComp && MeshComp->GetStaticMesh())
+		{
+			const FVector LocalExtent = MeshComp->GetStaticMesh()->GetBoundingBox().GetExtent();
+			BoxHalfHeight = LocalExtent.Z * MeshComp->GetComponentScale().Z;
+		}
+		BoxCollisionComp->SetRelativeLocation(FVector(0.f, 0.f, BoxHalfHeight));
+	}
+
+	if (bDynamicScale && IsValid(MeshComp) && IsValid(BoxCollisionComp))
 	{
 		InitialScale = MeshComp->GetRelativeScale3D();
 		InitialBoxExtent = BoxCollisionComp->GetUnscaledBoxExtent();
