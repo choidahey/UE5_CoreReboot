@@ -3,7 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
+#include "Utility/Cr4sGameplayTags.h"
 #include "WeaponData.generated.h"
+
 class ABaseBullet;
 /**
  * 
@@ -39,6 +42,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Weight{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackCooldownTime{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bHasSelfStun:1 {false};
 };
 
@@ -50,8 +55,6 @@ struct CR4S_API FMeleeWeaponData : public FBaseWeaponData
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxCombo{1};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float AttackCoolDown{1};
 };
 
 USTRUCT(BlueprintType)
@@ -66,8 +69,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 CurrentAmmo{10};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float FireRate{5};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ReloadTime{2};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Recoil{1};
@@ -81,4 +82,55 @@ public:
 	TSubclassOf<ABaseBullet> ProjectileClass{nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FBulletData BulletData;
+};
+
+UCLASS(BlueprintType)
+class CR4S_API UWeaponData : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Melee")
+	TMap<FGameplayTag,FMeleeWeaponData> MeleeData
+	{
+		{ WeaponTags::Chainsaw,{} },
+		{ WeaponTags::CrystalSword,{} },
+		{ WeaponTags::DemolitionGear,{} },
+		{ WeaponTags::ShockBat,{} }
+	};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ranged")
+	TMap<FGameplayTag,FRangedWeaponData> RangedData
+	{
+		{ WeaponTags::Comet,{} },
+		{ WeaponTags::CrystalBurstRifle,{} },
+		{ WeaponTags::CrystalGatling,{} },
+		{ WeaponTags::CrystalHomingHighSpeed4,{} },
+		{ WeaponTags::CrystalHomingLauncher4,{} },
+		{ WeaponTags::CrystalLauncher2,{} },
+		{ WeaponTags::Fireball,{} },
+		{ WeaponTags::HomingFireball,{} },
+		{ WeaponTags::IceShotgun,{} },
+		{ WeaponTags::ThunderStrike,{} }
+	};
+	
+	template<typename T>
+	bool GetWeaponDataByTag(const FGameplayTag Tag, T& OutData)
+	{
+		if constexpr (std::is_same_v<T, FMeleeWeaponData>)
+		{
+			if (const FMeleeWeaponData* Data = MeleeData.Find(Tag))
+			{
+				OutData = *Data;
+				return true;
+			}
+		}
+		else if constexpr (std::is_same_v<T, FRangedWeaponData>)
+		{
+			if (const FRangedWeaponData* Data = RangedData.Find(Tag))
+			{
+				OutData = *Data;
+				return true;
+			}
+		}
+		return false;
+	}
 };
