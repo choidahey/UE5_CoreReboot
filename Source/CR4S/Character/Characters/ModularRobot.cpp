@@ -324,10 +324,16 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			//Looking
 			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
 			//Dash
-			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Dash);
+			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Dash);
 			// Jump
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
+			//Attack
+			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftArm);
+			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightArm);
+			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftShoulder);
+			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightShoulder);
+			
 		}
 	}
 }

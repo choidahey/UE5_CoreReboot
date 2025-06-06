@@ -40,7 +40,7 @@ protected:
 	);
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Damage")
-	float Damage;
+	float Damage{100};
 	
 #pragma region Components
 protected:

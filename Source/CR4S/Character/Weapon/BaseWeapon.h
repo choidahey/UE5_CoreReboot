@@ -19,12 +19,6 @@ class CR4S_API UBaseWeapon : public UObject
 public:
 	UBaseWeapon();
 
-#pragma region Get
-	FORCEINLINE float GetDamageMultiplier() const { return DamageMultiplier; }
-	FORCEINLINE float GetStunAmount() const { return StunAmount; }
-	FORCEINLINE float GetWeight() const { return Weight; }
-#pragma endregion
-
 #pragma region Set
 	void SetGameplayTag(const FGameplayTag GameplayTag);
 #pragma endregion
@@ -43,10 +37,6 @@ public:
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Tags")
 	FGameplayTag WeaponTag;
-	
-	float DamageMultiplier;
-	float StunAmount;
-	float Weight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TObjectPtr<UAnimMontage> AttackMontage;

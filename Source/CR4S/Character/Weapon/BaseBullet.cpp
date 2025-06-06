@@ -20,8 +20,8 @@ ABaseBullet::ABaseBullet()
 	
 	CollisionComponent=CreateDefaultSubobject<UBoxComponent>(TEXT("Collision"));
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionComponent->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
-	CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+	CollisionComponent->SetCollisionObjectType(ECC_GameTraceChannel2);
+	CollisionComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel2,ECR_Ignore);
 	CollisionComponent->SetGenerateOverlapEvents(true);
 	CollisionComponent->SetupAttachment(RootComponent);
 
@@ -33,8 +33,8 @@ ABaseBullet::ABaseBullet()
 	ProjectileMovementComponent->bShouldBounce=false;
 	ProjectileMovementComponent->UpdatedComponent=RootComponent;
 	
-	ProjectileMovementComponent->InitialSpeed=2000.f;
-	ProjectileMovementComponent->MaxSpeed=3000.f;
+	ProjectileMovementComponent->InitialSpeed=0.f;
+	ProjectileMovementComponent->MaxSpeed=0.f;
 	ProjectileMovementComponent->ProjectileGravityScale=0.f;
 	
 	ImpactParticle=nullptr;
@@ -44,18 +44,13 @@ ABaseBullet::ABaseBullet()
 
 void ABaseBullet::Initialize(const FBulletData& InData)
 {
-	ImpactParticle=InData.ImpactParticle;
-	ImpactSound=InData.ImpactSound;
+	// ImpactParticle=InData.ImpactParticle;
+	// ImpactSound=InData.ImpactSound;
 	ProjectileMovementComponent->InitialSpeed=InData.InitialBulletSpeed;
 	ProjectileMovementComponent->MaxSpeed=InData.MaxBulletSpeed;
 	ExplosionRadius=InData.ExplosionRadius;
 	//Homing
-}
 
-// Called when the game starts or when spawned
-void ABaseBullet::BeginPlay()
-{
-	Super::BeginPlay();
 	if (CollisionComponent)
 	{
 		if (AActor* OwnerActor=GetOwner())
@@ -64,7 +59,12 @@ void ABaseBullet::BeginPlay()
 		}
 		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this,&ABaseBullet::OnOverlapBegin);
 	}
-	
+}
+
+// Called when the game starts or when spawned
+void ABaseBullet::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void ABaseBullet::OnOverlapBegin(

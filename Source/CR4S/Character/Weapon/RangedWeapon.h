@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "BaseWeapon.h"
+#include "Character/Data/WeaponData.h"
 #include "RangedWeapon.generated.h"
 
+struct FRangedWeaponData;
 class ABaseBullet;
 /**
  * 
@@ -29,6 +31,8 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
 	TSubclassOf<ABaseBullet> ProjectileClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+	FRangedWeaponData WeaponData; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
 	float Range;
 #pragma endregion

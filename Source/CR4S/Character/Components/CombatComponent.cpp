@@ -92,7 +92,7 @@ void UCombatComponent::PerformWeaponTrace()
 	PreviousBottomLocation=CurrentBottom;
 
 	const FVector BoxCenter = CurrentBottom + Delta * 0.5f;
-	DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
+	//DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
 }
 
 void UCombatComponent::SetInputEnable(bool Enable)
