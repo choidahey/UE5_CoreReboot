@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "AIController.h"
 #include "Engine/World.h"
+#include "../Animation/FlyingAnimalAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 UFlyingMovementComponent::UFlyingMovementComponent()
@@ -110,6 +111,7 @@ void UFlyingMovementComponent::TickFlight()
         FVector NewTarget = MyLocation + Forward * 1000.f;
         SetTargetLocation(NewTarget);
     }
+    UpdateAnimaion();
     // UE_LOG(LogTemp, Warning, TEXT("[TickFlight] Current Location: %s → Target: %s"), *GetOwner()->GetActorLocation().ToString(), *TargetLocation.ToString());
     //
     // UE_LOG(LogTemp, Warning, TEXT("[TickFlight] Phase: %d | CurrentDir: %s | Target: %s"), 
@@ -582,6 +584,17 @@ void UFlyingMovementComponent::SetToWalkingMode()
     {
         OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
         SetPhase(EPhase::Idle);
+
+        if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
+        {
+            if (UFlyingAnimalAnimInstance* MyAnim = Cast<UFlyingAnimalAnimInstance>(AnimInst))
+            {
+                MyAnim->bIsFlying    = 0;
+                MyAnim->bIsWalking   = 1;
+                MyAnim->bIsAir       = 0;
+                MyAnim->WalkingSpeed = OwnerCharacter->GetVelocity().Size();
+            }
+        }
     }
 }
 
@@ -856,4 +869,26 @@ void UFlyingMovementComponent::MoveToGroundTarget(float DeltaTime)
     
     FVector ForwardMove = FVector(MoveSpeed * DeltaTime, 0.0f, 0.0f);
     OwnerCharacter->AddActorLocalOffset(ForwardMove, true);
+    UpdateAnimaion();
+}
+
+void UFlyingMovementComponent::UpdateAnimaion()
+{
+    if (!OwnerCharacter || !OwnerCharacter->GetMesh()) return;
+
+    if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
+    {
+        if (UFlyingAnimalAnimInstance* MyAnim = Cast<UFlyingAnimalAnimInstance>(AnimInst))
+        {
+            MyAnim->bIsFlying       = 1;
+            MyAnim->bIsWalking      = 0;
+            MyAnim->bIsAir          = 1;
+            MyAnim->WalkingSpeed    = 0.f;
+            MyAnim->Direction       = CurrentDir.Y;
+            MyAnim->bFlapFast       = bFlapFast;
+            MyAnim->bFlyingDownward = bFlyingDownward;
+            MyAnim->bIdleLoop       = bIdleLoop;
+            MyAnim->RandomIdleAnim  = RandomIdleAnim;
+        }
+    }
 }
