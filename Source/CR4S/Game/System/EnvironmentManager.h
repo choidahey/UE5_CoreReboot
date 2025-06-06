@@ -5,6 +5,7 @@
 #include "EnvironmentManager.generated.h"
 
 class UWorldTimeManager;
+class AEnvironmentalModifierVolume;
 
 UCLASS()
 class CR4S_API AEnvironmentManager : public AActor
@@ -36,14 +37,17 @@ protected:
 public:
 	FORCEINLINE int32 GetGridSize() { return GridSize; }
 
-	void SpawnEnvironmentalModifierVolume(
+	UFUNCTION(BlueprintCallable, Category = "Environment")
+	AEnvironmentalModifierVolume* SpawnEnvModVol(
 		const FVector& Location,
-		float Radius,
-		float Height,
-		float Duration,
-		float TemperatureDelta,
-		float HumidityDelta,
-		float Speed);
+		float Radius = 1000.0f, // Capsule Raidius
+		float Height = 1000.0f,	// Capsule Half Height
+		float TempDelta = 0.0f,
+		float HumidDelta = 0.0f,
+		float ChangeSpeed = 2.0f, 	// 2.0f is Suggested for Monster Skills, 0.5f for Gimmicks
+		float Duration = -1.0f 	// Negative Value for Persistent Duration, Setting Positive Value Defines How Long the Volume Lasts 
+
+	);
 
 protected:
 	AEnvironmentManager();
@@ -74,8 +78,6 @@ protected:
 	int32 WorldTimeMultiplier = 1;
 
 	UWorldTimeManager* TimeManager;
-
-
 
 #pragma endregion
 

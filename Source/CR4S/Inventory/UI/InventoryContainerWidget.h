@@ -6,6 +6,7 @@
 #include "ItemSlotWidget/BaseItemSlotWidget.h"
 #include "InventoryContainerWidget.generated.h"
 
+class UCraftingContainerWidget;
 class UCompostBinWidget;
 class UStorageInventoryWidget;
 enum class EInventoryType : uint8;
@@ -39,8 +40,9 @@ private:
 #pragma region ToggleWidget
 
 public:
-	void OpenPlayerInventoryWidget();
+	void OpenPlayerInventoryWidget(bool bOpenCraftingWidget = false, int32 CraftingDifficulty = 0);
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
+	void OpenCraftingWidget(const int32 CraftingDifficulty);
 
 	UFUNCTION()
 	void CloseInventoryWidget();
@@ -49,7 +51,7 @@ public:
 
 private:
 	void InitToggleWidget(UUserWidget* Widget) const;
-	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const;
+	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType) const;
 
 	bool bIsOpen;
 
@@ -60,12 +62,15 @@ private:
 public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
-	void MoveItemToInventory(UBaseItemSlotWidget* ItemSlot, bool bTargetIsPlayer) const;
+	void MoveItemToInventory(const UBaseItemSlotWidget* ItemSlot, bool bTargetIsPlayer) const;
+
+private:
+	bool CanMoveItem(const bool bTargetIsPlayer) const;
 	
 #pragma endregion
 
 #pragma region BindWidget
-
+	
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> BackgroundBorder;
@@ -73,7 +78,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBaseInventoryWidget> PlayerInventoryWidget;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UQuickSlotBarWidget> QuickSlotBarWidget;
+	TObjectPtr<UPanelWidget> InputGuideContainer;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBaseInventoryWidget> QuickSlotBarWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UStorageInventoryWidget> StorageInventoryWidget;
@@ -83,6 +90,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCompostBinWidget> CompostBinWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUserWidget> OpenOtherWidget;
