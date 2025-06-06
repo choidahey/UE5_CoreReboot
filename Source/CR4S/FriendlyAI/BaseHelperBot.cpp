@@ -12,6 +12,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 
 
@@ -25,7 +26,7 @@ ABaseHelperBot::ABaseHelperBot()
 	ChopSpline = CreateDefaultSubobject<USplineComponent>(TEXT("ChopSpline"));
 	ChopSpline->SetupAttachment(RootComponent);
 
-	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
+	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 void ABaseHelperBot::BeginPlay()

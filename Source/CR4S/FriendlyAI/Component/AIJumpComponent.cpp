@@ -112,9 +112,9 @@ void UAIJumpComponent::OnEQSQueryFinished(UEnvQueryInstanceBlueprintWrapper* Que
     const float EndOffset = 50.f;
     FVector End = Results[0] + GetOwner()->GetActorForwardVector() * EndOffset;
 
-    DrawDebugSphere(GetWorld(), Start, 30.f, 12, FColor::Green, false, 2.f);
-    DrawDebugSphere(GetWorld(), End,   30.f, 12, FColor::Red,   false, 2.f);
-    DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 2.f, 0, 3.f);
+    // DrawDebugSphere(GetWorld(), Start, 30.f, 12, FColor::Green, false, 2.f);
+    // DrawDebugSphere(GetWorld(), End,   30.f, 12, FColor::Red,   false, 2.f);
+    // DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 2.f, 0, 3.f);
 
     const float Gravity     = FMath::Abs(GetWorld()->GetGravityZ());
     const float InitialVz   = OwnerCharacter && OwnerCharacter->GetCharacterMovement()

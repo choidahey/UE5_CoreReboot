@@ -25,7 +25,7 @@ EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& 
 	if (!TargetActor) return EBTNodeResult::Failed;
 	
 	ATreeGimmick* Tree = Cast<ATreeGimmick>(TargetActor);
-	if (Tree && Tree->GetIsTrunkDestroyed()) return EBTNodeResult::Failed;
+	if (Tree && Tree->IsTrunkDestroyed()) return EBTNodeResult::Failed;
 
 	CachedTarget = TargetActor;
 	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
@@ -63,7 +63,7 @@ void UBTTask_HelperChopWood::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 	const float DamageThisFrame = CachedDamagePerSecond * DeltaSeconds;
 		
 	ATreeGimmick* Tree = Cast<ATreeGimmick>(CachedTarget);
-	if (Tree && Tree->GetIsTrunkDestroyed())
+	if (Tree && Tree->IsTrunkDestroyed())
 	{
 		if (Helper)
 		{

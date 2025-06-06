@@ -205,7 +205,7 @@ void UFlyingMovementComponent::MoveToLocation(const FVector& Dest)
 
     if (TargetLocation != FVector::ZeroVector)
     {
-        DrawDebugLine(GetWorld(), GetOwner()->GetActorLocation(), TargetLocation, FColor::Green, false, -1.f, 0, 2.f);
+        //DrawDebugLine(GetWorld(), GetOwner()->GetActorLocation(), TargetLocation, FColor::Green, false, -1.f, 0, 2.f);
     }
 }
 
@@ -273,9 +273,9 @@ void UFlyingMovementComponent::HandlePhase(float DeltaTime, FVector& Cur)
 void UFlyingMovementComponent::PerformAscend(FVector& Cur, float DeltaTime)
 {
     Cur.Z += AscendSpeed * DeltaTime;
-    DrawDebugLine(GetWorld(),
-                  FVector(Cur.X, Cur.Y, Cur.Z - AscendSpeed * DeltaTime),
-                  Cur, FColor::Yellow, false, TraceInterval, 0, 1.f);
+    // DrawDebugLine(GetWorld(),
+    //               FVector(Cur.X, Cur.Y, Cur.Z - AscendSpeed * DeltaTime),
+    //               Cur, FColor::Yellow, false, TraceInterval, 0, 1.f);
 }
 
 void UFlyingMovementComponent::CheckAscendComplete(FVector& Cur)
@@ -290,10 +290,10 @@ void UFlyingMovementComponent::CheckAscendComplete(FVector& Cur)
 
 void UFlyingMovementComponent::PerformCruise(const FVector& Cur, float DeltaTime)
 {
-    DrawDebugCircle(GetWorld(), Cur,
-                    200.f, 16, FColor::Cyan,
-                    false, TraceInterval, 0, 1.f,
-                    FVector::UpVector, FVector::RightVector, false);
+    // DrawDebugCircle(GetWorld(), Cur,
+    //                 200.f, 16, FColor::Cyan,
+    //                 false, TraceInterval, 0, 1.f,
+    //                 FVector::UpVector, FVector::RightVector, false);
     if (bEnableFlocking)
     {
         FVector Separation = FVector::ZeroVector;
@@ -371,9 +371,9 @@ void UFlyingMovementComponent::PerformDescend(FVector& Cur, float DeltaTime)
     float GroundZ = GroundZAt(Cur + CurrentDir);     
     Cur.Z = FMath::FInterpTo(Cur.Z, GroundZ, DeltaTime, DescendSpeed);
 
-    DrawDebugLine(GetWorld(),
-                  FVector(Cur.X, Cur.Y, Cur.Z + DescendSpeed * DeltaTime),
-                  Cur, FColor::Red, false, TraceInterval, 0, 1.f);
+    // DrawDebugLine(GetWorld(),
+    //               FVector(Cur.X, Cur.Y, Cur.Z + DescendSpeed * DeltaTime),
+    //               Cur, FColor::Red, false, TraceInterval, 0, 1.f);
 }
 
 bool UFlyingMovementComponent::CheckCanLand(const FVector& Cur)
@@ -385,10 +385,10 @@ bool UFlyingMovementComponent::CheckCanLand(const FVector& Cur)
     }
 
     bool bCanLand = Cur.Z - Z < 150.f;
-    DrawDebugCircle(GetWorld(), FVector(Cur.X, Cur.Y, Z),
-                    40.f, 12, bCanLand ? FColor::Green : FColor::Red,
-                    false, TraceInterval, 0, 2.f,
-                    FVector::YAxisVector, FVector::ZAxisVector, false);
+    // DrawDebugCircle(GetWorld(), FVector(Cur.X, Cur.Y, Z),
+    //                 40.f, 12, bCanLand ? FColor::Green : FColor::Red,
+    //                 false, TraceInterval, 0, 2.f,
+    //                 FVector::YAxisVector, FVector::ZAxisVector, false);
 
     // UE_LOG(LogTemp, Warning, TEXT("[CheckCanLand] CurZ: %.2f, GroundZ: %.2f, CanLand: %s"), 
     // Cur.Z, Z, bCanLand ? TEXT("Yes") : TEXT("No"));
@@ -419,15 +419,15 @@ void UFlyingMovementComponent::ApplyRotation(float DeltaTime)
 
 void UFlyingMovementComponent::DrawMovementDebug(const FVector& Cur, float DeltaTime)
 {
-    FVector ForwardEnd = Cur + CurrentDir * TraceLen;
-    DrawDebugLine(GetWorld(), Cur, ForwardEnd, FColor::Yellow, false, TraceInterval);
-    
-    FVector RightVec = FVector::CrossProduct(FVector::UpVector, CurrentDir).GetSafeNormal();
-    DrawDebugLine(GetWorld(), Cur, Cur + RightVec * SideTraceLen, FColor::Blue, false, TraceInterval);
-    DrawDebugLine(GetWorld(), Cur, Cur - RightVec * SideTraceLen, FColor::Blue, false, TraceInterval);
-    
-    DrawDebugDirectionalArrow(GetWorld(), Cur, Cur + CurrentDir * 200.f, 50.f, FColor::Green, false, TraceInterval, 0, 2.f);
-    DrawDebugSphere(GetWorld(), FVector(Cur.X, Cur.Y, TargetZ), 30.f, 12, FColor::Cyan, false, TraceInterval);
+    // FVector ForwardEnd = Cur + CurrentDir * TraceLen;
+    // DrawDebugLine(GetWorld(), Cur, ForwardEnd, FColor::Yellow, false, TraceInterval);
+    //
+    // FVector RightVec = FVector::CrossProduct(FVector::UpVector, CurrentDir).GetSafeNormal();
+    // DrawDebugLine(GetWorld(), Cur, Cur + RightVec * SideTraceLen, FColor::Blue, false, TraceInterval);
+    // DrawDebugLine(GetWorld(), Cur, Cur - RightVec * SideTraceLen, FColor::Blue, false, TraceInterval);
+    //
+    // DrawDebugDirectionalArrow(GetWorld(), Cur, Cur + CurrentDir * 200.f, 50.f, FColor::Green, false, TraceInterval, 0, 2.f);
+    // DrawDebugSphere(GetWorld(), FVector(Cur.X, Cur.Y, TargetZ), 30.f, 12, FColor::Cyan, false, TraceInterval);
 }
 
 FVector UFlyingMovementComponent::ChooseOptimalDirection(const FVector& CurPos) const
@@ -492,15 +492,15 @@ FVector UFlyingMovementComponent::ChooseOptimalDirection(const FVector& CurPos) 
         FHitResult Hit2;
         bool bHit2 = GetWorld()->LineTraceSingleByChannel(Hit2, Start2, End2, ECC_Visibility);
         
-        DrawDebugLine(
-            GetWorld(),
-            Start2, End2,
-            bHit2 ? FColor::Red : FColor::Green,
-            false,
-            TraceInterval,
-            0,
-            2.f
-        );
+        // DrawDebugLine(
+        //     GetWorld(),
+        //     Start2, End2,
+        //     bHit2 ? FColor::Red : FColor::Green,
+        //     false,
+        //     TraceInterval,
+        //     0,
+        //     2.f
+        // );
 
         if (!bHit2)
         {
@@ -522,15 +522,15 @@ float UFlyingMovementComponent::GroundZAt(const FVector& Pos) const
     FHitResult Hit;
     bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Pos, End, ECC_Visibility);
     
-    DrawDebugLine(
-        GetWorld(),
-        Pos, End,
-        bHit ? FColor::Green : FColor::Red,
-        false,
-        0.f,
-        0,
-        2.f
-    );
+    // DrawDebugLine(
+    //     GetWorld(),
+    //     Pos, End,
+    //     bHit ? FColor::Green : FColor::Red,
+    //     false,
+    //     0.f,
+    //     0,
+    //     2.f
+    // );
 
     return bHit ? Hit.Location.Z : -1.f;
 }
@@ -544,19 +544,19 @@ bool UFlyingMovementComponent::CanLand(const FVector& CurPos) const
     }
 
     bool bCanLand = CurPos.Z - Z < 150.f;
-    DrawDebugCircle(
-        GetWorld(),
-        FVector(CurPos.X, CurPos.Y, Z),
-        40.f, 12,
-        bCanLand ? FColor::Green : FColor::Red,
-        false,
-        TraceInterval,
-        0,
-        2.f,
-        FVector::YAxisVector,
-        FVector::ZAxisVector,
-        false
-    );
+    // DrawDebugCircle(
+    //     GetWorld(),
+    //     FVector(CurPos.X, CurPos.Y, Z),
+    //     40.f, 12,
+    //     bCanLand ? FColor::Green : FColor::Red,
+    //     false,
+    //     TraceInterval,
+    //     0,
+    //     2.f,
+    //     FVector::YAxisVector,
+    //     FVector::ZAxisVector,
+    //     false
+    // );
     return bCanLand;
 }
 

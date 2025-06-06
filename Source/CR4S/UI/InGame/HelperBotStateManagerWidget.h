@@ -30,7 +30,9 @@ protected:
 	UPROPERTY(meta=(BindWidget)) class UButton* Button3;
 	UPROPERTY(meta=(BindWidget)) class UButton* Button4;
 	UPROPERTY(meta=(BindWidget)) class UButton* Button5;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetMiningButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* OpenInventoryButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetRepairingButton;
 	
 protected:
 	UFUNCTION() void OnButton1Clicked();
@@ -38,7 +40,9 @@ protected:
 	UFUNCTION() void OnButton3Clicked();
 	UFUNCTION() void OnButton4Clicked();
 	UFUNCTION() void OnButton5Clicked();
-	UFUNCTION(BlueprintCallable) void OpenInventory();
+	UFUNCTION() void SetMining();
+	UFUNCTION() void OpenInventory();
+	UFUNCTION() void SetRepairing();
 
 private:
 	class AHelperBotAIController* OwnerAIController;

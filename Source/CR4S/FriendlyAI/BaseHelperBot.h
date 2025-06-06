@@ -12,7 +12,7 @@
 
 class UInteractableComponent;
 class UHelperBotInfoWidget;
-class UPlayerInventoryComponent;
+class UBaseInventoryComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
@@ -101,8 +101,8 @@ public:
 #pragma region Inventory Component
 	
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UPlayerInventoryComponent> InventoryComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
 #pragma endregion
 
 #pragma region Info Widget

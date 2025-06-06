@@ -30,7 +30,9 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (Button3) Button3->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton3Clicked);
 	if (Button4) Button4->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton4Clicked);
 	if (Button5) Button5->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton5Clicked);
-	if (Button5) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
+	if (OpenInventoryButton) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
+	if (SetMiningButton) SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
+	if (SetRepairingButton) SetRepairingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetRepairing);
 
 	if (APlayerController* PC = GetOwningPlayer())
 	{
@@ -73,6 +75,7 @@ void UHelperBotStateManagerWidget::OnButton4Clicked()
 	CloseWidgetAndResetInput();
 }
 
+
 void UHelperBotStateManagerWidget::OpenInventory()
 {
 	//RemoveFromParent();
@@ -95,7 +98,7 @@ void UHelperBotStateManagerWidget::OpenInventory()
 	}
 
 	UPlayerInventoryComponent* PlayerInvComp = PlayerCharacter->FindComponentByClass<UPlayerInventoryComponent>();
-	UPlayerInventoryComponent* AIInvComp     = HelperBot->FindComponentByClass<UPlayerInventoryComponent>();
+	UBaseInventoryComponent* AIInvComp     = HelperBot->FindComponentByClass<UBaseInventoryComponent>();
 	if (!PlayerInvComp || !AIInvComp)
 	{
 		return;
@@ -119,7 +122,23 @@ void UHelperBotStateManagerWidget::OnButton5Clicked()
 	CloseWidgetAndResetInput();
 }
 
+void UHelperBotStateManagerWidget::SetMining()
+{
+	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Mining);
+	CloseWidgetAndResetInput();
+}
+
+void UHelperBotStateManagerWidget::SetRepairing()
+{
+	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Repairing);
+	CloseWidgetAndResetInput();
+}
+
 void UHelperBotStateManagerWidget::CloseWidgetAndResetInput()
 {
-	RemoveFromParent();
+	if (ASurvivalHUD* HUD = Cast<ASurvivalHUD>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetHUD()))
+	{
+		HUD->ToggleWidget(this);
+		HUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	}
 }
