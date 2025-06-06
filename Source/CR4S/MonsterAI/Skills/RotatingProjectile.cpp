@@ -64,6 +64,7 @@ void ARotatingProjectile::Tick(float DeltaTime)
 		FRotator Spin(-RotatingSpeed * DeltaTime, 0.f, 0.f);
 		RootComp->AddLocalRotation(Spin);
 
+#if WITH_EDITOR
 		// Debug Capsule
 		DrawDebugCapsule(
 			GetWorld(),
@@ -75,6 +76,7 @@ void ARotatingProjectile::Tick(float DeltaTime)
 			false, -1.f, 0,
 			1.5f
 		);
+#endif
 	}
 
 	if (bHasLanded && bDestroyOnBossApproach && BossActor)

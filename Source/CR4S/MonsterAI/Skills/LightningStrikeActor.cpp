@@ -64,7 +64,7 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 				DummyHit
 			);
 		}
-
+#if WITH_EDITOR
 		DrawDebugCapsule(
 			GetWorld(),
 			LightningCollider->GetComponentLocation(),
@@ -77,6 +77,7 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 			0,
 			2.f
 		);
+#endif
 	}
 
 	FTimerHandle DestroyHandle;
