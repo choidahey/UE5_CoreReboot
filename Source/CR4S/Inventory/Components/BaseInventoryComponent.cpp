@@ -60,12 +60,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 
 	if (RemainingItems.Num() > 0)
 	{
-		const AItemPouchGimmick* ItemPouch =
-			ItemGimmickSubsystem->SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
-			                                                               OwnerActor->GetActorLocation(),
-			                                                               OwnerActor->GetActorRotation());
-
-		ItemPouch->InitItemPouch(RemainingItems);
+		ItemGimmickSubsystem->SpawnItemPouch(OwnerActor, RemainingItems);
 	}
 }
 

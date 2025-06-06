@@ -32,7 +32,6 @@ EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& Own
 	UE_LOG(LogTemp, Warning, TEXT("[UBTTask_SelectSkill] SelectedSkill Index is %d"), SelectedSkillIndex);
 
 	OwnerComp.GetBlackboardComponent()->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);
-	OwnerComp.GetBlackboardComponent()->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, true);
 	
 	return EBTNodeResult::Succeeded;
 }

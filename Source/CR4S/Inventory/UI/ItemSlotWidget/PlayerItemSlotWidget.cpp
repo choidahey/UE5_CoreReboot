@@ -4,7 +4,6 @@
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
-#include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 
 UPlayerItemSlotWidget::UPlayerItemSlotWidget(const FObjectInitializer& ObjectInitializer)
@@ -21,19 +20,6 @@ void UPlayerItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewIn
 	PlayerInventoryComponent = Cast<UPlayerInventoryComponent>(InventoryComponent);
 }
 
-static const TArray<FKey> QuickSlotKeys = {
-	EKeys::One,
-	EKeys::Two,
-	EKeys::Three,
-	EKeys::Four,
-	EKeys::Five,
-	EKeys::Six,
-	EKeys::Seven,
-	EKeys::Eight,
-	EKeys::Nine,
-	EKeys::Zero,
-};
-
 FReply UPlayerItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (!IsValid(CurrentItem) ||
@@ -42,7 +28,7 @@ FReply UPlayerItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const
 	{
 		return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 	}
-
+	
 	if (InKeyEvent.GetKey() == EKeys::Q)
 	{
 		InventoryContainerWidget->MoveItemToInventory(this, false);
@@ -69,21 +55,6 @@ void UPlayerItemSlotWidget::MoveItemToQuickSlot(const int32 Index) const
 		{
 			UnEquipItem(QuickSlotInventoryComponent, Index);
 			QuickSlotInventoryComponent->SwapItem(InventoryComponent, SlotIndex, Index);
-		}
-	}
-}
-
-void UPlayerItemSlotWidget::UnEquipItem(const UBaseInventoryComponent* QuickSlotInventoryComponent,
-                                        const int32 Index) const
-{
-	if (CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotInventoryComponent)) &&
-		CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)))
-	{
-		const UToolInventoryItem* ToolItem
-			= Cast<UToolInventoryItem>(QuickSlotInventoryComponent->GetInventoryItemByIndex(Index));
-		if (IsValid(ToolItem))
-		{
-			ToolItem->UnEquipItem();
 		}
 	}
 }
