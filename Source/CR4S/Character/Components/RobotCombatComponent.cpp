@@ -2,6 +2,8 @@
 
 
 #include "RobotCombatComponent.h"
+
+#include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/BaseWeapon.h"
 #include "Character/Weapon/MeleeWeapon.h"
@@ -70,8 +72,8 @@ void URobotCombatComponent::EquipWeaponByTag(FGameplayTag Tag, const int32 SlotI
 // Called when the game starts
 void URobotCombatComponent::BeginPlay()
 {
+	CR4S_SIMPLE_SCOPE_LOG;
 	Super::BeginPlay();
-
 	OwningCharacter=Cast<AModularRobot>(GetOwner());
 	for (int32 i=0;i<Weapons.Num();i++)
 	{
