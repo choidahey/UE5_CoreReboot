@@ -41,15 +41,21 @@ EBTNodeResult::Type UBTTask_AnimalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 	
 	if (Distance <= Animal->RangedRange && Animal->bCanRanged && !Animal->bIsRangedOnCooldown && RandValue < Animal->RangedProbability)
 	{
-		Animal->PlayRangedAttackMontage();
+		float Duration = Animal->PlayRangedAttackMontage();
+		Animal->GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UBTTask_AnimalAttack::OnAttackFinished, Duration, false);
+		return EBTNodeResult::InProgress;
 	}
 	else if (Distance <= Animal->DashRange && Animal->bCanCharge && !Animal->bIsChargeOnCooldown && RandValue < Animal->RangedProbability + Animal->ChargeProbability)
 	{
-		Animal->PlayChargeAttackMontage();
+		float Duration = Animal->PlayChargeAttackMontage();
+		Animal->GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UBTTask_AnimalAttack::OnAttackFinished, Duration, false);
+		return EBTNodeResult::InProgress;
 	}
 	else if (Distance <= Animal->MeleeRange && Animal->bCanMelee && !Animal->bIsMeleeOnCooldown && RandValue < Animal->MeleeProbability)
 	{
-		Animal->PlayAttackMontage();
+		float Duration = Animal->PlayAttackMontage();
+		Animal->GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UBTTask_AnimalAttack::OnAttackFinished, Duration, false);
+		return EBTNodeResult::InProgress;
 	}
 	else
 	{
@@ -61,8 +67,8 @@ EBTNodeResult::Type UBTTask_AnimalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 		return EBTNodeResult::Succeeded;
 	}
 	
-	FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
-	return EBTNodeResult::Succeeded;
+	// FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
+	// return EBTNodeResult::Succeeded;
 }
 
 void UBTTask_AnimalAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)

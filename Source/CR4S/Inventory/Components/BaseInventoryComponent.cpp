@@ -2,7 +2,6 @@
 
 #include "CR4S.h"
 #include "GameplayTagsManager.h"
-#include "Gimmick/GimmickObjects/ItemPouchGimmick.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
@@ -52,7 +51,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 	{
 		const FAddItemResult Result = AddItem(RowName, Count);
 
-		if (Result.RemainingCount > 0)
+		if (Result.bSuccess && Result.RemainingCount > 0)
 		{
 			RemainingItems.FindOrAdd(RowName) += Result.RemainingCount;
 		}
@@ -60,12 +59,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 
 	if (RemainingItems.Num() > 0)
 	{
-		const AItemPouchGimmick* ItemPouch =
-			ItemGimmickSubsystem->SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
-			                                                               OwnerActor->GetActorLocation(),
-			                                                               OwnerActor->GetActorRotation());
-
-		ItemPouch->InitItemPouch(RemainingItems);
+		ItemGimmickSubsystem->SpawnItemPouch(OwnerActor, RemainingItems);
 	}
 }
 
@@ -94,7 +88,7 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
                                                           TSet<int32>& ChangedItemSlots)
 {
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-	if (!CR4S_VALIDATE(LogInventory, ItemData),
+	if (!CR4S_VALIDATE(LogInventory, ItemData) ||
 		!CR4S_VALIDATE(LogInventory, IsItemAllowedByFilter(ItemData->ItemTags)))
 	{
 		return;
@@ -102,12 +96,12 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 	Result.bSuccess = true;
 	int32 RemainingCount = Count;
-
+	
 	TArray<int32> SameItemsIndex;
 	TArray<int32> EmptySlotsIndex;
-
+	
 	GetSameItemSlotsAndEmptySlots(RowName, InventoryItems, SameItemsIndex, EmptySlotsIndex);
-
+	
 	// Try to stack items with existing ones of the same type
 	for (const int32 Index : SameItemsIndex)
 	{
@@ -115,32 +109,32 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 		{
 			break;
 		}
-
+	
 		if (!InventoryItems.IsValidIndex(Index))
 		{
 			continue;
 		}
-
+	
 		UBaseInventoryItem* SameInventoryItem = InventoryItems[Index];
 		if (!CR4S_VALIDATE(LogInventory, IsValid(SameInventoryItem)))
 		{
 			continue;
 		}
-
+	
 		if (SameInventoryItem->GetCurrentStackCount() < ItemData->MaxStackCount)
 		{
 			const int32 SameInventoryItemCount = SameInventoryItem->GetCurrentStackCount();
 			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItemCount;
 			const int32 ActualAddCount = FMath::Min(CanAddCount, RemainingCount);
-
+	
 			SameInventoryItem->SetCurrentStackCount(SameInventoryItemCount + ActualAddCount);
 			RemainingCount -= ActualAddCount;
 			Result.AddedCount += ActualAddCount;
-
+	
 			ChangedItemSlots.Add(Index);
 		}
 	}
-
+	
 	// If there are still items remaining, put them in empty slots
 	if (RemainingCount > 0)
 	{
@@ -150,33 +144,33 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 			{
 				break;
 			}
-
+	
 			if (!InventoryItems.IsValidIndex(Index))
 			{
 				continue;
 			}
-
+	
 			UBaseInventoryItem* EmptyInventoryItem = CreateInventoryItem(ItemData->ItemTags);
 			if (!CR4S_VALIDATE(LogInventory, EmptyInventoryItem))
 			{
 				continue;
 			}
-
+	
 			InventoryItems[Index] = EmptyInventoryItem;
-
+	
 			const int32 ActualAddCount = FMath::Min(RemainingCount, ItemData->MaxStackCount);
 			RemainingCount -= ActualAddCount;
 			Result.AddedCount += ActualAddCount;
-
+	
 			EmptyInventoryItem->InitInventoryItem(
 				this,
 				FInventoryItemData(RowName, *ItemData),
 				ActualAddCount);
-
+	
 			ChangedItemSlots.Add(Index);
 		}
 	}
-
+	
 	Result.RemainingCount = RemainingCount;
 }
 
@@ -432,6 +426,11 @@ void UBaseInventoryComponent::SortInventoryItems()
 
 		int32 RemainingCount = *TotalCount;
 		const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
+		if (!CR4S_VALIDATE(LogInventory, ItemData))
+		{
+			continue;
+		}
+		
 		const int32 ItemMaxCount = ItemData->MaxStackCount;
 
 		while (RemainingCount > 0 && SlotIndex < InventoryItems.Num())

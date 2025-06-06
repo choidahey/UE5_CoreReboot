@@ -1,15 +1,23 @@
 #include "AnimalFlying.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "../Gimmick/Components/InteractableComponent.h"
 #include "Component/FlyingMovementComponent.h"
 
 AAnimalFlying::AAnimalFlying()
 {
 	FlyingComp = CreateDefaultSubobject<UFlyingMovementComponent>(TEXT("FlyingMovementComponent"));
+	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+	InteractableComponent->SetActive(false);
 }
 
 void AAnimalFlying::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (InteractableComponent)
+	{
+		InteractableComponent->OnTryInteract.BindDynamic(this, &ABaseAnimal::OnInteract);
+	}
 }
 
 #pragma region Stun

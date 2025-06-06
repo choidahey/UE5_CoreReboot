@@ -38,6 +38,9 @@ private:
 #pragma region Interaction
 
 public:
+	void StartDetectProcess();
+	void StopDetectProcess();
+	
 	void ShowInteractionWidget() const;
 	void HideInteractionWidget() const;
 

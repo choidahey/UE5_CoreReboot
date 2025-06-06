@@ -2,6 +2,7 @@
 
 #include "Components/Button.h"
 #include "Components/Image.h"
+#include "Components/ScaleBox.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 
 UCraftingCategoryButtonWidget::UCraftingCategoryButtonWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -22,7 +23,8 @@ void UCraftingCategoryButtonWidget::InitWidget(UCraftingContainerWidget* NewCraf
 
 	if (IsValid(CraftingCategoryIcon))
 	{
-		CraftingCategoryIcon->SetBrushFromTexture(NewRecipeCategoryData.Icon);
+		CraftingCategoryIcon->SetBrushFromTexture(NewRecipeCategoryData.Icon, true);
+		ScaleBox->ForceLayoutPrepass();
 	}
 }
 

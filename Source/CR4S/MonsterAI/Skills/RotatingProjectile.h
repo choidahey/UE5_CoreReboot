@@ -59,7 +59,7 @@ protected:
 	bool bIsParabolic = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
-	float AutoDestroyDelay = 5.0f;
+	float AutoDestroyDelay = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
 	bool bDestroyOnBossApproach = false;

@@ -1,4 +1,6 @@
-,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
-Skill1,Skill1,/Game/Animations/SkillMontage1.SkillMontage1,10,1,5,10,0,0,0,3500,1600
-Skill2,Skill2,/Game/Animations/SkillMontage2.SkillMontage2,10,2,5,20,0,1,1,2000,600
-Skill3,Skill3,/Game/Animations/SkillMontage3.SkillMontage3,10,3,5,30,0,1,0,4000,1200
+,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt,ProbabilityList
+Skill1,Skill1,/Game/Animations/SkillMontage1.SkillMontage1,10,1,5,10,0,0,0,3500,1600,"(MinDistance=0,MaxDistance=400,Phase=0,Probability=0.3);"
+Skill2,Skill2,/Game/Animations/SkillMontage2.SkillMontage2,10,2,5,20,0,1,1,2000,600,"(MinDistance=0,MaxDistance=400,Phase=0,Probability=0.3);"
+Skill3,Skill3,/Game/Animations/SkillMontage3.SkillMontage3,10,3,5,30,0,1,0,4000,1200,"(MinDistance=0,MaxDistance=400,Phase=0,Probability=0.3);"
+,,,,,,,,,,,,"(MinDistance=400,MaxDistance=900,Phase=0,Probability=0.5);"
+,,,,,,,,,,,,"(MinDistance=900,MaxDistance=9999,Phase=0,Probability=0.2)"

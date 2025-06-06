@@ -115,11 +115,15 @@ private:
 public:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
+	static void UnEquipItem(const UBaseInventoryComponent* QuickSlotInventoryComponent, const int32 Index);
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	bool bCanRemoveItem;
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	bool bCanMoveItem;
 
+	static const TArray<FKey> QuickSlotKeys;
+	
 #pragma endregion
 };
