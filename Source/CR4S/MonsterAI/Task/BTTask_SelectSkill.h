@@ -16,9 +16,10 @@ protected:
 	UPROPERTY()
 	TWeakObjectPtr<class ABaseMonster> CachedMonster;
 
+	UPROPERTY()
+	TObjectPtr<class UBlackboardComponent> CachedBlackboard = nullptr;
+
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector SkillIndex;
-	
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector bIsPlayingAttackMontage;
+
 };
