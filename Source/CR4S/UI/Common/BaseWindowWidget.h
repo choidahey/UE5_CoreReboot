@@ -43,6 +43,4 @@ protected:
 	FText TitleText;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
 	UTexture2D* IconTexture;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
-	UTexture2D* IconTexture;
 };
