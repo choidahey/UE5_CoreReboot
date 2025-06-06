@@ -32,6 +32,8 @@ protected:
 
 public:
 	void HandleDestroyTrunk(const AActor* DamageCauser);
+
+	FORCEINLINE bool IsTrunkDestroyed() const { return bIsTrunkDestroyed; }
 	
 private:
 	void RemoveTrunk() const;

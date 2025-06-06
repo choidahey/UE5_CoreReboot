@@ -18,14 +18,14 @@ UBTTask_PlayAttackMontage::UBTTask_PlayAttackMontage()
 EBTNodeResult::Type UBTTask_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	ABaseMonster* Monster = MonsterAIHelper::GetControlledMonster(OwnerComp);
-	if (!Monster) return EBTNodeResult::Failed;
+	if (!IsValid(Monster)) return EBTNodeResult::Failed;
 
 	UMonsterSkillComponent* SkillComp = Monster->FindComponentByClass<UMonsterSkillComponent>();
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-	if (!SkillComp || !BlackboardComp) return EBTNodeResult::Failed;
+	if (!IsValid(SkillComp) || !IsValid(BlackboardComp)) return EBTNodeResult::Failed;
 	
 	UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>();
-	if (!AnimComp)
+	if (!IsValid(AnimComp))
 	{
 		CR4S_Log(LogMonster, Warning, TEXT("[%s] Missing MonsterAnimComponent"), *MyHeader);
 		return EBTNodeResult::Failed;
@@ -39,6 +39,8 @@ EBTNodeResult::Type UBTTask_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponen
 		return EBTNodeResult::Failed;
 	}
 
+	BlackboardComp->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, true);
+	
 	SkillComp->UseSkill(SkillIndex);
 
 	AnimComp->OnMontageEndedNotify.RemoveAll(this);
@@ -52,42 +54,45 @@ EBTNodeResult::Type UBTTask_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponen
 
 EBTNodeResult::Type UBTTask_PlayAttackMontage::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	if (CachedOwnerComp)
+	if (!IsValid(CachedOwnerComp)) return EBTNodeResult::Failed;
+
+	AAIController* AIC = CachedOwnerComp->GetAIOwner();
+	if (!IsValid(AIC)) return EBTNodeResult::Failed;
+		
+	APawn* Pawn = AIC->GetPawn();
+	if (!IsValid(Pawn)) return EBTNodeResult::Failed;
+
+	if (UMonsterAnimComponent* AnimComp = Pawn->FindComponentByClass<UMonsterAnimComponent>())
 	{
-		if (AAIController* AIC = CachedOwnerComp->GetAIOwner())
-		{
-			if (APawn* Pawn = AIC->GetPawn())
-			{
-				if (UMonsterAnimComponent* AnimComp = Pawn->FindComponentByClass<UMonsterAnimComponent>())
-				{
-					AnimComp->OnMontageEndedNotify.RemoveAll(this);
-				}
-			}
-		}
+		AnimComp->OnMontageEndedNotify.RemoveAll(this);
+	}
+
+	if (UBlackboardComponent* BB = CachedOwnerComp->GetBlackboardComponent())
+	{
+		// TODO :: 여기 너무 부자연스럽게 끊기는데 자연스럽게 어캐하지
+		BB->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, false);
 	}
 	
 	FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-	// TODO :: 여기 너무 부자연스럽게 끊기는데 자연스럽게 연구하기
-	CachedOwnerComp->GetBlackboardComponent()->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, false);
 	return EBTNodeResult::Aborted;
 }
 
 void UBTTask_PlayAttackMontage::OnAnimMontageEnded(UAnimMontage* Montage)
 {
-	if (!CachedOwnerComp) return;
+	if (!IsValid(CachedOwnerComp)) return;
+
+	AAIController* AIC = CachedOwnerComp->GetAIOwner();
+	if (!IsValid(AIC)) return;
+		
+	APawn* Pawn = AIC->GetPawn();
+	if (!IsValid(Pawn)) return;
 	
-	if (AAIController* AIC = CachedOwnerComp->GetAIOwner())
+	if (UMonsterAnimComponent* AnimComp = Pawn->FindComponentByClass<UMonsterAnimComponent>())
 	{
-		if (APawn* Pawn = AIC->GetPawn())
-		{
-			if (UMonsterAnimComponent* AnimComp = Pawn->FindComponentByClass<UMonsterAnimComponent>())
-			{
-				AnimComp->OnMontageEndedNotify.RemoveAll(this);
-			}
-		}
+		AnimComp->OnMontageEndedNotify.RemoveAll(this);
 	}
 	
-	FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);
 	CachedOwnerComp->GetBlackboardComponent()->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, false);
+	FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);
 	CachedOwnerComp = nullptr;
 }

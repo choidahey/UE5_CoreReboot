@@ -6,8 +6,8 @@
 #include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
-#include "InventoryWidget/QuickSlotBarWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
+#include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 void UInventoryContainerWidget::NativeConstruct()
@@ -26,6 +26,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InputGuideContainer)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
@@ -37,18 +38,28 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
 	PlayerInventoryWidget->InitWidget(SurvivalHUD, true);
-	PlayerInventoryWidget->ConnectInventoryComponent(PlayerInventoryComponent, true, true);
-	QuickSlotBarWidget->InitWidget(InPlayerInventoryComponent);
+	PlayerInventoryWidget->ConnectInventoryComponent(PlayerInventoryComponent);
+
+	QuickSlotBarWidget->InitWidget(SurvivalHUD, false);
+	if (IsValid(PlayerInventoryComponent))
+	{
+		QuickSlotBarWidget->ConnectInventoryComponent(PlayerInventoryComponent->GetQuickSlotInventoryComponent());
+	}
+
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
+	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
 
 	InitToggleWidget(PlayerInventoryWidget);
+	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
 	InitToggleWidget(StorageInventoryWidget);
 	InitToggleWidget(PlanterBoxInventoryWidget);
 	InitToggleWidget(CompostBinWidget);
+	InitToggleWidget(CraftingContainerWidget);
 }
 
-void UInventoryContainerWidget::OpenPlayerInventoryWidget()
+void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget,
+                                                          const int32 CraftingDifficulty)
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
 		bIsOpen ||
@@ -60,6 +71,12 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget()
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
+	InputGuideContainer->SetVisibility(ESlateVisibility::Visible);
+
+	if (bOpenCraftingWidget)
+	{
+		OpenCraftingWidget(CraftingDifficulty);
+	}
 
 	bIsOpen = true;
 }
@@ -71,9 +88,7 @@ void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType In
 
 	OtherInventoryComponent = InventoryComponent;
 
-	bool bCanDrag = false;
-	bool bCanDrop = true;
-	UUserWidget* TargetWidget = GetTargetInventoryWidget(InventoryType, bCanDrag, bCanDrop);
+	UUserWidget* TargetWidget = GetTargetInventoryWidget(InventoryType);
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(TargetWidget)))
 	{
@@ -83,11 +98,24 @@ void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType In
 	UBaseInventoryWidget* TargetInventoryWidget = Cast<UBaseInventoryWidget>(TargetWidget);
 	if (IsValid(TargetInventoryWidget))
 	{
-		TargetInventoryWidget->ConnectInventoryComponent(InventoryComponent, bCanDrag, bCanDrop);
+		TargetInventoryWidget->ConnectInventoryComponent(InventoryComponent);
 	}
 
 	SurvivalHUD->ToggleWidget(TargetWidget);
 	OpenOtherWidget = TargetWidget;
+}
+
+void UInventoryContainerWidget::OpenCraftingWidget(const int32 CraftingDifficulty)
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CraftingContainerWidget)))
+	{
+		return;
+	}
+
+	CraftingContainerWidget->UpdateWidget(CraftingDifficulty);
+
+	SurvivalHUD->ToggleWidget(CraftingContainerWidget);
+	OpenOtherWidget = CraftingContainerWidget;
 }
 
 void UInventoryContainerWidget::CloseInventoryWidget()
@@ -107,6 +135,12 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	}
 
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
+
+	if (IsValid(InputGuideContainer))
+	{
+		InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	SurvivalHUD->ToggleWidget(OpenOtherWidget);
 
 	UBaseInventoryWidget* OtherInventoryWidget = Cast<UBaseInventoryWidget>(OpenOtherWidget);
@@ -116,6 +150,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	}
 
 	OpenOtherWidget = nullptr;
+	OtherInventoryComponent = nullptr;
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
@@ -131,10 +166,9 @@ void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const
 }
 
 UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
-	const EInventoryType InventoryType, bool& bCanDrag, bool& bCanDrop) const
+	const EInventoryType InventoryType) const
 {
 	UUserWidget* TargetWidget = nullptr;
-	UBaseInventoryWidget* TargetInventoryWidget;
 
 	switch (InventoryType)
 	{
@@ -143,25 +177,22 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 		return nullptr;
 	case EInventoryType::Storage:
 		{
-			TargetWidget = StorageInventoryWidget;
-			bCanDrag = true;
-			TargetInventoryWidget = Cast<UBaseInventoryWidget>(TargetWidget);
-			if (IsValid(TargetInventoryWidget))
+			if (IsValid(StorageInventoryWidget))
 			{
-				TargetInventoryWidget->SetCanSort(true);
+				StorageInventoryWidget->SetCanSort(true);
+				StorageInventoryWidget->SetCanDrop(true);
 			}
+			TargetWidget = StorageInventoryWidget;
 			break;
 		}
 	case EInventoryType::ItemPouch:
 		{
-			TargetWidget = StorageInventoryWidget;
-			bCanDrag = true;
-			bCanDrop = false;
-			TargetInventoryWidget = Cast<UBaseInventoryWidget>(TargetWidget);
-			if (IsValid(TargetInventoryWidget))
+			if (IsValid(StorageInventoryWidget))
 			{
-				TargetInventoryWidget->SetCanSort(false);
+				StorageInventoryWidget->SetCanSort(false);
+				StorageInventoryWidget->SetCanDrop(false);
 			}
+			TargetWidget = StorageInventoryWidget;
 			break;
 		}
 	case EInventoryType::PlantBox:
@@ -177,38 +208,62 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 
 FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (InKeyEvent.GetKey() == EKeys::Nine)
+	if (InKeyEvent.GetKey() == EKeys::RightBracket && PlayerInventoryComponent)
 	{
-		CloseInventoryWidget();
+		PlayerInventoryComponent->CloseInventoryWidget();
 		return FReply::Handled();
 	}
 
 	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
 
-void UInventoryContainerWidget::MoveItemToInventory(UBaseItemSlotWidget* ItemSlot, const bool bTargetIsPlayer) const
+void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* ItemSlot,
+                                                    const bool bTargetIsPlayer) const
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(OtherInventoryComponent)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(OtherInventoryComponent)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlot)) ||
+		!CanMoveItem(bTargetIsPlayer))
 	{
 		return;
 	}
 
-	UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
-
+	const UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
 		return;
 	}
 
 	const FName RowName = Item->GetInventoryItemData()->RowName;
-
+	UBaseInventoryComponent* FromInventoryComponent = bTargetIsPlayer
+		                                                  ? OtherInventoryComponent
+		                                                  : PlayerInventoryComponent;
 	UBaseInventoryComponent* ToInventoryComponent = bTargetIsPlayer
 		                                                ? PlayerInventoryComponent
 		                                                : OtherInventoryComponent;
 
 	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
 
-	Item->SetCurrentStackCount(Result.RemainingCount);
-	ItemSlot->SetItem(Item);
+	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
+}
+
+bool UInventoryContainerWidget::CanMoveItem(const bool bTargetIsPlayer) const
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(OpenOtherWidget)))
+	{
+		return false;
+	}
+
+	const UBaseInventoryWidget* ToInventoryWidget = bTargetIsPlayer
+		                                                ? PlayerInventoryWidget.Get()
+		                                                : Cast<UBaseInventoryWidget>(OpenOtherWidget);
+
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(ToInventoryWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, ToInventoryWidget->CanDrop()))
+	{
+		return false;
+	}
+
+	return true;
 }

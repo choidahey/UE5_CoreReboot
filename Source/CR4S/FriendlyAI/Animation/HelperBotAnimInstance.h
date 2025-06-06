@@ -21,7 +21,7 @@ public:
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<class ACharacter> OwnerCharacter = nullptr;
+	TObjectPtr<class ABaseHelperBot> OwnerCharacter = nullptr;
 
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<class ABaseAnimal> OwnerAnimal = nullptr;
@@ -32,13 +32,22 @@ protected:
 #pragma endregion
 
 #pragma region Variables - Movement
-	
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	float GroundSpeed = 0.f;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bShouldMove = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsJumping = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsChopping = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsFalling = false;
 	
 #pragma endregion
 };

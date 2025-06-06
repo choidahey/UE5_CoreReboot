@@ -28,7 +28,8 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-	
+	void EndPlay(EEndPlayReason::Type EndPlayReason);
+
 	UPROPERTY(EditAnywhere)
 	USceneComponent* RootComp;
 
@@ -41,14 +42,17 @@ protected:
 	UPROPERTY()
 	TArray<UCapsuleComponent*> EdgeColliders;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float Damage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	FVector NiagaraScale = FVector(1.f, 1.f, 1.f);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float CapsuleRadius = 100.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
-	float CapsuleHalfHeight = 80.f;
+	float CapsuleHalfHeight = 150.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float CoverageFactor = 0.8f;
@@ -56,6 +60,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float LifeTime = 1.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	float TraceHeight = 2000.f;
+
 private:
+	UPROPERTY()
+	TArray<UNiagaraComponent*> SpawnedNiagaras;
+	
 	FString MyHeader = TEXT("Icicle");
 };

@@ -9,14 +9,11 @@
 
 EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	ABaseMonster* Monster = MonsterAIHelper::GetControlledMonster(OwnerComp);
-	CachedMonster = Monster;
+	CachedMonster = MonsterAIHelper::GetControlledMonster(OwnerComp);
+	CachedBlackboard = OwnerComp.GetBlackboardComponent();
+	if (!CachedMonster.IsValid() || !CachedBlackboard) return EBTNodeResult::Failed;
 
 	UMonsterSkillComponent* SkillComp = CachedMonster->FindComponentByClass<UMonsterSkillComponent>();
-	if (!Monster || !SkillComp) return EBTNodeResult::Failed;
-
-	// TEST LOG
-	UE_LOG(LogTemp, Warning, TEXT("[UBTTask_SelectSkill] SkillComp: %s @%p (%s)"), *SkillComp->GetName(), SkillComp, *SkillComp->GetOwner()->GetName());
 
 	TArray<int32> AvailableSkills = SkillComp->GetAvailableSkillIndices();
 	if (AvailableSkills.IsEmpty())
@@ -25,15 +22,14 @@ EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& Own
 		return EBTNodeResult::Failed;
 	}
 
-	if (!OwnerComp.GetBlackboardComponent()) return EBTNodeResult::Failed;
-	AActor* Target = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(FAIKeys::TargetActor));
-	
+	AActor* Target = Cast<AActor>(CachedBlackboard->GetValueAsObject(FAIKeys::TargetActor));
 	const int32 SelectedSkillIndex = SelectSkillFromAvailable(AvailableSkills, Target);
 	UE_LOG(LogTemp, Warning, TEXT("[UBTTask_SelectSkill] SelectedSkill Index is %d"), SelectedSkillIndex);
 
-	OwnerComp.GetBlackboardComponent()->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);
-	OwnerComp.GetBlackboardComponent()->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, true);
-	
+	if (SelectedSkillIndex == INDEX_NONE) return EBTNodeResult::Failed;
+
+	CachedBlackboard->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);	
+
 	return EBTNodeResult::Succeeded;
 }
 

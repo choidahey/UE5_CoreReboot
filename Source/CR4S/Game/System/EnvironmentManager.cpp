@@ -87,17 +87,53 @@ void AEnvironmentManager::SetWeatherBySeason(ESeasonType Season, float Transitio
     }
 }
 
-void AEnvironmentManager::SpawnEnvironmentalModifierVolume(
+AEnvironmentalModifierVolume* AEnvironmentManager::SpawnEnvModVol(
     const FVector& Location,
     float Radius,
     float Height,
-    float Duration,
-    float TemperatureDelta,
-    float HumidityDelta,
-    float Speed)
+    float TempDelta,
+    float HumidDelta,
+    float ChangeSpeed,
+    float Duration
+)
 {
+    UWorld* World = GetWorld();
+    if (!World) return nullptr;
 
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    AEnvironmentalModifierVolume* Volume = World->SpawnActor<AEnvironmentalModifierVolume>(
+        AEnvironmentalModifierVolume::StaticClass(),
+        Location,
+        FRotator::ZeroRotator,
+        SpawnParams
+    );
+
+    if (Volume)
+    {
+        Volume->Initialize(Radius, Height, TempDelta, HumidDelta, ChangeSpeed, Duration);
+        if (Duration > 0)
+        {
+            FTimerHandle TimerHandle;
+            World->GetTimerManager().SetTimer(
+                TimerHandle,
+                [Volume]()
+                {
+                    if (IsValid(Volume))
+                    {
+                        Volume->Destroy();
+                    }
+                },
+                Duration,
+                false
+            );
+        }
+    }
+
+    return Volume;
 }
+
 
 void AEnvironmentManager::SetWorldTimeMultiplier_Implementation(int32 Multiplier)
 {

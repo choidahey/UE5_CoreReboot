@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "DeveloperSettings/CR4SDataTableSettings.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
+#include "Gimmick/GimmickObjects/ItemPouchGimmick.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
 	: ItemInfoDataTable(nullptr)
@@ -55,6 +56,16 @@ const FItemInfoData* UItemGimmickSubsystem::FindItemInfoData(const FName& RowNam
 const FGimmickInfoData* UItemGimmickSubsystem::FindGimmickInfoData(const FName& RowName) const
 {
 	return FindDataFromDataTable<FGimmickInfoData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
+}
+
+void UItemGimmickSubsystem::SpawnItemPouch(const AActor* ResourceOwner, const TMap<FName, int32>& RemainingItems)
+{
+	const AItemPouchGimmick* ItemPouch
+		= SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
+		                                           ResourceOwner->GetActorLocation(),
+		                                           ResourceOwner->GetActorRotation());
+
+	ItemPouch->InitItemPouch(RemainingItems);
 }
 
 ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation,

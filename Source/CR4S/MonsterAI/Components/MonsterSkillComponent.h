@@ -48,6 +48,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	const FMonsterSkillData& GetCurrentSkillData() const;
 
+	UFUNCTION(BlueprintCallable)
+	const FMonsterSkillData& GetSkillData(int32 Index) const;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Monster|Skill")
 	int32 CurrentSkillIndex = INDEX_NONE;
 

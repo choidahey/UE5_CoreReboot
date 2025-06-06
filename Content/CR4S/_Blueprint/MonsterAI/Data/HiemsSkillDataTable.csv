@@ -1,6 +1,6 @@
-﻿,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
-Blizzard,Blizzard,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_BlizzardAttack.AM_BlizzardAttack,3500,15,400,600,0,0,0,0,0
-IcicleWaves,IcicleWaves,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_IcicleWavesAttack.AM_IcicleWavesAttack,1000,20,400,300,0,0,0,0,0
-IceRoad,IceRoad,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_IceRoad.AM_IceRoad,1800,5,500,300,0,0,0,0,0
-IceSpike,IceSpike,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_IceSpikeAttack.AM_IceSpikeAttack,2000,5,0,600,0,0,0,0,0
-ColdFairy,ColdFairy,/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_ColdFairyAttack.AM_ColdFairyAttack,1000,0,0,200,0,0,0,0,0
+---,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt,ProbabilityList
+Blizzard,Blizzard,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_BlizzardAttack.AM_BlizzardAttack',3500,3,400,600,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000)"
+IcicleWaves,IcicleWaves,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_IcicleWavesAttack.AM_IcicleWavesAttack',1000,3,400,300,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+IceRoad,IceRoad,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_IceRoad.AM_IceRoad',1800,3,500,300,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+IceSpike,IceSpike,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_IceSpikeAttack.AM_IceSpikeAttack',2000,3,0,600,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"
+ColdFairy,ColdFairy,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/FrostSeasonBoss/AM_ColdFairyAttack.AM_ColdFairyAttack',1000,3,0,200,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000))"

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 
 #include "DestructibleGimmick.generated.h"
@@ -29,8 +30,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "ADestructibleResourceGimmick|Components")
 	FORCEINLINE UDestructibleComponent* GetDestructibleComponent() const { return DestructibleComponent; }
 
+	FORCEINLINE bool IsDestroyed() const { return bIsDestroyed; }
 	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
-
+	
 protected:
 	UFUNCTION()
 	virtual void OnGimmickTakeDamage(AActor* DamageCauser, float DamageAmount, float CurrentHealth);
@@ -44,6 +46,8 @@ protected:
 	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
 	
 private:
+	bool bIsDestroyed;
+	
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
 	float DestroyDelay;
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
@@ -55,6 +59,17 @@ private:
 	
 #pragma endregion
 
+#pragma region BonusDamageTag
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "BonusDamage")
+	FGameplayTag ToolBonusDamageTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "BonusDamage")
+	float ToolBonusDamageMultiplier;
+	
+#pragma endregion
+	
 #pragma region Shake
 
 private:
