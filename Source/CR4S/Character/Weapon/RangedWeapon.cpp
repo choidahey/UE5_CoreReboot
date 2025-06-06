@@ -3,19 +3,18 @@
 
 #include "RangedWeapon.h"
 #include "BaseBullet.h"
+#include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
-#include "GameFramework/ProjectileMovementComponent.h"
-
+#include "Utility/DataLoaderSubsystem.h"
 
 URangedWeapon::URangedWeapon()
 {
-	Range=10000.0f;
 }
-
-
 
 void URangedWeapon::OnAttack(const int32 WeaponIdx)
 {
+	if (!bCanAttack) return;
+	
 	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
 	if (!PC) return;
 
@@ -29,7 +28,7 @@ void URangedWeapon::OnAttack(const int32 WeaponIdx)
 	bool bDeprojected=PC->DeprojectScreenPositionToWorld(ScreenX, ScreenY, WorldOrigin, WorldDirection);
 	if (!bDeprojected) return;
 	
-	FVector TraceEnd=WorldOrigin+(WorldDirection*Range);
+	FVector TraceEnd=WorldOrigin+(WorldDirection*TypeSpecificInfo.Range);
 	
 	FHitResult Hit;
 	FCollisionQueryParams Params;
@@ -58,20 +57,42 @@ void URangedWeapon::OnAttack(const int32 WeaponIdx)
 
 	FVector ShootDirection=(ImpactPoint-MuzzleLocation).GetSafeNormal();
 
-	if (ProjectileClass)
+	if (!CR4S_ENSURE(LogHong1, TypeSpecificInfo.ProjectileClass))
 	{
-		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.Instigator=OwningCharacter;
-		SpawnParameters.Owner = OwningCharacter;
+		return;
+	}
+	
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Instigator=OwningCharacter;
+	SpawnParameters.Owner = OwningCharacter;
 
-		FRotator SpawnRotation=ShootDirection.Rotation();
+	FRotator SpawnRotation=ShootDirection.Rotation();
 
-		ABaseBullet* NewProjectile=GetWorld()->SpawnActor<ABaseBullet>(
-			ProjectileClass,
-			MuzzleLocation,
-			SpawnRotation,
-			SpawnParameters
-		);
-		NewProjectile->Initialize(WeaponData.BulletData);
+	ABaseBullet* NewProjectile=GetWorld()->SpawnActor<ABaseBullet>(
+		TypeSpecificInfo.ProjectileClass,
+		MuzzleLocation,
+		SpawnRotation,
+		SpawnParameters
+	);
+	float FinalDamage=ComputeFinalDamage();
+	NewProjectile->Initialize(TypeSpecificInfo.BulletInfo,FinalDamage);
+	
+	StartAttackCooldown();
+}
+
+void URangedWeapon::Initialize(AModularRobot* OwnerCharacter)
+{
+	Super::Initialize(OwnerCharacter);
+
+	UGameInstance* GI=OwningCharacter->GetGameInstance();
+	if (!GI) return;
+
+	UDataLoaderSubsystem* DataLoader=GI->GetSubsystem<UDataLoaderSubsystem>();
+	if (!DataLoader||!WeaponTag.IsValid()) return;
+
+	const bool bSuccess=DataLoader->LoadWeaponInfoByTag(WeaponTag,TypeSpecificInfo,BaseInfo);
+	if (!CR4S_ENSURE(LogHong1,bSuccess))
+	{
+		return;
 	}
 }

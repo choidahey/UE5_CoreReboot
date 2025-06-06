@@ -24,17 +24,14 @@ public:
 #pragma region Override
 public:
 	virtual void OnAttack(const int32 WeaponIdx) override;
+	virtual void Initialize(AModularRobot* OwnerCharacter) override;
 protected:
 #pragma endregion
 	
-#pragma region Projectile
+#pragma region TypeSpecificInfo
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
-	TSubclassOf<ABaseBullet> ProjectileClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
-	FRangedWeaponData WeaponData; 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
-	float Range;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FRangedWeaponInfo TypeSpecificInfo; 
 #pragma endregion
 	
 };

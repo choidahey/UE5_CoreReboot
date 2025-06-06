@@ -4,6 +4,8 @@
 #include "RobotCombatComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/BaseWeapon.h"
+#include "Character/Weapon/MeleeWeapon.h"
+#include "Character/Weapon/RangedWeapon.h"
 
 
 // Sets default values for this component's properties
@@ -18,7 +20,7 @@ URobotCombatComponent::URobotCombatComponent()
 
 void URobotCombatComponent::Input_OnAttackLeftArm()
 {
-	if (Weapons.IsValidIndex(0)&&Weapons[0])
+	if (Weapons.IsValidIndex(0)&&IsValid(Weapons[0]))
 	{
 		Weapons[0]->OnAttack(0);
 	}
@@ -26,7 +28,7 @@ void URobotCombatComponent::Input_OnAttackLeftArm()
 
 void URobotCombatComponent::Input_OnAttackRightArm()
 {
-	if (Weapons.IsValidIndex(1)&&Weapons[1])
+	if (Weapons.IsValidIndex(1)&&IsValid(Weapons[1]))
 	{
 		Weapons[1]->OnAttack(1);
 	}
@@ -34,7 +36,7 @@ void URobotCombatComponent::Input_OnAttackRightArm()
 
 void URobotCombatComponent::Input_OnAttackLeftShoulder()
 {
-	if (Weapons.IsValidIndex(2)&&Weapons[2])
+	if (Weapons.IsValidIndex(2)&&IsValid(Weapons[2]))
 	{
 		Weapons[2]->OnAttack(2);
 	}
@@ -42,10 +44,26 @@ void URobotCombatComponent::Input_OnAttackLeftShoulder()
 
 void URobotCombatComponent::Input_OnAttackRightShoulder()
 {
-	if (Weapons.IsValidIndex(3)&&Weapons[3])
+	if (Weapons.IsValidIndex(3)&&IsValid(Weapons[3]))
 	{
 		Weapons[3]->OnAttack(3);
 	}
+}
+
+void URobotCombatComponent::EquipWeaponByTag(FGameplayTag Tag, const int32 SlotIdx)
+{
+	UBaseWeapon* NewWeapon=nullptr;
+	if (Tag.MatchesTag(WeaponTags::Ranged))
+	{
+		NewWeapon=NewObject<URangedWeapon>(OwningCharacter);
+	}
+	else if (Tag.MatchesTag(WeaponTags::Melee))
+	{
+		NewWeapon=NewObject<UMeleeWeapon>(OwningCharacter);
+	}
+	NewWeapon->SetGameplayTag(Tag);
+	NewWeapon->Initialize(OwningCharacter);
+	Weapons[SlotIdx]=NewWeapon;
 }
 
 

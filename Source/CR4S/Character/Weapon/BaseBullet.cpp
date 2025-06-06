@@ -37,19 +37,23 @@ ABaseBullet::ABaseBullet()
 	ProjectileMovementComponent->MaxSpeed=0.f;
 	ProjectileMovementComponent->ProjectileGravityScale=0.f;
 	
-	ImpactParticle=nullptr;
-	ImpactSound=nullptr;
-	
 }
 
-void ABaseBullet::Initialize(const FBulletData& InData)
+void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage)
 {
-	// ImpactParticle=InData.ImpactParticle;
-	// ImpactSound=InData.ImpactSound;
-	ProjectileMovementComponent->InitialSpeed=InData.InitialBulletSpeed;
-	ProjectileMovementComponent->MaxSpeed=InData.MaxBulletSpeed;
-	ExplosionRadius=InData.ExplosionRadius;
-	//Homing
+	BulletInfo=InData;
+	ProjectileMovementComponent->InitialSpeed=BulletInfo.InitialBulletSpeed;
+	ProjectileMovementComponent->MaxSpeed=BulletInfo.MaxBulletSpeed;
+	Damage=InDamage;
+	
+	if (BulletInfo.MaxLifeTime>KINDA_SMALL_NUMBER)
+	{
+		SetLifeSpan(BulletInfo.MaxLifeTime);
+	}
+	else
+	{
+		Destroy();
+	}
 
 	if (CollisionComponent)
 	{
@@ -78,7 +82,7 @@ void ABaseBullet::OnOverlapBegin(
 {
 	FVector OverlapLocation=GetActorLocation();
 	AActor* OwnerActor=GetOwner();
-	if (ExplosionRadius<=KINDA_SMALL_NUMBER) // 
+	if (BulletInfo.ExplosionRadius<=KINDA_SMALL_NUMBER) // 
 	{
 		if (OtherActor&&OtherActor!=this)
 		{
@@ -100,7 +104,7 @@ void ABaseBullet::OnOverlapBegin(
 			GetWorld(),
 			Damage,
 			SweepResult.ImpactPoint,
-			ExplosionRadius,
+			BulletInfo.ExplosionRadius,
 			UDamageType::StaticClass(),
 			IgnoreList,
 			Owner,
@@ -108,21 +112,21 @@ void ABaseBullet::OnOverlapBegin(
 			true
 		);
 	}
-	if (ImpactParticle)
+	if (BulletInfo.ImpactParticle)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),
-			ImpactParticle,
+			BulletInfo.ImpactParticle,
 			OverlapLocation,
 			FRotator::ZeroRotator,
 			true
 		);
 	}
-	if (ImpactSound)
+	if (BulletInfo.ImpactSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(
 			this,
-			ImpactSound,
+			BulletInfo.ImpactSound,
 			OverlapLocation,
 			1.0f,
 			1.0f

@@ -7,6 +7,7 @@
 #include "RobotCombatComponent.generated.h"
 
 
+struct FGameplayTag;
 class UBaseWeapon;
 class AModularRobot;
 
@@ -18,7 +19,7 @@ class CR4S_API URobotCombatComponent : public UCombatComponent
 public:
 	URobotCombatComponent();
 
-#pragma region Attack
+#pragma region Attack & Weapons
 public:
 	UFUNCTION(BlueprintCallable)
 	void Input_OnAttackLeftArm();
@@ -28,6 +29,9 @@ public:
 	void Input_OnAttackLeftShoulder();
 	UFUNCTION(BlueprintCallable)
 	void Input_OnAttackRightShoulder();
+
+	UFUNCTION(BlueprintCallable)
+	void EquipWeaponByTag(FGameplayTag Tag, const int32 SlotIdx);
 #pragma endregion
 
 #pragma region Override

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/Data/WeaponData.h"
 #include "GameFramework/Actor.h"
 #include "BaseBullet.generated.h"
 
@@ -22,8 +23,7 @@ public:
 	ABaseBullet();
 
 public:
-	void Initialize(const FBulletData& InData);
-	
+	void Initialize(const FBulletInfo& InData, const float InDamage);
 public:
 	virtual void Tick(float DeltaTime) override;
 protected:
@@ -39,8 +39,6 @@ protected:
 		const FHitResult & SweepResult
 	);
 	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Damage")
-	float Damage{100};
 	
 #pragma region Components
 protected:
@@ -56,15 +54,9 @@ protected:
 
 #pragma region Properties
 protected:
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Explosion")
-	float ExplosionRadius{0};
-#pragma endregion
-	
-#pragma region Effects
-protected:
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> ImpactParticle;
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TObjectPtr<USoundBase> ImpactSound;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Damage")
+	float Damage{100};
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FBulletInfo BulletInfo;
 #pragma endregion
 };
