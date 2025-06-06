@@ -26,12 +26,25 @@ void UBaseWindowWidget::NativePreConstruct()
 		WindowTitle->SetText(TitleText);
 	}
 
+	if (WindowIcon && IconTexture)
 	{
 		FSlateBrush Brush;
 		Brush.SetResourceObject(IconTexture);
 		Brush.ImageSize = FVector2D(80.f, 80.f);
 
 		WindowIcon->SetBrush(Brush);
+	}
+
+
+	if (!bShowButtons)
+	{
+		BackButton->SetVisibility(ESlateVisibility::Collapsed);
+		ApplyButton->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	else
+	{
+		BackButton->SetVisibility(ESlateVisibility::Visible);
+		ApplyButton->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 

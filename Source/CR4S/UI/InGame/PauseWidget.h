@@ -3,7 +3,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PauseWidget.generated.h"
 
-class UButton;
+class UButtonWidget;
 class USettingsWidget;
 
 DECLARE_DELEGATE(FOnResumeRequested);
@@ -25,11 +25,11 @@ protected:
 	void OnToMenuButtonClicked();
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* ResumeButton;
+	UButtonWidget* ResumeButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* SettingsButton;
+	UButtonWidget* SettingsButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* ToMenuButton;
+	UButtonWidget* ToMenuButton;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
