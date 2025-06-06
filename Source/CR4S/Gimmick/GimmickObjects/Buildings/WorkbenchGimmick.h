@@ -16,6 +16,8 @@ class CR4S_API AWorkbenchGimmick : public ADestructibleGimmick
 public:
 	AWorkbenchGimmick();
 
+	virtual void BeginPlay() override;
+	
 #pragma endregion
 
 #pragma region UInteractableComponent

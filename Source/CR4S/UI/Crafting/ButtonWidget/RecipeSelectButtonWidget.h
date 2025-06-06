@@ -14,6 +14,17 @@ struct FRecipeSelectData
 {
 	GENERATED_BODY()
 
+	FRecipeSelectData()
+	{
+	}
+
+	FRecipeSelectData(const FItemRecipeData& NewRecipeData, UTexture2D* NewIconTexture, const FText& NewRecipeName)
+		: RecipeData(NewRecipeData),
+		  IconTexture(NewIconTexture),
+		  RecipeName(NewRecipeName)
+	{
+	}
+
 	FItemRecipeData RecipeData = FItemRecipeData();
 	UPROPERTY()
 	TObjectPtr<UTexture2D> IconTexture = nullptr;
@@ -36,7 +47,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCraftingWidget> CraftingWidget;
-	
+
 #pragma endregion
 
 #pragma region OpenCraftingWidget
@@ -44,8 +55,8 @@ private:
 public:
 	UFUNCTION()
 	void OpenCraftingWidget();
-	
-#pragma endregion 
+
+#pragma endregion
 
 #pragma region RecipeData
 

@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "RecipeSelectWidget.generated.h"
 
+class UCraftingContainerWidget;
 struct FRecipeCategoryData;
 class URecipeSelectButtonWidget;
 
@@ -15,7 +16,11 @@ class CR4S_API URecipeSelectWidget : public UUserWidget
 #pragma region Initialize
 
 public:
-	void InitWidget() const;
+	void InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget);
+
+private:
+	UPROPERTY()
+	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 	
 #pragma endregion 
 	

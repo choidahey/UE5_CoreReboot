@@ -47,8 +47,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> CraftingCategoryButton;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UScaleBox> ScaleBox;
-	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UImage> CraftingCategoryIcon;
 
 #pragma endregion

@@ -4,6 +4,7 @@
 #include "CraftingCategorySelectWidget.h"
 #include "CraftingWidget.h"
 #include "RecipeSelectWidget.h"
+#include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
 void UCraftingContainerWidget::InitWidget()
 {
@@ -16,10 +17,12 @@ void UCraftingContainerWidget::InitWidget()
 	
 	if (IsValid(RecipeSelectWidget))
 	{
-		RecipeSelectWidget->InitWidget();
+		RecipeSelectWidget->InitWidget(this);
 
 		CloseRecipeSelectWidget();
 	}
+
+	ItemGimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>();
 }
 
 void UCraftingContainerWidget::UpdateWidget(const int32 NewCraftingDifficulty)
@@ -65,4 +68,14 @@ void UCraftingContainerWidget::CloseCraftingWidget()
 	{
 		CraftingWidget->CloseWidget();
 	}
+}
+
+const FItemInfoData* UCraftingContainerWidget::GetItemInfoData(const FName RowName) const
+{
+	if (IsValid(ItemGimmickSubsystem))
+	{
+		return ItemGimmickSubsystem->FindItemInfoData(RowName);
+	}
+
+	return nullptr;
 }

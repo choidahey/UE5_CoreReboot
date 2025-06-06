@@ -38,7 +38,7 @@ void URecipeSelectButtonWidget::SetRecipeData(const FRecipeSelectData& RecipeDat
 {
 	if (IsValid(RecipeIcon))
 	{
-		RecipeIcon->SetBrushFromTexture(RecipeData.IconTexture);
+		RecipeIcon->SetBrushFromTexture(RecipeData.IconTexture, true);
 	}
 
 	if (IsValid(RecipeName))

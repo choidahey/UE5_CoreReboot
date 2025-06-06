@@ -4,6 +4,8 @@
 #include "Blueprint/UserWidget.h"
 #include "CraftingContainerWidget.generated.h"
 
+class UItemGimmickSubsystem;
+struct FItemInfoData;
 struct FRecipeCategoryData;
 class UCraftingWidget;
 
@@ -17,6 +19,10 @@ class CR4S_API UCraftingContainerWidget : public UUserWidget
 public:
 	void InitWidget();
 	void UpdateWidget(const int32 NewCraftingDifficulty);
+
+private:
+	UPROPERTY()
+	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
 	
 #pragma endregion
 
@@ -52,6 +58,11 @@ private:
 
 #pragma region RecipeData
 
+public:
+	const FItemInfoData* GetItemInfoData(const FName RowName) const;
+
+	FORCEINLINE int32 GetCraftingDifficulty() const { return CraftingDifficulty; }
+	
 private:
 	int32 CraftingDifficulty = 0;
 	
