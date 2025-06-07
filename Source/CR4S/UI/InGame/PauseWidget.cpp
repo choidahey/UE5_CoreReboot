@@ -1,5 +1,5 @@
 #include "UI/InGame/PauseWidget.h"
-#include "Components/Button.h"
+#include "UI/Common/ButtonWidget.h"
 #include "Game/GameMode/C4SurvivalGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -9,15 +9,15 @@ void UPauseWidget::NativeConstruct()
 
 	if (ResumeButton)
 	{
-		ResumeButton->OnClicked.AddDynamic(this, &UPauseWidget::OnResumeButtonClicked);
+		ResumeButton->OnClicked().AddDynamic(this, &UPauseWidget::OnResumeButtonClicked);
 	}
 	if (SettingsButton)
 	{
-		SettingsButton->OnClicked.AddDynamic(this, &UPauseWidget::OnSettingsButtonClicked);
+		SettingsButton->OnClicked().AddDynamic(this, &UPauseWidget::OnSettingsButtonClicked);
 	}
 	if (ToMenuButton)
 	{
-		ToMenuButton->OnClicked.AddDynamic(this, &UPauseWidget::OnToMenuButtonClicked);
+		ToMenuButton->OnClicked().AddDynamic(this, &UPauseWidget::OnToMenuButtonClicked);
 	}
 }
 

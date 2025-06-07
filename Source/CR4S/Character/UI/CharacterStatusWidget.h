@@ -6,10 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterStatusWidget.generated.h"
 
-class UProgressBar;
-/**
- * 
- */
+class UProgressBarWidget;
+
 UCLASS()
 class CR4S_API UCharacterStatusWidget : public UUserWidget
 {
@@ -39,16 +37,16 @@ public:
 #pragma region Widgets
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> HP;
+	TObjectPtr<UProgressBarWidget> HP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Resource;
+	TObjectPtr<UProgressBarWidget> Resource;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Energy;
+	TObjectPtr<UProgressBarWidget> Energy;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Stun;
+	TObjectPtr<UProgressBarWidget> Stun;
 #pragma endregion
 };
 

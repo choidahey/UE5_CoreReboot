@@ -4,6 +4,7 @@
 #include "TimeDisplayWidget.generated.h"
 
 class UTextBlock;
+class USlider;
 
 UCLASS()
 class CR4S_API UTimeDisplayWidget : public UUserWidget
@@ -18,12 +19,10 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* DayNumber;
+	USlider* SeasonSlider;
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* MinuteNumber;
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* SecondNumber;
-
+	USlider* TimeSlider;
 private:
-
+	int32 DayCycleLength = 0;
+	int32 SeasonLength = 0;
 };

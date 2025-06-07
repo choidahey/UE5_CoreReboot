@@ -3,18 +3,25 @@
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
-class UButton;
+class UButtonWidget;
 class UTextBlock;
 class UConfirmWidget;
 class USettingsWidget;
 class UCreditsWidget;
 class UDifficultyOptionsWidget;
+class USoundBase;
+class UAudioComponent;
 
 UCLASS()
 class CR4S_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+
+public:
+	UFUNCTION()
+	void FadeOutBGM(float FadeDuration = 1.0f);
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -35,10 +42,18 @@ protected:
 	UFUNCTION()
 	void OnNewGameButtonClicked();
 
+
 	void CreateChildWidgets();
+
+	void SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility InVisibility);
+
+public:
+	void HideMenuButtons();
+	void ShowMenuButtons();
 	void ShowGameButtons();
 	void HideGameButtons();
 
+protected:
 	UPROPERTY()
 	UConfirmWidget* ConfirmWidgetInstance;
 	UPROPERTY()
@@ -56,23 +71,24 @@ protected:
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UCreditsWidget> CreditsWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	USoundBase* MainMenuBGM;
+	UPROPERTY()
+	UAudioComponent* BGMComponent;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* PlayGameButton;
+	UButtonWidget* PlayGameButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* SettingsButton;
+	UButtonWidget* SettingsButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* CreditsButton;
+	UButtonWidget* CreditsButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* QuitButton;
+	UButtonWidget* QuitButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* NewGameButton;
-	UPROPERTY(Meta = (BindWidget))
-	UTextBlock* NewGameText;
+	UButtonWidget* NewGameButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* LoadGameButton;
-	UPROPERTY(Meta = (BindWidget))
-	UTextBlock* LoadGameText;
+	UButtonWidget* LoadGameButton;
+
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* FadeIn;
