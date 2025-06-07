@@ -98,26 +98,26 @@ void AIcicle::InitIcicle(float Radius)
     	CapsuleComp->UpdateOverlaps();
     	
         EdgeColliders.Add(CapsuleComp);
-	    
-        {
-            const FQuat CapsuleRot = FQuat::Identity;
-            const float DrawDuration = 1.5f;
-            const float LineThickness = 2.f;
-            const FColor DrawColor = FColor::Green;
-        
-            DrawDebugCapsule(
-                GetWorld(),
-                CapsuleCenter,
-                CapsuleHalfHeight,
-                CapsuleRadius,
-                CapsuleRot,
-                DrawColor,
-                false,
-                DrawDuration,
-                0,
-                LineThickness
-            );
-        }
+	       //
+        // {
+        //     const FQuat CapsuleRot = FQuat::Identity;
+        //     const float DrawDuration = 1.5f;
+        //     const float LineThickness = 2.f;
+        //     const FColor DrawColor = FColor::Green;
+        //
+        //     DrawDebugCapsule(
+        //         GetWorld(),
+        //         CapsuleCenter,
+        //         CapsuleHalfHeight,
+        //         CapsuleRadius,
+        //         CapsuleRot,
+        //         DrawColor,
+        //         false,
+        //         DrawDuration,
+        //         0,
+        //         LineThickness
+        //     );
+        // }
     	
         if (NiagaraTemplate)
         {

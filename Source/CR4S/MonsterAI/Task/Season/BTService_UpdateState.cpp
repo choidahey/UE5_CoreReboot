@@ -5,6 +5,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "CR4S.h"
+#include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
@@ -92,6 +93,9 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 		}
 		else
 		{
+			if (AActor* Player = Cast<AActor>(UGameplayStatics::GetPlayerPawn(OwnerPawn->GetWorld(), 0)))
+				BB->SetValueAsObject(FAIKeys::TargetActor, Player);
+
 			StateComp->SetState(EMonsterState::Chase);
 		}
 

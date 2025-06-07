@@ -88,30 +88,30 @@ void AFieldActor::ApplyInitialScale()
 	const float CapsuleHalfHeight = NiagaraBounds.BoxExtent.Z * InitCapsuleHalfHeight;
 	CapsuleComp->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 
-#if WITH_EDITOR
-	CR4S_Log(LogDa, Warning, TEXT(
-		"[%s] NiagaraBounds=(%.2f,%.2f,%.2f)" "→ CapsuleRadius=%.2f, CapsuleHalfHeight=%.2f")
-		, *MyHeader
-		, NiagaraBounds.BoxExtent.X
-		, NiagaraBounds.BoxExtent.Y
-		, NiagaraBounds.BoxExtent.Z
-		, CapsuleRadius
-		, CapsuleHalfHeight
-	);
-	
-	DrawDebugCapsule(
-		GetWorld(),
-		CapsuleComp->GetComponentLocation(),
-		CapsuleComp->GetScaledCapsuleHalfHeight(),
-		CapsuleComp->GetScaledCapsuleRadius(),
-		CapsuleComp->GetComponentQuat(),
-		FColor::Cyan,
-		false,
-		LifeTime,
-		0,
-		2.f
-	);
-#endif
+// #if WITH_EDITOR
+// 	CR4S_Log(LogDa, Warning, TEXT(
+// 		"[%s] NiagaraBounds=(%.2f,%.2f,%.2f)" "→ CapsuleRadius=%.2f, CapsuleHalfHeight=%.2f")
+// 		, *MyHeader
+// 		, NiagaraBounds.BoxExtent.X
+// 		, NiagaraBounds.BoxExtent.Y
+// 		, NiagaraBounds.BoxExtent.Z
+// 		, CapsuleRadius
+// 		, CapsuleHalfHeight
+// 	);
+// 	
+// 	DrawDebugCapsule(
+// 		GetWorld(),
+// 		CapsuleComp->GetComponentLocation(),
+// 		CapsuleComp->GetScaledCapsuleHalfHeight(),
+// 		CapsuleComp->GetScaledCapsuleRadius(),
+// 		CapsuleComp->GetComponentQuat(),
+// 		FColor::Cyan,
+// 		false,
+// 		LifeTime,
+// 		0,
+// 		2.f
+// 	);
+// #endif
 }
 
 void AFieldActor::PerformGroundTrace()
@@ -123,18 +123,18 @@ void AFieldActor::PerformGroundTrace()
 	const FVector Start = Base + FVector(0,0,TraceHeight);
 	const FVector End = Base - FVector(0,0,TraceHeight);
 
-#if WITH_EDITOR
-	DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		FColor::Yellow,
-		false,
-		LifeTime,
-		0,
-		2.f
-	);
-#endif
+// #if WITH_EDITOR
+// 	DrawDebugLine(
+// 		GetWorld(),
+// 		Start,
+// 		End,
+// 		FColor::Yellow,
+// 		false,
+// 		LifeTime,
+// 		0,
+// 		2.f
+// 	);
+// #endif
 
 	FHitResult Hit;
 	FCollisionQueryParams Params(NAME_None, false, OwnerActor);
@@ -175,18 +175,18 @@ void AFieldActor::UpdateDynamicScale(float DeltaTime)
 	const float NewHalfHeight = NiagaraBounds.BoxExtent.Z / InitialNiagaraScale.X;
 	CapsuleComp->SetCapsuleSize(NewRadius, NewHalfHeight);
 
-#if WITH_EDITOR
-	CR4S_Log(LogDa, Log, TEXT(
-			"[%s] Dynamic NiagaraBounds=(%.2f,%.2f,%.2f) →  Radius=%f, HalfHeight=%f"
-			),
-			*MyHeader,
-			NiagaraBounds.BoxExtent.X,
-			NiagaraBounds.BoxExtent.Y,
-			NiagaraBounds.BoxExtent.Z,
-			NewRadius,
-			NewHalfHeight
-		);
-#endif
+// #if WITH_EDITOR
+// 	CR4S_Log(LogDa, Log, TEXT(
+// 			"[%s] Dynamic NiagaraBounds=(%.2f,%.2f,%.2f) →  Radius=%f, HalfHeight=%f"
+// 			),
+// 			*MyHeader,
+// 			NiagaraBounds.BoxExtent.X,
+// 			NiagaraBounds.BoxExtent.Y,
+// 			NiagaraBounds.BoxExtent.Z,
+// 			NewRadius,
+// 			NewHalfHeight
+// 		);
+// #endif
 }
 
 void AFieldActor::FollowOwner()
@@ -202,20 +202,20 @@ void AFieldActor::FollowOwner()
         SetActorLocation(Hit.Location);
     	NiagaraComp->SetWorldLocation(Hit.Location);
 
-#if WITH_EDITOR
-    	DrawDebugCapsule(
-			GetWorld(),
-			CapsuleComp->GetComponentLocation(),
-			CapsuleComp->GetScaledCapsuleHalfHeight(),
-			CapsuleComp->GetScaledCapsuleRadius(),
-			CapsuleComp->GetComponentQuat(),
-			FColor::Blue,
-			false,
-			LifeTime,
-			0,
-			2.f
-		);
-#endif
+// #if WITH_EDITOR
+//     	DrawDebugCapsule(
+// 			GetWorld(),
+// 			CapsuleComp->GetComponentLocation(),
+// 			CapsuleComp->GetScaledCapsuleHalfHeight(),
+// 			CapsuleComp->GetScaledCapsuleRadius(),
+// 			CapsuleComp->GetComponentQuat(),
+// 			FColor::Blue,
+// 			false,
+// 			LifeTime,
+// 			0,
+// 			2.f
+// 		);
+// #endif
     }
 }
 
