@@ -3,6 +3,7 @@
 
 #include "DataLoaderSubsystem.h"
 
+#include "Character/Data/RobotSettings.h"
 #include "DeveloperSettings/CR4SDataTableSettings.h"
 
 void UDataLoaderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -12,4 +13,13 @@ void UDataLoaderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		WeaponDataAsset=Cast<UWeaponInfoDataAsset>(Settings->GetDataAssetByName(TEXT("WeaponInfoDataAsset")));
 	}
+	if (const UCR4SDataTableSettings* Settings=GetDefault<UCR4SDataTableSettings>())
+	{
+		RobotSettingsDataAsset=Cast<URobotSettingsDataAsset>(Settings->GetDataAssetByName(TEXT("RobotSettingsDataAsset")));
+	}
+}
+
+void UDataLoaderSubsystem::LoadRobotSettingsData(FRobotSettings& OutSettingsInfo)
+{
+	OutSettingsInfo=RobotSettingsDataAsset->RobotSettings;
 }

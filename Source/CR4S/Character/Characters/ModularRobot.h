@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
+#include "Character/Data/RobotSettings.h"
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
@@ -28,8 +29,8 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
-#pragma region Get
-	FORCEINLINE float GetAttackPowerMultiplier() const { return Status->GetAttackPowerMultiplier(); }
+#pragma region Load Data
+	void LoadDataFromDataLoader();
 #pragma endregion
 	
 #pragma region ChangePossess
@@ -103,14 +104,8 @@ protected:
 
 #pragma region Settings
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Input")
-	int32 MappingContextPriority{2};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Mount")
-	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Mount")
-	FName MountSocketName {FName("cockpit")};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Mount")
-	float DashStrength{3000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	FRobotSettings RobotSettings;
 #pragma endregion
 	
 #pragma region Components

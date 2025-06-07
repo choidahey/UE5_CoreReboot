@@ -19,6 +19,7 @@
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
+#include "Utility/DataLoaderSubsystem.h"
 
 
 // Sets default values
@@ -78,6 +79,15 @@ AModularRobot::AModularRobot()
 	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
 }
 
+void AModularRobot::LoadDataFromDataLoader()
+{
+	UGameInstance* GI=GetGameInstance();
+	UDataLoaderSubsystem* Loader=GI->GetSubsystem<UDataLoaderSubsystem>();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+
+	Loader->LoadRobotSettingsData(RobotSettings);	
+}
+
 void AModularRobot::MountRobot(AActor* InActor)
 {
 	if (!IsValid(InActor)) return;
@@ -93,7 +103,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 		PreviousCharacter->AttachToComponent(
 			GetMesh(),
 			AttachRule,
-			MountSocketName
+			RobotSettings.MountSocketName
 		);
 	}
 	AController* InController=Cast<AController>(PreviousCharacter->GetController());
@@ -111,7 +121,7 @@ void AModularRobot::UnMountRobot()
 	{
 		NextCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		
-		FVector UnMountOffset=GetActorForwardVector()*UnMountLocation;
+		FVector UnMountOffset=GetActorForwardVector()*RobotSettings.UnMountLocation;
 		FVector DropLocation=GetActorLocation()+UnMountOffset;
 		NextCharacter->TeleportTo(DropLocation,NextCharacter->GetActorRotation(),false,true);
 		
@@ -171,11 +181,13 @@ void AModularRobot::BeginPlay()
 {
 	Super::BeginPlay();
 
+	LoadDataFromDataLoader();
+	
 	if (InteractComp)
 	{
 		InteractComp->OnTryInteract.BindDynamic(this,&AModularRobot::MountRobot);
 	}
-
+	
 	InitializeWidgets();
 }
 
@@ -204,7 +216,7 @@ void AModularRobot::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, MappingContextPriority, Options);
+			InputSubsystem->AddMappingContext(InputMappingContext, RobotSettings.MappingContextPriority, Options);
 		}
 	}
 
@@ -291,7 +303,7 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
 	
-	FVector LaunchVelocity=DashDirection*DashStrength;
+	FVector LaunchVelocity=DashDirection*RobotSettings.DashStrength;
 	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
 	LaunchCharacter(LaunchVelocity,true,false);
 	GetWorldTimerManager().SetTimer(
