@@ -204,7 +204,7 @@ void AModularRobot::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, 2, Options);
+			InputSubsystem->AddMappingContext(InputMappingContext, MappingContextPriority, Options);
 		}
 	}
 

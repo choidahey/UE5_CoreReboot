@@ -111,7 +111,7 @@ void APlayerCharacter::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, 0, Options);
+			InputSubsystem->AddMappingContext(InputMappingContext, MappingContextPriority, Options);
 		}
 	}
 	

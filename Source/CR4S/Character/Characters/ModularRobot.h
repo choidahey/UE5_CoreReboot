@@ -103,11 +103,13 @@ protected:
 
 #pragma region Settings
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Input")
+	int32 MappingContextPriority{2};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Mount")
 	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Mount")
 	FName MountSocketName {FName("cockpit")};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Mount")
 	float DashStrength{3000};
 #pragma endregion
 	
