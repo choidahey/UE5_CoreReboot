@@ -16,6 +16,8 @@
 
 class UNavLinkCustomComponent;
 
+DECLARE_DELEGATE(FAIJumpFailedSignature)
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UAIJumpComponent : public UActorComponent
 {
@@ -23,7 +25,9 @@ class CR4S_API UAIJumpComponent : public UActorComponent
 
 public:
 	UAIJumpComponent();
-
+	
+	FAIJumpFailedSignature OnJumpFailed;
+	
 	UFUNCTION(BlueprintCallable)
 	void TryJump();
 
