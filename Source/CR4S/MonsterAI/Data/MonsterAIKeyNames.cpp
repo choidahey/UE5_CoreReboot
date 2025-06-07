@@ -12,10 +12,12 @@ const FName FAIKeys::IsDead = TEXT("IsDead");
 const FName FAIKeys::SkillIndex = TEXT("SkillIndex");
 const FName FAIKeys::bIsPlayingAttackMontage = TEXT("bIsPlayingAttackMontage");
 
-
 // Region Boss AI Key
 const FName FRegionBossAIKeys::CombatStartLocation = TEXT("CombatStartLocation");
 const FName FRegionBossAIKeys::PatrolTargetLocation = TEXT("PatrolTargetLocation");
+const FName FRegionBossAIKeys::SkillTargetLocation = TEXT("SkillTargetLocation");
+const FName FRegionBossAIKeys::MoveSpeedScale = TEXT("MoveSpeedScale");
+const FName FRegionBossAIKeys::ApproachType = TEXT("ApproachType");
 const FName FRegionBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
 const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
 const FName FRegionBossAIKeys::LastIdleBoredTime = TEXT("LastIdleBoredTime");

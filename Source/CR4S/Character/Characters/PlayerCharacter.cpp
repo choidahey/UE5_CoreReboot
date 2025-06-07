@@ -180,6 +180,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	
 	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Default")));
 	SetOverlayMode(CurrentTag);
+
+	Interaction->StartDetectProcess();
 	
 	InitializeWidgets();
 }

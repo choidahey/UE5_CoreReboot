@@ -17,6 +17,7 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Character/Components/GridDetectionComponent.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
+#include "Gimmick/Components/InteractionComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 
@@ -74,9 +75,6 @@ AModularRobot::AModularRobot()
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 
-	GridDetection = CreateDefaultSubobject<UGridDetectionComponent>(TEXT("GridDetection"));
-	EnvironmentalStatus = CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
-
 	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
 }
 
@@ -91,7 +89,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
 
-		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,true);
+		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::KeepWorld,true);
 		PreviousCharacter->AttachToComponent(
 			GetMesh(),
 			AttachRule,
@@ -292,8 +290,7 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	FVector LastInput=GetLastMovementInputVector();
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-
-	float DashStrength=10000.f;
+	
 	FVector LaunchVelocity=DashDirection*DashStrength;
 	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
 	LaunchCharacter(LaunchVelocity,true,false);

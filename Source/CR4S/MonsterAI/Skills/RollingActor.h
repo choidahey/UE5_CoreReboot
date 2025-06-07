@@ -4,7 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "RollingActor.generated.h"
 
-class UCapsuleComponent;
+class USphereComponent;
 class AGeometryCollectionActor;
 
 UCLASS()
@@ -22,16 +22,19 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Rolling")
-	TObjectPtr<UCapsuleComponent> CollisionComp;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Rolling")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
 	TObjectPtr<UStaticMeshComponent> StaticMesh;
 
-	UPROPERTY(EditAnywhere, Category = "BreakEffect")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
+	TObjectPtr<USphereComponent> CollisionComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling|BreakEffect")
 	TSubclassOf<AGeometryCollectionActor> BreakGeometryClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
+	FVector ScaleFactor = FVector(1.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling") 
 	float LaunchSpeed = 1200.f;
 
 	UPROPERTY(EditAnywhere, Category = "Rolling")
@@ -42,6 +45,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Rolling")
 	float MaxLifetime = 10.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Rolling|BreakEffect")
+	float ImpulseStrength = 1500.f;
 
 	UPROPERTY()
 	bool bHasBroken = false;
@@ -60,6 +66,7 @@ private:
 	void BreakAndDestroy();
 
 	FVector StartLocation;
+	FVector LastKnownVelocity;
 	FTimerHandle BreakTimerHandle;
 
 };
