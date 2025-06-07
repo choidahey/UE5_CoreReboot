@@ -101,12 +101,14 @@ protected:
 	
 #pragma endregion
 
-#pragma region MountOffset
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
+#pragma region Settings
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	FName MountSocketName {FName("cockpit")};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	float DashStrength{3000};
 #pragma endregion
 	
 #pragma region Components
