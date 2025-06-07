@@ -87,6 +87,7 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     CurrentShuffleIndex++;
     
     return ChosenSkillID;
+    // return 1;
 }
 
 void UBTTask_SelectSkill_Hiems::ReshuffleSkills(const TArray<int32>& AvailableSkills)

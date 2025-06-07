@@ -3,6 +3,7 @@
 #include "NiagaraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 
 AThunderWall::AThunderWall()
@@ -66,11 +67,11 @@ void AThunderWall::OnOverlapBegin(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == GetOwner())
-		return;
-
 	APawn* OwnerPawn = Cast<APawn>(GetInstigator());
-	if (!OwnerPawn || OtherActor == OwnerPawn) return;
+	if (!OwnerPawn || !OtherActor || OtherActor == GetOwner())
+		return;
+	
+	if (Cast<ABaseMonster>(OtherActor)) return;
 	
 	UGameplayStatics::ApplyDamage(
 		OtherActor,

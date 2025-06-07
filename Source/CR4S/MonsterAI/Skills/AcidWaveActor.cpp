@@ -3,6 +3,7 @@
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 
 AAcidWaveActor::AAcidWaveActor()
 {
@@ -174,6 +175,8 @@ void AAcidWaveActor::ApplyPeriodicDamage(AActor* AffectedActor)
 	int32& RemainingTicks = *RemainingTicksPtr;
 	if (RemainingTicks <= 0) return;
 
+	if (Cast<ABaseMonster>(AffectedActor)) return;
+	
 	if (Damage > 0.f)
 	{
 		UGameplayStatics::ApplyDamage(AffectedActor, Damage, nullptr, OwnerActor, nullptr);

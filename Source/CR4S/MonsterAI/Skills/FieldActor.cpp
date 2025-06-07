@@ -248,7 +248,7 @@ void AFieldActor::ApplyDamageTick()
         
 	for (AActor* Actor : ActorsCopy)
 	{
-		if (!IsValid(Actor))
+		if (!IsValid(Actor) || Cast<ABaseMonster>(Actor))
 		{
 			OverlappingActors.Remove(Actor);
 			continue;

@@ -47,17 +47,13 @@ void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, u
 	
 	if (!IsValid(CurrentNearest))
 	{
-		CR4S_Log(LogDa, Warning, TEXT("Invalid NearestHouse"));
+		CR4S_Log(LogDa, Warning, TEXT("[CheckNearestHouse] Invalid NearestHouse"));
 		if (!IsValid(CachedOwnerPawn)) return;
 
 		const FVector OwnerPawnLoc = CachedOwnerPawn->GetActorLocation();
 		AActor* NewNearestHouse = FindNearestHouse(OwnerPawnLoc);
 
 		BlackboardComp->SetValueAsObject(FSeasonBossAIKeys::NearestHouseActor, NewNearestHouse);
-	}
-	else
-	{
-		CR4S_Log(LogDa, Warning, TEXT("Valid NearestHouse"));
 	}
 }
 

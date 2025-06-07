@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MonsterAI/BaseMonster.h"
 
 AColdFairyActor::AColdFairyActor()
 {
@@ -167,6 +168,8 @@ void AColdFairyActor::OnHit(
     const FHitResult& Hit)
 {
     if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
+
+	if (Cast<ABaseMonster>(OtherActor)) return;
 
     UGameplayStatics::ApplyDamage(
         OtherActor,

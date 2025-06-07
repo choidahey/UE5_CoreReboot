@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 
 AIceSpike::AIceSpike()
@@ -82,6 +83,8 @@ void AIceSpike::OnOverlapBegin(
 	const FHitResult& SweepResult)
 {
 	if (!OverlappedComp || !OtherActor) return;
+
+	if (Cast<ABaseMonster>(OtherActor)) return;
 	
 	APawn* OwnerPawn = Cast<APawn>(GetInstigator());
 	if (!OwnerPawn || OtherActor == OwnerPawn) return;
