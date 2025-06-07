@@ -122,6 +122,7 @@ void USpawnZoneManager::NotifyGridLeft(const FIntPoint& GridCoord)
     }
 }
 
+#if WITH_EDITOR
 void USpawnZoneManager::DrawDebugGridCell(const FIntPoint& Coord, const FColor& Color, bool Last, float Height, float Thickness) const
 {
     FVector Center = FVector(
@@ -143,3 +144,4 @@ void USpawnZoneManager::DrawDebugGridCell(const FIntPoint& Coord, const FColor& 
         Thickness       
     );
 }
+#endif

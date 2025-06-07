@@ -46,7 +46,9 @@ private:
 public:
 	FIntPoint GetGridCoord(const FVector2D& Location) const;
 
+#if WITH_EDITOR
 	void DrawDebugGridCell(const FIntPoint& GridCoord, const FColor& Color, bool Last, float Heigth, float Thickness) const;
+#endif
 
 #pragma endregion
 
