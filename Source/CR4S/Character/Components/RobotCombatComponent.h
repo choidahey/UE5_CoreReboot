@@ -18,7 +18,7 @@ class CR4S_API URobotCombatComponent : public UCombatComponent
 
 public:
 	URobotCombatComponent();
-
+	
 #pragma region Attack & Weapons
 public:
 	UFUNCTION(BlueprintCallable)
@@ -31,13 +31,17 @@ public:
 	void Input_OnAttackRightShoulder();
 
 	UFUNCTION(BlueprintCallable)
-	void EquipWeaponByTag(FGameplayTag Tag, const int32 SlotIdx);
+	void EquipWeaponByTag(const FGameplayTag Tag, const int32 SlotIdx);
 #pragma endregion
 
 #pragma region Overrides
 public:
-	virtual void BeginPlay() override;
+	virtual void PerformWeaponTrace() override;
+	virtual void SetWeaponTrace(const bool Trace) override;
+	virtual void ExecuteInputQueue() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+protected:
+	virtual void BeginPlay() override;
 #pragma endregion
 	
 #pragma region Weapon
@@ -46,9 +50,13 @@ protected:
 	TArray<TObjectPtr<UBaseWeapon>> Weapons; //Left, Right Arm (0,1), Left, Right Shoulder(2,3)
 #pragma endregion
 
-#pragma region Owner
+#pragma region Cached
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AModularRobot> OwningCharacter;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 ActivatedWeaponIdx {-1};
 #pragma endregion
 	
 };

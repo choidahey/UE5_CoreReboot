@@ -8,7 +8,7 @@ UBaseWeapon::UBaseWeapon()
 {
 }
 
-void UBaseWeapon::OnAttack(const int32 WeaponIdx)
+void UBaseWeapon::OnAttack()
 {
 }
 

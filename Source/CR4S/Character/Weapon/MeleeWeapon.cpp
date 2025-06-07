@@ -3,15 +3,24 @@
 
 #include "MeleeWeapon.h"
 #include "Character/Characters/ModularRobot.h"
+#include "Character/Components/RobotCombatComponent.h"
 #include "Utility/DataLoaderSubsystem.h"
 
 UMeleeWeapon::UMeleeWeapon()
 {
 }
 
-void UMeleeWeapon::OnAttack(const int32 WeaponIdx)
+void UMeleeWeapon::OnAttack()
 {
+	URobotCombatComponent* Comp=GetTypedOuter<URobotCombatComponent>();
+	if (!CR4S_ENSURE(LogHong1,Comp)) return;
 	
+	Comp->SetTopSocketName(TypeSpecificInfo.TopSocketName);
+	Comp->SetBottomSocketName(TypeSpecificInfo.BottomSocketName);
+	
+	AModularRobot* Robot=GetTypedOuter<AModularRobot>();
+	if (!CR4S_ENSURE(LogHong1,Robot)||!CR4S_ENSURE(LogHong1,BaseInfo.AttackMontage)) return;
+	Robot->PlayAnimMontage(BaseInfo.AttackMontage);
 }
 
 void UMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)

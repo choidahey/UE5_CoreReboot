@@ -18,7 +18,7 @@ public:
 
 #pragma region Attack
 	void Input_OnAttack();
-	void PerformWeaponTrace();
+	virtual void PerformWeaponTrace() override;
 #pragma endregion
 
 #pragma region Overrides

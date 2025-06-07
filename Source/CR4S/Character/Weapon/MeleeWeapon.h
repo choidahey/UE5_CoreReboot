@@ -19,7 +19,7 @@ public:
 
 #pragma region Override
 public:
-	virtual void OnAttack(const int32 WeaponIdx) override;
+	virtual void OnAttack() override;
 	virtual void Initialize(AModularRobot* OwnerCharacter) override;
 protected:
 #pragma endregion

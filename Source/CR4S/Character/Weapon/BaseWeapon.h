@@ -21,7 +21,9 @@ class CR4S_API UBaseWeapon : public UObject
 public:
 	UBaseWeapon();
 
-#pragma region Set
+#pragma region GetSet
+	FORCEINLINE FGameplayTag GetGameplayTag() const { return WeaponTag; }
+	
 	void SetGameplayTag(const FGameplayTag GameplayTag);
 #pragma endregion
 
@@ -29,9 +31,9 @@ public:
 	
 #pragma region Attack
 public:
-	virtual void OnAttack(const int32 WeaponIdx);
-protected:
+	virtual void OnAttack();
 	float ComputeFinalDamage();
+protected:
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
 #pragma endregion

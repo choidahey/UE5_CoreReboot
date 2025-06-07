@@ -21,17 +21,25 @@ URobotCombatComponent::URobotCombatComponent()
 
 void URobotCombatComponent::Input_OnAttackLeftArm()
 {
-	if (Weapons.IsValidIndex(0)&&IsValid(Weapons[0]))
+	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
+	FGameplayTag TempTag=Weapons[0]->GetGameplayTag();
+	if ((TempTag.MatchesTag(WeaponTags::Melee)&&CheckInputQueue(EInputType::RobotAttack1))
+		||TempTag.MatchesTag(WeaponTags::Ranged))
 	{
-		Weapons[0]->OnAttack(0);
+		ActivatedWeaponIdx=0;
+		Weapons[0]->OnAttack();
 	}
 }
 
 void URobotCombatComponent::Input_OnAttackRightArm()
 {
-	if (Weapons.IsValidIndex(1)&&IsValid(Weapons[1]))
+	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
+	FGameplayTag TempTag=Weapons[0]->GetGameplayTag();
+	if ((TempTag.MatchesTag(WeaponTags::Melee)&&CheckInputQueue(EInputType::RobotAttack2))
+		||TempTag.MatchesTag(WeaponTags::Ranged))
 	{
-		Weapons[1]->OnAttack(1);
+		ActivatedWeaponIdx=1;
+		Weapons[1]->OnAttack();
 	}
 }
 
@@ -39,7 +47,7 @@ void URobotCombatComponent::Input_OnAttackLeftShoulder()
 {
 	if (Weapons.IsValidIndex(2)&&IsValid(Weapons[2]))
 	{
-		Weapons[2]->OnAttack(2);
+		Weapons[2]->OnAttack();
 	}
 }
 
@@ -47,24 +55,70 @@ void URobotCombatComponent::Input_OnAttackRightShoulder()
 {
 	if (Weapons.IsValidIndex(3)&&IsValid(Weapons[3]))
 	{
-		Weapons[3]->OnAttack(3);
+		Weapons[3]->OnAttack();
 	}
 }
 
-void URobotCombatComponent::EquipWeaponByTag(FGameplayTag Tag, const int32 SlotIdx)
+void URobotCombatComponent::EquipWeaponByTag(const FGameplayTag Tag, const int32 SlotIdx)
 {
 	UBaseWeapon* NewWeapon=nullptr;
 	if (Tag.MatchesTag(WeaponTags::Ranged))
 	{
-		NewWeapon=NewObject<URangedWeapon>(OwningCharacter);
+		NewWeapon=NewObject<URangedWeapon>(this);
 	}
 	else if (Tag.MatchesTag(WeaponTags::Melee))
 	{
-		NewWeapon=NewObject<UMeleeWeapon>(OwningCharacter);
+		NewWeapon=NewObject<UMeleeWeapon>(this);
 	}
 	NewWeapon->SetGameplayTag(Tag);
 	NewWeapon->Initialize(OwningCharacter);
 	Weapons[SlotIdx]=NewWeapon;
+}
+
+void URobotCombatComponent::PerformWeaponTrace()
+{
+	if (!bWeaponTrace) return;
+	USkeletalMeshComponent* SkMesh=OwningCharacter->GetMesh();
+	if (!SkMesh) return;
+	//Socket Location
+	FVector CurrentTop=SkMesh->GetSocketLocation(TopSocketName);
+	FVector CurrentBottom=SkMesh->GetSocketLocation(BottomSocketName);
+	
+	if (CR4S_ENSURE(LogHong1,!IsValid(Weapons[ActivatedWeaponIdx]))) return;
+	
+	const float Damage=Weapons[ActivatedWeaponIdx]->ComputeFinalDamage();
+	SweepAndApplyDamage(OwningCharacter,CurrentTop,CurrentBottom,Damage);
+}
+
+void URobotCombatComponent::SetWeaponTrace(const bool Trace)
+{
+	AlreadyDamagedActors.Empty();
+	bWeaponTrace=Trace;
+	if (!Trace)
+	{
+		ActivatedWeaponIdx=-1;
+		return;
+	}
+	USkeletalMeshComponent* SkMesh=OwningCharacter->GetMesh();
+	if (!CR4S_ENSURE(LogHong1,SkMesh)) return;
+	PreviousTopLocation=SkMesh->GetSocketLocation(TopSocketName);
+	PreviousBottomLocation=SkMesh->GetSocketLocation(BottomSocketName);
+}
+
+void URobotCombatComponent::ExecuteInputQueue()
+{
+	switch (CurrentInputQueue)
+	{
+	case EInputType::None:
+		break;
+	case EInputType::RobotAttack1:
+		Input_OnAttackLeftArm();
+		break;
+	case EInputType::RobotAttack2:
+		Input_OnAttackRightArm();
+	default:
+		break;
+	}
 }
 
 void URobotCombatComponent::BeginPlay()
@@ -74,7 +128,7 @@ void URobotCombatComponent::BeginPlay()
 	OwningCharacter=Cast<AModularRobot>(GetOwner());
 	for (int32 i=0;i<Weapons.Num();i++)
 	{
-		if (Weapons.IsValidIndex(i)&&Weapons[i])
+		if (Weapons.IsValidIndex(i)&&IsValid(Weapons[i]))
 		{
 			Weapons[i]->Initialize(OwningCharacter);
 		}
@@ -85,8 +139,5 @@ void URobotCombatComponent::BeginPlay()
 // Called every frame
 void URobotCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	if (bWeaponTrace)
-	{
-		//PerformWeaponTrace();		
-	}
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }

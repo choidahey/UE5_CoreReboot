@@ -25,7 +25,7 @@ void UCharacterCombatComponent::Input_OnAttack()
 {
 	if (!CheckInputQueue(EInputType::Attack)) return;
 	UStaticMesh* ToolMesh=OwningCharacter->GetToolStaticMesh();
-	if (!CR4S_ENSURE(LogHong1,ToolMesh)) return;
+	if (!CR4S_ENSURE(LogHong1,ToolMesh)||!CR4S_ENSURE(LogHong1,AttackMontage)) return;
 	OwningCharacter->PlayAnimMontage(AttackMontage);
 }
 
@@ -39,63 +39,12 @@ void UCharacterCombatComponent::PerformWeaponTrace()
 	//Socket Location
 	FVector CurrentTop=Weapon->GetSocketLocation(TopSocketName);
 	FVector CurrentBottom=Weapon->GetSocketLocation(BottomSocketName);
-	//Get Distance between Top and Bottom
-	FVector Delta=CurrentTop-CurrentBottom;
-	float Dist=Delta.Size();
-	//Set BoxHalfSize
-	FVector BoxHalfSize(Dist*0.5f,10,10);
-	//Set Orientation
-	FRotator Look=UKismetMathLibrary::FindLookAtRotation(CurrentTop,CurrentBottom);
-	//Query
-	FCollisionQueryParams QueryParams;
-	QueryParams.bTraceComplex=true;
-	QueryParams.AddIgnoredActor(OwningCharacter);
-	//Box Trace by Multi
-	TArray<FHitResult> HitResults;
-	bool bHit=GetWorld()->SweepMultiByChannel(
-		HitResults,
-		PreviousTopLocation,
-		CurrentTop,
-		Look.Quaternion(),
-		ECC_Visibility,
-		FCollisionShape::MakeBox(BoxHalfSize),
-		QueryParams
-	);
 	float Damage=0;
 	if (UPlayerCharacterStatusComponent* StatusComp=OwningCharacter->FindComponentByClass<UPlayerCharacterStatusComponent>())
 	{
 		Damage=StatusComp->GetAttackPower();
 	}
-	//Result process
-	if (bHit)
-	{
-		for (const FHitResult& Hit: HitResults)
-		{
-			if (AActor* HitActor=Hit.GetActor())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Hit: %s"), *HitActor->GetName());
-				if (!(AlreadyDamagedActors.Contains(HitActor)))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Applying damage to: %s"), *HitActor->GetName());
-					UGameplayStatics::ApplyDamage(
-						HitActor,
-						Damage,
-						OwningCharacter->GetController(),
-						OwningCharacter,
-						UDamageType::StaticClass()
-					);
-					AlreadyDamagedActors.Add(HitActor);
-				}
-			}
-		}
-	}
-
-	PreviousTopLocation=CurrentTop;
-	PreviousBottomLocation=CurrentBottom;
-
-	if (!bDebugMode) return;
-	const FVector BoxCenter = CurrentBottom + Delta * 0.5f;
-	DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
+	SweepAndApplyDamage(OwningCharacter,CurrentTop,CurrentBottom,Damage);
 }
 
 void UCharacterCombatComponent::SetWeaponTrace(const bool Trace)
@@ -109,12 +58,6 @@ void UCharacterCombatComponent::SetWeaponTrace(const bool Trace)
 	if (!CR4S_ENSURE(LogHong1,ToolMesh)) return;
 	PreviousTopLocation=Weapon->GetSocketLocation(TopSocketName);
 	PreviousBottomLocation=Weapon->GetSocketLocation(BottomSocketName);
-}
-
-void UCharacterCombatComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	OwningCharacter=Cast<APlayerCharacter>(GetOwner());
 }
 
 void UCharacterCombatComponent::ExecuteInputQueue()
@@ -131,11 +74,16 @@ void UCharacterCombatComponent::ExecuteInputQueue()
 	}
 }
 
+void UCharacterCombatComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	OwningCharacter=Cast<APlayerCharacter>(GetOwner());
+}
+
+
 void UCharacterCombatComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
                                               FActorComponentTickFunction* ThisTickFunction)
 {
-	if (bWeaponTrace)
-	{
-		PerformWeaponTrace();		
-	}
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
+

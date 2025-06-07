@@ -16,9 +16,7 @@ enum class EInputType : uint8
 	None			UMETA(DisplayName = "None"),
 	Attack			UMETA(DisplayName = "Attack"),
 	RobotAttack1	UMETA(DisplayName = "RobotAttack1"),
-	RobotAttack2	UMETA(DisplayName = "RobotAttack2"),
-	RobotAttack3	UMETA(DisplayName = "RobotAttack3"),
-	RobotAttack4	UMETA(DisplayName = "RobotAttack4")
+	RobotAttack2	UMETA(DisplayName = "RobotAttack2")
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -30,12 +28,19 @@ public:
 	// Sets default values for this component's properties
 	UCombatComponent();
 
-#pragma region Input
+#pragma region GetSet
+	void SetTopSocketName(const FName InSocketName);
+	void SetBottomSocketName(const FName InSocketName);
+#pragma endregion	
+
+#pragma region Input & Weapon
 	virtual void SetWeaponTrace(const bool Trace);
 	virtual void ExecuteInputQueue();
+	virtual void PerformWeaponTrace();
 	void SetInputEnable(const bool Enable);
 	void SetInputQueue(const EInputType Input);
 	bool CheckInputQueue(const EInputType Input);
+	void SweepAndApplyDamage(AActor* OwningCharacter, const FVector& CurrentTop, const FVector& CurrentBottom, const float InDamage);
 #pragma endregion
 	
 #pragma region OverrideFunctions

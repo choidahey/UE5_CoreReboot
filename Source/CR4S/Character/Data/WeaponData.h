@@ -86,7 +86,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 BulletPerShot{1};
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletsPerShot > 1"))
-	float SpreadAngle = 5.f;
+	float SpreadAngle{5.f};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName BulletSocketName{};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ABaseBullet> ProjectileClass {nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

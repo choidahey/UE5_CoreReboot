@@ -2,11 +2,9 @@
 
 
 #include "CombatComponent.h"
-#include "CR4S.h"
-#include "Character/Characters/PlayerCharacter.h"
+
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -16,6 +14,16 @@ UCombatComponent::UCombatComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	
 	// ...
+}
+
+void UCombatComponent::SetTopSocketName(const FName InSocketName)
+{
+	TopSocketName=InSocketName;
+}
+
+void UCombatComponent::SetBottomSocketName(const FName InSocketName)
+{
+	BottomSocketName=InSocketName;
 }
 
 void UCombatComponent::SetInputEnable(const bool Enable)
@@ -52,11 +60,67 @@ bool UCombatComponent::CheckInputQueue(const EInputType Input)
 	return false;
 }
 
+void UCombatComponent::SweepAndApplyDamage(AActor* OwningCharacter, const FVector& CurrentTop, const FVector& CurrentBottom, const float InDamage)
+{
+	//Get Distance between Top and Bottom
+	FVector Delta=CurrentTop-CurrentBottom;
+	float Dist=Delta.Size();
+	FVector BoxHalfSize(Dist*0.5f,10,10);
+	//Set Orientation
+	FRotator Look=UKismetMathLibrary::FindLookAtRotation(CurrentTop,CurrentBottom);
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex=true;
+	QueryParams.AddIgnoredActor(OwningCharacter);
+	//Box Trace by Multi
+	TArray<FHitResult> HitResults;
+	bool bHit=GetWorld()->SweepMultiByChannel(
+		HitResults,
+		PreviousTopLocation,
+		CurrentTop,
+		Look.Quaternion(),
+		ECC_Visibility,
+		FCollisionShape::MakeBox(BoxHalfSize),
+		QueryParams
+	);
+	//Result process
+	if (bHit)
+	{
+		for (const FHitResult& Hit: HitResults)
+		{
+			AActor* HitActor=Hit.GetActor();
+			if (!IsValid(HitActor)||AlreadyDamagedActors.Contains(HitActor)) continue;
+			
+			AController* Instigator=OwningCharacter->GetInstigatorController();
+			if (!IsValid(Instigator)) continue;
+			
+			UGameplayStatics::ApplyDamage(
+				HitActor,
+				InDamage,
+				Instigator,
+				OwningCharacter,
+				UDamageType::StaticClass()
+			);
+			AlreadyDamagedActors.Add(HitActor);	
+		}
+	}
+
+	PreviousTopLocation=CurrentTop;
+	PreviousBottomLocation=CurrentBottom;
+
+	if (!bDebugMode) return;
+	const FVector BoxCenter = CurrentBottom + Delta * 0.5f;
+	DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
+}
+
 void UCombatComponent::SetWeaponTrace(const bool Trace)
 {
 }
 
 void UCombatComponent::ExecuteInputQueue()
+{
+}
+
+void UCombatComponent::PerformWeaponTrace()
 {
 }
 
@@ -78,5 +142,9 @@ void UCombatComponent::ClearInputQueue()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
 {
+	if (bWeaponTrace)
+	{
+		PerformWeaponTrace();		
+	}
 }
 

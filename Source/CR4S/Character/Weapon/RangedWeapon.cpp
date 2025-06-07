@@ -11,7 +11,7 @@ URangedWeapon::URangedWeapon()
 {
 }
 
-void URangedWeapon::OnAttack(const int32 WeaponIdx)
+void URangedWeapon::OnAttack()
 {
 	if (!bCanAttack) return;
 	
@@ -51,9 +51,7 @@ void URangedWeapon::OnAttack(const int32 WeaponIdx)
 	{
 		ImpactPoint=TraceEnd;
 	}
-	FString SocketNameString = FString::Printf(TEXT("Muzzle_%d"), WeaponIdx);  // "Muzzle_2"
-	FName   SocketName(*SocketNameString); 
-	FVector MuzzleLocation=OwningCharacter->GetMesh()->GetSocketLocation(SocketName);
+	FVector MuzzleLocation=OwningCharacter->GetMesh()->GetSocketLocation(TypeSpecificInfo.BulletSocketName);
 
 	FVector ShootDirection=(ImpactPoint-MuzzleLocation).GetSafeNormal();
 
