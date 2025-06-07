@@ -1,6 +1,6 @@
 #include "MonsterAI/Skills/RollingActor.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "GeometryCollection/GeometryCollectionActor.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -9,26 +9,29 @@ ARollingActor::ARollingActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
-	SetRootComponent(CollisionComp);
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	SetRootComponent(StaticMesh);
 
-	CollisionComp->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
-	CollisionComp->SetCollisionResponseToAllChannels(ECR_Block);
-	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	CollisionComp->SetSimulatePhysics(true);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	StaticMesh->SetCollisionObjectType(ECC_WorldDynamic);
+	StaticMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	StaticMesh->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	StaticMesh->SetSimulatePhysics(true);
+
+	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+	CollisionComp->SetupAttachment(StaticMesh);
+
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
 	CollisionComp->SetGenerateOverlapEvents(true);
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ARollingActor::OnRollingOverlap);
-
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(CollisionComp);
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	StaticMesh->SetSimulatePhysics(false);
 }
 
 void ARollingActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetActorScale3D(ScaleFactor);
 
 	GetWorld()->GetTimerManager().SetTimer(
 		BreakTimerHandle,
@@ -42,6 +45,8 @@ void ARollingActor::BeginPlay()
 void ARollingActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	LastKnownVelocity = StaticMesh->GetPhysicsLinearVelocity();
 
 	const float Distance = FVector::DistSquared(StartLocation, GetActorLocation());
 	if (Distance >= FMath::Square(MaxDistance))
@@ -66,13 +71,18 @@ void ARollingActor::LaunchInDirection(const FVector& Direction)
 
 	StartLocation = GetActorLocation();
 
-	const FVector Velocity = Direction * LaunchSpeed;
-	CollisionComp->SetPhysicsLinearVelocity(Velocity);
+	FVector LaunchDir = Direction.GetSafeNormal();
+	LaunchDir.Z = -0.2f;
+	LaunchDir = LaunchDir.GetSafeNormal();
+
+	const FVector Velocity = LaunchDir * LaunchSpeed;
+	StaticMesh->SetPhysicsLinearVelocity(Velocity);
 }
 
 void ARollingActor::OnRollingOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,	const FHitResult& SweepResult)
 {
 	if (!Other || Other == this || Other == GetOwner() || !OtherComp) return;
+	if (bHasBroken) return;
 
 	UGameplayStatics::ApplyDamage(
 		Other,
@@ -93,6 +103,7 @@ void ARollingActor::BreakAndDestroy()
 	if (!BreakGeometryClass)
 	{
 		UE_LOG(LogTemp, Error, TEXT("BreakGeometryClass is null!"));
+		Destroy();
 		return;
 	}
 
@@ -106,31 +117,37 @@ void ARollingActor::BreakAndDestroy()
 	}
 #endif
 
-	if (BreakGeometryClass)
+	const FVector AngularVel = StaticMesh->GetPhysicsAngularVelocityInDegrees();
+	const FQuat Rotation = GetActorQuat();
+
+	FTransform SpawnTransform = GetActorTransform();
+	SpawnTransform.SetScale3D(ScaleFactor);
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AGeometryCollectionActor* BreakActor = GetWorld()->SpawnActor<AGeometryCollectionActor>(
+		BreakGeometryClass, SpawnTransform, Params);
+
+	if (BreakActor && BreakActor->GetGeometryCollectionComponent())
 	{
-		FActorSpawnParameters Params;
-		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		UGeometryCollectionComponent* GC = BreakActor->GetGeometryCollectionComponent();
 
-		FTransform SpawnTransform = StaticMesh->GetComponentTransform();
-
-		AGeometryCollectionActor* BreakActor = GetWorld()->SpawnActor<AGeometryCollectionActor>(
-			BreakGeometryClass, SpawnTransform, Params);
-
-		if (BreakActor && BreakActor->GetGeometryCollectionComponent())
+		if (GC->RestCollection)
 		{
-			UGeometryCollectionComponent* GC = BreakActor->GetGeometryCollectionComponent();
+			GC->SetWorldScale3D(ScaleFactor);
+			GC->SetAllPhysicsLinearVelocity(LastKnownVelocity);
+			GC->SetPhysicsAngularVelocityInDegrees(AngularVel);
 
-			if (GC->RestCollection)
-			{
-				const FVector ForwardDir = CollisionComp->GetPhysicsLinearVelocity().GetSafeNormal();
-				const FVector Impulse = ForwardDir * 1000.f + FVector(0, 0, 300.f);
+			const FVector ImpulseDir = LastKnownVelocity.GetSafeNormal();
+			const FVector Impulse = ImpulseDir * ImpulseStrength;
 
-				GC->SetSimulatePhysics(true);
-				GC->AddImpulse(Impulse, NAME_None, true);
-			}
-
-			BreakActor->SetLifeSpan(5.0f);
+			GC->SetSimulatePhysics(true);
+			GC->AddImpulse(Impulse, NAME_None, true);
 		}
+
+		BreakActor->SetActorRotation(Rotation);
+		BreakActor->SetLifeSpan(5.0f);
 	}
 
 	Destroy();
