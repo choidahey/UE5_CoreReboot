@@ -28,3 +28,15 @@ enum class EBossPhase : uint8
     Berserk = 1,
     Groggy = 2
 };
+
+UENUM(BlueprintType)
+enum class EApproachType : uint8
+{
+    Stand       UMETA(DisplayName = "Stand and Cast"),
+    AdvanceCast UMETA(DisplayName = "Advance then Cast"),
+    Dash        UMETA(DisplayName = "Dash In"),
+    CloseBurst  UMETA(DisplayName = "Close Range Burst"),
+    Stalk       UMETA(DisplayName = "Stalking"),
+    Flank       UMETA(DisplayName = "Flank"),
+    Teleport    UMETA(DisplayName = "Teleport and Attack")
+};
