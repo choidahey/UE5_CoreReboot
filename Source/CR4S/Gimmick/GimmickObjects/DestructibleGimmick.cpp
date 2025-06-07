@@ -47,10 +47,10 @@ void ADestructibleGimmick::BeginPlay()
 
 		if (CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
 		{
-			if (const FGimmickInfoData* GimmickData = ItemGimmickSubsystem->
+			if (const FGimmickInfoData* GimmickInfoData = ItemGimmickSubsystem->
 				FindGimmickInfoData(GetGimmickDataRowName()))
 			{
-				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
+				DestructibleComponent->SetMaxHealth(GimmickInfoData->GimmickMaxHealth);
 			}
 		}
 	}

@@ -44,7 +44,8 @@ public:
 	const FGimmickInfoData* GetGimmickInfoData() const;
 	
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Data")
-	FORCEINLINE FName GetGimmickDataRowName() const { return GimmickDataRowName; }
+	FORCEINLINE FName GetGimmickDataRowName() const { return GimmickData.RowName; }
+	FORCEINLINE void SetGimmickDataRowName(const FName RowName) { GimmickData.RowName = RowName; }
 
 protected:
 	virtual void GetResources(const AActor* InventoryOwnerActor) const;
@@ -54,8 +55,8 @@ protected:
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
 	
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "GimmickData")
-	FName GimmickDataRowName;
+	UPROPERTY(EditAnywhere, Category = "GimmickData")
+	FDataTableRowHandle GimmickData;
 
 #pragma endregion
 };
