@@ -5,7 +5,7 @@
 #include "DefaultInGameWidget.generated.h"
 
 class UBaseStatusComponent;
-class UProgressBar;
+class UProgressBarWidget;
 class UCharacterStatusWidget;
 class UPlayerCharacterStatusComponent;
 class UCharacterEnvironmentStatusWidget;
@@ -40,7 +40,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UCharacterStatusWidget> StatusWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> HungerWidget;
+	TObjectPtr< UProgressBarWidget> HungerWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UTimeDisplayWidget> TimeDisplayWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))

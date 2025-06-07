@@ -3,7 +3,7 @@
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/CharacterStatusWidget.h"
-#include "Components/ProgressBar.h"
+#include "UI/Common/ProgressBarWidget.h"
 #include "UI/InGame/TimeDisplayWidget.h"
 
 void UDefaultInGameWidget::NativeConstruct()
