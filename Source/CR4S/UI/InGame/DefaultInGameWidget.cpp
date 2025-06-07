@@ -1,6 +1,9 @@
 #include "DefaultInGameWidget.h"
+
+#include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/CharacterStatusWidget.h"
+#include "Components/ProgressBar.h"
 #include "UI/InGame/TimeDisplayWidget.h"
 
 void UDefaultInGameWidget::NativeConstruct()
@@ -8,16 +11,28 @@ void UDefaultInGameWidget::NativeConstruct()
 	Super::NativeConstruct();
 }
 
-void UDefaultInGameWidget::InitializeWidget(UPlayerCharacterStatusComponent* InComponent)
+void UDefaultInGameWidget::InitializeStatusWidget(UBaseStatusComponent* InComponent, bool bIsRobot)
 {
-	float Percentage=FMath::Clamp(static_cast<float>(InComponent->GetMaxHP())/InComponent->GetCurrentHP(), 0.f, 1.f);
+	float Percentage=FMath::Clamp(InComponent->GetCurrentHP()/InComponent->GetMaxHP(), 0.f, 1.f);
 	UpdateHPWidget(Percentage);
 	
-	Percentage=FMath::Clamp(static_cast<float>(InComponent->GetMaxHunger())/InComponent->GetCurrentHunger(), 0.f, 1.f);
-	UpdateHungerWidget(Percentage);
-	
-	Percentage=FMath::Clamp(static_cast<float>(InComponent->GetMaxStamina())/InComponent->GetCurrentStamina(), 0.f, 1.f);
-	UpdateStaminaWidget(Percentage);
+	Percentage=FMath::Clamp(InComponent->GetCurrentResource()/InComponent->GetMaxResource(), 0.f, 1.f);
+	UpdateResourceWidget(Percentage);
+
+	if (UPlayerCharacterStatusComponent* PlayerStatusComp=Cast<UPlayerCharacterStatusComponent>(InComponent))
+	{
+		Percentage=FMath::Clamp(PlayerStatusComp->GetCurrentHunger()/PlayerStatusComp->GetMaxHunger(), 0.f, 1.f);
+		UpdateHungerWidget(Percentage);
+	}
+	if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(InComponent))
+	{
+		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentEnergy()/RobotStatusComp->GetMaxEnergy(), 0.f, 1.f);
+		UpdateEnergyWidget(Percentage);
+
+		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentStun()/RobotStatusComp->GetMaxStun(), 0.f, 1.f);
+		UpdateStunWidget(Percentage);
+	}
+	StatusWidget->ToggleWidgetMode(bIsRobot);
 }
 
 void UDefaultInGameWidget::UpdateHPWidget(const float InPercentage)
@@ -28,21 +43,39 @@ void UDefaultInGameWidget::UpdateHPWidget(const float InPercentage)
 	}
 }
 
-void UDefaultInGameWidget::UpdateHungerWidget(const float InPercentage)
+void UDefaultInGameWidget::UpdateResourceWidget(const float InPercentage)
 {
 	if (StatusWidget)
 	{
-		StatusWidget->UpdateHunger(InPercentage);
+		StatusWidget->UpdateResource(InPercentage);
 	}
 }
 
-void UDefaultInGameWidget::UpdateStaminaWidget(const float InPercentage)
+void UDefaultInGameWidget::UpdateEnergyWidget(const float InPercentage)
 {
 	if (StatusWidget)
 	{
-		StatusWidget->UpdateStamina(InPercentage);
+		StatusWidget->UpdateEnergy(InPercentage);
 	}
 }
+
+
+void UDefaultInGameWidget::UpdateStunWidget(const float InPercentage)
+{
+	if (StatusWidget)
+	{
+		StatusWidget->UpdateStun(InPercentage);
+	}
+}
+
+void UDefaultInGameWidget::UpdateHungerWidget(const float InPercentage)
+{
+	if (HungerWidget)
+	{
+		HungerWidget->SetPercent(InPercentage);
+	}
+}
+
 
 void UDefaultInGameWidget::UpdateTimeWidget(FWorldTimeData CurrentTimeData)
 {

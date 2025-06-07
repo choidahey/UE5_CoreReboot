@@ -1,5 +1,6 @@
 #include "PlayerCharacter.h"
 #include "AlsCameraComponent.h"
+#include "AlsCharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Character/CharacterController.h"
@@ -11,11 +12,8 @@
 #include "UI/InGame/DefaultInGameWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
-
 #include "NavigationInvokerComponent.h"
 
-
-#include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -46,6 +44,11 @@ APlayerCharacter::APlayerCharacter()
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
 }
 
+void APlayerCharacter::SetToolStaticMesh(UStaticMesh* InMesh)
+{
+	ToolStaticMesh=InMesh;
+}
+
 void APlayerCharacter::InitializeWidgets()
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
@@ -55,10 +58,26 @@ void APlayerCharacter::InitializeWidgets()
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
 				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
+				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
 				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
-				Status->OnStaminaChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStaminaWidget);
 
-				InGameWidget->InitializeWidget(Status);
+				InGameWidget->InitializeStatusWidget(Status,false);
+			}
+		}
+	}
+}
+
+void APlayerCharacter::DisconnectWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.RemoveAll(InGameWidget);
+				Status->OnResourceChanged.RemoveAll(InGameWidget);
+				Status->OnHungerChanged.RemoveAll(InGameWidget);
 			}
 		}
 	}
@@ -92,23 +111,23 @@ void APlayerCharacter::NotifyControllerChanged()
 			InputSubsystem->AddMappingContext(InputMappingContext, 0, Options);
 		}
 	}
-
+	
 	Super::NotifyControllerChanged();
 }
 
 float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	Status->AddCurrentHP(static_cast<int>(-DamageAmount));
+	Status->AddCurrentHP(-DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
 void APlayerCharacter::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	//Binding Delegate Functions and Set up Widget
 	InitializeWidgets();
-	
-	Super::BeginPlay();
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -152,6 +171,16 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 	}
 }
 
+void APlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Default")));
+	SetOverlayMode(CurrentTag);
+	
+	InitializeWidgets();
+}
+
 void APlayerCharacter::UnPossessed()
 {
 	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
@@ -162,7 +191,9 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
-	
+	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Mounted")));
+	SetOverlayMode(CurrentTag);
+	DisconnectWidgets();
 	Super::UnPossessed();
 }
 

@@ -13,12 +13,40 @@ void UCharacterStatusWidget::UpdateHP(const float InPercentage)
 	HP->SetPercent(InPercentage);
 }
 
-void UCharacterStatusWidget::UpdateHunger(const float InPercentage)
+void UCharacterStatusWidget::UpdateResource(const float InPercentage)
 {
-	Hunger->SetPercent(InPercentage);
+	Resource->SetPercent(InPercentage);
 }
 
-void UCharacterStatusWidget::UpdateStamina(const float InPercentage)
+void UCharacterStatusWidget::UpdateEnergy(const float InPercentage)
 {
-	Stamina->SetPercent(InPercentage);
+	Energy->SetPercent(InPercentage);
+}
+
+
+void UCharacterStatusWidget::UpdateStun(const float InPercentage)
+{
+	Stun->SetPercent(InPercentage);
+}
+
+void UCharacterStatusWidget::ToggleWidgetMode(const bool bIsRobot)
+{
+	if (Energy)
+	{
+		Energy->SetVisibility((bIsRobot
+			? ESlateVisibility::Visible
+			: ESlateVisibility::Hidden));
+	}
+	if (Stun)
+	{
+		Stun->SetVisibility((bIsRobot
+			? ESlateVisibility::Visible
+			: ESlateVisibility::Hidden));
+	}
+	if (Resource)
+	{
+		Resource->SetFillColorAndOpacity(bIsRobot
+			? FColor::Red
+			: FColor::Yellow);
+	}
 }

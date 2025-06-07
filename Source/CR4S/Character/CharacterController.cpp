@@ -1,18 +1,28 @@
 #include "CharacterController.h"
+
+#include "EnhancedInputSubsystems.h"
 #include "Game/CheatManager/C4CheatManager.h"
 #include "UI/InGame/SurvivalHUD.h"
 
-ACharacterController::ACharacterController():
-	MenuAction(nullptr)
+ACharacterController::ACharacterController()
 {
 	CheatClass = UC4CheatManager::StaticClass();
 }
 
 void ACharacterController::BeginPlay()
 {
+	Super::BeginPlay();
+
+	if (ULocalPlayer* LP=GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem=LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			Subsystem->AddMappingContext(InputMappingContext,0);
+		}
+	}
+	
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
-	Super::BeginPlay();
 }
 
 void ACharacterController::SetupInputComponent()

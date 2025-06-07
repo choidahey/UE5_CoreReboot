@@ -47,7 +47,7 @@ void UCombatComponent::PerformWeaponTrace()
 	//Query
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex=true;
-	//QueryParams.AddIgnoredActor(OwningCharacter);
+	QueryParams.AddIgnoredActor(OwningCharacter);
 	//Box Trace by Multi
 	TArray<FHitResult> HitResults;
 	bool bHit=GetWorld()->SweepMultiByChannel(
@@ -59,6 +59,11 @@ void UCombatComponent::PerformWeaponTrace()
 		FCollisionShape::MakeBox(BoxHalfSize),
 		QueryParams
 	);
+	float Damage=0;
+	if (UPlayerCharacterStatusComponent* StatusComp=OwningCharacter->FindComponentByClass<UPlayerCharacterStatusComponent>())
+	{
+		Damage=StatusComp->GetAttackPower();
+	}
 	//Result process
 	if (bHit)
 	{
@@ -72,7 +77,7 @@ void UCombatComponent::PerformWeaponTrace()
 					UE_LOG(LogTemp, Warning, TEXT("Applying damage to: %s"), *HitActor->GetName());
 					UGameplayStatics::ApplyDamage(
 						HitActor,
-						OwningCharacter->GetAttackPower(),
+						Damage,
 						OwningCharacter->GetController(),
 						OwningCharacter,
 						UDamageType::StaticClass()
@@ -87,7 +92,7 @@ void UCombatComponent::PerformWeaponTrace()
 	PreviousBottomLocation=CurrentBottom;
 
 	const FVector BoxCenter = CurrentBottom + Delta * 0.5f;
-	DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
+	//DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
 }
 
 void UCombatComponent::SetInputEnable(bool Enable)
