@@ -41,9 +41,9 @@ void UGridDetectionComponent::DetectNearbyGrids()
 
             FIntPoint Coord = FIntPoint(CenterCoord.X + DX, CenterCoord.Y + DY);
             CurrentDetectedCoords.Add(Coord);
-
+#if WITH_EDITOR
             SpawnZoneManager->DrawDebugGridCell(Coord, FColor::Red, false, 15.0f, 20.0f);
-
+#endif
             if (!PreviousDetectedCoords.Contains(Coord))
             {
                 SpawnZoneManager->NotifyGridEntered(Coord);

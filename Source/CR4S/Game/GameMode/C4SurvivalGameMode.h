@@ -14,6 +14,10 @@ public:
 protected:
 	UFUNCTION(BlueprintCallable)
 	void EndGameSequence();
+	virtual void StartPlay() override;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	USoundBase* GameStartSFX;
 
 private:
 
