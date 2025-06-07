@@ -84,7 +84,7 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 	if (IsValid(CurrentItem))
 	{
 		IconImage->SetVisibility(ESlateVisibility::Visible);
-		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Icon);
+		IconImage->SetBrushFromTexture(CurrentItem->GetInventoryItemData()->ItemInfoData.Icon, true);
 
 		if (CurrentItem->IsStackableItem())
 		{

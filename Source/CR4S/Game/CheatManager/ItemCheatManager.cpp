@@ -1,5 +1,6 @@
 ﻿#include "ItemCheatManager.h"
 
+#include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
 void UItemCheatManager::AddItem(const FName RowName, const int32 Count) const
@@ -19,6 +20,15 @@ void UItemCheatManager::AddItem(const FName RowName, const int32 Count) const
 	UPlayerInventoryComponent* PlayerInventoryComponent = Pawn->FindComponentByClass<UPlayerInventoryComponent>();
 	if (IsValid(PlayerInventoryComponent))
 	{
-		PlayerInventoryComponent->AddItem(RowName, Count);
+		FAddItemResult Result = PlayerInventoryComponent->AddItem(RowName, Count);
+
+		if (Result.bSuccess && Result.RemainingCount > 0)
+		{
+			UItemGimmickSubsystem* ItemGimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>();
+			if (IsValid(ItemGimmickSubsystem))
+			{
+				ItemGimmickSubsystem->SpawnItemPouch(Pawn, {{RowName, Result.RemainingCount}});
+			}
+		}
 	}
 }

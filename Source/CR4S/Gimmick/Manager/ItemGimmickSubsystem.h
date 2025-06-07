@@ -65,7 +65,7 @@ public:
 		return Gimmick;
 	}
 
-	void SpawnItemPouch(const AActor* ResourceOwner, const TMap<FName, int32>& RemainingItems);
+	void SpawnItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems, float ForwardOffset = 50.f);
 
 private:
 	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;

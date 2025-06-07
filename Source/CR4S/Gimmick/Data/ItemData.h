@@ -51,26 +51,6 @@ struct FBossMonsterSpawnItemData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
-struct FHarvestedMaterial
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "수확 재료 데이터"))
-	FDataTableRowHandle MaterialData = FDataTableRowHandle();
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "수확 재료 개수", ClampMin = "0"))
-	int32 Count = 0;
-};
-
-USTRUCT(BlueprintType)
-struct FAnimalItemData : public FTableRowBase
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "수확 재료 목록"))
-	TArray<FHarvestedMaterial> HarvestedMaterials;
-};
-
-USTRUCT(BlueprintType)
 struct FConsumableItemData : public FTableRowBase
 {
 	GENERATED_BODY()
