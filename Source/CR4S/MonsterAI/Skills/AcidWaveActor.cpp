@@ -3,6 +3,7 @@
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 
 AAcidWaveActor::AAcidWaveActor()
 {
@@ -21,6 +22,8 @@ AAcidWaveActor::AAcidWaveActor()
 	BoxCollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	BoxCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	BoxCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	BoxCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	BoxCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	BoxCollisionComp->SetGenerateOverlapEvents(true);
 	BoxCollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AAcidWaveActor::OnOverlapBegin);
 }
@@ -172,6 +175,8 @@ void AAcidWaveActor::ApplyPeriodicDamage(AActor* AffectedActor)
 	int32& RemainingTicks = *RemainingTicksPtr;
 	if (RemainingTicks <= 0) return;
 
+	if (Cast<ABaseMonster>(AffectedActor)) return;
+	
 	if (Damage > 0.f)
 	{
 		UGameplayStatics::ApplyDamage(AffectedActor, Damage, nullptr, OwnerActor, nullptr);

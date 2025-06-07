@@ -75,7 +75,7 @@ void UAnimNotifyState_MudAmbust::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 		ECC_Visibility,
 		Params
 	);
-	DrawDebugLine(MeshComp->GetWorld(), TraceStart, TraceEnd, FColor::Blue, false, 0.1f);
+	// DrawDebugLine(MeshComp->GetWorld(), TraceStart, TraceEnd, FColor::Blue, false, 0.1f);
 
 	if (bHit)
 	{

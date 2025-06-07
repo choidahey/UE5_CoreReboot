@@ -1,5 +1,6 @@
 #include "UI/MainMenu/SettingsWidget.h"
 #include "UI/Common/BaseWindowWidget.h"
+#include "UI/MainMenu/MainMenuWidget.h"
 #include "Components/Button.h"
 
 void USettingsWidget::NativeConstruct()
@@ -28,6 +29,10 @@ void USettingsWidget::HandleCloseWindow()
 		[this]()
 		{
 			SetVisibility(ESlateVisibility::Collapsed);
+			if (MainMenuWidgetRef)
+			{
+				MainMenuWidgetRef->ShowMenuButtons();
+			}
 		},
 		0.3f,
 		false

@@ -12,6 +12,6 @@ void UDummyItemSlotWidget::SetDummy(UTexture2D* ItemIcon, const int32 ItemCount)
 		return;
 	}
 
-	IconImage->SetBrushFromTexture(ItemIcon);
+	IconImage->SetBrushFromTexture(ItemIcon, true);
 	CountTextBlock->SetText(FText::AsNumber(ItemCount));
 }

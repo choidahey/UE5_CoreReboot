@@ -93,8 +93,12 @@ void UAIJumpComponent::OnEQSQueryFinished(UEnvQueryInstanceBlueprintWrapper* Que
         return;
 
     const TArray<FVector> Results = QueryInstance->GetResultsAsLocations();
+    
     if (Results.Num() == 0)
+    {
+        OnJumpFailed.ExecuteIfBound();
         return;
+    }
 
     UCapsuleComponent* Capsule = OwnerCharacter->GetCapsuleComponent();
     FVector RawStart = Capsule->GetComponentLocation() - FVector(0,0,Capsule->GetScaledCapsuleHalfHeight());
@@ -137,6 +141,7 @@ void UAIJumpComponent::OnEQSQueryFinished(UEnvQueryInstanceBlueprintWrapper* Que
             MoveReq.SetAcceptanceRadius(5.f);
             MoveReq.SetAllowPartialPath(true);
             AICon->MoveTo(MoveReq);
+            OnJumpFailed.ExecuteIfBound();
         }
         return;
     }

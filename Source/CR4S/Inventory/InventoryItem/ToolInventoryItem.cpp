@@ -55,6 +55,7 @@ void UToolInventoryItem::EquipItem() const
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
 	{
+		OwnerPlayer->SetToolStaticMesh(ToolItemData.StaticMesh);
 		OwnerPlayer->SetOverlayMode(ToolItemData.ToolTag);
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
 
@@ -69,6 +70,7 @@ void UToolInventoryItem::UnEquipItem() const
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
 	{
+		OwnerPlayer->SetToolStaticMesh(nullptr);
 		OwnerPlayer->SetOverlayMode(DefaultTag);
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
 

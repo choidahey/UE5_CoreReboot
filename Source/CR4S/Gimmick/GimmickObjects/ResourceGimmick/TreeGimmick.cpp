@@ -13,6 +13,8 @@ ATreeGimmick::ATreeGimmick()
 
 	TrunkMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TrunkMeshComponent"));
 	TrunkMeshComponent->SetupAttachment(RootComponent);
+
+	DestructibleComponent->SetCanRepair(false);
 }
 
 void ATreeGimmick::BeginPlay()

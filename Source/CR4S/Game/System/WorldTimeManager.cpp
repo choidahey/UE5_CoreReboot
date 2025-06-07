@@ -122,6 +122,8 @@ void UWorldTimeManager::ModifyTime(int32 Day, int32 Minute)
 	int32 PassedDays = Day;
 
 	CurrentTimeData.Minute += Minute;
+	OnMinuteUpdated.Broadcast(CurrentTimeData.Minute, DayCycleLength);
+
 	while (CurrentTimeData.Minute >= DayCycleLength)
 	{
 		CurrentTimeData.Minute -= DayCycleLength;
@@ -152,6 +154,7 @@ void UWorldTimeManager::UpdateTimeWidget()
 
 	InGameHUD->GetInGameWidget()->UpdateTimeWidget(GetCurrentTimeData());
 }
+
 
 void UWorldTimeManager::AdvanceSkyTime(int32 Min, int32 Sec)
 {

@@ -3,8 +3,10 @@
 #include "UI/MainMenu/CreditsWidget.h"
 #include "UI/MainMenu/DifficultyOptionsWidget.h"
 #include "UI/Common/ConfirmWidget.h"
-#include "Components/Button.h"
+#include "UI/Common/ButtonWidget.h"
 #include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 void UMainMenuWidget::NativeConstruct()
 {
@@ -14,33 +16,44 @@ void UMainMenuWidget::NativeConstruct()
 
 	if (PlayGameButton)
 	{
-		PlayGameButton->OnHovered.AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonHovered);
-		PlayGameButton->OnUnhovered.AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonUnhovered);
+		PlayGameButton->OnHovered().AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonHovered);
+		PlayGameButton->OnUnhovered().AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonUnhovered);
 	}
 	if (NewGameButton)
 	{
-		NewGameButton->OnHovered.AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
-		NewGameButton->OnUnhovered.AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
-		NewGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnNewGameButtonClicked);
+		NewGameButton->OnHovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
+		NewGameButton->OnUnhovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
+		NewGameButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnNewGameButtonClicked);
 	}
 	if (LoadGameButton)
 	{
-		LoadGameButton->OnHovered.AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
-		LoadGameButton->OnUnhovered.AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
+		LoadGameButton->OnHovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
+		LoadGameButton->OnUnhovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
 	}
 	if (SettingsButton)
 	{
-		SettingsButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnSettingsButtonClicked);
+		SettingsButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnSettingsButtonClicked);
 	}
 	if (CreditsButton)
 	{
-		CreditsButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnCreditsButtonClicked);
+		//CreditsButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnCreditsButtonClicked);
 	}
 
 	if (QuitButton)
 	{
-		QuitButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnQuitButtonClicked);
+		QuitButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnQuitButtonClicked);
 	}
+
+	if (MainMenuBGM)
+	{
+		BGMComponent = UGameplayStatics::SpawnSound2D(this, MainMenuBGM, 1.0f, 1.0f, 0.0f, nullptr, true);
+		if (BGMComponent)
+		{
+			BGMComponent->FadeIn(1.5f, 1.0f);
+		}
+	}
+
+	HideGameButtons();
 }
 
 void UMainMenuWidget::OnPlayGameButtonHovered()
@@ -134,7 +147,14 @@ void UMainMenuWidget::OnNewGameButtonClicked()
 {
 	if (DifficultyOptionsWidgetInstance)
 	{
-		DifficultyOptionsWidgetInstance->AddToViewport(10);
+		if (!DifficultyOptionsWidgetInstance->IsInViewport())
+		{
+			DifficultyOptionsWidgetInstance->AddToViewport();
+		}
+
+		HideMenuButtons();
+		DifficultyOptionsWidgetInstance->MainMenuWidgetRef = this;
+		DifficultyOptionsWidgetInstance->HandleOpenWindow();
 	}
 }
 
@@ -144,9 +164,11 @@ void UMainMenuWidget::OnSettingsButtonClicked()
 	{
 		if (!SettingsWidgetInstance->IsInViewport())
 		{
-			SettingsWidgetInstance->AddToViewport();
+			SettingsWidgetInstance->AddToViewport();	
 		}
-		
+
+		HideMenuButtons();
+		SettingsWidgetInstance->MainMenuWidgetRef = this;
 		SettingsWidgetInstance->HandleOpenWindow();
 	}
 }
@@ -156,46 +178,54 @@ void UMainMenuWidget::OnCreditsButtonClicked()
 	if (CreditsWidgetInstance)
 	{
 		CreditsWidgetInstance->AddToViewport(10);
+		HideMenuButtons();
 	}
 }
 
 void UMainMenuWidget::ShowGameButtons()
 {
-	if (NewGameButton)
-	{
-		NewGameButton->SetVisibility(ESlateVisibility::Visible);
-	}
-	if (NewGameText)
-	{
-		NewGameText->SetVisibility(ESlateVisibility::Visible);
-	}
-	if (LoadGameButton)
-	{
-		LoadGameButton->SetVisibility(ESlateVisibility::Visible);
-	}
-	if (LoadGameText)
-	{
-		LoadGameText->SetVisibility(ESlateVisibility::Visible);
-	}
+	SetWidgetVisibility(NewGameButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(LoadGameButton, ESlateVisibility::Visible);
 }
 
 void UMainMenuWidget::HideGameButtons()
 {
-	if (NewGameButton)
+	SetWidgetVisibility(NewGameButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(LoadGameButton, ESlateVisibility::Hidden);
+}
+
+void UMainMenuWidget::ShowMenuButtons()
+{
+	SetWidgetVisibility(PlayGameButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(SettingsButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(CreditsButton, ESlateVisibility::Visible);
+	SetWidgetVisibility(QuitButton, ESlateVisibility::Visible);
+}
+
+void UMainMenuWidget::HideMenuButtons()
+{
+	SetWidgetVisibility(PlayGameButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(SettingsButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(CreditsButton, ESlateVisibility::Hidden);
+	SetWidgetVisibility(QuitButton, ESlateVisibility::Hidden);
+}
+
+
+
+void UMainMenuWidget::SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility InVisibility)
+{
+	if (Widget)
 	{
-		NewGameButton->SetVisibility(ESlateVisibility::Hidden);
+		Widget->SetVisibility(InVisibility);
 	}
-	if (NewGameText)
+}
+
+
+void UMainMenuWidget::FadeOutBGM(float FadeDuration)
+{
+	if (BGMComponent && BGMComponent->IsPlaying())
 	{
-		NewGameText->SetVisibility(ESlateVisibility::Hidden);
-	}
-	if (LoadGameButton)
-	{
-		LoadGameButton->SetVisibility(ESlateVisibility::Hidden);
-	}
-	if (LoadGameText)
-	{
-		LoadGameText->SetVisibility(ESlateVisibility::Hidden);
+		BGMComponent->FadeOut(FadeDuration, 0.0f);
 	}
 }
 

@@ -41,7 +41,7 @@ private:
 #pragma region Inventory
 
 public:
-	void InitItemPouch(const TMap<FName, int32>& RemainingItems) const;
+	void InitItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems) const;
 	
 private:
 	UFUNCTION()
@@ -54,4 +54,17 @@ private:
 	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
 	
 #pragma endregion
+
+#pragma region LaunchItemPouch
+
+public:
+	void LaunchItemPouch(const AActor* SourceActor) const;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "LaunchItemPouch")
+	float ForwardImpulseStrength;
+	UPROPERTY(EditDefaultsOnly, Category = "LaunchItemPouch")
+	float UpImpulseStrength;
+	
+#pragma endregion 
 };
