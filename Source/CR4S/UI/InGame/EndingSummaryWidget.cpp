@@ -19,7 +19,7 @@ void UEndingSummaryWidget::PlayEndingSequence()
 
 void UEndingSummaryWidget::SetEndingSummaryText()
 {
-    FString FilePath = FPaths::ProjectContentDir() + TEXT("CR4S/Credits.txt");
+    FString FilePath = FPaths::ProjectContentDir() + TEXT("CR4S/_Data/Credits.txt");
     FString FileData;
 
     if (FFileHelper::LoadFileToString(FileData, *FilePath))
