@@ -15,6 +15,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Gimmick/Components/InteractionComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 
@@ -98,6 +99,9 @@ void AModularRobot::MountRobot(AActor* InActor)
 	if (!IsValid(InController)) return;
 	
 	InController->UnPossess();
+	APlayerCharacter* PC=Cast<APlayerCharacter>(PreviousCharacter);
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+	PC->FindComponentByClass<UInteractionComponent>()->StopDetectProcess();
 	InController->Possess(this);
 }
 
@@ -280,17 +284,15 @@ void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (bIsDashing) return;
-
+	if (CR4S_ENSURE(LogHong1,bIsDashing)) return;
 	bIsDashing = true;
 	
 	FVector LastInput=GetLastMovementInputVector();
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-
-	float DashStrength=10000.f;
+	
 	FVector LaunchVelocity=DashDirection*DashStrength;
-	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
+	
 	LaunchCharacter(LaunchVelocity,true,false);
 	GetWorldTimerManager().SetTimer(
 		DashCooldownTimerHandle,

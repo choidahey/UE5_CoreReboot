@@ -57,7 +57,8 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage)
 
 	if (CollisionComponent)
 	{
-		if (AActor* OwnerActor=GetOwner())
+		AActor* OwnerActor=GetOwner();
+		if (CR4S_ENSURE(LogHong1,OwnerActor))
 		{
 			CollisionComponent->IgnoreActorWhenMoving(OwnerActor,true);
 		}
