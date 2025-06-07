@@ -52,7 +52,7 @@ EBTNodeResult::Type UBTTaskNode_MoveToTargetDynamic::ExecuteTask(UBehaviorTreeCo
 		true,
 		true,
 		nullptr,
-		false
+		true
 	);
 	
 	return EBTNodeResult::InProgress;

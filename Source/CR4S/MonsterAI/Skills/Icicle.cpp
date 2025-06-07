@@ -8,6 +8,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "MonsterAI/BaseMonster.h"
 
 AIcicle::AIcicle()
 {
@@ -80,38 +81,43 @@ void AIcicle::InitIcicle(float Radius)
 
         UCapsuleComponent* CapsuleComp = NewObject<UCapsuleComponent>(this);
         CapsuleComp->AttachToComponent(RootComp, FAttachmentTransformRules::KeepWorldTransform);
-        CapsuleComp->RegisterComponent();
-
+    	
         CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    	CapsuleComp->SetCollisionObjectType(ECC_WorldDynamic);
         CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
         CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
+        CapsuleComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+        CapsuleComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+    	CapsuleComp->SetGenerateOverlapEvents(true);
+    	
+    	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AIcicle::OnOverlap);
+    	CapsuleComp->RegisterComponent();
+    	
         CapsuleComp->SetWorldLocation(CapsuleCenter);
         CapsuleComp->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
-        CapsuleComp->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-
-        CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AIcicle::OnOverlap);
+    	CapsuleComp->UpdateOverlaps();
+    	
         EdgeColliders.Add(CapsuleComp);
 	    
-        // {
-        //     const FQuat CapsuleRot = FQuat::Identity;
-        //     const float DrawDuration = 1.5f;
-        //     const float LineThickness = 2.f;
-        //     const FColor DrawColor = FColor::Green;
-        //
-        //     DrawDebugCapsule(
-        //         GetWorld(),
-        //         CapsuleCenter,
-        //         CapsuleHalfHeight,
-        //         CapsuleRadius,
-        //         CapsuleRot,
-        //         DrawColor,
-        //         false,
-        //         DrawDuration,
-        //         0,
-        //         LineThickness
-        //     );
-        // }
+        {
+            const FQuat CapsuleRot = FQuat::Identity;
+            const float DrawDuration = 1.5f;
+            const float LineThickness = 2.f;
+            const FColor DrawColor = FColor::Green;
+        
+            DrawDebugCapsule(
+                GetWorld(),
+                CapsuleCenter,
+                CapsuleHalfHeight,
+                CapsuleRadius,
+                CapsuleRot,
+                DrawColor,
+                false,
+                DrawDuration,
+                0,
+                LineThickness
+            );
+        }
     	
         if (NiagaraTemplate)
         {
@@ -142,8 +148,7 @@ void AIcicle::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 {
 	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator()) return;
 
-	if (OtherActor->FindComponentByClass<UMonsterAttributeComponent>())
-		return;
+	if (Cast<ABaseMonster>(OtherActor)) return;
 
 	UGameplayStatics::ApplyDamage(
 		OtherActor,

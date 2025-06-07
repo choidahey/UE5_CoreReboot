@@ -14,6 +14,13 @@ public:
 	
 	virtual int32 SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target) override;
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Task)
+	float IceRoadForwardTreshold = 1100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Task)
+	float IceRoadAwayTreshold = 500.f;
+	
 private:
 	void ReshuffleSkills(const TArray<int32>& AvailableSkills);
 
