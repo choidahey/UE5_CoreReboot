@@ -25,11 +25,10 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 
 	SetIsFocusable(true);
 
-	if (Button1) Button1->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton1Clicked);
-	if (Button2) Button2->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton2Clicked);
-	if (Button3) Button3->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton3Clicked);
-	if (Button4) Button4->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton4Clicked);
-	if (Button5) Button5->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OnButton5Clicked);
+	if (SetIdleButton) SetIdleButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetIdle);
+	if (SetFollowingButton) SetFollowingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetFollowing);
+	if (SetChopWoodButton) SetChopWoodButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetChopWood);
+	if (CloseButton) CloseButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::CloseStateWidget);
 	if (OpenInventoryButton) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
 	if (SetMiningButton) SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
 	if (SetRepairingButton) SetRepairingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetRepairing);
@@ -46,31 +45,25 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	}
 }
 
-void UHelperBotStateManagerWidget::OnButton1Clicked()
+void UHelperBotStateManagerWidget::SetIdle()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Idle);
-	RemoveFromParent();
-	if (APlayerController* PC = GetOwningPlayer())
-	{
-		PC->SetInputMode(FInputModeGameOnly());
-		PC->bShowMouseCursor = false;
-	}
 	CloseWidgetAndResetInput();
 }
 
-void UHelperBotStateManagerWidget::OnButton2Clicked()
+void UHelperBotStateManagerWidget::SetFollowing()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Following);
 	CloseWidgetAndResetInput();
 }
 
-void UHelperBotStateManagerWidget::OnButton3Clicked()
+void UHelperBotStateManagerWidget::SetChopWood()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::ChopWood);
-	//CloseWidgetAndResetInput();
+	CloseWidgetAndResetInput();
 }
 
-void UHelperBotStateManagerWidget::OnButton4Clicked()
+void UHelperBotStateManagerWidget::CloseStateWidget()
 {
 	CloseWidgetAndResetInput();
 }
@@ -78,8 +71,6 @@ void UHelperBotStateManagerWidget::OnButton4Clicked()
 
 void UHelperBotStateManagerWidget::OpenInventory()
 {
-	//RemoveFromParent();
-
 	if (!HelperBot)
 	{
 		return;
@@ -105,20 +96,6 @@ void UHelperBotStateManagerWidget::OpenInventory()
 	}
 
 	PlayerInvComp->OpenOtherInventoryWidget(EInventoryType::ItemPouch, AIInvComp);
-	CloseWidgetAndResetInput();
-}
-
-void UHelperBotStateManagerWidget::OnButton5Clicked()
-{
-	if (OwnerAIController)
-	{
-		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-		if (PlayerPawn)
-		{
-			OwnerAIController->GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), PlayerPawn);
-			OwnerAIController->SetBotState(EHelperBotState::Fleeing);
-		}
-	}
 	CloseWidgetAndResetInput();
 }
 

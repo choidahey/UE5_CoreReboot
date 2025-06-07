@@ -15,10 +15,14 @@ AFieldActor::AFieldActor()
 	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>("CollisionComp");
 	CapsuleComp->SetupAttachment(RootComponent);
 	CapsuleComp->InitCapsuleSize(InitCapsuleRadius, InitCapsuleHalfHeight);
+	
 	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	CapsuleComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	CapsuleComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	CapsuleComp->SetGenerateOverlapEvents(true);
+	
 	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AFieldActor::OnBeginOverlap);
 	CapsuleComp->OnComponentEndOverlap.AddDynamic(this, &AFieldActor::OnEndOverlap);
 
@@ -40,7 +44,7 @@ void AFieldActor::BeginPlay()
 		}
 	}
 
-	// CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
+	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
 
 void AFieldActor::Initialize(AActor* OwnerMonster, AActor* Target)
@@ -77,34 +81,37 @@ void AFieldActor::ApplyInitialScale()
 	NiagaraComp->SetWorldScale3D(InitialNiagaraScale);
 
 	// TODO :: I will fix capsule collision size(why cloudy is bad size?)
-	CapsuleComp->SetAbsolute(true, true, true);
+	// CapsuleComp->SetAbsolute(true, true, true);
+	CapsuleComp->SetAbsolute(false, false, false);
 	const FBoxSphereBounds NiagaraBounds = NiagaraComp->CalcBounds(NiagaraComp->GetComponentTransform());
 	const float CapsuleRadius = NiagaraBounds.BoxExtent.X * InitCapsuleRadius;
 	const float CapsuleHalfHeight = NiagaraBounds.BoxExtent.Z * InitCapsuleHalfHeight;
 	CapsuleComp->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
-	
-	// CR4S_Log(LogDa, Warning, TEXT(
-	// 	"[%s] NiagaraBounds=(%.2f,%.2f,%.2f)" "→ CapsuleRadius=%.2f, CapsuleHalfHeight=%.2f")
-	// 	, *MyHeader
-	// 	, NiagaraBounds.BoxExtent.X
-	// 	, NiagaraBounds.BoxExtent.Y
-	// 	, NiagaraBounds.BoxExtent.Z
-	// 	, CapsuleRadius
-	// 	, CapsuleHalfHeight
-	// );
-	
-	// DrawDebugCapsule(
-	// 	GetWorld(),
-	// 	CapsuleComp->GetComponentLocation(),
-	// 	CapsuleComp->GetScaledCapsuleHalfHeight(),
-	// 	CapsuleComp->GetScaledCapsuleRadius(),
-	// 	CapsuleComp->GetComponentQuat(),
-	// 	FColor::Cyan,
-	// 	false,
-	// 	LifeTime,
-	// 	0,
-	// 	2.f
-	// );
+
+// #if WITH_EDITOR
+// 	CR4S_Log(LogDa, Warning, TEXT(
+// 		"[%s] NiagaraBounds=(%.2f,%.2f,%.2f)" "→ CapsuleRadius=%.2f, CapsuleHalfHeight=%.2f")
+// 		, *MyHeader
+// 		, NiagaraBounds.BoxExtent.X
+// 		, NiagaraBounds.BoxExtent.Y
+// 		, NiagaraBounds.BoxExtent.Z
+// 		, CapsuleRadius
+// 		, CapsuleHalfHeight
+// 	);
+// 	
+// 	DrawDebugCapsule(
+// 		GetWorld(),
+// 		CapsuleComp->GetComponentLocation(),
+// 		CapsuleComp->GetScaledCapsuleHalfHeight(),
+// 		CapsuleComp->GetScaledCapsuleRadius(),
+// 		CapsuleComp->GetComponentQuat(),
+// 		FColor::Cyan,
+// 		false,
+// 		LifeTime,
+// 		0,
+// 		2.f
+// 	);
+// #endif
 }
 
 void AFieldActor::PerformGroundTrace()
@@ -115,16 +122,19 @@ void AFieldActor::PerformGroundTrace()
 
 	const FVector Start = Base + FVector(0,0,TraceHeight);
 	const FVector End = Base - FVector(0,0,TraceHeight);
-	// DrawDebugLine(
-	// 	GetWorld(),
-	// 	Start,
-	// 	End,
-	// 	FColor::Yellow,
-	// 	false,
-	// 	LifeTime,
-	// 	0,
-	// 	2.f
-	// );
+
+// #if WITH_EDITOR
+// 	DrawDebugLine(
+// 		GetWorld(),
+// 		Start,
+// 		End,
+// 		FColor::Yellow,
+// 		false,
+// 		LifeTime,
+// 		0,
+// 		2.f
+// 	);
+// #endif
 
 	FHitResult Hit;
 	FCollisionQueryParams Params(NAME_None, false, OwnerActor);
@@ -161,20 +171,22 @@ void AFieldActor::UpdateDynamicScale(float DeltaTime)
 	
 	CapsuleComp->SetAbsolute(true, true, true);
 	const FBoxSphereBounds NiagaraBounds = NiagaraComp->CalcBounds(NiagaraComp->GetComponentTransform());
-	const float NewRadius = NiagaraBounds.BoxExtent.X;
-	const float NewHalfHeight = NiagaraBounds.BoxExtent.Z;
+	const float NewRadius = NiagaraBounds.BoxExtent.X / InitialNiagaraScale.X;
+	const float NewHalfHeight = NiagaraBounds.BoxExtent.Z / InitialNiagaraScale.X;
 	CapsuleComp->SetCapsuleSize(NewRadius, NewHalfHeight);
 
-	CR4S_Log(LogDa, Log, TEXT(
-			"[%s] Dynamic NiagaraBounds=(%.2f,%.2f,%.2f) →  Radius=%f, HalfHeight=%f"
-			),
-			*MyHeader,
-			NiagaraBounds.BoxExtent.X,
-			NiagaraBounds.BoxExtent.Y,
-			NiagaraBounds.BoxExtent.Z,
-			NewRadius,
-			NewHalfHeight
-		);
+// #if WITH_EDITOR
+// 	CR4S_Log(LogDa, Log, TEXT(
+// 			"[%s] Dynamic NiagaraBounds=(%.2f,%.2f,%.2f) →  Radius=%f, HalfHeight=%f"
+// 			),
+// 			*MyHeader,
+// 			NiagaraBounds.BoxExtent.X,
+// 			NiagaraBounds.BoxExtent.Y,
+// 			NiagaraBounds.BoxExtent.Z,
+// 			NewRadius,
+// 			NewHalfHeight
+// 		);
+// #endif
 }
 
 void AFieldActor::FollowOwner()
@@ -190,18 +202,20 @@ void AFieldActor::FollowOwner()
         SetActorLocation(Hit.Location);
     	NiagaraComp->SetWorldLocation(Hit.Location);
 
-  //   	DrawDebugCapsule(
-		// 	GetWorld(),
-		// 	CapsuleComp->GetComponentLocation(),
-		// 	CapsuleComp->GetScaledCapsuleHalfHeight(),
-		// 	CapsuleComp->GetScaledCapsuleRadius(),
-		// 	CapsuleComp->GetComponentQuat(),
-		// 	FColor::Blue,
-		// 	false,
-		// 	LifeTime,
-		// 	0,
-		// 	2.f
-		// );
+// #if WITH_EDITOR
+//     	DrawDebugCapsule(
+// 			GetWorld(),
+// 			CapsuleComp->GetComponentLocation(),
+// 			CapsuleComp->GetScaledCapsuleHalfHeight(),
+// 			CapsuleComp->GetScaledCapsuleRadius(),
+// 			CapsuleComp->GetComponentQuat(),
+// 			FColor::Blue,
+// 			false,
+// 			LifeTime,
+// 			0,
+// 			2.f
+// 		);
+// #endif
     }
 }
 
@@ -228,20 +242,25 @@ void AFieldActor::OnEndOverlap(UPrimitiveComponent* OverlappedComp,
 
 void AFieldActor::ApplyDamageTick()
 {
-    for (AActor* Actor : OverlappingActors)
-    {
-        if (Actor)
-        {
-            UGameplayStatics::ApplyDamage(
-            	Actor, Damage, GetInstigatorController(), this, nullptr);
-        }
-    }
+	if (OverlappingActors.Num() == 0) return;
+    
+    TSet<AActor*> ActorsCopy = OverlappingActors;
+        
+	for (AActor* Actor : ActorsCopy)
+	{
+		if (!IsValid(Actor) || Cast<ABaseMonster>(Actor))
+		{
+			OverlappingActors.Remove(Actor);
+			continue;
+		}
+		
+		UGameplayStatics::ApplyDamage(Actor, Damage, GetInstigatorController(), this, nullptr);
+	}
 }
 
 void AFieldActor::EndSkill()
 {
-    GetWorld()->GetTimerManager().ClearTimer(DamageTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(LifeTimerHandle);
-    Destroy();
+	GetWorld()->GetTimerManager().ClearTimer(DamageTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(LifeTimerHandle);
+	Destroy();
 }
-

@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 
 AIceSpike::AIceSpike()
@@ -19,6 +20,8 @@ AIceSpike::AIceSpike()
 	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	CollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	CollisionComp->SetGenerateOverlapEvents(true);
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AIceSpike::OnOverlapBegin);
 
@@ -80,6 +83,8 @@ void AIceSpike::OnOverlapBegin(
 	const FHitResult& SweepResult)
 {
 	if (!OverlappedComp || !OtherActor) return;
+
+	if (Cast<ABaseMonster>(OtherActor)) return;
 	
 	APawn* OwnerPawn = Cast<APawn>(GetInstigator());
 	if (!OwnerPawn || OtherActor == OwnerPawn) return;

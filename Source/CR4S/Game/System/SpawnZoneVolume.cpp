@@ -45,8 +45,9 @@ void ASpawnZoneVolume::BeginPlay()
         const FBox2D Bounds2D = CalculateSplineBounds2D();
         SpawnZoneManager->RegisterZone(this, Bounds2D);
     }
-
+#if WITH_EDITOR
     DrawDebugLines();
+#endif
 }
 
 AActor* ASpawnZoneVolume::SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass, const FVector& Location)
