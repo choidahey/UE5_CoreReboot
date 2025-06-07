@@ -40,6 +40,8 @@ void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryDa
 		return;
 	}
 
+	ScrollBox->ScrollToStart();
+	
 	CraftingCategoryIcon->SetBrushFromTexture(RecipeCategoryData.Icon, true);
 	CraftingCategoryName->SetText(RecipeCategoryData.Name);
 
