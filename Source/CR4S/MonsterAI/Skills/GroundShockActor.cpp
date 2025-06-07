@@ -73,6 +73,7 @@ void AGroundShockActor::InitShock(const FRotator& FacingRot)
 				Niagara->Activate(true);
 			}
 
+#if WITH_EDITOR
 			DrawDebugCapsule(
 				GetWorld(),
 				Pos + FVector(0, 0, CapsuleHalfHeight),
@@ -85,6 +86,7 @@ void AGroundShockActor::InitShock(const FRotator& FacingRot)
 				0,
 				1.f
 			);
+#endif
 		}
 	}
 

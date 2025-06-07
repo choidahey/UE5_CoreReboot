@@ -14,6 +14,8 @@ DECLARE_LOG_CATEGORY_EXTERN(LogCraftingUI, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogEnvironment, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogDa, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogMonster, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogHelperBot, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogAnimal, Log, All);
 
 #define FUNCTION_TCHAR (ANSI_TO_TCHAR(__FUNCTION__))
 #pragma region CR4S_Log
@@ -38,3 +40,84 @@ DECLARE_LOG_CATEGORY_EXTERN(LogMonster, Log, All);
     }()
 
 #pragma endregion
+
+
+// 함수 시작 부분에 위치시키면 함수의 시작, 종료 시점에 알아서 로그 출력
+// 함수들의 호출 스택을 런타임에 로그로 파악하기에 용이
+struct FCR4SSimpleScopeLogger
+{
+    FString FileName;
+    int32   LineNumber;
+    FName   FunctionName;
+
+    FCR4SSimpleScopeLogger(const TCHAR* InFile, int32 InLine, const TCHAR* InFunction)
+        : FileName     ( FPaths::GetCleanFilename(InFile) )
+        , LineNumber   ( InLine )
+        , FunctionName ( InFunction )
+    {
+        UE_LOG(
+            LogTemp,
+            Log,
+            TEXT("[%s:%d] [BEGIN] %s"),
+            *FileName,
+            LineNumber,
+            *FunctionName.ToString()
+        );
+    }
+
+    ~FCR4SSimpleScopeLogger()
+    {
+        UE_LOG(
+            LogTemp,
+            Log,
+            TEXT("[%s:%d] [ END ] %s"),
+            *FileName,
+            LineNumber,
+            *FunctionName.ToString()
+        );
+    }
+};
+
+#define CR4S_SIMPLE_SCOPE_LOG \
+FCR4SSimpleScopeLogger CR4SScopeLoggerInstance( \
+        ANSI_TO_TCHAR(__FILE__), \
+        __LINE__, \
+        ANSI_TO_TCHAR(__FUNCTION__) \
+    )
+
+#define CR4S_ENSURE_IMPLEMENTATION(Category, Expression, bShouldBreak)           \
+    ([&]() -> bool                                                                   \
+    {                                                                                   \
+        static bool bShouldBreakOnFirst = bShouldBreak;                               \
+        if (!(Expression)) \
+        { \
+            if (bShouldBreakOnFirst) \
+            { \
+                /* 첫 실패: 지정된 카테고리로 로그 + 브레이크 */                            \
+                UE_LOG(                                                               \
+                    Category,                                                         \
+                    Warning,                                                          \
+                    TEXT("[%s:%d] Ensure failed: %s"),                                \
+                    TEXT(__FILE__), __LINE__, TEXT(#Expression)                       \
+                );                                                                    \
+                PLATFORM_BREAK();                                                     \
+                bShouldBreakOnFirst = false;                                          \
+                return false;                                                         \
+            }                                                                         \
+            else                                                                      \
+            {                                                                         \
+                /* 두 번째 이후 실패: 메시지 포함 로그만 */                                \
+                UE_LOG(                                                               \
+                    Category,                                                         \
+                    Warning,                                                          \
+                    TEXT("[%s:%d] Ensure failed: %s"),                                \
+                    TEXT(__FILE__), __LINE__, TEXT(#Expression)                       \
+                );                                                                    \
+                return false;                                                         \
+            }                                                                         \
+        }                                                                             \
+        return true;                                                                  \
+    }())
+
+#define CR4S_ENSURE(Category, Expression) CR4S_ENSURE_IMPLEMENTATION(Category, Expression, false)
+#define CR4S_ENSURE_ONCE(Category, Expression) CR4S_ENSURE_IMPLEMENTATION(Category, Expression, true)

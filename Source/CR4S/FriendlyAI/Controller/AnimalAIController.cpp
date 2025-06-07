@@ -8,6 +8,7 @@
 #include "../BaseAnimal.h"
 #include "../AnimalGround.h"
 #include "../AnimalFlying.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "../Component/AIJumpComponent.h"
 #include "Components/SphereComponent.h"
 
@@ -129,7 +130,17 @@ void AAnimalAIController::HandlePerceptionResponse(ABaseAnimal* Animal)
         break;
 
     case EAnimalBehavior::Coward:
-        SetAnimalState(EAnimalState::Flee);
+        if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
+        {
+            if (TargetAnimal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
+            {
+                SetAnimalState(EAnimalState::Flee);
+            }
+        }
+        else if (Cast<APlayerCharacter>(Animal->CurrentTarget))
+        {
+            SetAnimalState(EAnimalState::Flee);
+        }
         break;
 
     case EAnimalBehavior::Passive_AggroOnHit:
@@ -290,14 +301,14 @@ void AAnimalAIController::Tick(float DeltaSeconds)
         //     1.5f
         // );
     }
-    DrawDebugLine(Animal->GetWorld(),
-              Animal->GetActorLocation(),
-              Animal->CurrentTarget->GetActorLocation(),
-              FColor::Red,
-              false,
-              0.f,
-              0,
-              2.f);
+    // DrawDebugLine(Animal->GetWorld(),
+    //           Animal->GetActorLocation(),
+    //           Animal->CurrentTarget->GetActorLocation(),
+    //           FColor::Red,
+    //           false,
+    //           0.f,
+    //           0,
+    //           2.f);
 }
 
 void AAnimalAIController::SetAnimalState(EAnimalState NewState)

@@ -4,7 +4,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "../Gimmick/Components/InteractableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AnimalStatsSubsystem.h"
 #include "Components/SphereComponent.h"
@@ -22,9 +21,6 @@ ABaseAnimal::ABaseAnimal()
     PrimaryActorTick.bCanEverTick = true;
     
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-
-    InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
-    InteractableComponent->SetActive(false);
 
     AttackRange = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRange"));
     AttackRange->SetupAttachment(RootComponent);
@@ -47,60 +43,15 @@ void ABaseAnimal::BeginPlay()
         C->SetAnimalState(EAnimalState::Patrol);
     }
     LoadStats();
-    if (InteractableComponent)
-    {
-        InteractableComponent->OnTryInteract.BindDynamic(this, &ABaseAnimal::OnInteract);
-    }
-
+    
     bUseControllerRotationYaw = false;
-
-    UCharacterMovementComponent* Move = GetCharacterMovement();
-    if (Move)
-    {
-        Move->bOrientRotationToMovement = true;
-        Move->RotationRate = FRotator(0.f, 120.f, 0.f);
-    }
 }
 
 void ABaseAnimal::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-//     DrawDebugSphere(
-//     GetWorld(),
-//     GetActorLocation(),
-//     MeleeRange,
-//     12,
-//     FColor::Red,
-//     false,
-//     -1.0f,
-//     0,
-//     2.0f
-// );
-//
-//     DrawDebugSphere(
-//         GetWorld(),
-//         GetActorLocation(),
-//         DashRange,
-//         12,
-//         FColor::Blue,
-//         false,
-//         -1.0f,
-//         0,
-//         2.0f
-//     );
-//
-//     DrawDebugSphere(
-//         GetWorld(),
-//         GetActorLocation(),
-//         RangedRange,
-//         12,
-//         FColor::Green,
-//         false,
-//         -1.0f,
-//         0,
-//         2.0f
-//     );
+    
+    DrawDebugVisuals();
 }
 
 void ABaseAnimal::LoadStats()
@@ -174,6 +125,107 @@ void ABaseAnimal::LoadStats()
         }
     }
 }
+
+#pragma region Debug
+void ABaseAnimal::DrawDebugVisuals()
+{
+    if (bDrawSightDebug)
+    {
+        FVector EyesLoc;
+        FRotator EyesRot;
+        GetActorEyesViewPoint(EyesLoc, EyesRot);
+        EyesRot.Pitch = 0.f;
+
+        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+        {
+            if (UAISenseConfig_Sight* Sight = C->GetSightConfig())
+            {
+                float FOV = Sight->PeripheralVisionAngleDegrees;
+                float HalfFOVRadians = FMath::DegreesToRadians(FOV * 0.5f);
+                float SightRadius = Sight->SightRadius;
+                float LoseRadius = Sight->LoseSightRadius;
+                
+                DrawDebugCone(
+                    GetWorld(),
+                    EyesLoc,
+                    EyesRot.Vector(),
+                    SightRadius,
+                    HalfFOVRadians,
+                    HalfFOVRadians,
+                    12,
+                    FColor::Green,
+                    false,
+                    -1.f,
+                    0,
+                    1.f
+                );
+                
+                DrawDebugSphere(
+                    GetWorld(),
+                    EyesLoc,
+                    SightRadius,
+                    32,
+                    FColor::Cyan,
+                    false,
+                    -1.f,
+                    0,
+                    1.f
+                );
+                
+                DrawDebugSphere(
+                    GetWorld(),
+                    EyesLoc,
+                    LoseRadius,
+                    32,
+                    FColor::Yellow,
+                    false,
+                    -1.f,
+                    0,
+                    1.f
+                );
+            }
+        }
+    }
+
+    if (bDrawAttackRangeDebug)
+    {
+        DrawDebugSphere(
+            GetWorld(),
+            GetActorLocation(),
+            MeleeRange,
+            16,
+            FColor::Red,
+            false,
+            -1.f,
+            0,
+            1.f
+        );
+        DrawDebugSphere(
+            GetWorld(),
+            GetActorLocation(),
+            DashRange,
+            16,
+            FColor::Blue,
+            false,
+            -1.f,
+            0,
+            1.f
+        );
+        DrawDebugSphere(
+            GetWorld(),
+            GetActorLocation(),
+            RangedRange,
+            16,
+            FColor::Green,
+            false,
+            -1.f,
+            0,
+            1.f
+        );
+    }
+}
+
+#pragma endregion
 
 void ABaseAnimal::ApplyStun(float Amount)
 {
@@ -377,9 +429,9 @@ void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) c
 
 #pragma region Attack
 
-void ABaseAnimal::PlayAttackMontage()
+float ABaseAnimal::PlayAttackMontage()
 {
-    if (bIsAttacking || !MeleeAttackMontage) return;
+    if (bIsAttacking || !MeleeAttackMontage) return 0.0f;
 
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance)
@@ -408,12 +460,14 @@ void ABaseAnimal::PlayAttackMontage()
             MeleeAttackCooldown,
             false
         );
+        return MontageDuration;
     }
+    return 0.0f;
 }
 
-void ABaseAnimal::PlayChargeAttackMontage()
+float ABaseAnimal::PlayChargeAttackMontage()
 {
-    if (bIsAttacking || !ChargeMontage) return;
+    if (bIsAttacking || !ChargeMontage) return 0.0f;
 
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance)
@@ -442,12 +496,14 @@ void ABaseAnimal::PlayChargeAttackMontage()
             ChargeAttackCooldown,
             false
         );
+        return MontageDuration;
     }
+    return 0.0f;
 }
 
-void ABaseAnimal::PlayRangedAttackMontage()
+float ABaseAnimal::PlayRangedAttackMontage()
 {
-    if (bIsAttacking || !RangedMontage) return;
+    if (bIsAttacking || !RangedMontage) return 0.0f;
 
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance)
@@ -475,22 +531,18 @@ void ABaseAnimal::PlayRangedAttackMontage()
             RangedAttackCooldown,
             false
         );
+        return MontageDuration;
     }
-}
 
+    return 0.0f;
+}
 
 void ABaseAnimal::PerformMeleeAttack()
 {
-    if (!AttackRange || !CurrentTarget) return;
-    
-    if (!bCanMelee || bIsMeleeOnCooldown) return;
-    
-    TArray<AActor*> OverlappedActors;
-    AttackRange->GetOverlappingActors(OverlappedActors);
+    if (!CurrentTarget || !bCanMelee || bIsMeleeOnCooldown) return;
 
-    if (!OverlappedActors.Contains(CurrentTarget)) return;
-
-    if (!IsValid(CurrentTarget)) return;
+    const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
+    if (Distance > MeleeRange) return;
 
     if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
     {
@@ -503,8 +555,8 @@ void ABaseAnimal::PerformMeleeAttack()
             return;
         }
     }
-    
-    if (!AttackRange->IsOverlappingActor(CurrentTarget))
+
+    if (!AttackRange || !AttackRange->IsOverlappingActor(CurrentTarget))
     {
         if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
         {
@@ -521,8 +573,6 @@ void ABaseAnimal::PerformMeleeAttack()
         MeleeAttackCooldown,
         false
     );
-    
-    // TODO: player dead
 
     float Damage = CurrentStats.AttackDamage;
     UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);

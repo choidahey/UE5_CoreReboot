@@ -21,13 +21,19 @@ public:
 #pragma region Update
 	UFUNCTION(BlueprintCallable)
 	void UpdateHP(const float InPercentage);
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateResource(const float InPercentage);
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateEnergy(const float InPercentage);
+
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateHunger(const float InPercentage);
+	void UpdateStun(const float InPercentage);
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateStamina(const float InPercentage);
-
+	void ToggleWidgetMode(const bool bIsRobot);
 #pragma endregion
 	
 #pragma region Widgets
@@ -36,10 +42,13 @@ protected:
 	TObjectPtr<UProgressBar> HP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Hunger;
-
+	TObjectPtr<UProgressBar> Resource;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Stamina;
-
+	TObjectPtr<UProgressBar> Energy;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
+	TObjectPtr<UProgressBar> Stun;
 #pragma endregion
 };
+

@@ -6,6 +6,7 @@
 #include "MonsterStateComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMonsterStateChanged, EMonsterState, PreviousState, EMonsterState, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EBossPhase, NewPhase);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterStateComponent : public UActorComponent
@@ -57,6 +58,20 @@ private:
 	EMonsterState PreviousState;
 	float StateElapsedTime;
 	TMap<EMonsterState, float> StateDuration;
+
+#pragma endregion
+
+#pragma region Boss Phase
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	EBossPhase CurrentPhase = EBossPhase::Normal;
+
+	void SetPhase(EBossPhase NewPhase);
+	EBossPhase GetCurrentPhase() const { return CurrentPhase; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Monster|State")
+	FOnPhaseChanged OnPhaseChanged;
 
 #pragma endregion
 

@@ -32,6 +32,8 @@ public:
 	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
 	
 	void SetTargetByDamage(AActor* Attacker);
+
+	UAISenseConfig_Sight* GetSightConfig() const { return SightConfig; }
 	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;

@@ -110,10 +110,6 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 		{
 			AnimComponent->PlayMontage(Skill.SkillMontage);
 		}
-		// if (UAnimInstance* Anim = GetAnimInstance())
-		// {
-		// 	Anim->Montage_Play(Skill.SkillMontage);
-		// }
 	}
 
 	// Cooldown
@@ -154,6 +150,12 @@ const FMonsterSkillData& UMonsterSkillComponent::GetCurrentSkillData() const
 {
 	static const FMonsterSkillData Empty;
 	return SkillList.IsValidIndex(CurrentSkillIndex) ? SkillList[CurrentSkillIndex] : Empty;
+}
+
+const FMonsterSkillData& UMonsterSkillComponent::GetSkillData(int32 Index) const
+{
+	check(SkillList.IsValidIndex(Index));
+	return SkillList[Index];
 }
 
 UAnimInstance* UMonsterSkillComponent::GetAnimInstance() const

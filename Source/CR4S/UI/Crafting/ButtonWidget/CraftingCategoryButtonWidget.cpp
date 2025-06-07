@@ -4,17 +4,19 @@
 #include "Components/Image.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 
-UCraftingCategoryButtonWidget::UCraftingCategoryButtonWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+UCraftingCategoryButtonWidget::UCraftingCategoryButtonWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	CraftingContainerWidget = nullptr;
 	RecipeCategoryData = FRecipeCategoryData();
 }
 
-void UCraftingCategoryButtonWidget::InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget, const FRecipeCategoryData& NewRecipeCategoryData)
+void UCraftingCategoryButtonWidget::InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget,
+                                               const FRecipeCategoryData& NewRecipeCategoryData)
 {
 	CraftingContainerWidget = NewCraftingContainerWidget;
 	RecipeCategoryData = NewRecipeCategoryData;
-	
+
 	if (IsValid(CraftingCategoryButton))
 	{
 		CraftingCategoryButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OpenRecipeSelectWidget);
@@ -22,7 +24,7 @@ void UCraftingCategoryButtonWidget::InitWidget(UCraftingContainerWidget* NewCraf
 
 	if (IsValid(CraftingCategoryIcon))
 	{
-		CraftingCategoryIcon->SetBrushFromTexture(NewRecipeCategoryData.Icon);
+		CraftingCategoryIcon->SetBrushFromTexture(NewRecipeCategoryData.Icon, true);
 	}
 }
 

@@ -26,11 +26,14 @@ public:
 
 #pragma region Get
 	FORCEINLINE UStaticMeshComponent* GetOverlayStaticMesh() { return OverlayStaticMesh; }
-	FORCEINLINE int32 GetAttackPower() const { return Status->GetAttackPower(); }
+
+	UFUNCTION(BlueprintCallable)
+	void SetToolStaticMesh(UStaticMesh* InMesh);
 #pragma endregion
 	
 #pragma region Widget
 	void InitializeWidgets();
+	void DisconnectWidgets();
 #pragma endregion
 	
 #pragma region Overrides
@@ -42,6 +45,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& ViewInfo) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 #pragma endregion
 	
@@ -155,7 +159,10 @@ protected:
 	float LookRightRate{240.0f};
 #pragma endregion
 	
-
+#pragma region Properties
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Tool")
+	TObjectPtr<UStaticMesh> ToolStaticMesh;
+#pragma endregion
 
 #pragma region Navigation Invokers
 
