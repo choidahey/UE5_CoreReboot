@@ -10,6 +10,7 @@
 class UAnimalRangedAttackComponent;
 class UAnimalPerceptionComponent;
 class UGroundMovementComponent;
+class UNavigationInvokerComponent;
 
 UENUM(BlueprintType)
 enum class EAnimalState : uint8
@@ -89,7 +90,10 @@ public:
 	class USphereComponent* AttackRange;
 
 	UPROPERTY(VisibleAnywhere)
-	UGroundMovementComponent* GroundComp; 
+	UGroundMovementComponent* GroundComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Navigation")
+	UNavigationInvokerComponent* NavInvokerComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Stats")
 	bool bIsFemale = false;
