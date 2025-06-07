@@ -290,8 +290,7 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	FVector LastInput=GetLastMovementInputVector();
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-
-	float DashStrength=10000.f;
+	
 	FVector LaunchVelocity=DashDirection*DashStrength;
 	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
 	LaunchCharacter(LaunchVelocity,true,false);
