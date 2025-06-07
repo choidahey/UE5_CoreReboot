@@ -15,6 +15,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Character/Components/GridDetectionComponent.h"
+#include "Character/Components/EnvironmentalStatusComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 
@@ -71,6 +73,9 @@ AModularRobot::AModularRobot()
 	
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
+
+	GridDetection = CreateDefaultSubobject<UGridDetectionComponent>(TEXT("GridDetection"));
+	EnvironmentalStatus = CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 
 	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
 }

@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MonsterAI/BaseMonster.h"
 
 AColdFairyActor::AColdFairyActor()
 {
@@ -18,9 +19,10 @@ AColdFairyActor::AColdFairyActor()
 	CollisionComp->InitSphereRadius(20.f);
 	CollisionComp->SetupAttachment(RootComp);
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
+	// CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	CollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	CollisionComp->SetNotifyRigidBodyCollision(true);
 	CollisionComp->OnComponentHit.AddDynamic(this, &AColdFairyActor::OnHit);
@@ -166,6 +168,8 @@ void AColdFairyActor::OnHit(
     const FHitResult& Hit)
 {
     if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
+
+	if (Cast<ABaseMonster>(OtherActor)) return;
 
     UGameplayStatics::ApplyDamage(
         OtherActor,

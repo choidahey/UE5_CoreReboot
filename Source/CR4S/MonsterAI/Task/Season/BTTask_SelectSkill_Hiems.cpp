@@ -2,6 +2,7 @@
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/BaseMonster.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 UBTTask_SelectSkill_Hiems::UBTTask_SelectSkill_Hiems()
 {
@@ -20,11 +21,28 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     UBlackboardComponent* BB = AIC->GetBlackboardComponent();
     if (!IsValid(BB)) return INDEX_NONE;
 
-    if (AvailableSkills.Num() == 0)
+    if (IsValid(Target))
     {
-        return INDEX_NONE;
-    }
+        const FVector MonsterLoc = CachedMonster->GetActorLocation();
+        const FVector TargetLoc  = Target->GetActorLocation();
+        const float Distance     = FVector::Dist(MonsterLoc, TargetLoc);
+        
+        if (Distance <= IceRoadAwayTreshold || Distance >= IceRoadForwardTreshold)
+        {
+            const bool bToward = (Distance >= IceRoadForwardTreshold);
+            BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
 
+            return 3;
+        }
+    }
+    
+    if (AvailableSkills.Num() == 0) return INDEX_NONE;
+    
+    TArray<int32> FilteredSkills = AvailableSkills;
+    FilteredSkills.Remove(3);
+
+    if (FilteredSkills.Num() == 0) return INDEX_NONE;
+    
     bool bNeedReshuffle = false;
     
     if (ShuffledSkills.Num() != AvailableSkills.Num())
@@ -69,6 +87,7 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     CurrentShuffleIndex++;
     
     return ChosenSkillID;
+    // return 1;
 }
 
 void UBTTask_SelectSkill_Hiems::ReshuffleSkills(const TArray<int32>& AvailableSkills)

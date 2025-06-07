@@ -6,6 +6,8 @@
 #include "SeasonManager.generated.h"
 
 class AEnvironmentManager;
+class USeasonBossDataAsset;
+class ASeasonBossMonster;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDayChanged, float, DawnTime, float, DuskTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSeasonChanged, ESeasonType, Season);
@@ -32,11 +34,12 @@ public:
 	FORCEINLINE int32 GetSeasonLength() const { return SeasonLength; }
 	FORCEINLINE float GetCurrentDawnTime() const { return CurrentDawnTime; }
 	FORCEINLINE float GetCurrentDuskTime() const { return CurrentDuskTime; }
-
 	FORCEINLINE void SetSeasonLength(int32 Length) { SeasonLength = Length; }
 
 	void GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime);
 	void SetCurrentSeason(ESeasonType NewSeason);
+
+
 	
 	void HandleDayChange();
 
@@ -67,7 +70,24 @@ private:
 
 #pragma endregion
 
-#pragma region  Delegates & Events
+#pragma region Events
+public:
+	TSubclassOf<ASeasonBossMonster> GetSeasonBossClass(ESeasonType Season) const;
+
+	void SpawnSeasonBoss();
+
+protected:
+
+
+	UPROPERTY()
+	USeasonBossDataAsset* SeasonBossData;
+
+	UPROPERTY()
+	ASeasonBossMonster* SpawnedBoss;
+
+#pragma endregion
+
+#pragma region Delegates
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "WorldTime|Event")

@@ -15,6 +15,7 @@
 #include "AnimalFlying.h"
 #include "AnimalGround.h"
 #include "../Character/Characters/PlayerCharacter.h"
+#include "NavigationInvokerComponent.h"
 
 ABaseAnimal::ABaseAnimal()
 {
@@ -33,6 +34,9 @@ ABaseAnimal::ABaseAnimal()
     MuzzleArrow->SetupAttachment(RootComponent);
 
     GroundComp = CreateDefaultSubobject<UGroundMovementComponent>(TEXT("GroundMovementComponent"));
+
+    NavInvokerComponent = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvokerComponent"));
+    NavInvokerComponent->SetGenerationRadii(2000.0f, 2500.0f);
 }
 
 void ABaseAnimal::BeginPlay()
@@ -45,6 +49,7 @@ void ABaseAnimal::BeginPlay()
     LoadStats();
     
     bUseControllerRotationYaw = false;
+
 }
 
 void ABaseAnimal::Tick(float DeltaTime)
