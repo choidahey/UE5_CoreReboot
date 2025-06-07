@@ -79,6 +79,11 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	}
 
 	bIsOpen = true;
+
+	if (IsValid(PlayerInventoryComponent))
+	{
+		ChangeWidgetOrder(PlayerInventoryComponent->GetInventoryContainerWidgetOrder());
+	}
 }
 
 void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType InventoryType,
@@ -129,6 +134,8 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	bIsOpen = false;
 
+	ChangeWidgetOrder(0);
+
 	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChanged.IsBound())
 	{
 		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
@@ -155,6 +162,12 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+}
+
+void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)
+{
+	RemoveFromParent();
+	AddToViewport(NewOrder);
 }
 
 void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const

@@ -34,9 +34,11 @@ public:
 
 	void CloseInventoryWidget() const;
 
+	FORCEINLINE int32 GetInventoryContainerWidgetOrder() const { return InventoryContainerWidgetOrder; }
+
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
-	
+
 	UPROPERTY(EditDefaultsOnly)
 	int32 InventoryContainerWidgetOrder;
 	UPROPERTY(EditDefaultsOnly)

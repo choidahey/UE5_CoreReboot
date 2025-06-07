@@ -50,6 +50,7 @@ public:
 	FORCEINLINE bool IsOpen() const { return bIsOpen; }
 
 private:
+	void ChangeWidgetOrder(const int32 NewOrder);
 	void InitToggleWidget(UUserWidget* Widget) const;
 	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType) const;
 
@@ -74,7 +75,6 @@ private:
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> BackgroundBorder;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBaseInventoryWidget> PlayerInventoryWidget;
 	UPROPERTY(meta = (BindWidget))
