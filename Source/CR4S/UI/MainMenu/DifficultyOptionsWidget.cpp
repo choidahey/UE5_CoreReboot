@@ -76,5 +76,5 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 
 void UDifficultyOptionsWidget::OpenSurvivalLevel()
 {
-	UGameplayStatics::OpenLevel(this, FName("SurvivalLevel"));
+	UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
 }
