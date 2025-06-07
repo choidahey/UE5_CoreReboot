@@ -2,7 +2,10 @@
 
 
 #include "InputDisabled.h"
+
+#include "Character/Components/CharacterCombatComponent.h"
 #include "Character/Components/CombatComponent.h"
+#include "Character/Components/RobotCombatComponent.h"
 #include "GameFramework/Character.h"
 
 void UInputDisabled::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
@@ -10,11 +13,15 @@ void UInputDisabled::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequence
 {
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
-
-	UCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCombatComponent>();
-	if (!Combat) return;
-
-	Combat->SetInputEnable(false);
+	
+	if (UCharacterCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCharacterCombatComponent>())
+	{
+		Combat->SetInputEnable(false);
+	}
+	else if (URobotCombatComponent* RobotCombat=OwningCharacter->FindComponentByClass<URobotCombatComponent>())
+	{
+		RobotCombat->SetInputEnable(false);
+	}
 	
 	//Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 }
@@ -24,11 +31,15 @@ void UInputDisabled::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 {
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
-
-	UCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCombatComponent>();
-	if (!Combat) return;
-
-	Combat->SetInputEnable(true);
+	
+	if (UCharacterCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCharacterCombatComponent>())
+	{
+		Combat->SetInputEnable(true);
+	}
+	else if (URobotCombatComponent* RobotCombat=OwningCharacter->FindComponentByClass<URobotCombatComponent>())
+	{
+		RobotCombat->SetInputEnable(true);
+	}
 	
 	//Super::NotifyEnd(MeshComp, Animation, EventReference);
 }

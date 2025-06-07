@@ -15,6 +15,7 @@
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
 #include "NavigationInvokerComponent.h"
+#include "Character/Components/CharacterCombatComponent.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -32,7 +33,7 @@ APlayerCharacter::APlayerCharacter()
 	OverlayStaticMesh=CreateDefaultSubobject<UStaticMeshComponent>(FName{TEXTVIEW("OverlayStaticMesh")});
 	OverlayStaticMesh->SetupAttachment(VisibleMesh);
 	
-	Combat=CreateDefaultSubobject<UCombatComponent>(FName{TEXTVIEW("Combat")});
+	Combat=CreateDefaultSubobject<UCharacterCombatComponent>(FName{TEXTVIEW("Combat")});
 
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
 
@@ -170,7 +171,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(RotationModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnRotationMode);
 		EnhancedInput->BindAction(ViewModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnViewMode);
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
-		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,Combat.Get(),&UCombatComponent::Input_OnAttack);
+		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,Combat.Get(),&UCharacterCombatComponent::Input_OnAttack);
 	}
 }
 

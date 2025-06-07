@@ -60,6 +60,10 @@ struct CR4S_API FMeleeWeaponInfo
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxCombo{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName TopSocketName{};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName BottomSocketName{};
 };
 
 USTRUCT(BlueprintType)

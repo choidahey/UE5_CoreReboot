@@ -7,6 +7,7 @@
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "PlayerCharacter.generated.h"
 
+class UCharacterCombatComponent;
 class UInteractionComponent;
 class UPlayerCharacterStatusComponent;
 class UCombatComponent;
@@ -87,7 +88,7 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<USkeletalMeshComponent> VisibleMesh;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
-	TObjectPtr<UCombatComponent> Combat;
+	TObjectPtr<UCharacterCombatComponent> Combat;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UPlayerCharacterStatusComponent> Status;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")

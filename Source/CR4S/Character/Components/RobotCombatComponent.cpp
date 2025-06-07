@@ -2,7 +2,6 @@
 
 
 #include "RobotCombatComponent.h"
-
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/BaseWeapon.h"
@@ -68,8 +67,6 @@ void URobotCombatComponent::EquipWeaponByTag(FGameplayTag Tag, const int32 SlotI
 	Weapons[SlotIdx]=NewWeapon;
 }
 
-
-// Called when the game starts
 void URobotCombatComponent::BeginPlay()
 {
 	CR4S_SIMPLE_SCOPE_LOG;
@@ -86,10 +83,10 @@ void URobotCombatComponent::BeginPlay()
 
 
 // Called every frame
-void URobotCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                          FActorComponentTickFunction* ThisTickFunction)
+void URobotCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	if (bWeaponTrace)
+	{
+		//PerformWeaponTrace();		
+	}
 }

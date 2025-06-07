@@ -34,11 +34,10 @@ public:
 	void EquipWeaponByTag(FGameplayTag Tag, const int32 SlotIdx);
 #pragma endregion
 
-#pragma region Override
+#pragma region Overrides
 public:
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-protected:
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 #pragma endregion
 	
 #pragma region Weapon
@@ -48,6 +47,8 @@ protected:
 #pragma endregion
 
 #pragma region Owner
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AModularRobot> OwningCharacter;
 #pragma endregion
+	
 };

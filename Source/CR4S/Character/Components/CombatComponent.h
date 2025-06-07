@@ -13,8 +13,12 @@ class APlayerCharacter;
 UENUM(BlueprintType)
 enum class EInputType : uint8
 {
-	None	UMETA(DisplayName = "None"),
-	Attack	UMETA(DisplayName = "Attack")
+	None			UMETA(DisplayName = "None"),
+	Attack			UMETA(DisplayName = "Attack"),
+	RobotAttack1	UMETA(DisplayName = "RobotAttack1"),
+	RobotAttack2	UMETA(DisplayName = "RobotAttack2"),
+	RobotAttack3	UMETA(DisplayName = "RobotAttack3"),
+	RobotAttack4	UMETA(DisplayName = "RobotAttack4")
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -25,19 +29,13 @@ class CR4S_API UCombatComponent : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UCombatComponent();
-	
-#pragma region Attack
-public:
-	void Input_OnAttack();
-	void PerformWeaponTrace();
-#pragma endregion
 
 #pragma region Input
-	void SetInputEnable(bool Enable);
-	void SetWeaponTrace(bool Trace);
-	void SetInputQueue(EInputType Input);
-	bool CheckInputQueue(EInputType Input);
-	void ExecuteInputQueue();
+	virtual void SetWeaponTrace(const bool Trace);
+	virtual void ExecuteInputQueue();
+	void SetInputEnable(const bool Enable);
+	void SetInputQueue(const EInputType Input);
+	bool CheckInputQueue(const EInputType Input);
 #pragma endregion
 	
 #pragma region OverrideFunctions
@@ -49,22 +47,14 @@ protected:
 	virtual void BeginPlay() override;
 #pragma endregion
 
-#pragma region AnimationMontage
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Animations")
-	TObjectPtr<UAnimMontage> AttackMontage;
-#pragma endregion
-	
-	
-#pragma region Owner
-protected:
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Owner")
-	TObjectPtr<APlayerCharacter> OwningCharacter;
-#pragma endregion
-
 #pragma region Settings
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	uint8 bDebugMode:1 {false};
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	FName TopSocketName {"Top"};
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	FName BottomSocketName {"Bottom"};
 #pragma endregion
 	
 #pragma region Cached
