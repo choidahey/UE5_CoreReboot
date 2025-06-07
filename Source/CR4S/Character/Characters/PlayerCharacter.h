@@ -28,7 +28,7 @@ public:
 
 #pragma region Get
 	FORCEINLINE UStaticMeshComponent* GetOverlayStaticMesh() { return OverlayStaticMesh; }
-
+	FORCEINLINE UStaticMesh* GetToolStaticMesh() { return ToolStaticMesh; }
 	UFUNCTION(BlueprintCallable)
 	void SetToolStaticMesh(UStaticMesh* InMesh);
 #pragma endregion

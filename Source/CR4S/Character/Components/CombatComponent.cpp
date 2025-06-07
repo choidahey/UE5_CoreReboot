@@ -9,12 +9,7 @@
 
 
 // Sets default values for this component's properties
-UCombatComponent::UCombatComponent():
-	bInputEnable(true),
-	bWeaponTrace(false),
-	PreviousTopLocation(FVector()),
-	PreviousBottomLocation(FVector()),
-	CurrentInputQueue(EInputType::None)
+UCombatComponent::UCombatComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -34,6 +29,8 @@ void UCombatComponent::PerformWeaponTrace()
 	if (!bWeaponTrace) return;
 	UStaticMeshComponent* Weapon=OwningCharacter->GetOverlayStaticMesh();
 	if (!Weapon) return;
+	UStaticMesh* ToolMesh=OwningCharacter->GetToolStaticMesh();
+	if (!CR4S_ENSURE(LogHong1,ToolMesh)) return;
 	//Socket Location
 	FVector CurrentTop=Weapon->GetSocketLocation("Top");
 	FVector CurrentBottom=Weapon->GetSocketLocation("Bottom");
@@ -91,8 +88,9 @@ void UCombatComponent::PerformWeaponTrace()
 	PreviousTopLocation=CurrentTop;
 	PreviousBottomLocation=CurrentBottom;
 
+	if (!bDebugMode) return;
 	const FVector BoxCenter = CurrentBottom + Delta * 0.5f;
-	//DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
+	DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
 }
 
 void UCombatComponent::SetInputEnable(bool Enable)

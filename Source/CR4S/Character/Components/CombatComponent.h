@@ -61,15 +61,21 @@ protected:
 	TObjectPtr<APlayerCharacter> OwningCharacter;
 #pragma endregion
 
+#pragma region Settings
+protected:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	uint8 bDebugMode:1 {false};
+#pragma endregion
+	
 #pragma region Cached
-	uint8 bInputEnable:1;
-	uint8 bWeaponTrace:1;
-	FVector PreviousTopLocation;
-	FVector PreviousBottomLocation;
+	uint8 bInputEnable:1 {true};
+	uint8 bWeaponTrace:1 {false};
+	FVector PreviousTopLocation {};
+	FVector PreviousBottomLocation {};
 	UPROPERTY()
 	TSet<AActor*> AlreadyDamagedActors;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Input")
-	EInputType CurrentInputQueue;
+	EInputType CurrentInputQueue {EInputType::None};
 #pragma endregion
 
 #pragma region Buffer
