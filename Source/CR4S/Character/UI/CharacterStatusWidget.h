@@ -6,10 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterStatusWidget.generated.h"
 
-class UProgressBar;
-/**
- * 
- */
+class UProgressBarWidget;
+
 UCLASS()
 class CR4S_API UCharacterStatusWidget : public UUserWidget
 {
@@ -21,25 +19,34 @@ public:
 #pragma region Update
 	UFUNCTION(BlueprintCallable)
 	void UpdateHP(const float InPercentage);
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateResource(const float InPercentage);
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateEnergy(const float InPercentage);
+
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateHunger(const float InPercentage);
+	void UpdateStun(const float InPercentage);
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateStamina(const float InPercentage);
-
+	void ToggleWidgetMode(const bool bIsRobot);
 #pragma endregion
 	
 #pragma region Widgets
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> HP;
+	TObjectPtr<UProgressBarWidget> HP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Hunger;
-
+	TObjectPtr<UProgressBarWidget> Resource;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBar> Stamina;
-
+	TObjectPtr<UProgressBarWidget> Energy;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
+	TObjectPtr<UProgressBarWidget> Stun;
 #pragma endregion
 };
+

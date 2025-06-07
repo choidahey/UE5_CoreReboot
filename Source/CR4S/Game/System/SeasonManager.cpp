@@ -107,7 +107,7 @@ void USeasonManager::ChangeToNextSeason()
 		NextSeason = ESeasonType::BountifulSeason; // Loop back to the first season
 	}
 
-	SetCurrentSeason(NextSeason);
+	SetCurrentSeason(NextSeason);	
 	OnSeasonChanged.Broadcast(NextSeason);
 }
 

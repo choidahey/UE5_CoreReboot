@@ -39,42 +39,47 @@ void ACropsGimmick::BeginPlay()
 		DefaultInteractionText = InteractableComponent->GetInteractionText();
 	}
 
-	FCropsGimmickData* CropsGimmickData = nullptr;
+	const FCropsGimmickData* CropsGimmickData = nullptr;
 	if (const FGimmickInfoData* GimmickInfoData = GetGimmickInfoData())
 	{
 		const UDataTable* DataTable = GimmickInfoData->DetailData.DataTable;
-		FName RowName = GimmickInfoData->DetailData.RowName;
-		CropsGimmickData = DataTable->FindRow<FCropsGimmickData>(RowName, TEXT("CropsGimmickData"));
+		if (IsValid(DataTable))
+		{
+			const FName RowName = GimmickInfoData->DetailData.RowName;
+			CropsGimmickData = DataTable->FindRow<FCropsGimmickData>(RowName, TEXT("CropsGimmickData"));
+		}
 	}
 
-	if (CR4S_VALIDATE(LogGimmick, GrowthMeshes.Num() > 0))
+	if (CR4S_VALIDATE(LogGimmick, CropsGimmickData))
 	{
-		if (!bIsHarvestable)
-		{
-			if (IsValid(GrowthMeshes[0]))
-			{
-				GimmickMeshComponent->SetStaticMesh(GrowthMeshes[0]);
+		CropsMeshes = CropsGimmickData->CropsMeshes;
 
-				if (CropsGimmickData)
+		if (CR4S_VALIDATE(LogGimmick, CropsMeshes.Num() > 0))
+		{
+			if (!bIsHarvestable)
+			{
+				if (IsValid(CropsMeshes[0]))
 				{
+					GimmickMeshComponent->SetStaticMesh(CropsMeshes[0]);
+
 					GrowthTimeMinutes = CropsGimmickData->GrowthRate;
 					ElapsedSeconds = 0;
 					CurrentStage = 0;
 					TotalGrowthSeconds = GrowthTimeMinutes * 60;
-					MaxStageCount = GrowthMeshes.Num() - 1;
+					MaxStageCount = CropsMeshes.Num() - 1;
 					StageDuration = TotalGrowthSeconds / (MaxStageCount);
 					CurrentGrowthPercent = 0.f;
 
 					BindDelegate();
 				}
 			}
-		}
-		else
-		{
-			if (IsValid(GrowthMeshes.Last()))
+			else
 			{
-				GimmickMeshComponent->SetStaticMesh(GrowthMeshes.Last());
-				CurrentGrowthPercent = 100.f;
+				if (IsValid(CropsMeshes.Last()))
+				{
+					GimmickMeshComponent->SetStaticMesh(CropsMeshes.Last());
+					CurrentGrowthPercent = 100.f;
+				}
 			}
 		}
 	}
@@ -136,7 +141,7 @@ void ACropsGimmick::Harvest(const AActor* Interactor)
 
 void ACropsGimmick::Grow(int64 PlayTime)
 {
-	if (GrowthMeshes.Num() < 2 || TotalGrowthSeconds <= 0.f)
+	if (CropsMeshes.Num() < 2 || TotalGrowthSeconds <= 0.f)
 	{
 		return;
 	}
@@ -182,9 +187,9 @@ void ACropsGimmick::UpdateGrowthStage()
 	if (NewStage != CurrentStage)
 	{
 		CurrentStage = NewStage;
-		if (GrowthMeshes.IsValidIndex(CurrentStage) && GrowthMeshes[CurrentStage])
+		if (CropsMeshes.IsValidIndex(CurrentStage) && CropsMeshes[CurrentStage])
 		{
-			GimmickMeshComponent->SetStaticMesh(GrowthMeshes[CurrentStage]);
+			GimmickMeshComponent->SetStaticMesh(CropsMeshes[CurrentStage]);
 
 			if (CurrentStage == MaxStageCount)
 			{

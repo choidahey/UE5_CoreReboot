@@ -46,6 +46,8 @@ struct FCropsGimmickData : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "작물 스태틱 메시 목록"))
+	TArray<TObjectPtr<UStaticMesh>> CropsMeshes;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 감속 온도 최소 임계값"))
 	int32 HeatMinThreshold = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 감속 온도 최대 임계값"))
@@ -64,6 +66,8 @@ struct FCropsGimmickData : public FTableRowBase
 	bool bIsDay = false;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "밤 일때 성장 가속", EditCondition = "bUseGrowthBoost"))
 	bool bIsNight = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "비료 사용시 성장 가속", EditCondition = "bUseGrowthBoost"))
+	bool bUseFertilizer = false;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최솟값", EditCondition = "bUseGrowthBoost"))
 	int32 HeatMinValue = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최댓값", EditCondition = "bUseGrowthBoost"))

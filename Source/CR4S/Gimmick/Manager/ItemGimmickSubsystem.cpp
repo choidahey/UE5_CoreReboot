@@ -58,14 +58,22 @@ const FGimmickInfoData* UItemGimmickSubsystem::FindGimmickInfoData(const FName& 
 	return FindDataFromDataTable<FGimmickInfoData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
-void UItemGimmickSubsystem::SpawnItemPouch(const AActor* ResourceOwner, const TMap<FName, int32>& RemainingItems)
+void UItemGimmickSubsystem::SpawnItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems,
+                                           const float ForwardOffset)
 {
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(SourceActor)))
+	{
+		return;
+	}
+
+	const FVector ForwardOffsetVector = SourceActor->GetActorForwardVector() + ForwardOffset;
+
 	const AItemPouchGimmick* ItemPouch
 		= SpawnGimmickByRowName<AItemPouchGimmick>("ItemPouch",
-		                                           ResourceOwner->GetActorLocation(),
-		                                           ResourceOwner->GetActorRotation());
+		                                           SourceActor->GetActorLocation() + ForwardOffsetVector,
+		                                           SourceActor->GetActorRotation());
 
-	ItemPouch->InitItemPouch(RemainingItems);
+	ItemPouch->InitItemPouch(SourceActor, RemainingItems);
 }
 
 ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FVector& SpawnLocation,
