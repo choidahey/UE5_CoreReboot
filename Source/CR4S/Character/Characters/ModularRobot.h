@@ -11,6 +11,8 @@ class URobotCombatComponent;
 class UModularRobotStatusComponent;
 class APlayerCharacter;
 class UInteractableComponent;
+class UEnvironmentalStatusComponent;
+class UGridDetectionComponent;
 class UInputAction;
 class UInputMappingContext;
 class USpringArmComponent;
@@ -120,6 +122,11 @@ private:
 	TObjectPtr<URobotCombatComponent> RobotCombat;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UGridDetectionComponent> GridDetection;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+
 #pragma endregion
 
 #pragma region Cached
