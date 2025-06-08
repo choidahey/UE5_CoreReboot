@@ -9,7 +9,7 @@
 bool USeasonManager::ShouldCreateSubsystem(UObject* Outer) const
 {
 	UWorld* World = Cast<UWorld>(Outer);
-	if (World && World->GetName() == TEXT("SurvivalLevel"))
+	if (World && World->GetName() == TEXT("SurvivalLevel_1"))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: ShouldCreateSubsystem called for SurvivalLevel"));
 		return true;  // Creates this subsystem only in the SurvivalLevel world
@@ -214,7 +214,10 @@ void USeasonManager::SpawnSeasonBoss()
 		SpawnedBoss->Destroy();
 	}
 
-	SpawnedBoss = World->SpawnActor<ASeasonBossMonster>(BossClass, FinalSpawnLocation, FRotator::ZeroRotator);
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
+	SpawnedBoss = World->SpawnActor<ASeasonBossMonster>(BossClass, FinalSpawnLocation, FRotator::ZeroRotator, Params);
 	if (SpawnedBoss)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: Spawned boss for season %s"), *UEnum::GetValueAsString(CurrentSeason));

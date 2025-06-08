@@ -55,7 +55,10 @@ AActor* ASpawnZoneVolume::SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass,
     UWorld* World = GetWorld();
     if (!World || !SpawnClass) return nullptr;
 
-    AActor* Spawned = World->SpawnActor<AActor>(SpawnClass, Location, FRotator::ZeroRotator);
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    
+    AActor* Spawned = World->SpawnActor<AActor>(SpawnClass, Location, FRotator::ZeroRotator, Params);
     if (Spawned)
     {
         if (Spawned->GetClass()->ImplementsInterface(USpawnable::StaticClass()))
@@ -221,8 +224,8 @@ bool ASpawnZoneVolume::TryGetGroundSpawnLocation(const FVector2D& Point2D, FVect
     UWorld* World = GetWorld();
     if (!World) return false;
 
-    FVector Start(Point2D.X, Point2D.Y, 10000.f);
-    FVector End(Point2D.X, Point2D.Y, -10000.f);
+    FVector Start(Point2D.X, Point2D.Y, 0.0f);
+    FVector End(Point2D.X, Point2D.Y, -30000.f);
     FHitResult Hit;
     FCollisionQueryParams Params;
     Params.bTraceComplex = true;
@@ -252,6 +255,7 @@ FBox2D ASpawnZoneVolume::CalculateSplineBounds2D() const
     return Bounds2D;
 }
 
+#if WITH_EDITOR
 void ASpawnZoneVolume::DrawDebugLines()
 {
     const float Interval = 200.f;
@@ -280,3 +284,4 @@ void ASpawnZoneVolume::DrawDebugLines()
         bHasPrev = true;
     }
 }
+#endif
