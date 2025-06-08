@@ -59,7 +59,9 @@ void USpawnZoneManager::RegisterZone(ASpawnZoneVolume* Zone, const FBox2D& Bound
         {
             FIntPoint Coord(X, Y);
             GridToZones.FindOrAdd(Coord).Add(Zone);
+#if WITH_EDITOR
             DrawDebugGridCell(Coord, FColor::Green, true, 10.0f, 5.0f);
+#endif
         }
     }
 
