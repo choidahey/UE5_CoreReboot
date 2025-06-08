@@ -96,6 +96,12 @@ public:
 	FORCEINLINE float GetWoodDamagePerSecond() const { return CurrentStats.WoodDamagePerSecond; }
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetRockPerSecond() const { return CurrentStats.RockDamagePerSecond; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetRepairingPerSecond() const { return CurrentStats.RepairingPerSecond; }
+
+	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 #pragma endregion
 
