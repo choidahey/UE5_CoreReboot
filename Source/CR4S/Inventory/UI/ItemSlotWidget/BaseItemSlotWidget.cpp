@@ -8,6 +8,7 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
+#include "Inventory/UI/ItemTooltipWidget.h"
 #include "Inventory/UI/InventoryWidget/BaseInventoryWidget.h"
 
 const TArray<FKey> UBaseItemSlotWidget::QuickSlotKeys = {
@@ -30,7 +31,8 @@ UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitial
 	  bCanDrag(true),
 	  bCanDrop(true),
 	  bCanRemoveItem(true),
-	  bCanMoveItem(true)
+	  bCanMoveItem(true),
+	  bCanUseItemTooltip(true)
 {
 }
 
@@ -53,6 +55,11 @@ void UBaseItemSlotWidget::NativeConstruct()
 void UBaseItemSlotWidget::InitSlotWidget(const int32 NewSlotIndex)
 {
 	SlotIndex = NewSlotIndex;
+
+	if (IsValid(RootWidget))
+	{
+		RootWidget->ToolTipWidgetDelegate.BindDynamic(this, &ThisClass::ShowToolTip);
+	}
 }
 
 void UBaseItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget,
@@ -287,7 +294,7 @@ FReply UBaseItemSlotWidget::NativeOnKeyDown(const FGeometry& InGeometry, const F
 	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
 
-void UBaseItemSlotWidget::UnEquipItem(const UBaseInventoryComponent* QuickSlotInventoryComponent,const int32 Index)
+void UBaseItemSlotWidget::UnEquipItem(const UBaseInventoryComponent* QuickSlotInventoryComponent, const int32 Index)
 {
 	if (CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotInventoryComponent)))
 	{
@@ -298,4 +305,23 @@ void UBaseItemSlotWidget::UnEquipItem(const UBaseInventoryComponent* QuickSlotIn
 			ToolItem->UnEquipItem();
 		}
 	}
+}
+
+UWidget* UBaseItemSlotWidget::ShowToolTip()
+{
+	if (!bCanUseItemTooltip ||
+		!CR4S_VALIDATE(LogInventoryUI, ItemTooltipWidgetClass) ||
+		!IsValid(CurrentItem))
+	{
+		return nullptr;
+	}
+
+	if (!IsValid(ItemTooltipWidget))
+	{
+		ItemTooltipWidget = CreateWidget<UItemTooltipWidget>(this, ItemTooltipWidgetClass);
+	}
+
+	ItemTooltipWidget->InitWidget(CurrentItem->GetInventoryItemData()->ItemInfoData);
+
+	return ItemTooltipWidget;
 }

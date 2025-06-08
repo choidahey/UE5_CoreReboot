@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UItemTooltipWidget;
 class UBaseInventoryWidget;
 class UInventoryContainerWidget;
 class UDummyItemSlotWidget;
@@ -57,6 +58,8 @@ protected:
 #pragma region BindWidget
 
 private:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWidget> RootWidget;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> HoverImage;
 	UPROPERTY(meta = (BindWidget))
@@ -126,4 +129,23 @@ protected:
 	static const TArray<FKey> QuickSlotKeys;
 	
 #pragma endregion
+
+#pragma region ToolTip
+
+public:
+	UFUNCTION()
+	UWidget* ShowToolTip();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "ItemTooltip")
+	bool bCanUseItemTooltip;
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "ItemTooltip")
+	TSubclassOf<UItemTooltipWidget> ItemTooltipWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UItemTooltipWidget> ItemTooltipWidget;
+
+#pragma endregion 
 };
