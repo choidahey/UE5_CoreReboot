@@ -23,7 +23,7 @@ class CR4S_API UDataLoaderSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	void LoadRobotSettingsData(FRobotSettings& OutSettingsInfo);
+	void LoadRobotSettingsData(FRobotSettings& OutSettingsInfo) const;
 	
 	template<typename T>
 	bool LoadWeaponInfoByTag(const FGameplayTag& Tag, T& OutInfo, FBaseWeaponInfo& OutBaseInfo)

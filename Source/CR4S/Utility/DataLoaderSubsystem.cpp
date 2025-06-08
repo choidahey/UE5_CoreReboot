@@ -19,7 +19,7 @@ void UDataLoaderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 }
 
-void UDataLoaderSubsystem::LoadRobotSettingsData(FRobotSettings& OutSettingsInfo)
+void UDataLoaderSubsystem::LoadRobotSettingsData(FRobotSettings& OutSettingsInfo) const
 {
 	OutSettingsInfo=RobotSettingsDataAsset->RobotSettings;
 }

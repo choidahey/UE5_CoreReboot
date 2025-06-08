@@ -21,8 +21,10 @@ public:
 	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	FName MountSocketName {FName("cockpit")};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
 	float DashStrength{3000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	float DashCooldown{1};
 };
 
 UCLASS()

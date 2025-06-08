@@ -304,13 +304,12 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
 	
 	FVector LaunchVelocity=DashDirection*RobotSettings.DashStrength;
-	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
 	LaunchCharacter(LaunchVelocity,true,false);
 	GetWorldTimerManager().SetTimer(
 		DashCooldownTimerHandle,
 		this,
 		&AModularRobot::ResetDashCooldown,
-		1.0f,
+		RobotSettings.DashCooldown,
 		false
 	);
 }
