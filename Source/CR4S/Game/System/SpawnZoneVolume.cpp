@@ -55,7 +55,10 @@ AActor* ASpawnZoneVolume::SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass,
     UWorld* World = GetWorld();
     if (!World || !SpawnClass) return nullptr;
 
-    AActor* Spawned = World->SpawnActor<AActor>(SpawnClass, Location, FRotator::ZeroRotator);
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    
+    AActor* Spawned = World->SpawnActor<AActor>(SpawnClass, Location, FRotator::ZeroRotator, Params);
     if (Spawned)
     {
         if (Spawned->GetClass()->ImplementsInterface(USpawnable::StaticClass()))
