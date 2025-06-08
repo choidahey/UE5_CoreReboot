@@ -9,7 +9,7 @@
 bool USeasonManager::ShouldCreateSubsystem(UObject* Outer) const
 {
 	UWorld* World = Cast<UWorld>(Outer);
-	if (World && World->GetName() == TEXT("SurvivalLevel"))
+	if (World && World->GetName() == TEXT("SurvivalLevel_1"))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: ShouldCreateSubsystem called for SurvivalLevel"));
 		return true;  // Creates this subsystem only in the SurvivalLevel world
