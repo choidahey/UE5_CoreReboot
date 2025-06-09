@@ -34,71 +34,62 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	UMonsterAnimComponent* AnimComp = OwnerPawn->FindComponentByClass<UMonsterAnimComponent>();
 	if (!IsValid(AnimComp)) return;
 
+	UMonsterStateComponent* StateComp = OwnerPawn->FindComponentByClass<UMonsterStateComponent>();
+	if (!IsValid(StateComp)) return;
+
 	const bool bIsAnyPlayingMontage = AnimComp->IsAnyMontagePlaying();
 	if (bIsAnyPlayingMontage) return;
 
+	float PlayerRadius = BB->GetValueAsFloat(PlayerAttackRadiusKey.SelectedKeyName);
+	float HouseRadius  = BB->GetValueAsFloat(HouseAttackRadiusKey.SelectedKeyName);
+
 	const FVector PawnLoc = OwnerPawn->GetActorLocation();
-
-	AActor* TargetPlayer = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
-	AActor* TargetHouse = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-
-	float DistanceToPlayer = TNumericLimits<float>::Max();
+	AActor* TargetPlayer = Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName));
+	AActor* TargetHouse  = Cast<AActor>(BB->GetValueAsObject(HouseActorKey.SelectedKeyName));
+	
 	if (IsValid(TargetPlayer))
 	{
-		DistanceToPlayer = FVector::Dist(PawnLoc, TargetPlayer->GetActorLocation());
-		bIsPlayerInAttackRange = (DistanceToPlayer <= AttackDistanceThreshold);
+		StateComp->SetState(EMonsterState::Attack);
+		// float DistToPlayer = FVector::Dist(PawnLoc, TargetPlayer->GetActorLocation());
+		// if (DistToPlayer > PlayerRadius)
+		// 	StateComp->SetState(EMonsterState::Chase);
+		// else
+		// 	StateComp->SetState(EMonsterState::Attack);
+		
+		// CR4S_Log(LogDa, Log,
+		// 	TEXT("[UpdateState] %s DistanceToPlayer = %f, Threshold = %f, bIsPlayerInAttackRange = %s"),
+		// 	*OwnerPawn->GetName(),
+		// 	DistToPlayer,
+		// 	PlayerRadius,
+		// 	DistToPlayer < PlayerRadius ? TEXT("True") : TEXT("False"));
 	}
-	
-	float DistanceToHouse = TNumericLimits<float>::Max();
-	if (IsValid(TargetHouse))
+	else if (IsValid(TargetHouse))
 	{
-		DistanceToHouse = FVector::Dist(PawnLoc, TargetHouse->GetActorLocation());
-		bIsHouseInAttackRange = (DistanceToHouse <= AttackDistanceThreshold);
-
-		CR4S_Log(LogDa, Log,
-			TEXT("[UpdateState] DistanceToHouse = %f, Threshold = %f, bIsHouseInAttackRange = %s"),
-			DistanceToHouse,
-			AttackDistanceThreshold,
-			bIsHouseInAttackRange ? TEXT("True") : TEXT("False"));
+		StateComp->SetState(EMonsterState::AttackHouse);
+		// float DistToHouse = FVector::Dist(PawnLoc, TargetHouse->GetActorLocation());
+		// if (DistToHouse > HouseRadius)
+		// 	StateComp->SetState(EMonsterState::MoveToHouse);
+		// else
+		// 	StateComp->SetState(EMonsterState::AttackHouse);
+		//
+		// CR4S_Log(LogDa, Log,
+		// 	TEXT("[UpdateState] %s DistanceToHouse = %f, Threshold = %f, bIsHouseInAttackRange = %s"),
+		// 	*OwnerPawn->GetName(),
+		// 	DistToHouse,
+		// 	HouseRadius,
+		// 	DistToHouse < HouseRadius ? TEXT("True") : TEXT("False"));
 	}
 	else
 	{
+		if (AActor* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0))
+			BB->SetValueAsObject(FAIKeys::TargetActor, PlayerPawn);
+
+		// StateComp->SetState(EMonsterState::Chase);
+		StateComp->SetState(EMonsterState::Attack);
 		CR4S_Log(LogDa, Log, TEXT("[UpdateState] TargetHouse is invalid or nullptr"));
 	}
 
-	if (UMonsterStateComponent* StateComp = OwnerPawn->FindComponentByClass<UMonsterStateComponent>())
-	{
-		if (IsValid(TargetPlayer))
-		{
-			if (bIsPlayerInAttackRange)
-			{
-				StateComp->SetState(EMonsterState::Attack);
-			}
-			else
-			{
-				StateComp->SetState(EMonsterState::Chase);
-			}
-				
-		}
-		else if (IsValid(TargetHouse))
-		{
-			if (bIsHouseInAttackRange)
-			{
-				StateComp->SetState(EMonsterState::AttackHouse);
-			}
-			else
-			{
-				StateComp->SetState(EMonsterState::MoveToHouse);
-			}
-		}
-		else
-		{
-			if (AActor* Player = Cast<AActor>(UGameplayStatics::GetPlayerPawn(OwnerPawn->GetWorld(), 0)))
-				BB->SetValueAsObject(FAIKeys::TargetActor, Player);
-
-			StateComp->SetState(EMonsterState::Chase);
-		}
-
-		CR4S_Log(LogDa, Log, TEXT("[UpdateState] Current State : %d"), BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));
-	}
+	CR4S_Log(LogDa, Log, TEXT("[UpdateState] %s Current State : %d"),
+			*OwnerPawn->GetName(),
+			BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));
 }

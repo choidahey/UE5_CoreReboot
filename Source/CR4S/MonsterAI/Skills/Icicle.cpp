@@ -8,6 +8,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "MonsterAI/BaseMonster.h"
 
 AIcicle::AIcicle()
@@ -148,7 +149,7 @@ void AIcicle::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 {
 	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator()) return;
 
-	if (Cast<ABaseMonster>(OtherActor)) return;
+	if (Cast<ABaseMonster>(OtherActor) || Cast<AAnimalMonster>(OtherActor)) return;
 
 	UGameplayStatics::ApplyDamage(
 		OtherActor,

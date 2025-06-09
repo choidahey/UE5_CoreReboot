@@ -1,9 +1,7 @@
 #include "MonsterAI/Task/Season/BTService_CheckNearestHouse.h"
-
 #include "AIController.h"
 #include "CR4S.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
@@ -33,7 +31,8 @@ void UBTService_CheckNearestHouse::OnBecomeRelevant(UBehaviorTreeComponent& Owne
 	const FVector OwnerPawnLoc = CachedOwnerPawn->GetActorLocation();
 	AActor* NearestHouse = FindNearestHouse(OwnerPawnLoc);
 
-	BlackboardComp->SetValueAsObject(FSeasonBossAIKeys::NearestHouseActor, NearestHouse);
+	BlackboardComp->SetValueAsObject(NearestHouseActor.SelectedKeyName, NearestHouse);
+	BlackboardComp->SetValueAsFloat(HouseAcceptanceRadiusKey.SelectedKeyName, CalculateActorRadius(NearestHouse));
 }
 
 void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -82,4 +81,18 @@ AActor* UBTService_CheckNearestHouse::FindNearestHouse(const FVector& PlayerLoca
 	}
 
 	return NearestActor;
+}
+
+float UBTService_CheckNearestHouse::CalculateActorRadius(const AActor* InActor) const
+{
+	if (!IsValid(InActor))
+		return 0.f;
+	
+	FVector Center, BoxExtent;
+	InActor->GetActorBounds(false, Center, BoxExtent);
+	const float BaseRadius = BoxExtent.GetMax();
+
+	CR4S_Log(LogDa, Log, TEXT("house Radius : %f"), BaseRadius + RadiusOffset);
+
+	return BaseRadius + RadiusOffset;
 }

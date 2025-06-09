@@ -18,6 +18,15 @@ UBTTaskNode_MoveToTargetDynamic::UBTTaskNode_MoveToTargetDynamic()
 	bCreateNodeInstance = true;
 }
 
+float UBTTaskNode_MoveToTargetDynamic::GetCurrentAcceptanceRadius(const FName KeyName, UBlackboardComponent* BB) const
+{
+	if (!BB)
+	{
+		return DefaultAcceptanceRadius;
+	}
+	return BB->GetValueAsFloat(KeyName);
+}
+
 EBTNodeResult::Type UBTTaskNode_MoveToTargetDynamic::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIC = OwnerComp.GetAIOwner();
@@ -34,20 +43,26 @@ EBTNodeResult::Type UBTTaskNode_MoveToTargetDynamic::ExecuteTask(UBehaviorTreeCo
 	
     if (!IsValid(TargetActor))
     {
-    	AActor* PlayerPawn = UGameplayStatics::GetPlayerPawn(OwnerComp.GetWorld(), 0);
-    	
-    	if (IsValid(PlayerPawn))
-    		TargetActor = PlayerPawn;
-    	else
+    	TargetActor = UGameplayStatics::GetPlayerPawn(OwnerComp.GetWorld(), 0);
+    	if (!IsValid(TargetActor))
+    	{
     		return EBTNodeResult::Failed;
+    	}
     }
 
-	if (UMonsterStateComponent* StateComp = OwnerPawn->FindComponentByClass<UMonsterStateComponent>())
-		StateComp->SetState(MovementState);
+	float Radius = DefaultAcceptanceRadius;
+	if (KeyName == FAIKeys::TargetActor)
+	{
+		Radius = GetCurrentAcceptanceRadius(PlayerAcceptanceRadiusKey.SelectedKeyName, BB);
+	}
+	else if (KeyName == FSeasonBossAIKeys::NearestHouseActor)
+	{
+		Radius = GetCurrentAcceptanceRadius(HouseAcceptanceRadiusKey.SelectedKeyName, BB);
+	}
 	
 	EPathFollowingRequestResult::Type PFResult = AIC->MoveToActor(
 		TargetActor,
-		AcceptanceRadius,
+		Radius,
 		false,
 		true,
 		true,
@@ -100,15 +115,34 @@ void UBTTaskNode_MoveToTargetDynamic::TickTask(UBehaviorTreeComponent& OwnerComp
 			return;
 		}
 	}
-
-	if (UMonsterStateComponent* StateComp = SelfPawn->FindComponentByClass<UMonsterStateComponent>())
+	
+	float Radius = DefaultAcceptanceRadius;
+	if (KeyName == FAIKeys::TargetActor)
 	{
-		StateComp->SetState(MovementState);
+		Radius = GetCurrentAcceptanceRadius(PlayerAcceptanceRadiusKey.SelectedKeyName, BB);
+	}
+	else if (KeyName == FSeasonBossAIKeys::NearestHouseActor)
+	{
+		Radius = GetCurrentAcceptanceRadius(HouseAcceptanceRadiusKey.SelectedKeyName, BB);
 	}
 	
 	const float Dist = FVector::Dist(SelfPawn->GetActorLocation(), TargetActor->GetActorLocation());
-	if (Dist <= AcceptanceRadius)
+	
+	CR4S_Log(LogDa, Log,
+		TEXT("[MoveToTargetDynamic] %s %s Dist = %.2f, Radius = %.2f"),
+		*SelfPawn->GetName(),
+		*TargetActor->GetName(),
+		Dist,
+		Radius
+	);
+	
+	if (Dist <= Radius)
 	{
+		CR4S_Log(LogDa, Log,
+			TEXT("[MoveToTargetDynamic] %s Arrived!"),
+			*SelfPawn->GetName()
+		);
+		
 		AIC->StopMovement();
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;
