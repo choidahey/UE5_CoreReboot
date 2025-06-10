@@ -23,6 +23,9 @@ public :
 	void LaunchProjectile(const FVector& TargetLocation, float Speed);
 	void SetBossActor(AActor* InBoss, FName InSocket);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
+	FVector ProjectileScale = FVector(1.0f);
+
 protected:
 	UFUNCTION()
 	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

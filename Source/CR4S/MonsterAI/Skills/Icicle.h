@@ -32,7 +32,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	USceneComponent* RootComp;
-
+	
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* NiagaraComp;
 

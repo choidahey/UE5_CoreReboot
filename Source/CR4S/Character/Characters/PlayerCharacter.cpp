@@ -9,6 +9,8 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Gimmick/Components/InteractionComponent.h"
+#include "Character/Components/GridDetectionComponent.h"
+#include "Character/Components/EnvironmentalStatusComponent.h"
 #include "UI/InGame/DefaultInGameWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
@@ -35,7 +37,8 @@ APlayerCharacter::APlayerCharacter()
 	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
 
 	Interaction=CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
-
+	GridDetection = CreateDefaultSubobject<UGridDetectionComponent>(TEXT("GridDetection"));
+	EnvironmentalStatus = CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 
 	NavGenerationRadius = 2000.0f;
 	NavRemovalRadius = 2500.0f;
@@ -177,6 +180,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	
 	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Default")));
 	SetOverlayMode(CurrentTag);
+
+	Interaction->StartDetectProcess();
 	
 	InitializeWidgets();
 }

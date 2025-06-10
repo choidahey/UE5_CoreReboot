@@ -57,7 +57,8 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage)
 
 	if (CollisionComponent)
 	{
-		if (AActor* OwnerActor=GetOwner())
+		AActor* OwnerActor=GetOwner();
+		if (CR4S_ENSURE(LogHong1,OwnerActor))
 		{
 			CollisionComponent->IgnoreActorWhenMoving(OwnerActor,true);
 		}
@@ -114,13 +115,15 @@ void ABaseBullet::OnOverlapBegin(
 	}
 	if (BulletInfo.ImpactParticle)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(
+		UParticleSystemComponent* PSC=UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),
 			BulletInfo.ImpactParticle,
 			OverlapLocation,
 			FRotator::ZeroRotator,
 			true
 		);
+		if (!CR4S_ENSURE(LogHong1,PSC)) return;
+		PSC->bAutoDestroy=true;
 	}
 	if (BulletInfo.ImpactSound)
 	{

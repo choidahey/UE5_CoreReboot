@@ -20,6 +20,7 @@ void UAnimNotifyState_ThrowProjectile::NotifyBegin(USkeletalMeshComponent* MeshC
 	ARotatingProjectile* Projectile = OwnerBoss->GetWorld()->SpawnActor<ARotatingProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, Params);
 	if (!Projectile) return;
 
+	Projectile->SetActorScale3D(Projectile->ProjectileScale);
 	Projectile->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachSocketName);
 	SpawnedProjectiles.Add(OwnerBoss, Projectile);
 }

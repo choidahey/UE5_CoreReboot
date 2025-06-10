@@ -14,6 +14,8 @@ struct FInputActionValue;
 class UAlsCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UEnvironmentalStatusComponent;
+class UGridDetectionComponent;
 
 UCLASS(AutoExpandCategories = ("Settings|Player Character"))
 class CR4S_API APlayerCharacter : public AAlsCharacter
@@ -94,6 +96,12 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> OverlaySkeletalMesh;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UStaticMeshComponent> OverlayStaticMesh;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UGridDetectionComponent> GridDetection;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+
+
 #pragma endregion
 
 #pragma region InputActions

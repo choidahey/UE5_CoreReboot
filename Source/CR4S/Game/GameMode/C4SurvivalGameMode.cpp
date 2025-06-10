@@ -2,6 +2,16 @@
 #include "UI/InGame/SurvivalHUD.h"
 #include "Kismet/GameplayStatics.h"
 
+void AC4SurvivalGameMode::StartPlay()
+{
+    Super::StartPlay();
+
+    if (GameStartSFX)
+    {
+        UGameplayStatics::PlaySound2D(this, GameStartSFX);
+    }
+}
+
 void AC4SurvivalGameMode::ReturnToMenu()
 {
 	UGameplayStatics::OpenLevel(this, FName("MenuLevel"));

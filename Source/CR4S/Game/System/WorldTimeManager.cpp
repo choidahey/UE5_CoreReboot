@@ -7,7 +7,7 @@
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
     UWorld* World = Cast<UWorld>(Outer);
-    if (World && World->GetName() == TEXT("SurvivalLevel"))
+    if (World && World->GetName() == TEXT("SurvivalLevel_1"))
     {
 		return true;  // Creates this subsystem only in the SurvivalLevel world
     }

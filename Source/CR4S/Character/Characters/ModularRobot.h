@@ -11,6 +11,8 @@ class URobotCombatComponent;
 class UModularRobotStatusComponent;
 class APlayerCharacter;
 class UInteractableComponent;
+class UEnvironmentalStatusComponent;
+class UGridDetectionComponent;
 class UInputAction;
 class UInputMappingContext;
 class USpringArmComponent;
@@ -99,12 +101,14 @@ protected:
 	
 #pragma endregion
 
-#pragma region MountOffset
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
+#pragma region Settings
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	FName MountSocketName {FName("cockpit")};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	float DashStrength{3000};
 #pragma endregion
 	
 #pragma region Components
@@ -120,6 +124,11 @@ private:
 	TObjectPtr<URobotCombatComponent> RobotCombat;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UGridDetectionComponent> GridDetection;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+
 #pragma endregion
 
 #pragma region Cached

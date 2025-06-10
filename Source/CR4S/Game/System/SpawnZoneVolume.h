@@ -63,8 +63,11 @@ public:
     FBox2D CalculateSplineBounds2D() const;
 
     TArray<FVector2D> GetPolygonFromSpline() const;
-    
+
+#if WITH_EDITOR
     void DrawDebugLines();
+#endif
+
 #pragma endregion
 
 #pragma region Spawn, Despawn and Respawn
