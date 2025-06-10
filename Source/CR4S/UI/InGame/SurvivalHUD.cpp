@@ -11,6 +11,7 @@ void ASurvivalHUD::BeginPlay()
 	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 10, ESlateVisibility::Collapsed);
 	PauseWidget->OnResumeRequested.BindUObject(this, &ASurvivalHUD::HandlePauseToggle);
 
+	WorldMapWidget = CreateAndAddWidget<UWorldMapWidget>(WorldMapWidgetClass, 9, ESlateVisibility::Collapsed);
 }
 
 void ASurvivalHUD::PlayEndingSequence()
@@ -35,6 +36,25 @@ void ASurvivalHUD::HandlePauseToggle()
 	}
 
 	ToggleWidget(PauseWidget);
+}
+
+void ASurvivalHUD::HandleMapToggle()
+{
+	const bool bIsVisible = WorldMapWidget->GetVisibility() == ESlateVisibility::Visible;
+
+	if (bIsVisible)
+	{
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+		SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	}
+	else
+	{
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0001f);
+		SetInputMode(ESurvivalInputMode::GameAndUI, WorldMapWidget, true);
+		WorldMapWidget->UpdateWorldMap();
+	}
+
+	ToggleWidget(WorldMapWidget);
 }
 
 void ASurvivalHUD::ToggleWidget(UUserWidget* Widget)

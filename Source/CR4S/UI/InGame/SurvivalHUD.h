@@ -3,6 +3,7 @@
 #include "DefaultInGameWidget.h"
 #include "PauseWidget.h"
 #include "EndingSummaryWidget.h"
+#include "WorldMapWidget.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "SurvivalHUD.generated.h"
@@ -53,7 +54,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
 	TSubclassOf<UPauseWidget> PauseWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UWorldMapWidget> WorldMapWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UEndingSummaryWidget> EndingSummaryWidgetClass;
+
 
 #pragma endregion
 
@@ -63,6 +67,8 @@ protected:
 	TObjectPtr<UDefaultInGameWidget> InGameWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UPauseWidget> PauseWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UWorldMapWidget> WorldMapWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UEndingSummaryWidget> EndingWidget;
 
@@ -83,6 +89,8 @@ public:
 public:
 	UFUNCTION(BlueprintCallable) //for prototype
 	void HandlePauseToggle();
+	UFUNCTION(BlueprintCallable) //for prototype
+	void HandleMapToggle();
 
 	void PlayEndingSequence();
 
