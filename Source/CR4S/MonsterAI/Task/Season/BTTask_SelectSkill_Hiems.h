@@ -11,15 +11,9 @@ class CR4S_API UBTTask_SelectSkill_Hiems : public UBTTask_SelectSkill
 	
 public:
 	UBTTask_SelectSkill_Hiems();
-	
-	virtual int32 SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target) override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Task)
-	float IceRoadForwardTreshold = 1100.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Task)
-	float IceRoadAwayTreshold = 500.f;
+	virtual int32 SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target) override;
 	
 private:
 	void ReshuffleSkills(const TArray<int32>& AvailableSkills);

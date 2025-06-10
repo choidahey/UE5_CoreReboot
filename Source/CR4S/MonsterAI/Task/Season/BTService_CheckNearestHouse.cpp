@@ -30,9 +30,12 @@ void UBTService_CheckNearestHouse::OnBecomeRelevant(UBehaviorTreeComponent& Owne
 	CachedOwnerPawn = OwnerPawn;
 	const FVector OwnerPawnLoc = CachedOwnerPawn->GetActorLocation();
 	AActor* NearestHouse = FindNearestHouse(OwnerPawnLoc);
+	float HouseAttackRange = BlackboardComp->GetValueAsFloat(HouseAcceptanceRadiusKey.SelectedKeyName);
 
 	BlackboardComp->SetValueAsObject(NearestHouseActor.SelectedKeyName, NearestHouse);
-	BlackboardComp->SetValueAsFloat(HouseAcceptanceRadiusKey.SelectedKeyName, CalculateActorRadius(NearestHouse));
+	BlackboardComp->SetValueAsFloat(HouseAcceptanceRadiusKey.SelectedKeyName,
+		HouseAttackRange + CalculateActorRadius(NearestHouse)
+		);
 }
 
 void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
