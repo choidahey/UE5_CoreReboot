@@ -346,6 +346,7 @@ void UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int
 			else
 			{
 				Item->SetCurrentStackCount(ItemCount - RemainingCount);
+				RemainingCount = 0;
 			}
 
 			NotifyInventoryItemChanged(Index);

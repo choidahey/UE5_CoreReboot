@@ -43,7 +43,10 @@ void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewRes
 
 void UInteractableComponent::TryInteract(AActor* Interactor) const
 {
-	OnTryInteract.ExecuteIfBound(Interactor);
+	if (OnTryInteract.IsBound())
+	{
+		OnTryInteract.Broadcast(Interactor);
+	}
 }
 
 void UInteractableComponent::DetectionStateChanged(AActor* DetectingActor,
@@ -51,13 +54,16 @@ void UInteractableComponent::DetectionStateChanged(AActor* DetectingActor,
 {
 	SetHighlight(bIsDetected);
 
-	OnDetectionStateChanged.ExecuteIfBound(DetectingActor, bIsDetected);
+	if (OnDetectionStateChanged.IsBound())
+	{
+		OnDetectionStateChanged.Broadcast(DetectingActor, bIsDetected);
+	}
 }
 
 void UInteractableComponent::InitHighlightMaterial()
 {
 	const AActor* Owner = GetOwner();
-	
+
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(Owner)))
 	{
 		return;

@@ -69,7 +69,7 @@ public:
 
 	void SortInventoryItems();
 	UBaseInventoryItem* GetInventoryItemByIndex(const int32 Index) const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	int32 GetItemCountByRowName(const FName RowName) const;
 
@@ -77,6 +77,12 @@ public:
 	void MergeItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
+
+	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
+	FORCEINLINE void GetInventoryItems(TArray<UBaseInventoryItem*>& OutInventoryItems) const
+	{
+		OutInventoryItems = InventoryItems;
+	}
 
 	FORCEINLINE int32 GetMaxInventorySize() const { return MaxInventorySize; }
 

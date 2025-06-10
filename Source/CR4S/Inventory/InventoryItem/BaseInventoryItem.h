@@ -63,13 +63,13 @@ public:
 protected:
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
-	
+
 	UPROPERTY()
 	TObjectPtr<APlayerCharacter> OwnerPlayer;
 
 	UPROPERTY()
 	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
-	
+
 	UPROPERTY()
 	TObjectPtr<UPlayerCharacterStatusComponent> PlayerStatusComponent;
 
@@ -90,8 +90,15 @@ public:
 	void SetCurrentStackCount(const int32 NewStackCount);
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
+	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
+	FORCEINLINE void GetInventoryItemData(FInventoryItemData& OutInventoryItemData) const
+	{
+		OutInventoryItemData = InventoryItemData;
+	}
+
 	FORCEINLINE bool IsStackableItem() const { return InventoryItemData.IsStackableItem(); }
 	FORCEINLINE int32 GetMaxStackCount() const { return InventoryItemData.ItemInfoData.MaxStackCount; }
+	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
 	FORCEINLINE int32 GetCurrentStackCount() const { return CurrentStackCount; }
 	FORCEINLINE int32 IsEmpty() const { return CurrentStackCount <= 0; }
 

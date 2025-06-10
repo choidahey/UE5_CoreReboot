@@ -26,7 +26,7 @@ void ADoorGimmick::BeginPlay()
 
 	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
-		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
+		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
 
 	ClosedRotation = GetActorRotation();
