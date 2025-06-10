@@ -8,16 +8,10 @@ ABreathActor::ABreathActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	SetRootComponent(RootComp);
-
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
-	StaticMesh->SetupAttachment(RootComp);
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	BreathEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("BreathEffect"));
-	BreathEffect->SetupAttachment(RootComp);
-	BreathEffect->SetAutoActivate(false);
+	if (NiagaraComp)
+	{
+		NiagaraComp->SetAutoActivate(false);
+	}
 }
 
 void ABreathActor::BeginPlay()
@@ -54,21 +48,10 @@ void ABreathActor::InitializeSkill(USkeletalMeshComponent* InMesh, FName InSocke
 	FollowMesh = InMesh;
 	FollowSocketName = InSocketName;
 
-	if (AActor* SkillOwner = GetOwner())
-	{
-		UMonsterSkillComponent* SkillComponent = SkillOwner->FindComponentByClass<UMonsterSkillComponent>();
-		if (SkillComponent)
-		{
-			const FMonsterSkillData& Data = SkillComponent->GetCurrentSkillData();
-			Damage = Data.Damage;
-			bAllowMultipleHits = Data.bAllowMultipleHits;
-		}
-	}
-
 	if (StaticMesh)
 		StaticMesh->SetVisibility(true);
-	if (BreathEffect)
-		BreathEffect->DeactivateImmediate();
+	if (NiagaraComp)
+		NiagaraComp->DeactivateImmediate();
 
 	bIsInitialized = true;
 }
@@ -80,8 +63,8 @@ void ABreathActor::ActivateSkill()
 	if (StaticMesh)
 		StaticMesh->SetVisibility(false);
 
-	if (BreathEffect)
-		BreathEffect->Activate(true);
+	if (NiagaraComp)
+		NiagaraComp->Activate(true);
 
 	bIsActivated = true;
 	AlreadyDamaged.Empty();
@@ -104,9 +87,6 @@ void ABreathActor::DoDamage()
 
 	for (AActor* Target : HitActors)
 	{
-		if (!Target || AlreadyDamaged.Contains(Target)) continue;
-		if (Target == GetOwner()) continue;
-
 		const FVector ToTarget = Target->GetActorLocation() - Origin;
 		if (ToTarget.Size() > Range) continue;
 
@@ -114,20 +94,7 @@ void ABreathActor::DoDamage()
 		const float CosAngle = FMath::Cos(FMath::DegreesToRadians(Angle / 2.f));
 		if (Dot < CosAngle) continue;
 
-		UGameplayStatics::ApplyDamage(
-			Target,
-			Damage,
-			GetInstigatorController(),
-			this,
-			UDamageType::StaticClass()
-		);
-
-		if (!bAllowMultipleHits)
-		{
-			AlreadyDamaged.Add(Target);
-		}
-
-		UE_LOG(LogTemp, Log, TEXT("[BreathDamage] Hit %s"), *Target->GetName());
+		ApplyEffectToActor(Target);
 	}
 
 #if WITH_EDITOR

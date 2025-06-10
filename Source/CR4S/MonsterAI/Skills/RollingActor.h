@@ -1,14 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "MonsterAI/Skills/BaseSkillActor.h"
 #include "RollingActor.generated.h"
 
 class USphereComponent;
 class AGeometryCollectionActor;
 
 UCLASS()
-class CR4S_API ARollingActor : public AActor
+class CR4S_API ARollingActor : public ABaseSkillActor
 {
 	GENERATED_BODY()
 	
@@ -21,40 +21,30 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void Destroyed() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
-	TObjectPtr<UStaticMeshComponent> StaticMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
-	TObjectPtr<USphereComponent> CollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling|BreakEffect")
-	TSubclassOf<AGeometryCollectionActor> BreakGeometryClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
-	FVector ScaleFactor = FVector(1.0f);
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UStaticMeshComponent> RollingMesh;
 
 private:
-	UFUNCTION()
-	void OnRollingOverlap(
+	virtual	void OnOverlap(
 		UPrimitiveComponent* OverlappedComp,
-		AActor* Other,
+		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult
-	);
+	) override;
 
 	void BreakAndDestroy();
-
 
 #pragma region Rolling Attributes
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
-	float LaunchSpeed = 1200.f;
+	FVector ScaleFactor = FVector(1.0f);
 
-	UPROPERTY(EditAnywhere, Category = "Rolling")
-	float Damage = 300.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
+	float LaunchSpeed = 1200.f;
 
 	UPROPERTY(EditAnywhere, Category = "Rolling")
 	float MaxDistance = 3000.f;
@@ -64,9 +54,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Rolling|BreakEffect")
 	float ImpulseStrength = 1500.f;
-
-	UPROPERTY()
-	bool bHasBroken = false;
 
 	UPROPERTY(EditAnywhere, Category = "Rolling|Physics")
 	float RollingLinearDamping = 0.1f;
@@ -80,7 +67,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Rolling|Physics")
 	float MaxRollingAngularVelocity = 400.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling|BreakEffect")
+	TSubclassOf<AGeometryCollectionActor> BreakGeometryClass;
+
 private:
+	UPROPERTY()
+	bool bHasBroken = false;
+
 	FVector StartLocation;
 	FVector LastKnownVelocity;
 	FTimerHandle BreakTimerHandle;

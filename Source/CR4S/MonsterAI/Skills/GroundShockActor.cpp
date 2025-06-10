@@ -7,12 +7,11 @@
 
 AGroundShockActor::AGroundShockActor()
 {
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	RootComponent = RootComp;
-
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComp"));
-	NiagaraComp->SetupAttachment(RootComp);
-	NiagaraComp->SetAutoActivate(false);
+	if (NiagaraComp)
+	{
+		NiagaraComp->SetupAttachment(RootComp);
+		NiagaraComp->SetAutoActivate(false);
+	}
 }
 
 void AGroundShockActor::InitShock(const FRotator& FacingRot)
@@ -46,6 +45,7 @@ void AGroundShockActor::InitShock(const FRotator& FacingRot)
 			FVector RotatedDir = FacingRot.RotateVector(LocalDir);
 			FVector Pos = BaseLocation + RotatedDir * Radius;
 
+			// Ground Line Trace
 			FVector Start = Pos + FVector(0.f, 0.f, TraceHeightAbove);
 			FVector End = Pos - FVector(0.f, 0.f, TraceDepthBelow);
 
@@ -53,15 +53,20 @@ void AGroundShockActor::InitShock(const FRotator& FacingRot)
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(this);
 
+			if (GetInstigator())
+			{
+				Params.AddIgnoredActor(GetInstigator());
+			}
+
 			if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
 			{
 				Pos.Z = HitResult.ImpactPoint.Z;
 			}
 
+			// Create Capsule Components
 			UCapsuleComponent* Capsule = NewObject<UCapsuleComponent>(this);
 			Capsule->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
-			Capsule->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-			Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			Capsule->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 			Capsule->SetGenerateOverlapEvents(true);
 			Capsule->OnComponentBeginOverlap.AddDynamic(this, &AGroundShockActor::OnOverlap);
 
@@ -108,16 +113,6 @@ void AGroundShockActor::InitShock(const FRotator& FacingRot)
 void AGroundShockActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator()) return;
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-	if (AlreadyHitActors.Contains(OtherActor)) return;
-	AlreadyHitActors.Add(OtherActor);
-
-	UGameplayStatics::ApplyDamage(
-		OtherActor,
-		Damage,
-		GetInstigatorController(),
-		this,
-		UDamageType::StaticClass()
-	);
 }

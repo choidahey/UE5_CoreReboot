@@ -9,32 +9,16 @@ ALightningStrikeActor::ALightningStrikeActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	SetRootComponent(RootComp);
+	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LightningCollider"));
+	CollisionComp->SetupAttachment(RootComp);
 
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LightningEffect"));
-	NiagaraComp->SetupAttachment(RootComp);
-	NiagaraComp->SetAutoActivate(false);
-
-	LightningCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LightningCollider"));
-	LightningCollider->SetupAttachment(RootComp);
-
-	LightningCollider->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	LightningCollider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	LightningCollider->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	LightningCollider->SetGenerateOverlapEvents(true);
-
-	LightningCollider->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnOverlap);
-}
-
-void ALightningStrikeActor::BeginPlay()
-{
-	Super::BeginPlay();
+	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
+	CollisionComp->SetGenerateOverlapEvents(true);
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnOverlap);
 }
 
 void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect, float DamageAmount)
 {
-	Damage = DamageAmount;
 	FVector GroundTarget = TargetLocation;
 
 	FVector Start = GroundTarget + FVector(0.f, 0.f, TraceHeightAbove);
@@ -55,42 +39,33 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 	const float CapsuleHalfHeight = CapsuleHeight * 0.5f;
 	const float CapsuleCenterZ = CapsuleBottomZ + CapsuleHalfHeight;
 
-	SetActorLocation(FVector(TargetLocation.X, TargetLocation.Y, CapsuleCenterZ));
-	LightningCollider->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
+	SetActorLocation(GroundTarget);
 
-	if (LightningEffect)
+	UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(CollisionComp);
+	if (Capsule)
+	{
+		Capsule->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
+		Capsule->SetRelativeLocation(FVector(0.f, 0.f, CapsuleHalfHeight));
+	}
+
+	if (LightningEffect && NiagaraComp)
 	{
 		NiagaraComp->SetAsset(LightningEffect);
 		NiagaraComp->SetWorldScale3D(FVector(10.f));
 		NiagaraComp->SetVariableFloat(FName("User_Width"), LightningWidth);
+		NiagaraComp->SetWorldLocation(GroundTarget);
 		NiagaraComp->Activate(true);
 	}
 
-	if (IsValid(LightningCollider))
-	{
-		TArray<AActor*> OverlappingActors;
-		LightningCollider->GetOverlappingActors(OverlappingActors, APawn::StaticClass());
-
-		for (AActor* Overlapped : OverlappingActors)
-		{
-			FHitResult DummyHit;
-
-			OnOverlap(
-				LightningCollider,
-				Overlapped,
-				nullptr,
-				INDEX_NONE,
-				false,
-				DummyHit
-			);
-		}
 #if WITH_EDITOR
+	if (IsValid(CollisionComp))
+	{
 		DrawDebugCapsule(
 			GetWorld(),
-			LightningCollider->GetComponentLocation(),
+			CollisionComp->GetComponentLocation(),
 			CapsuleHalfHeight,
 			CapsuleRadius,
-			LightningCollider->GetComponentQuat(),
+			CollisionComp->GetComponentQuat(),
 			FColor::Red,
 			false,
 			2.f,
@@ -113,19 +88,7 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 void ALightningStrikeActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == GetInstigator() || OtherActor == GetOwner()) return;
-	if (OtherActor->FindComponentByClass<UMonsterAttributeComponent>()) return;
-	if (DamagedActors.Contains(OtherActor)) return;
-
-	UGameplayStatics::ApplyDamage(
-		OtherActor,
-		Damage,
-		GetInstigatorController(),
-		this,
-		UDamageType::StaticClass()
-	);
-
-	DamagedActors.Add(OtherActor);
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
 void ALightningStrikeActor::HandleSelfDestruct()
