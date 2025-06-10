@@ -58,6 +58,11 @@ const FGimmickInfoData* UItemGimmickSubsystem::FindGimmickInfoData(const FName& 
 	return FindDataFromDataTable<FGimmickInfoData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
+void UItemGimmickSubsystem::GetGimmickInfoData(const FName& RowName, FGimmickInfoData& OutGimmickInfoData) const
+{
+	OutGimmickInfoData = *FindGimmickInfoData(RowName);
+}
+
 void UItemGimmickSubsystem::SpawnItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems,
                                            const float ForwardOffset)
 {
