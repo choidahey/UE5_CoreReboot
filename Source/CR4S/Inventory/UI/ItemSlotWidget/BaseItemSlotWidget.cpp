@@ -32,6 +32,9 @@ UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitial
 	  bCanDrop(true),
 	  bCanRemoveItem(true),
 	  bCanMoveItem(true),
+	  LongPressThreshold(0.5f),
+	  PressStartTime(0.0),
+	  bLongPressTriggered(false),
 	  bCanUseItemTooltip(true)
 {
 }
@@ -170,11 +173,29 @@ bool UBaseItemSlotWidget::IsItemAllowedByFilter(const UBaseInventoryItem* Item) 
 
 FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryComponent));
-
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)))
+	if (!IsValid(CurrentItem))
 	{
 		return FReply::Unhandled();
+	}
+
+	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		bLongPressTriggered = false;
+
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(
+				LongPressTimerHandle,
+				this,
+				&ThisClass::OnLongPressDetected,
+				LongPressThreshold,
+				false
+			);
+		}
+
+		PressStartTime = FPlatformTime::Seconds();
+
+		return FReply::Handled().PreventThrottling();
 	}
 
 
@@ -184,6 +205,40 @@ FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 	}
 
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+FReply UBaseItemSlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (!IsValid(CurrentItem))
+	{
+		return FReply::Unhandled();
+	}
+
+	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		if (GetWorld() && GetWorld()->GetTimerManager().IsTimerActive(LongPressTimerHandle))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(LongPressTimerHandle);
+			OnShortClick();
+		}
+		else if (!bLongPressTriggered)
+		{
+			const double Duration = FPlatformTime::Seconds() - PressStartTime;
+			if (Duration >= LongPressThreshold)
+			{
+				bLongPressTriggered = true;
+				OnLongPress();
+			}
+			else
+			{
+				OnShortClick();
+			}
+		}
+
+		return FReply::Handled();
+	}
+
+	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
 }
 
 void UBaseItemSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
@@ -305,6 +360,23 @@ void UBaseItemSlotWidget::UnEquipItem(const UBaseInventoryComponent* QuickSlotIn
 			ToolItem->UnEquipItem();
 		}
 	}
+}
+
+void UBaseItemSlotWidget::OnShortClick()
+{
+	CR4S_Log(LogInventoryUI, Warning, TEXT("ShortClick!"));
+}
+
+void UBaseItemSlotWidget::OnLongPressDetected()
+{
+	bLongPressTriggered = true;
+	SetToolTip(nullptr);
+	OnLongPress();
+}
+
+void UBaseItemSlotWidget::OnLongPress()
+{
+	CR4S_Log(LogInventoryUI, Warning, TEXT("LongPressed!!!"));
 }
 
 UWidget* UBaseItemSlotWidget::ShowToolTip()
