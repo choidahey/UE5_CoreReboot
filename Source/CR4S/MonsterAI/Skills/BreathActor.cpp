@@ -100,7 +100,7 @@ void ABreathActor::DoDamage()
 	const FVector Forward = LastSocketTransform.GetUnitAxis(EAxis::Z);
 
 	TArray<AActor*> HitActors;
-	UGameplayStatics::GetAllActorsOfClass(this, APawn::StaticClass(), HitActors);
+	UGameplayStatics::GetAllActorsOfClass(this, AActor::StaticClass(), HitActors);
 
 	for (AActor* Target : HitActors)
 	{

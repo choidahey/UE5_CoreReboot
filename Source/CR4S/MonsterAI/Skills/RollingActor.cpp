@@ -33,6 +33,14 @@ void ARollingActor::BeginPlay()
 
 	SetActorScale3D(ScaleFactor);
 
+	StaticMesh->SetEnableGravity(true);
+	StaticMesh->SetLinearDamping(RollingLinearDamping);
+	StaticMesh->SetAngularDamping(RollingAngularDamping);
+	StaticMesh->SetMassOverrideInKg(NAME_None, RollingMassInKg);
+
+	StaticMesh->BodyInstance.bOverrideMaxAngularVelocity = true;
+	StaticMesh->BodyInstance.MaxAngularVelocity = MaxRollingAngularVelocity;
+
 	GetWorld()->GetTimerManager().SetTimer(
 		BreakTimerHandle,
 		this,

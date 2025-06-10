@@ -55,14 +55,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Lightning|Collision")
 	float CapsuleRadius = 100.f;
 
-	UPROPERTY(EditAnywhere, Category = "Lightning|Collision")
-	float CapsuleHalfHeight = 80.f;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
 	float LightningDelayBeforeStrike = 0.5f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Lightning")
 	float ActorLifeAfterStrike = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Lightning|Trace")
+	float TraceHeightAbove = 2000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Lightning|Trace")
+	float TraceDepthBelow = 2000.f;
 
 	UPROPERTY()
 	TSet<TWeakObjectPtr<AActor>> DamagedActors;

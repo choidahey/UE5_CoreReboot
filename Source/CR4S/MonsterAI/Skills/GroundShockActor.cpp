@@ -46,6 +46,18 @@ void AGroundShockActor::InitShock(const FRotator& FacingRot)
 			FVector RotatedDir = FacingRot.RotateVector(LocalDir);
 			FVector Pos = BaseLocation + RotatedDir * Radius;
 
+			FVector Start = Pos + FVector(0.f, 0.f, TraceHeightAbove);
+			FVector End = Pos - FVector(0.f, 0.f, TraceDepthBelow);
+
+			FHitResult HitResult;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this);
+
+			if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+			{
+				Pos.Z = HitResult.ImpactPoint.Z;
+			}
+
 			UCapsuleComponent* Capsule = NewObject<UCapsuleComponent>(this);
 			Capsule->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 			Capsule->SetCollisionProfileName(TEXT("OverlapAllDynamic"));

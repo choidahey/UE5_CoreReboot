@@ -20,7 +20,6 @@ ALightningStrikeActor::ALightningStrikeActor()
 	LightningCollider->SetupAttachment(RootComp);
 
 	LightningCollider->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	LightningCollider->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 	LightningCollider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	LightningCollider->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	LightningCollider->SetGenerateOverlapEvents(true);
@@ -36,7 +35,28 @@ void ALightningStrikeActor::BeginPlay()
 void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect, float DamageAmount)
 {
 	Damage = DamageAmount;
-	SetActorLocation(TargetLocation);
+	FVector GroundTarget = TargetLocation;
+
+	FVector Start = GroundTarget + FVector(0.f, 0.f, TraceHeightAbove);
+	FVector End = GroundTarget - FVector(0.f, 0.f, TraceDepthBelow);
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	{
+		GroundTarget.Z = HitResult.ImpactPoint.Z;
+	}
+
+	const float CapsuleTopZ = TargetLocation.Z + TraceHeightAbove;
+	const float CapsuleBottomZ = GroundTarget.Z;
+	const float CapsuleHeight = CapsuleTopZ - CapsuleBottomZ;
+	const float CapsuleHalfHeight = CapsuleHeight * 0.5f;
+	const float CapsuleCenterZ = CapsuleBottomZ + CapsuleHalfHeight;
+
+	SetActorLocation(FVector(TargetLocation.X, TargetLocation.Y, CapsuleCenterZ));
+	LightningCollider->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 
 	if (LightningEffect)
 	{

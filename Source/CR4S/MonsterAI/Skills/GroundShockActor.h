@@ -59,6 +59,12 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float LifeTime = 1.5f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Skill|Shock")
+	float TraceHeightAbove = 2000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Skill|Shock")
+	float TraceDepthBelow = 2000.f;
+
 	UPROPERTY()
 	TArray<TObjectPtr<UCapsuleComponent>> ArcColliders;
 

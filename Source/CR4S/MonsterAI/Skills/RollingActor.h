@@ -34,7 +34,23 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
 	FVector ScaleFactor = FVector(1.0f);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling") 
+private:
+	UFUNCTION()
+	void OnRollingOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* Other,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
+
+	void BreakAndDestroy();
+
+
+#pragma region Rolling Attributes
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rolling")
 	float LaunchSpeed = 1200.f;
 
 	UPROPERTY(EditAnywhere, Category = "Rolling")
@@ -52,21 +68,23 @@ protected:
 	UPROPERTY()
 	bool bHasBroken = false;
 
+	UPROPERTY(EditAnywhere, Category = "Rolling|Physics")
+	float RollingLinearDamping = 0.1f;
+
+	UPROPERTY(EditAnywhere, Category = "Rolling|Physics")
+	float RollingAngularDamping = 0.1f;
+
+	UPROPERTY(EditAnywhere, Category = "Rolling|Physics")
+	float RollingMassInKg = 200.f;
+
+	UPROPERTY(EditAnywhere, Category = "Rolling|Physics")
+	float MaxRollingAngularVelocity = 400.f;
+
 private:
-	UFUNCTION()
-	void OnRollingOverlap(
-		UPrimitiveComponent* OverlappedComp,
-		AActor* Other,
-		UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex,
-		bool bFromSweep,
-		const FHitResult& SweepResult
-	);
-
-	void BreakAndDestroy();
-
 	FVector StartLocation;
 	FVector LastKnownVelocity;
 	FTimerHandle BreakTimerHandle;
+
+#pragma endregion
 
 };
