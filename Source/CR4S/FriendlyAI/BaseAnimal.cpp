@@ -380,16 +380,35 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 
 void ABaseAnimal::OnInteract(AActor* Interactor)
 {
-    if (!IsValid(InteractWidgetClass)) return;
+    if (CurrentState != EAnimalState::Dead) return;
 
-    UAnimalInteractWidget* InteractUI = CreateWidget<UAnimalInteractWidget>(GetWorld(), InteractWidgetClass);
-    if (IsValid(InteractUI))
+    APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor);
+    if (!IsValid(Player)) return;
+
+    UBaseInventoryComponent* Inventory = Player->FindComponentByClass<UBaseInventoryComponent>();
+    if (!IsValid(Inventory)) return;
+
+    if (!bStatsReady || !StatsRow || CurrentStats.DropItemRowNames.Num() == 0 || CurrentStats.TotalDropItemCount <= 0)
     {
-        InteractUI->OwningAnimal = this;
-        InteractUI->InitByAnimalState(bIsStunned);
-        InteractUI->AddToViewport();
-        ActiveInteractWidget = InteractUI;
+        Destroy();
+        return;
     }
+
+    TMap<FName, int32> DroppedItems;
+
+    for (int32 i = 0; i < CurrentStats.TotalDropItemCount; ++i)
+    {
+        int32 Index = FMath::RandRange(0, CurrentStats.DropItemRowNames.Num() - 1);
+        FName SelectedItem = CurrentStats.DropItemRowNames[Index];
+        DroppedItems.FindOrAdd(SelectedItem)++;
+    }
+
+    if (DroppedItems.Num() > 0)
+    {
+        Inventory->AddItems(DroppedItems);
+    }
+
+    Destroy();
 }
 
 void ABaseAnimal::Capture()

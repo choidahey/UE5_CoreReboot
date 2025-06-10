@@ -138,8 +138,8 @@ public:
 
 	// void SetbIsTamed(bool bNewValue);
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<class UAnimalInteractWidget> InteractWidgetClass;
+	// UPROPERTY(EditDefaultsOnly, Category = "UI")
+	// TSubclassOf<class UAnimalInteractWidget> InteractWidgetClass;
 
 	UFUNCTION()
 	void OnInteract(AActor* Interactor);
