@@ -1,10 +1,10 @@
 #include "PlayerCharacter.h"
 #include "AlsCameraComponent.h"
 #include "AlsCharacterMovementComponent.h"
+#include "CR4S.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Character/CharacterController.h"
-#include "Character/Components/CombatComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
@@ -15,7 +15,10 @@
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/AlsVector.h"
 #include "NavigationInvokerComponent.h"
-#include "Character/Components/CharacterCombatComponent.h"
+#include "Character/Components/PlayerInputBufferComponent.h"
+#include "Character/Components/WeaponTraceComponent.h"
+#include "Character/Weapon/BaseTool.h"
+#include "Character/Weapon/PlayerTool.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -24,18 +27,14 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(GetMesh());
 	Camera->SetRelativeRotation_Direct({0.0f, 90.0f, 0.0f});
 
-	VisibleMesh=CreateDefaultSubobject<USkeletalMeshComponent>(FName{TEXTVIEW("VisibleMesh")});
+	VisibleMesh=CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VisibleMesh"));
 	VisibleMesh->SetupAttachment(GetMesh());
 	
-	OverlaySkeletalMesh=CreateDefaultSubobject<USkeletalMeshComponent>(FName{TEXTVIEW("OverlaySkeletalMesh")});
-	OverlaySkeletalMesh->SetupAttachment(VisibleMesh);
-	
-	OverlayStaticMesh=CreateDefaultSubobject<UStaticMeshComponent>(FName{TEXTVIEW("OverlayStaticMesh")});
-	OverlayStaticMesh->SetupAttachment(VisibleMesh);
-	
-	Combat=CreateDefaultSubobject<UCharacterCombatComponent>(FName{TEXTVIEW("Combat")});
+	WeaponTrace=CreateDefaultSubobject<UWeaponTraceComponent>(TEXT("WeaponTrace"));
 
-	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(FName{TEXTVIEW("Status")});
+	PlayerInputBuffer=CreateDefaultSubobject<UPlayerInputBufferComponent>(TEXT("PlayerInputBuffer"));
+	
+	Status=CreateDefaultSubobject<UPlayerCharacterStatusComponent>(TEXT("Status"));
 
 	Interaction=CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
 	GridDetection = CreateDefaultSubobject<UGridDetectionComponent>(TEXT("GridDetection"));
@@ -48,9 +47,41 @@ APlayerCharacter::APlayerCharacter()
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
 }
 
-void APlayerCharacter::SetToolStaticMesh(UStaticMesh* InMesh)
+void APlayerCharacter::SetCurrentToolByTag(const FGameplayTag& ToolTag)
 {
-	ToolStaticMesh=InMesh;
+	if (!CurrentTool||CurrentTool->GetGameplayTag().MatchesTagExact(ToolTag)) return;
+	
+	CurrentTool->SetGameplayTag(ToolTag);
+	
+	SetOverlayMode(ToolTag);
+}
+
+void APlayerCharacter::InitializeCurrentTool()
+{
+	if (CR4S_ENSURE(LogHong1,CurrentTool))
+	{
+		CurrentTool->Destroy();
+		CurrentTool=nullptr;
+	}
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Instigator=this;
+	SpawnParams.Owner=this;
+	APlayerTool* NewTool=GetWorld()->SpawnActor<APlayerTool>(SpawnParams);
+	const FAttachmentTransformRules AttachRules(
+		EAttachmentRule::SnapToTarget,
+		EAttachmentRule::SnapToTarget,
+		EAttachmentRule::KeepRelative,
+		true
+	);
+	if (!CR4S_ENSURE(LogHong1,NewTool)) return;
+	
+	CurrentTool=NewTool;
+	CurrentTool->AttachToComponent(VisibleMesh,AttachRules,"Tool");
+	
+	if (!CR4S_ENSURE(LogHong1,PlayerInputBuffer)||!CR4S_ENSURE(LogHong1,WeaponTrace)) return;
+	PlayerInputBuffer->SetCurrentTool(CurrentTool);
+	WeaponTrace->SetCurrentTool(CurrentTool);
+	CurrentTool->Initialize(this);
 }
 
 void APlayerCharacter::InitializeWidgets()
@@ -132,6 +163,9 @@ void APlayerCharacter::BeginPlay()
 	
 	//Binding Delegate Functions and Set up Widget
 	InitializeWidgets();
+
+	InitializeCurrentTool();
+	
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -171,7 +205,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(RotationModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnRotationMode);
 		EnhancedInput->BindAction(ViewModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnViewMode);
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
-		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,Combat.Get(),&UCharacterCombatComponent::Input_OnAttack);
+		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Started,this,&ThisClass::Input_OnAttack);
 	}
 }
 
@@ -179,8 +213,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Default")));
-	SetOverlayMode(CurrentTag);
+	SetOverlayMode(AlsOverlayModeTags::Default);
 
 	Interaction->StartDetectProcess();
 	
@@ -197,8 +230,7 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
-	const FGameplayTag CurrentTag=FGameplayTag::RequestGameplayTag((FName("Als.OverlayMode.Mounted")));
-	SetOverlayMode(CurrentTag);
+	SetOverlayMode(OverlayMode::Mounted);
 	DisconnectWidgets();
 	Super::UnPossessed();
 }
@@ -322,6 +354,17 @@ void APlayerCharacter::Input_OnViewMode()
 void APlayerCharacter::Input_OnSwitchShoulder()
 {
 	Camera->SetRightShoulder(!Camera->IsRightShoulder());
+}
+
+void APlayerCharacter::Input_OnAttack()
+{
+	CR4S_SIMPLE_SCOPE_LOG;
+	if (!CR4S_ENSURE(LogHong1,CurrentTool)
+		||!CR4S_ENSURE(LogHong1,(PlayerInputBuffer->CheckInputQueue(EInputType::Attack))))
+	{
+		return;
+	}
+	CurrentTool->OnAttack();
 }
 
 void APlayerCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation)

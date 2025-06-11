@@ -3,21 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CombatComponent.h"
-#include "RobotCombatComponent.generated.h"
+#include "Character/Data/RobotSettings.h"
+#include "RobotWeaponComponent.generated.h"
 
 
+class UInputBufferComponent;
+class ABaseWeapon;
 struct FGameplayTag;
 class UBaseWeapon;
 class AModularRobot;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class CR4S_API URobotCombatComponent : public UCombatComponent
+class CR4S_API URobotWeaponComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	URobotCombatComponent();
+	URobotWeaponComponent();
 	
 #pragma region Attack & Weapons
 public:
@@ -31,32 +33,31 @@ public:
 	void Input_OnAttackRightShoulder();
 
 	UFUNCTION(BlueprintCallable)
-	void EquipWeaponByTag(const FGameplayTag Tag, const int32 SlotIdx);
+	void EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx);
 #pragma endregion
 
 #pragma region Overrides
 public:
-	virtual void PerformWeaponTrace() override;
-	virtual void SetWeaponTrace(const bool Trace) override;
-	virtual void ExecuteInputQueue() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 protected:
 	virtual void BeginPlay() override;
-#pragma endregion
-	
-#pragma region Weapon
-protected:
-	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
-	TArray<TObjectPtr<UBaseWeapon>> Weapons; //Left, Right Arm (0,1), Left, Right Shoulder(2,3)
 #pragma endregion
 
 #pragma region Cached
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AModularRobot> OwningCharacter;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputBufferComponent> InputBuffer;
+	
+	//Left, Right Arm (0,1), Left, Right Shoulder(2,3)	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
+	TArray<TObjectPtr<ABaseWeapon>> Weapons; 
+	
 	int32 ActivatedWeaponIdx {-1};
 #pragma endregion
-	
+
+#pragma region WeaponSettings
+	FWeaponSettings WeaponSettings;
+#pragma endregion
 };

@@ -3,9 +3,12 @@
 
 #include "InputDisabled.h"
 
-#include "Character/Components/CharacterCombatComponent.h"
-#include "Character/Components/CombatComponent.h"
-#include "Character/Components/RobotCombatComponent.h"
+#include "CR4S.h"
+#include "Character/Components/WeaponTraceComponent.h"
+#include "Character/Components/InputBufferComponent.h"
+#include "Character/Components/PlayerInputBufferComponent.h"
+#include "Character/Components/RobotInputBufferComponent.h"
+#include "Character/Components/RobotWeaponComponent.h"
 #include "GameFramework/Character.h"
 
 void UInputDisabled::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
@@ -13,14 +16,17 @@ void UInputDisabled::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequence
 {
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
-	
-	if (UCharacterCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCharacterCombatComponent>())
+
+	if (UPlayerInputBufferComponent* Buffer=OwningCharacter->FindComponentByClass<UPlayerInputBufferComponent>())
 	{
-		Combat->SetInputEnable(false);
+		UE_LOG(LogTemp, Display, TEXT("NotifyBegin got Buffer class: %s, name: %s, Enable : %d"),
+		*Buffer->GetClass()->GetName(),
+		*Buffer->GetName(), false);
+		Buffer->SetInputEnable(false);
 	}
-	else if (URobotCombatComponent* RobotCombat=OwningCharacter->FindComponentByClass<URobotCombatComponent>())
+	else if (URobotInputBufferComponent* RobotBuffer=OwningCharacter->FindComponentByClass<URobotInputBufferComponent>())
 	{
-		RobotCombat->SetInputEnable(false);
+		RobotBuffer->SetInputEnable(false);
 	}
 	
 	//Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
@@ -32,13 +38,13 @@ void UInputDisabled::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
 	
-	if (UCharacterCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCharacterCombatComponent>())
+	if (UPlayerInputBufferComponent* Buffer=OwningCharacter->FindComponentByClass<UPlayerInputBufferComponent>())
 	{
-		Combat->SetInputEnable(true);
+		Buffer->SetInputEnable(true);
 	}
-	else if (URobotCombatComponent* RobotCombat=OwningCharacter->FindComponentByClass<URobotCombatComponent>())
+	else if (URobotInputBufferComponent* RobotBuffer=OwningCharacter->FindComponentByClass<URobotInputBufferComponent>())
 	{
-		RobotCombat->SetInputEnable(true);
+		RobotBuffer->SetInputEnable(true);
 	}
 	
 	//Super::NotifyEnd(MeshComp, Animation, EventReference);

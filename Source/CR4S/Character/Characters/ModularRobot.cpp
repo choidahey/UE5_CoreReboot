@@ -10,13 +10,15 @@
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
-#include "Character/Components/RobotCombatComponent.h"
+#include "Character/Components/RobotWeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Character/Components/GridDetectionComponent.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
+#include "Character/Components/InputBufferComponent.h"
+#include "Character/Components/RobotInputBufferComponent.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
@@ -76,16 +78,21 @@ AModularRobot::AModularRobot()
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 
-	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
+	WeaponManager=CreateDefaultSubobject<URobotWeaponComponent>(TEXT("WeaponManager"));
+
+	InputBuffer=CreateDefaultSubobject<URobotInputBufferComponent>(TEXT("RobotInputBuffer"));
 }
 
 void AModularRobot::LoadDataFromDataLoader()
 {
 	UGameInstance* GI=GetGameInstance();
+	if (!CR4S_ENSURE(LogHong1,GI)) return;
+	
 	UDataLoaderSubsystem* Loader=GI->GetSubsystem<UDataLoaderSubsystem>();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
-	Loader->LoadRobotSettingsData(RobotSettings);	
+	Loader->LoadRobotSettingsData(RobotSettings);
+	
 }
 
 void AModularRobot::MountRobot(AActor* InActor)
@@ -339,10 +346,10 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
 			//Attack
-			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftArm);
-			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightArm);
-			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftShoulder);
-			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightShoulder);
+			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
+			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightArm);
+			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftShoulder);
+			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightShoulder);
 			
 		}
 	}

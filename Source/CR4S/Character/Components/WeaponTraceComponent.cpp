@@ -1,66 +1,50 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CombatComponent.h"
+#include "WeaponTraceComponent.h"
 
+#include "CR4S.h"
+#include "Character/Weapon/BaseTool.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
+
 // Sets default values for this component's properties
-UCombatComponent::UCombatComponent()
+UWeaponTraceComponent::UWeaponTraceComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	
+
 	// ...
 }
 
-void UCombatComponent::SetTopSocketName(const FName InSocketName)
+void UWeaponTraceComponent::SetCurrentTool(ABaseTool* InTool)
 {
-	TopSocketName=InSocketName;
+	CurrentTool = InTool;
 }
 
-void UCombatComponent::SetBottomSocketName(const FName InSocketName)
+void UWeaponTraceComponent::PerformWeaponTrace()
 {
-	BottomSocketName=InSocketName;
+	if (!bWeaponTrace||!CurrentTool) return;
+	
+	UMeshComponent* MeshComp=CurrentTool->GetToolMeshComponent();
+	if (!CR4S_ENSURE(LogHong1,MeshComp)) return;
+	
+	//Socket Location
+	FVector CurrentTop=MeshComp->GetSocketLocation(TopSocketName);
+	FVector CurrentBottom=MeshComp->GetSocketLocation(BottomSocketName);
+	if (CurrentTop.IsZero() || CurrentBottom.IsZero()) return;
+	
+	const float Damage=CurrentTool->ComputeFinalDamage();
+	AActor* OwningCharacter=CurrentTool->GetToolOwner();
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
+	
+	SweepAndApplyDamage(OwningCharacter,CurrentTop,CurrentBottom,Damage);
 }
 
-void UCombatComponent::SetInputEnable(const bool Enable)
-{
-	bInputEnable=Enable;
-	if (Enable)
-	{
-		ExecuteInputQueue();
-	}
-}
-
-void UCombatComponent::SetInputQueue(const EInputType Input)
-{
-	CurrentInputQueue=Input;
-
-	if (BufferClearTimerHandle.IsValid())
-	{
-		GetWorld()->GetTimerManager().ClearTimer(BufferClearTimerHandle);
-	}
-	GetWorld()->GetTimerManager().SetTimer(
-		BufferClearTimerHandle,
-		this,
-		&UCombatComponent::ClearInputQueue,
-		1.f,
-		false
-	);
-}
-
-bool UCombatComponent::CheckInputQueue(const EInputType Input)
-{
-	if (bInputEnable) return true;
-
-	SetInputQueue(Input);
-	return false;
-}
-
-void UCombatComponent::SweepAndApplyDamage(AActor* OwningCharacter, const FVector& CurrentTop, const FVector& CurrentBottom, const float InDamage)
+void UWeaponTraceComponent::SweepAndApplyDamage(AActor* OwningCharacter, const FVector& CurrentTop,
+	const FVector& CurrentBottom, const float InDamage)
 {
 	//Get Distance between Top and Bottom
 	FVector Delta=CurrentTop-CurrentBottom;
@@ -112,35 +96,28 @@ void UCombatComponent::SweepAndApplyDamage(AActor* OwningCharacter, const FVecto
 	DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
 }
 
-void UCombatComponent::SetWeaponTrace(const bool Trace)
+void UWeaponTraceComponent::SetWeaponTrace(const bool Trace)
 {
+	AlreadyDamagedActors.Empty();
+	bWeaponTrace=Trace;
+	if (!Trace||!CurrentTool) return;
+	
+	UMeshComponent* MeshComp=CurrentTool->GetToolMeshComponent();
+	if (!MeshComp) return;
+	
+	PreviousTopLocation=MeshComp->GetSocketLocation(TopSocketName);
+	PreviousBottomLocation=MeshComp->GetSocketLocation(BottomSocketName);
 }
 
-void UCombatComponent::ExecuteInputQueue()
-{
-}
-
-void UCombatComponent::PerformWeaponTrace()
-{
-}
-
-
-// Called when the game starts
-void UCombatComponent::BeginPlay()
+void UWeaponTraceComponent::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-void UCombatComponent::ClearInputQueue()
-{
-	CurrentInputQueue=EInputType::None;
-	BufferClearTimerHandle.Invalidate();
+	CurrentTool=Cast<ABaseTool>(GetOwner());
 }
 
 
-// Called every frame
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                     FActorComponentTickFunction* ThisTickFunction)
+void UWeaponTraceComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
+                                              FActorComponentTickFunction* ThisTickFunction)
 {
 	if (bWeaponTrace)
 	{

@@ -8,7 +8,9 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
-class URobotCombatComponent;
+class URobotInputBufferComponent;
+class UInputBufferComponent;
+class URobotWeaponComponent;
 class UModularRobotStatusComponent;
 class APlayerCharacter;
 class UInteractableComponent;
@@ -118,14 +120,15 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UModularRobotStatusComponent> Status;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<URobotCombatComponent> RobotCombat;
+	TObjectPtr<URobotWeaponComponent> WeaponManager;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UGridDetectionComponent> GridDetection;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<URobotInputBufferComponent> InputBuffer;
 #pragma endregion
 
 #pragma region Cached

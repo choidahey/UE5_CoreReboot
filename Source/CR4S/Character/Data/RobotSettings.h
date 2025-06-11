@@ -27,6 +27,16 @@ public:
 	float DashCooldown{1};
 };
 
+USTRUCT(BlueprintType,Blueprintable)
+struct CR4S_API FWeaponSettings
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FName AttachSocketName{};
+	
+};
+
 UCLASS()
 class CR4S_API URobotSettingsDataAsset : public UPrimaryDataAsset
 {
@@ -34,4 +44,7 @@ class CR4S_API URobotSettingsDataAsset : public UPrimaryDataAsset
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FRobotSettings RobotSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FWeaponSettings WeaponSettings;
 };
