@@ -15,6 +15,9 @@ public:
 	void AddMinute(int32 Amount);
 	UFUNCTION(exec)
 	void AddDay(int32 Amount);
+
+	UFUNCTION(exec)
+	void SetMonstersHP(const float InHealth);
 	
 protected:
 	//Helper Decelaration

@@ -1,7 +1,9 @@
 #include "MonsterAI/Skills/RotatingProjectile.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 
 ARotatingProjectile::ARotatingProjectile()
 {
