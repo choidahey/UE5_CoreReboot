@@ -4,15 +4,13 @@
 #include "BaseWeapon.h"
 #include "Character/Characters/ModularRobot.h"
 
-UBaseWeapon::UBaseWeapon()
+ABaseWeapon::ABaseWeapon()
 {
+	SkeletalMeshComp=CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
+	RootComponent=SkeletalMeshComp;
 }
 
-void UBaseWeapon::OnAttack()
-{
-}
-
-float UBaseWeapon::ComputeFinalDamage()
+float ABaseWeapon::ComputeFinalDamage()
 {
 	float FinalDamage=0;
 	if (UModularRobotStatusComponent* StatusComp=OwningCharacter->FindComponentByClass<UModularRobotStatusComponent>())
@@ -22,30 +20,25 @@ float UBaseWeapon::ComputeFinalDamage()
 	return FinalDamage;
 }
 
-void UBaseWeapon::StartAttackCooldown()
+void ABaseWeapon::StartAttackCooldown()
 {
 	bCanAttack=false;
 
 	GetWorld()->GetTimerManager().SetTimer(
 		AttackCooldownTimerHandler,
 		this,
-		&UBaseWeapon::ResetAttackCooldown,
+		&ABaseWeapon::ResetAttackCooldown,
 		BaseInfo.AttackCooldownTime,
 		false
 	);
 }
 
-void UBaseWeapon::ResetAttackCooldown()
+void ABaseWeapon::ResetAttackCooldown()
 {
 	bCanAttack=true;
 }
 
-void UBaseWeapon::SetGameplayTag(const FGameplayTag GameplayTag)
-{
-	WeaponTag=GameplayTag;
-}
-
-void UBaseWeapon::Initialize(AModularRobot* OwnerCharacter)
+void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
 	OwningCharacter=OwnerCharacter;
 }

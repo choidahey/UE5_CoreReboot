@@ -3,37 +3,31 @@
 
 #include "MeleeWeapon.h"
 #include "Character/Characters/ModularRobot.h"
-#include "Character/Components/RobotCombatComponent.h"
 #include "Utility/DataLoaderSubsystem.h"
 
-UMeleeWeapon::UMeleeWeapon()
+AMeleeWeapon::AMeleeWeapon()
 {
 }
 
-void UMeleeWeapon::OnAttack()
+void AMeleeWeapon::OnAttack()
 {
-	URobotCombatComponent* Comp=GetTypedOuter<URobotCombatComponent>();
-	if (!CR4S_ENSURE(LogHong1,Comp)) return;
-	
-	Comp->SetTopSocketName(TypeSpecificInfo.TopSocketName);
-	Comp->SetBottomSocketName(TypeSpecificInfo.BottomSocketName);
-	
 	AModularRobot* Robot=GetTypedOuter<AModularRobot>();
 	if (!CR4S_ENSURE(LogHong1,Robot)||!CR4S_ENSURE(LogHong1,BaseInfo.AttackMontage)) return;
 	Robot->PlayAnimMontage(BaseInfo.AttackMontage);
 }
 
-void UMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
+void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
 	Super::Initialize(OwnerCharacter);
-
+	if (!CR4S_ENSURE(LogHong1,OwnerCharacter)) return;
+	
 	UGameInstance* GI=OwningCharacter->GetGameInstance();
 	if (!GI) return;
 
 	UDataLoaderSubsystem* DataLoader=GI->GetSubsystem<UDataLoaderSubsystem>();
-	if (!DataLoader||!WeaponTag.IsValid()) return;
+	if (!DataLoader||!ToolTag.IsValid()) return;
 
-	const bool bSuccess=DataLoader->LoadWeaponInfoByTag(WeaponTag,TypeSpecificInfo,BaseInfo);
+	const bool bSuccess=DataLoader->LoadWeaponInfoByTag(ToolTag,TypeSpecificInfo,BaseInfo);
 	if (!CR4S_ENSURE(LogHong1,bSuccess))
 	{
 		return;

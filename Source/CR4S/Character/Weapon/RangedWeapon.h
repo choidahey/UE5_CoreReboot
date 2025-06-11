@@ -13,13 +13,13 @@ class ABaseBullet;
  * 
  */
 UCLASS(BlueprintType, Blueprintable)
-class CR4S_API URangedWeapon : public UBaseWeapon
+class CR4S_API ARangedWeapon : public ABaseWeapon
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	URangedWeapon();
+	ARangedWeapon();
 	
 #pragma region Override
 public:

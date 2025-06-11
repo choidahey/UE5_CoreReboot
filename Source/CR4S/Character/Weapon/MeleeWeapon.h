@@ -10,12 +10,12 @@
  * 
  */
 UCLASS(BlueprintType, Blueprintable)
-class CR4S_API UMeleeWeapon : public UBaseWeapon
+class CR4S_API AMeleeWeapon : public ABaseWeapon
 {
 	GENERATED_BODY()
 
 public:
-	UMeleeWeapon();
+	AMeleeWeapon();
 
 #pragma region Override
 public:
