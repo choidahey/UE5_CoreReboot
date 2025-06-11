@@ -6,7 +6,7 @@
 
 class UInteractableComponent;
 
-UCLASS()
+UCLASS(BlueprintType)
 class CR4S_API ACropsGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()
@@ -99,14 +99,17 @@ private:
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGrow, const float, GrowthPercent);
 
+	UPROPERTY(BlueprintAssignable, Category = "CropsGimmick|Delegates")
 	FOnGrow OnGrow;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHarvest);
 
+	UPROPERTY(BlueprintAssignable, Category = "CropsGimmick|Delegates")
 	FOnHarvest OnHarvest;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCropComposted);
 
+	UPROPERTY(BlueprintAssignable, Category = "CropsGimmick|Delegates")
 	FOnCropComposted OnCropComposted;
 
 #pragma endregion

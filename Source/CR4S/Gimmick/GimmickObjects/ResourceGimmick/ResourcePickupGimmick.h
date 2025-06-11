@@ -6,7 +6,7 @@
 
 class UInteractableComponent;
 
-UCLASS()
+UCLASS(BlueprintType)
 class CR4S_API AResourcePickupGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()

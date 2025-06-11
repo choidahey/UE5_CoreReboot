@@ -114,5 +114,7 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 	}
 
 	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick spawned successfully!"));
+
+	Gimmick->SetGimmickDataRowName(RowName);
 	return Gimmick;
 }

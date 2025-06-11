@@ -64,7 +64,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void RemoveItemByRowName(const FName RowName, const int32 Count);
+	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void RemoveAllItemByRowName(const FName RowName);
+	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void RemoveItemByIndex(const int32 Index, const int32 Count = -1);
 
 	void SortInventoryItems();
@@ -155,10 +157,12 @@ private:
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemSlotChanged, const int32, SlotIndex, UBaseInventoryItem*, Item);
 
+	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegates")
 	FOnItemSlotChanged OnItemSlotChanged;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryClosed);
 
+	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegates")
 	FOnInventoryClosed OnInventoryClosed;
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnOccupiedSlotsChanged, const int32, NumOccupiedSlots);

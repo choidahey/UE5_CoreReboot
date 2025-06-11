@@ -61,6 +61,16 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount);
 }
 
+UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWidget() const
+{
+	if (IsValid(InventoryContainerWidgetInstance))
+	{
+		return InventoryContainerWidgetInstance->GetPlanterBoxInventoryWidget(); 
+	}
+
+	return nullptr;
+}
+
 bool UPlayerInventoryComponent::PrepareOpenInventory(UInteractionComponent* InteractionComponent) const
 {
 	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerActor)) ||

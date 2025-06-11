@@ -86,7 +86,8 @@ public:
 	FORCEINLINE void SetCanRemoveItem(const bool bNewCanRemoveItem) { bCanRemoveItem = bNewCanRemoveItem; }
 	FORCEINLINE void SetCanMoveItem(const bool bNewCanMoveItem) { bCanMoveItem = bNewCanMoveItem; }
 
-private:
+protected:
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	bool bCanSort;
 

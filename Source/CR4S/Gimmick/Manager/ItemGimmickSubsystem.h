@@ -60,7 +60,6 @@ private:
 
 public:
 	template<typename GimmickClass>
-	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Gimmick Spawn")
 	GimmickClass* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation)
 	{
 		ABaseGimmick* BaseGimmick = SpawnGimmick(RowName, SpawnLocation, SpawnRotation);
@@ -73,6 +72,7 @@ public:
 	void SpawnItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems, float ForwardOffset = 50.f);
 
 private:
+	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Gimmick Spawn")
 	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
 #pragma endregion
