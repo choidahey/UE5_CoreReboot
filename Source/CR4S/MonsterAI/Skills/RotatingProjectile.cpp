@@ -1,7 +1,9 @@
 #include "MonsterAI/Skills/RotatingProjectile.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 
 ARotatingProjectile::ARotatingProjectile()
 {
@@ -179,7 +181,8 @@ void ARotatingProjectile::UpdateParabolicMovement(float DeltaTime)
 void ARotatingProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!IsValid(Other) || Other == this || Other == BossActor) return;
+	if (!IsValid(Other) || Other == this || Other == BossActor
+		|| Cast<AAnimalMonster>(Other) || Cast<ABaseMonster>(Other)) return;
 
 	if (AlreadyHitActors.Contains(Other)) return;
 	AlreadyHitActors.Add(Other);

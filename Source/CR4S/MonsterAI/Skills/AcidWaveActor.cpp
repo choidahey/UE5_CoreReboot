@@ -2,6 +2,7 @@
 #include "CR4S.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Components/BoxComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
 
@@ -175,7 +176,7 @@ void AAcidWaveActor::ApplyPeriodicDamage(AActor* AffectedActor)
 	int32& RemainingTicks = *RemainingTicksPtr;
 	if (RemainingTicks <= 0) return;
 
-	if (Cast<ABaseMonster>(AffectedActor)) return;
+	if (Cast<ABaseMonster>(AffectedActor) || Cast<AAnimalMonster>(AffectedActor)) return;
 	
 	if (Damage > 0.f)
 	{

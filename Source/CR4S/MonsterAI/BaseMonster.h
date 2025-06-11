@@ -99,19 +99,19 @@ public:
 
 #pragma region Monster Event Handler
 
-protected:
-	/* Called when monster dies */
+public:
 	UFUNCTION()
 	virtual void HandleDeath();
 
-	/* Called when monster state changes */
+protected:
 	UFUNCTION()
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
-
-	//Function to Return OnDied Delegate by Spawnable Interface
+	
 	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
 
-	// Delegate Variable
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
+	UMaterialInterface* DissolveMaterial;
+	
 	FOnDied OnDied;
 
 #pragma endregion
