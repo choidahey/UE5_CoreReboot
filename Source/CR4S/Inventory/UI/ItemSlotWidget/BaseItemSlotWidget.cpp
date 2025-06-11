@@ -121,6 +121,8 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 			InventoryComponent->RemoveOccupiedSlot(SlotIndex);
 		}
 	}
+
+	UpdateToolTip();
 }
 
 void UBaseItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -370,7 +372,6 @@ void UBaseItemSlotWidget::OnShortClick()
 void UBaseItemSlotWidget::OnLongPressDetected()
 {
 	bLongPressTriggered = true;
-	SetToolTip(nullptr);
 	OnLongPress();
 }
 
@@ -396,4 +397,24 @@ UWidget* UBaseItemSlotWidget::ShowToolTip()
 	ItemTooltipWidget->InitWidget(CurrentItem->GetInventoryItemData()->ItemInfoData);
 
 	return ItemTooltipWidget;
+}
+
+void UBaseItemSlotWidget::CloseToolTip()
+{
+	SetToolTip(nullptr);
+
+	if (FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().CloseToolTip();
+	}
+}
+
+void UBaseItemSlotWidget::UpdateToolTip()
+{
+	CloseToolTip();
+
+	if (IsValid(RootWidget))
+	{
+		SetToolTip(RootWidget->ToolTipWidgetDelegate.Execute());
+	}
 }

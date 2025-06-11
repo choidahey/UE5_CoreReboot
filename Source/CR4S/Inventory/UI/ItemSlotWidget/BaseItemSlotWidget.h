@@ -154,6 +154,9 @@ protected:
 public:
 	UFUNCTION()
 	UWidget* ShowToolTip();
+	void CloseToolTip();
+
+	void UpdateToolTip();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "ItemTooltip")

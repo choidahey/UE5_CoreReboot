@@ -5,6 +5,7 @@
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "CR4S.h"
+#include "ItemGimmickHelper.h"
 
 void UC4CheatManager::InitCheatManager()
 {
@@ -12,6 +13,16 @@ void UC4CheatManager::InitCheatManager()
 
     //Create Helper and Bind
     TimeHelper = NewObject<UTimeCheatHelper>(this);
+
+    ItemGimmickHelper = NewObject<UItemGimmickHelper>(this);
+}
+
+void UC4CheatManager::AddItem(const FName RowName, const int32 Count) const
+{
+    if (CR4S_VALIDATE(LogCheatManager, IsValid(ItemGimmickHelper)))
+    {
+        ItemGimmickHelper->AddItem(RowName, Count);
+    }
 }
 
 void UC4CheatManager::AddMinute(int32 Amount)

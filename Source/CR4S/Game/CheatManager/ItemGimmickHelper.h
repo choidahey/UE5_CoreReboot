@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/CheatManager.h"
-#include "ItemCheatManager.generated.h"
+
+#include "ItemGimmickHelper.generated.h"
 
 UCLASS()
-class CR4S_API UItemCheatManager : public UCheatManager
+class CR4S_API UItemGimmickHelper : public UObject
 {
 	GENERATED_BODY()
 	
