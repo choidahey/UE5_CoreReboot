@@ -9,7 +9,7 @@
 
 class ABaseGimmick;
 
-UCLASS()
+UCLASS(BlueprintType)
 class CR4S_API UItemGimmickSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
@@ -30,6 +30,9 @@ public:
 	TArray<FName> GetItemDataRowNames() const;
 	const FItemInfoData* FindItemInfoData(const FName& RowName) const;
 	const FGimmickInfoData* FindGimmickInfoData(const FName& RowName) const;
+
+	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Find Data")
+	void GetGimmickInfoData(const FName& RowName, FGimmickInfoData& OutGimmickInfoData) const;
 	
 private:
 	template<typename RowStruct>
@@ -57,6 +60,7 @@ private:
 
 public:
 	template<typename GimmickClass>
+	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Gimmick Spawn")
 	GimmickClass* SpawnGimmickByRowName(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation)
 	{
 		ABaseGimmick* BaseGimmick = SpawnGimmick(RowName, SpawnLocation, SpawnRotation);
@@ -65,6 +69,7 @@ public:
 		return Gimmick;
 	}
 
+	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Gimmick Spawn")
 	void SpawnItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems, float ForwardOffset = 50.f);
 
 private:

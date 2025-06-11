@@ -14,7 +14,7 @@ bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 		InventoryComponent);
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryComponent)) ||
 		!CR4S_VALIDATE(LogInventoryUI, bCanDrop) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(InOperation)))
 	{
 		return false;
@@ -28,8 +28,7 @@ bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 
 	const UBaseInventoryItem* FromItem = FromSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, FromItem) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)) ||
-		!CR4S_VALIDATE(LogInventoryUI, FromSlot->IsItemAllowedByFilter(CurrentItem)))
+		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)))
 	{
 		return false;
 	}

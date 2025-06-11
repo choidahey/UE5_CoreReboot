@@ -42,8 +42,8 @@ void ABaseHelperBot::BeginPlay()
 
 	if (InteractableComp)
 	{
-		InteractableComp->OnTryInteract.BindDynamic(this, &ABaseHelperBot::HandleInteract);
-		InteractableComp->OnDetectionStateChanged.BindDynamic(this, &ABaseHelperBot::OnDetectedChange);
+		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
+		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
 	}
 }
 

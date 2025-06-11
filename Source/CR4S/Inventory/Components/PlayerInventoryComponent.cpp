@@ -7,7 +7,7 @@
 #include "UI/InGame/SurvivalHUD.h"
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
-	: InventoryContainerWidgetOrder(0),
+	: InventoryContainerWidgetOrder(20),
 	  HeldToolTag(FGameplayTag())
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -37,7 +37,7 @@ void UPlayerInventoryComponent::BeginPlay()
 	}
 
 	InventoryContainerWidgetInstance = SurvivalHUD->CreateAndAddWidget(InventoryContainerWidgetClass,
-	                                                                   InventoryContainerWidgetOrder,
+	                                                                   0,
 	                                                                   ESlateVisibility::Visible);
 
 	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
@@ -84,7 +84,7 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDi
 	{
 		return;
 	}
-	
+
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
 }
 
@@ -95,7 +95,7 @@ void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType In
 	{
 		return;
 	}
-	
+
 	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
 }
 
