@@ -89,8 +89,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	float CurrentGrowthPercent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grow")
-	TArray<TObjectPtr<UStaticMesh>> GrowthMeshes;
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	TArray<TObjectPtr<UStaticMesh>> CropsMeshes;
 
 #pragma endregion
 

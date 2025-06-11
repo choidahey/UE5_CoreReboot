@@ -1,5 +1,6 @@
 #include "UI/MainMenu/DifficultyOptionsWidget.h"
 #include "UI/Common/LoadingWidget.h"
+#include "UI/MainMenu/MainMenuWidget.h"
 #include "UI/Common/BaseWindowWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Button.h"
@@ -19,9 +20,31 @@ void UDifficultyOptionsWidget::NativeConstruct()
 	}
 }
 
+void UDifficultyOptionsWidget::HandleOpenWindow()
+{
+	SetVisibility(ESlateVisibility::Visible);
+	PlayAnimation(FadeIn);
+}
+
+
 void UDifficultyOptionsWidget::HandleCloseWindow()
 {
-	RemoveFromParent();
+	PlayAnimation(FadeOut);
+
+	FTimerHandle HideTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		HideTimerHandle,
+		[this]()
+		{
+			SetVisibility(ESlateVisibility::Collapsed);
+			if (MainMenuWidgetRef)
+			{
+				MainMenuWidgetRef->ShowMenuButtons();
+			}
+		},
+		0.3f,
+		false
+	);
 }
 
 void UDifficultyOptionsWidget::HandleOpenLevel()
@@ -31,15 +54,21 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 		LoadingWidgetInstance = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
 	}	
 
-	LoadingWidgetInstance->AddToViewport(10);
+	if (MainMenuWidgetRef)
+	{
+		MainMenuWidgetRef->FadeOutBGM(1.0f); // 1초 페이드 아웃
+	}
 
+
+	LoadingWidgetInstance->AddToViewport(10);
+	
 	// OpenLevel after 0.5 sec Delay, for Prototype
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
 		this,
 		&UDifficultyOptionsWidget::OpenSurvivalLevel,
-		0.5f,
+		1.0f,
 		false
 	);
 }
@@ -47,5 +76,5 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 
 void UDifficultyOptionsWidget::OpenSurvivalLevel()
 {
-	UGameplayStatics::OpenLevel(this, FName("SurvivalLevel"));
+	UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
 }

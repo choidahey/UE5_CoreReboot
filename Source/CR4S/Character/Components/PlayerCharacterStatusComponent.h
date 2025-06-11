@@ -3,21 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/DataAsset/PlayerCharacterStatus.h"
-#include "Components/ActorComponent.h"
+#include "BaseStatusComponent.h"
+#include "Character/Data/PlayerCharacterStatus.h"
 #include "PlayerCharacterStatusComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float /*InPercentage*/)
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHungerChangedDelegate, float /*InPercentage*/)
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaminaChangedDelegate, float /*InPercentage*/)
-DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHungerChangedDelegate, float /*InPercentage*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHungerDebuffChanged, bool, bIsStarving);
 
-class UPlayerCharacterStatus;
+class UPlayerCharacterStatusAssets;
 class APlayerCharacter;
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class CR4S_API UPlayerCharacterStatusComponent : public UActorComponent
+class CR4S_API UPlayerCharacterStatusComponent : public UBaseStatusComponent
 {
 	GENERATED_BODY()
 
@@ -25,33 +23,19 @@ public:
 	// Sets default values for this component's properties
 	UPlayerCharacterStatusComponent();
 #pragma region Get
-	FORCEINLINE int32 GetMaxHP() const { return Status.MaxHealth; }
-	FORCEINLINE int32 GetCurrentHP() const { return Status.Health; }
-	FORCEINLINE int32 GetMaxHunger() const { return Status.MaxHunger; }
-	FORCEINLINE int32 GetCurrentHunger() const { return Status.Hunger; }
-	FORCEINLINE int32 GetMaxStamina() const { return Status.MaxStamina; }
-	FORCEINLINE int32 GetCurrentStamina() const { return Status.Stamina; }
-	FORCEINLINE int32 GetAttackPower() const { return Status.AttackPower; }
-	FORCEINLINE int32 GetArmor() const { return Status.Armor; }
-	FORCEINLINE int32 GetColdThreshold() const { return Status.ColdThreshold; }
-	FORCEINLINE int32 GetHeatThreshold() const { return Status.HeatThreshold; }
-	FORCEINLINE int32 GetHumidityThreshold() const { return Status.HumidityThreshold; }
+	FORCEINLINE float GetMaxHunger() const { return PlayerStatus.MaxHunger; }
+	FORCEINLINE float GetCurrentHunger() const { return PlayerStatus.Hunger; }
 #pragma endregion
 
-#pragma region Add
-	UFUNCTION(BlueprintCallable)
-	void AddMaxHP(const int32 InAmount);
-	UFUNCTION(BlueprintCallable)
-	void AddCurrentHP(const int32 InAmount);
-	void AddMaxHunger(const int32 InAmount);
-	void AddCurrentHunger(const int32 InAmount);
-	void AddMaxStamina(const int32 InAmount);
-	void AddCurrentStamina(const int32 InAmount);
-	void AddAttackPower(const int32 InAmount);
-	void AddArmor(const int32 InAmount);
-	void AddColdThreshold(const int32 InAmount);
-	void AddHeatThreshold(const int32 InAmount);
-	void AddHumidityThreshold(const int32 InAmount);
+#pragma region Hunger
+	void AddMaxHunger(const float InAmount);
+	void AddCurrentHunger(const float InAmount);
+
+	UFUNCTION()
+	void ApplyHungerDebuff();
+	UFUNCTION()
+	void RemoveHungerDebuff();
+	void ReduceCurrentHunger();
 #pragma endregion
 	
 #pragma region Override
@@ -67,7 +51,7 @@ protected:
 #pragma region DataAsset
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="StatusData")
-	TObjectPtr<UPlayerCharacterStatus> StatusData; 
+	TObjectPtr<UPlayerCharacterStatusAsset> StatusData; 
 #pragma endregion
 
 #pragma region Owner
@@ -79,14 +63,22 @@ protected:
 #pragma region Status
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
-	FPlayerCharacterStats Status;
+	FPlayerCharacterStats PlayerStatus;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	float OriginalMaxWalkSpeed{0};
+	
+	uint8 bIsStarving:1 {false};
+	FTimerHandle HungerTimerHandle;
 #pragma endregion
 
 #pragma region Delegate
 public:
-	FOnHPChangedDelegate OnHPChanged;
 	FOnHungerChangedDelegate OnHungerChanged;
-	FOnStaminaChangedDelegate OnStaminaChanged;
-	FOnDeathDelegate OnDeathState;
+	UPROPERTY(EditAnywhere, BlueprintAssignable)
+	FOnHungerDebuffChanged OnHungerDebuffChanged;
 #pragma endregion
 };
+
+
+

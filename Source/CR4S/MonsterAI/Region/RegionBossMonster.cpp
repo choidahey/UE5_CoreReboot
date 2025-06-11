@@ -2,11 +2,11 @@
 #include "MonsterAI/Controller/RegionBossMonsterAIController.h"
 #include "MonsterAI/Region/PatrolRoute.h"
 #include "MonsterAI/Region/CombatRangeVisualizer.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NavigationInvokerComponent.h"
@@ -22,11 +22,9 @@ ARegionBossMonster::ARegionBossMonster()
 	SkeletalMesh->SetCollisionResponseToAllChannels(ECR_Block);
 	SkeletalMesh->SetGenerateOverlapEvents(false);
 
-	NavGenerationRadius = 2000.0f;
-	NavRemovalRadius = 2500.0f;
-
 	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
+	NavInvoker->SetCanEverAffectNavigation(true);
 }
 
 void ARegionBossMonster::BeginPlay()
@@ -121,6 +119,31 @@ FVector ARegionBossMonster::GetNextPatrolLocation()
 	CurrentPatrolIndex = (CurrentPatrolIndex + 1) % PointCount;
 
 	return NextPoint;
+}
+
+const TArray<EApproachType>& ARegionBossMonster::GetApproachCandidates(int32 SkillIndex) const
+{
+	static TArray<EApproachType> Empty;
+
+	const FRegionSkillApproachEntry* Entry = SkillApproachList.FindByPredicate(
+		[SkillIndex](const FRegionSkillApproachEntry& E)
+		{
+			return E.SkillIndex == SkillIndex;
+		}
+	);
+
+	if (!Entry) return Empty;
+
+	return Entry->ApproachCandidates;
+}
+
+UEnvQuery* ARegionBossMonster::GetEQSByApproachType(EApproachType Type) const
+{
+	if (ApproachEQSMap.Contains(Type))
+	{
+		return ApproachEQSMap[Type];
+	}
+	return nullptr;
 }
 
 void ARegionBossMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)	 

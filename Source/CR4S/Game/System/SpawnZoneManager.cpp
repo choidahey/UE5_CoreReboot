@@ -8,7 +8,7 @@
 bool USpawnZoneManager::ShouldCreateSubsystem(UObject* Outer) const
 {
 	UWorld* World = Cast<UWorld>(Outer);
-	if (World && World->GetName() == TEXT("SurvivalLevel"))
+	if (World && World->GetName() == TEXT("SurvivalLevel_1"))
 	{
 		return true;  // Creates this subsystem only in the SurvivalLevel world
 	}
@@ -59,7 +59,9 @@ void USpawnZoneManager::RegisterZone(ASpawnZoneVolume* Zone, const FBox2D& Bound
         {
             FIntPoint Coord(X, Y);
             GridToZones.FindOrAdd(Coord).Add(Zone);
+#if WITH_EDITOR
             DrawDebugGridCell(Coord, FColor::Green, true, 10.0f, 5.0f);
+#endif
         }
     }
 
@@ -122,6 +124,7 @@ void USpawnZoneManager::NotifyGridLeft(const FIntPoint& GridCoord)
     }
 }
 
+#if WITH_EDITOR
 void USpawnZoneManager::DrawDebugGridCell(const FIntPoint& Coord, const FColor& Color, bool Last, float Height, float Thickness) const
 {
     FVector Center = FVector(
@@ -143,3 +146,4 @@ void USpawnZoneManager::DrawDebugGridCell(const FIntPoint& Coord, const FColor& 
         Thickness       
     );
 }
+#endif

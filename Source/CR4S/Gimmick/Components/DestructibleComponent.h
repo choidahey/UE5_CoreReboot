@@ -15,6 +15,8 @@ class CR4S_API UDestructibleComponent : public UActorComponent
 public:
 	UDestructibleComponent();
 
+	virtual void BeginPlay() override;
+
 #pragma endregion
 
 #pragma region Initialize
@@ -37,7 +39,17 @@ public:
 		CurrentHealth = MaxHealth;
 	}
 
+	FORCEINLINE void Repair(const float Amount)
+	{
+		CurrentHealth = FMath::Clamp(CurrentHealth + Amount, 0.0f, MaxHealth);
+	}
+
+	FORCEINLINE void SetCanRepair(const bool bNewCanRepair) { bCanRepair = bNewCanRepair; }
+
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	bool bCanRepair;
+
 	UPROPERTY(VisibleAnywhere, Category = "Health")
 	float MaxHealth;
 	UPROPERTY(VisibleAnywhere, Category = "Health")
@@ -63,9 +75,12 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnTakeDamage, AActor*, DamageCauser, float, DamageAmount, float, CurrentHealth);
+	DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnTakeDamage, AActor*, DamageCauser, float, DamageAmount, float,
+	                                     CurrentHealth);
+
 	FOnTakeDamage OnTakeDamage;
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnDestry, AActor*, DamageCauser);
+
 	FOnDestry OnDestroy;
 
 #pragma endregion

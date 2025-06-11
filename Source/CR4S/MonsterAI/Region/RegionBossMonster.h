@@ -7,6 +7,19 @@
 class UNavigationInvokerComponent;
 class APatrolRoute;
 class ACombatRangeVisualizer;
+class UEnvQuery;
+
+USTRUCT(BlueprintType)
+struct FRegionSkillApproachEntry
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	int32 SkillIndex;
+
+	UPROPERTY(EditAnywhere)
+	TArray<EApproachType> ApproachCandidates;
+};
 
 UCLASS()
 class CR4S_API ARegionBossMonster : public ABaseMonster
@@ -21,6 +34,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;
+
+	UFUNCTION()
 	void HandlePhaseChanged(EBossPhase NewPhase);
 
 #pragma endregion
@@ -40,6 +55,7 @@ protected:
 #pragma endregion
 
 #pragma region Combat Info
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Combat")
 	void SetCombatStartLocation();
@@ -72,6 +88,7 @@ protected:
 #pragma endregion
 
 #pragma region Patrol Route
+
 public:
 	FVector GetNextPatrolLocation();
 
@@ -79,6 +96,24 @@ public:
 	TObjectPtr<APatrolRoute> PatrolRouteActor;
 
 	int32 CurrentPatrolIndex = 0;
+
+#pragma endregion
+
+#pragma region Skill Approach Type
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Monster|AI")
+	virtual const TArray<EApproachType>& GetApproachCandidates(int32 SkillIndex) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Monster|AI")
+	UEnvQuery* GetEQSByApproachType(EApproachType Type) const;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster|AI")
+	TArray<FRegionSkillApproachEntry> SkillApproachList;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster|AI")
+	TMap<EApproachType, UEnvQuery*> ApproachEQSMap;
 
 #pragma endregion
 

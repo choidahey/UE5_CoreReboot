@@ -14,10 +14,26 @@ struct FRecipeSelectData
 {
 	GENERATED_BODY()
 
+	FRecipeSelectData()
+	{
+	}
+
+	FRecipeSelectData(const FItemRecipeData& NewRecipeData,
+	                  UTexture2D* NewIcon,
+	                  const FText& NewName,
+	                  const FText& NewDescription)
+		: RecipeData(NewRecipeData),
+		  Icon(NewIcon),
+		  Name(NewName),
+		  Description(NewDescription)
+	{
+	}
+
 	FItemRecipeData RecipeData = FItemRecipeData();
 	UPROPERTY()
-	TObjectPtr<UTexture2D> IconTexture = nullptr;
-	FText RecipeName = FText();
+	TObjectPtr<UTexture2D> Icon = nullptr;
+	FText Name = FText();
+	FText Description = FText();
 };
 
 UCLASS()
@@ -36,7 +52,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCraftingWidget> CraftingWidget;
-	
+
 #pragma endregion
 
 #pragma region OpenCraftingWidget
@@ -44,13 +60,18 @@ private:
 public:
 	UFUNCTION()
 	void OpenCraftingWidget();
-	
-#pragma endregion 
+
+#pragma endregion
 
 #pragma region RecipeData
 
 public:
-	void SetRecipeData(const FRecipeSelectData& RecipeData) const;
+	void SetRecipeData(const FRecipeSelectData& NewRecipeData);
+
+private:
+	FRecipeSelectData RecipeSelectData = FRecipeSelectData();
+
+	FText ItemDescription = FText();
 
 #pragma endregion
 

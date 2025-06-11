@@ -1,12 +1,24 @@
 ﻿#include "DestructibleComponent.h"
 
 UDestructibleComponent::UDestructibleComponent()
-	: MaxHealth(100.f)
-	  , CurrentHealth(100.f)
-	  , HitRecoveryTime(0.2f)
-	  , bCanTakeDamage(true)
+	: bCanRepair(true),
+	  MaxHealth(100.f),
+	  CurrentHealth(100.f),
+	  HitRecoveryTime(0.2f),
+	  bCanTakeDamage(true)
 {
 	PrimaryComponentTick.bCanEverTick = false;
+}
+
+void UDestructibleComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AActor* OwnerActor = GetOwner();
+	if (bCanRepair && IsValid(OwnerActor))
+	{
+		OwnerActor->Tags.AddUnique("Repairable");
+	}
 }
 
 void UDestructibleComponent::InitComponent(const float InMaxHealth)

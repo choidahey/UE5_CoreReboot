@@ -3,11 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/Components/ModularRobotStatusComponent.h"
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class URobotCombatComponent;
+class UModularRobotStatusComponent;
 class APlayerCharacter;
 class UInteractableComponent;
+class UEnvironmentalStatusComponent;
+class UGridDetectionComponent;
 class UInputAction;
 class UInputMappingContext;
 class USpringArmComponent;
@@ -22,6 +27,10 @@ class CR4S_API AModularRobot : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AModularRobot();
+
+#pragma region Get
+	FORCEINLINE float GetAttackPowerMultiplier() const { return Status->GetAttackPowerMultiplier(); }
+#pragma endregion
 	
 #pragma region ChangePossess
 	UFUNCTION(BlueprintCallable)
@@ -29,35 +38,39 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UnMountRobot();
 #pragma endregion
+
+#pragma region Widgets
+	void InitializeWidgets();
+	void DisconnectWidgets();
+#pragma endregion
 	
 #pragma region OverrideFunctions
 public:
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	// === Character Override Functions ===
 	virtual void NotifyControllerChanged() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 #pragma endregion
 
 #pragma region MoveFunctions
 protected:
 	UFUNCTION()
-	void Move(const FInputActionValue& Value);
+	void Input_Move(const FInputActionValue& Value);
 	UFUNCTION()
-	void Look(const FInputActionValue& Value);
+	void Input_Look(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartJump(const FInputActionValue& Value);
+	void Input_StartJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void StopJump(const FInputActionValue& Value);
+	void Input_StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartSprint(const FInputActionValue& Value);
+	void Input_Dash(const FInputActionValue& Value);
+
 	UFUNCTION()
-	void StopSprint(const FInputActionValue& Value);
+	void ResetDashCooldown();
 #pragma endregion
 
 #pragma region InputActions
@@ -72,24 +85,30 @@ protected:
 	TObjectPtr<UInputAction> MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> SprintAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> JumpAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> DashAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> AttackAction;
+	TObjectPtr<UInputAction> Attack1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack2Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack3Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack4Action;
+	
 #pragma endregion
 
-#pragma region MountOffset
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mount", meta = (AllowPrivateAccess = "true"))
-	FVector UnMountLocation;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	FName MountSocketName;
+#pragma region Settings
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	FName MountSocketName {FName("cockpit")};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	float DashStrength{3000};
 #pragma endregion
 	
 #pragma region Components
@@ -100,10 +119,21 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UModularRobotStatusComponent> Status;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<URobotCombatComponent> RobotCombat;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UGridDetectionComponent> GridDetection;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+
 #pragma endregion
 
 #pragma region Cached
-	TObjectPtr<APlayerCharacter> MountedCharacter; 
+	TObjectPtr<APlayerCharacter> MountedCharacter;
+	FTimerHandle DashCooldownTimerHandle;
+	uint8 bIsDashing:1 {false};
 #pragma endregion
 };

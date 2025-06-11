@@ -14,6 +14,8 @@ struct FInputActionValue;
 class UAlsCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UEnvironmentalStatusComponent;
+class UGridDetectionComponent;
 
 UCLASS(AutoExpandCategories = ("Settings|Player Character"))
 class CR4S_API APlayerCharacter : public AAlsCharacter
@@ -26,11 +28,14 @@ public:
 
 #pragma region Get
 	FORCEINLINE UStaticMeshComponent* GetOverlayStaticMesh() { return OverlayStaticMesh; }
-	FORCEINLINE int32 GetAttackPower() const { return Status->GetAttackPower(); }
+
+	UFUNCTION(BlueprintCallable)
+	void SetToolStaticMesh(UStaticMesh* InMesh);
 #pragma endregion
 	
 #pragma region Widget
 	void InitializeWidgets();
+	void DisconnectWidgets();
 #pragma endregion
 	
 #pragma region Overrides
@@ -42,6 +47,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& ViewInfo) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 #pragma endregion
 	
@@ -90,6 +96,12 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> OverlaySkeletalMesh;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UStaticMeshComponent> OverlayStaticMesh;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UGridDetectionComponent> GridDetection;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+
+
 #pragma endregion
 
 #pragma region InputActions
@@ -155,7 +167,10 @@ protected:
 	float LookRightRate{240.0f};
 #pragma endregion
 	
-
+#pragma region Properties
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Tool")
+	TObjectPtr<UStaticMesh> ToolStaticMesh;
+#pragma endregion
 
 #pragma region Navigation Invokers
 

@@ -1,0 +1,147 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "BaseBullet.h"
+
+#include "CR4S.h"
+#include "NiagaraComponent.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Character/Data/WeaponData.h"
+#include "Components/BoxComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+
+// Sets default values
+ABaseBullet::ABaseBullet()
+{
+	PrimaryActorTick.bCanEverTick = false;
+	SceneComponent=CreateDefaultSubobject<USceneComponent>(FName("Root"));
+	SetRootComponent(SceneComponent);
+	
+	CollisionComponent=CreateDefaultSubobject<UBoxComponent>(TEXT("Collision"));
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComponent->SetCollisionObjectType(ECC_GameTraceChannel2);
+	CollisionComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel2,ECR_Ignore);
+	CollisionComponent->SetGenerateOverlapEvents(true);
+	CollisionComponent->SetupAttachment(RootComponent);
+
+	NiagaraComponent=CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
+	NiagaraComponent->SetupAttachment(CollisionComponent);
+
+	ProjectileMovementComponent=CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	ProjectileMovementComponent->bRotationFollowsVelocity=false;
+	ProjectileMovementComponent->bShouldBounce=false;
+	ProjectileMovementComponent->UpdatedComponent=RootComponent;
+	
+	ProjectileMovementComponent->InitialSpeed=0.f;
+	ProjectileMovementComponent->MaxSpeed=0.f;
+	ProjectileMovementComponent->ProjectileGravityScale=0.f;
+	
+}
+
+void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage)
+{
+	BulletInfo=InData;
+	ProjectileMovementComponent->InitialSpeed=BulletInfo.InitialBulletSpeed;
+	ProjectileMovementComponent->MaxSpeed=BulletInfo.MaxBulletSpeed;
+	Damage=InDamage;
+	
+	if (BulletInfo.MaxLifeTime>KINDA_SMALL_NUMBER)
+	{
+		SetLifeSpan(BulletInfo.MaxLifeTime);
+	}
+	else
+	{
+		Destroy();
+	}
+
+	if (CollisionComponent)
+	{
+		AActor* OwnerActor=GetOwner();
+		if (CR4S_ENSURE(LogHong1,OwnerActor))
+		{
+			CollisionComponent->IgnoreActorWhenMoving(OwnerActor,true);
+		}
+		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this,&ABaseBullet::OnOverlapBegin);
+	}
+}
+
+// Called when the game starts or when spawned
+void ABaseBullet::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void ABaseBullet::OnOverlapBegin(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult & SweepResult
+	)
+{
+	FVector OverlapLocation=GetActorLocation();
+	AActor* OwnerActor=GetOwner();
+	if (BulletInfo.ExplosionRadius<=KINDA_SMALL_NUMBER) // 
+	{
+		if (OtherActor&&OtherActor!=this)
+		{
+			UGameplayStatics::ApplyDamage(
+				OtherActor,
+				Damage,
+				OwnerActor ? OwnerActor->GetInstigatorController():nullptr,
+				Owner,
+				UDamageType::StaticClass()
+			);
+		}
+	}
+	else // Explosion Bullet
+	{
+		TArray<AActor*> IgnoreList;
+		IgnoreList.Add(this);
+
+		UGameplayStatics::ApplyRadialDamage(
+			GetWorld(),
+			Damage,
+			SweepResult.ImpactPoint,
+			BulletInfo.ExplosionRadius,
+			UDamageType::StaticClass(),
+			IgnoreList,
+			Owner,
+			OwnerActor ? OwnerActor->GetInstigatorController():nullptr,
+			true
+		);
+	}
+	if (BulletInfo.ImpactParticle)
+	{
+		UParticleSystemComponent* PSC=UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			BulletInfo.ImpactParticle,
+			OverlapLocation,
+			FRotator::ZeroRotator,
+			true
+		);
+		if (!CR4S_ENSURE(LogHong1,PSC)) return;
+		PSC->bAutoDestroy=true;
+	}
+	if (BulletInfo.ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			BulletInfo.ImpactSound,
+			OverlapLocation,
+			1.0f,
+			1.0f
+		);
+	}
+	
+	Destroy();
+}
+
+// Called every frame
+void ABaseBullet::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+

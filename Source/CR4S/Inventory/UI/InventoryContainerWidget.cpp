@@ -48,7 +48,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
-	CraftingContainerWidget->InitWidget();
+	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);

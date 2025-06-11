@@ -2,21 +2,27 @@
 
 
 #include "ModularRobot.h"
+
+#include "CR4S.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
+#include "Character/Components/ModularRobotStatusComponent.h"
+#include "Character/Components/RobotCombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Character/Components/GridDetectionComponent.h"
+#include "Character/Components/EnvironmentalStatusComponent.h"
+#include "Gimmick/Components/InteractionComponent.h"
+#include "UI/InGame/SurvivalHUD.h"
 
 
 // Sets default values
-AModularRobot::AModularRobot():
-	UnMountLocation(FVector(-200.f,0.f,0.f)),
-	MountSocketName("cockpit")
+AModularRobot::AModularRobot()
 {
 	//Set Tick
 	PrimaryActorTick.bCanEverTick = false;
@@ -64,8 +70,12 @@ AModularRobot::AModularRobot():
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	Status=CreateDefaultSubobject<UModularRobotStatusComponent>(TEXT("Status"));
+	
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
+
+	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
 }
 
 void AModularRobot::MountRobot(AActor* InActor)
@@ -79,7 +89,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
 
-		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,true);
+		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::KeepWorld,true);
 		PreviousCharacter->AttachToComponent(
 			GetMesh(),
 			AttachRule,
@@ -120,6 +130,42 @@ void AModularRobot::UnMountRobot()
 	MountedCharacter=nullptr;
 }
 
+void AModularRobot::InitializeWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
+				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
+				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
+				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
+				
+				InGameWidget->InitializeStatusWidget(Status,true);
+			}
+		}
+	}
+}
+
+void AModularRobot::DisconnectWidgets()
+{
+	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
+	{
+		if (ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(CurrentController->GetHUD()))
+		{
+			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
+			{
+				Status->OnHPChanged.RemoveAll(InGameWidget);
+				Status->OnResourceChanged.RemoveAll(InGameWidget);
+				Status->OnEnergyChanged.RemoveAll(InGameWidget);
+				Status->OnStunChanged.RemoveAll(InGameWidget);
+			}
+		}
+	}
+}
+
 // Called when the game starts or when spawned
 void AModularRobot::BeginPlay()
 {
@@ -129,6 +175,8 @@ void AModularRobot::BeginPlay()
 	{
 		InteractComp->OnTryInteract.BindDynamic(this,&AModularRobot::MountRobot);
 	}
+
+	InitializeWidgets();
 }
 
 void AModularRobot::NotifyControllerChanged()
@@ -156,11 +204,32 @@ void AModularRobot::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, 0, Options);
+			InputSubsystem->AddMappingContext(InputMappingContext, 2, Options);
 		}
 	}
 
 	Super::NotifyControllerChanged();
+}
+
+void AModularRobot::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	InitializeWidgets();
+}
+
+void AModularRobot::UnPossessed()
+{
+	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		UEnhancedInputLocalPlayerSubsystem* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer())};
+		if (IsValid(InputSubsystem))
+		{
+			InputSubsystem->RemoveMappingContext(InputMappingContext);
+		}
+	}
+	DisconnectWidgets();
+	Super::UnPossessed();
 }
 
 // Called every frame
@@ -169,7 +238,7 @@ void AModularRobot::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AModularRobot::Move(const FInputActionValue& Value)
+void AModularRobot::Input_Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;
 	//Move Logic
@@ -186,7 +255,7 @@ void AModularRobot::Move(const FInputActionValue& Value)
 	}
 }
 
-void AModularRobot::Look(const FInputActionValue& Value)
+void AModularRobot::Input_Look(const FInputActionValue& Value)
 {
 	FVector2D LookInput=Value.Get<FVector2D>();
 
@@ -194,7 +263,7 @@ void AModularRobot::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookInput.Y);
 }
 
-void AModularRobot::StartJump(const FInputActionValue& Value)
+void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
 	// Jump 함수는 Character가 기본 제공
 	if (Value.Get<bool>())
@@ -203,7 +272,7 @@ void AModularRobot::StartJump(const FInputActionValue& Value)
 	}
 }
 
-void AModularRobot::StopJump(const FInputActionValue& Value)
+void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
 	// StopJumping 함수도 Character가 기본 제공
 	if (!Value.Get<bool>())
@@ -212,21 +281,33 @@ void AModularRobot::StopJump(const FInputActionValue& Value)
 	}
 }
 
-void AModularRobot::StartSprint(const FInputActionValue& Value)
+void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (GetCharacterMovement())
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 800.f;
-	}
+	if (bIsDashing) return;
+
+	bIsDashing = true;
+	
+	FVector LastInput=GetLastMovementInputVector();
+	FVector ForwardVector=GetActorForwardVector();
+	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
+	
+	FVector LaunchVelocity=DashDirection*DashStrength;
+	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
+	LaunchCharacter(LaunchVelocity,true,false);
+	GetWorldTimerManager().SetTimer(
+		DashCooldownTimerHandle,
+		this,
+		&AModularRobot::ResetDashCooldown,
+		1.0f,
+		false
+	);
 }
 
-void AModularRobot::StopSprint(const FInputActionValue& Value)
+void AModularRobot::ResetDashCooldown()
 {
-	if (GetCharacterMovement())
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	}
+	bIsDashing = false;
 }
+
 
 // Called to bind functionality to input
 void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -238,15 +319,20 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		if (ACharacterController* MyController=Cast<ACharacterController>(GetController()))
 		{
 			// Moving
-			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Move);
+			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Move);
 			//Looking
-			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Look);
-			//Sprinting
-			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AModularRobot::StartSprint);
-			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AModularRobot::StopSprint);
-			// Jumping
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Jump);
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::StopJumping);
+			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
+			//Dash
+			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Dash);
+			// Jump
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
+			//Attack
+			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftArm);
+			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightArm);
+			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftShoulder);
+			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightShoulder);
+			
 		}
 	}
 }

@@ -3,8 +3,9 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseWindowWidget.generated.h"
 
-class UButton;
+class UButtonWidget;
 class UTextBlock;
+class UImage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnApplyClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBackClicked);
@@ -20,10 +21,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Window")
 	FOnApplyClicked OnBackClicked;
 
-	void SetTitleText(FText NewText);
-
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativePreConstruct() override;
 
 	UFUNCTION()
 	void OnBackButtonClicked();
@@ -31,9 +31,18 @@ protected:
 	void OnApplyButtonClicked();
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* BackButton;
+	UButtonWidget* BackButton;
 	UPROPERTY(meta = (BindWidget))
-	UButton* ApplyButton;
-	UPROPERTY(Meta = (BindWidget))
-	UTextBlock* TitleTextBlock;
+	UButtonWidget* ApplyButton;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* WindowTitle;
+	UPROPERTY(meta = (BindWidget))
+	UImage* WindowIcon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
+	FText TitleText;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
+	UTexture2D* IconTexture;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
+	bool bShowButtons = true;
 };

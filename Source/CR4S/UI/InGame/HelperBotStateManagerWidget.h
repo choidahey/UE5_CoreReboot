@@ -16,30 +16,26 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeWithController(class AHelperBotAIController* InController);
 	void CloseWidgetAndResetInput();
-	
-	UPROPERTY()
-	TObjectPtr<UHelperBotStateManagerWidget> StateUIInstance;
+
 protected:
 	virtual void NativeConstruct() override;
 
 	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot;
 	
 	UPROPERTY(meta=(BindWidget)) class UCanvasPanel* RootCanvas;
-	UPROPERTY(meta=(BindWidget)) class UButton* Button1;
-	UPROPERTY(meta=(BindWidget)) class UButton* Button2;
-	UPROPERTY(meta=(BindWidget)) class UButton* Button3;
-	UPROPERTY(meta=(BindWidget)) class UButton* Button4;
-	UPROPERTY(meta=(BindWidget)) class UButton* Button5;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetIdleButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetFollowingButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetChopWoodButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* CloseButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* SetMiningButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* OpenInventoryButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* SetRepairingButton;
 	
 protected:
-	UFUNCTION() void OnButton1Clicked();
-	UFUNCTION() void OnButton2Clicked();
-	UFUNCTION() void OnButton3Clicked();
-	UFUNCTION() void OnButton4Clicked();
-	UFUNCTION() void OnButton5Clicked();
+	UFUNCTION() void SetIdle();
+	UFUNCTION() void SetFollowing();
+	UFUNCTION() void SetChopWood();
+	UFUNCTION() void CloseStateWidget();
 	UFUNCTION() void SetMining();
 	UFUNCTION() void OpenInventory();
 	UFUNCTION() void SetRepairing();

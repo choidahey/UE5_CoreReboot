@@ -8,7 +8,8 @@
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
-	: DestroyDelay(1.f),
+	: bIsDestroyed(false),
+	  DestroyDelay(1.f),
 	  DestroyImpulseRadius(50.f),
 	  DestroyImpulseStrength(50.f),
 	  ToolBonusDamageMultiplier(2.f),
@@ -46,10 +47,10 @@ void ADestructibleGimmick::BeginPlay()
 
 		if (CR4S_VALIDATE(LogGimmick, IsValid(ItemGimmickSubsystem)))
 		{
-			if (const FGimmickInfoData* GimmickData = ItemGimmickSubsystem->
+			if (const FGimmickInfoData* GimmickInfoData = ItemGimmickSubsystem->
 				FindGimmickInfoData(GetGimmickDataRowName()))
 			{
-				DestructibleComponent->SetMaxHealth(GimmickData->GimmickMaxHealth);
+				DestructibleComponent->SetMaxHealth(GimmickInfoData->GimmickMaxHealth);
 			}
 		}
 	}
@@ -119,6 +120,8 @@ void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 			true
 		);
 	}
+
+	bIsDestroyed = true;
 
 	if (DestroyDelay == 0.f)
 	{

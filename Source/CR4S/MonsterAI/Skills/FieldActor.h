@@ -36,6 +36,12 @@ protected:
     class UCapsuleComponent* CapsuleComp;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
+	float InitCapsuleRadius = 100.f;
+	
+	UPROPERTY(EditAnywhere, Category="Boss|Skill")
+	float InitCapsuleHalfHeight = 100.f;
+	
+	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	bool bFollowOwner = false;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
@@ -81,8 +87,9 @@ private:
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 					  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void ApplyDamageTick();
+	UFUNCTION()
 	void EndSkill();
+	void ApplyDamageTick();
 
 	UPROPERTY()
 	AActor* OwnerActor = nullptr;
@@ -95,8 +102,6 @@ private:
 	
 	float ElapsedTime = 0.f;
 	float TraceHeight = 1000.f;
-	float InitCapsuleRadius = 100.f;
-	float InitCapsuleHalfHeight = 100.f;
 
 	FTimerHandle LifeTimerHandle;
 	FTimerHandle DamageTimerHandle;
