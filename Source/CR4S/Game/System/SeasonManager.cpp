@@ -214,7 +214,10 @@ void USeasonManager::SpawnSeasonBoss()
 		SpawnedBoss->Destroy();
 	}
 
-	SpawnedBoss = World->SpawnActor<ASeasonBossMonster>(BossClass, FinalSpawnLocation, FRotator::ZeroRotator);
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
+	SpawnedBoss = World->SpawnActor<ASeasonBossMonster>(BossClass, FinalSpawnLocation, FRotator::ZeroRotator, Params);
 	if (SpawnedBoss)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: Spawned boss for season %s"), *UEnum::GetValueAsString(CurrentSeason));

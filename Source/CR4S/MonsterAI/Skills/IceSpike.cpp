@@ -2,6 +2,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
@@ -84,7 +85,7 @@ void AIceSpike::OnOverlapBegin(
 {
 	if (!OverlappedComp || !OtherActor) return;
 
-	if (Cast<ABaseMonster>(OtherActor)) return;
+	if (Cast<ABaseMonster>(OtherActor) || Cast<AAnimalMonster>(OtherActor)) return;
 	
 	APawn* OwnerPawn = Cast<APawn>(GetInstigator());
 	if (!OwnerPawn || OtherActor == OwnerPawn) return;

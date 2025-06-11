@@ -10,6 +10,7 @@ UMonsterPerceptionComponent::UMonsterPerceptionComponent()
 {
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
+	// TODO :: Damage Add
 
 	SetDominantSense(UAISense_Sight::StaticClass());
 }

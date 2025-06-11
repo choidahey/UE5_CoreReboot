@@ -17,16 +17,15 @@ protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector TargetActor;
+	FBlackboardKeySelector TargetActorKey;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector HouseActor;
+	FBlackboardKeySelector HouseActorKey;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	float AttackDistanceThreshold = 1000.f;
-
-
-private:
-	bool bIsPlayerInAttackRange = false;
-	bool bIsHouseInAttackRange = false;
+	FBlackboardKeySelector PlayerAttackRadiusKey;
+	
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector HouseAttackRadiusKey;
+	
 };

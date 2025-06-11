@@ -2,6 +2,7 @@
 
 #include "NiagaraComponent.h"
 #include "Components/BoxComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
@@ -71,7 +72,7 @@ void AThunderWall::OnOverlapBegin(
 	if (!OwnerPawn || !OtherActor || OtherActor == GetOwner())
 		return;
 	
-	if (Cast<ABaseMonster>(OtherActor)) return;
+	if (Cast<ABaseMonster>(OtherActor) || Cast<AAnimalMonster>(OtherActor)) return;
 	
 	UGameplayStatics::ApplyDamage(
 		OtherActor,

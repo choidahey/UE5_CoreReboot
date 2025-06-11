@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "MonsterAI/Skills/BaseSkillActor.h"
 #include "RotatingProjectile.generated.h"
 
 class UCapsuleComponent;
 
 UCLASS()
-class CR4S_API ARotatingProjectile : public AActor
+class CR4S_API ARotatingProjectile : public ABaseSkillActor
 {
 	GENERATED_BODY()
 
@@ -23,58 +23,62 @@ public :
 	void LaunchProjectile(const FVector& TargetLocation, float Speed);
 	void SetBossActor(AActor* InBoss, FName InSocket);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
-	FVector ProjectileScale = FVector(1.0f);
-
 protected:
+	virtual void OnOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep, 
+		const FHitResult& SweepResult
+	) override;
+
 	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	UFUNCTION()
-	void OnLandingDetected(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnLandingDetected(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* Other, 
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
 
 	FVector ComputeParabolicVelocity(const FVector& Start, const FVector& Target, float Speed) const;
 	void UpdateParabolicMovement(float DeltaTime);
 	void HandleLanding();
 	void UpdateLandingCollision();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
-	TObjectPtr<USceneComponent> RootComp;
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Transform")
+	FVector ProjectileScale = FVector(1.0f);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
-	TObjectPtr<UCapsuleComponent> CollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Boss|Attack")
-	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
-
-	UPROPERTY(VisibleAnywhere, Category = "Collision")
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "Projectile|Collision")
 	TObjectPtr<UCapsuleComponent> LandingTrigger;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
-	float Damage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Movement")
 	float RotatingSpeed = 360.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
-	float GravityZ = -1200.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Movement")
 	bool bIsParabolic = false;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
-	float AutoDestroyDelay = 10.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Movement")
+	float GravityZ = -1200.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Lifetime")
 	bool bDestroyOnBossApproach = false;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boss|Attack")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Lifetime")
+	float AutoDestroyDelay = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Lifetime")
 	float BossApproachRadius = 200.0f;
+
 
 private:
 	TObjectPtr<AActor> BossActor;
 	FName RestoreSocketName;
 
-	TSet<AActor*> AlreadyHitActors;
 	bool bIsLaunched = false;
 	bool bHasLanded = false;
 

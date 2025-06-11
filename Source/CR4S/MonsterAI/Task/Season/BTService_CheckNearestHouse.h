@@ -27,11 +27,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector NearestHouseActor;
 
-	UPROPERTY(EditAnywhere, Category = "Service")
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector HouseAcceptanceRadiusKey;
+	
+	UPROPERTY(EditAnywhere, Category = "Blackboard", meta = (ClampMin = "0.0"))
+	float RadiusOffset = 100.f;  
+
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FName HouseTag = TEXT("House");
 
 private:
 	AActor* FindNearestHouse(const FVector& PlayerLocation) const;
+	float CalculateActorRadius(const AActor* InActor) const;
 
 	UPROPERTY()
 	APawn* CachedOwnerPawn = nullptr;
