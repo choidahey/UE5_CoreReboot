@@ -7,6 +7,7 @@
 #include "PlayerInventoryComponent.generated.h"
 
 
+class UPlanterBoxInventoryWidget;
 class UInventoryContainerWidget;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -37,6 +38,9 @@ public:
 
 	FORCEINLINE int32 GetInventoryContainerWidgetOrder() const { return InventoryContainerWidgetOrder; }
 
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
+	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
+	
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
 

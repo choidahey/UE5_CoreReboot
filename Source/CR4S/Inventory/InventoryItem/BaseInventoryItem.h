@@ -26,9 +26,9 @@ struct FInventoryItemData
 	{
 	}
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FName RowName;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FItemInfoData ItemInfoData;
 
 	bool IsStackableItem() const
@@ -37,7 +37,7 @@ struct FInventoryItemData
 	}
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class CR4S_API UBaseInventoryItem : public UObject
 {
 	GENERATED_BODY()
@@ -115,6 +115,7 @@ protected:
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnItemUsed);
 
+	UPROPERTY(BlueprintAssignable, Category = "InventoryItem|Delegates")
 	FOnItemUsed OnItemUsed;
 
 #pragma endregion

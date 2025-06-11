@@ -6,6 +6,7 @@
 #include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
+#include "InventoryWidget/PlanterBoxInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -256,7 +257,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		                                                : OtherInventoryComponent;
 
 	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
-
+	
 	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }
 
