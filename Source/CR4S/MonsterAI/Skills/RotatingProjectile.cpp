@@ -9,19 +9,12 @@ ARotatingProjectile::ARotatingProjectile()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	RootComponent = RootComp;
-
 	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
 	CollisionComp->SetupAttachment(RootComp);
+
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CollisionComp->SetGenerateOverlapEvents(false);
 	CollisionComp->SetSimulatePhysics(false);
-
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
-	StaticMeshComp->SetupAttachment(RootComp);
-	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	StaticMeshComp->SetGenerateOverlapEvents(false);
 
 	LandingTrigger = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LandingTrigger"));
 	LandingTrigger->SetupAttachment(RootComp);
@@ -33,16 +26,6 @@ void ARotatingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (AActor* OwnerActor = GetOwner())
-	{
-		if (UMonsterSkillComponent* SkillComp = OwnerActor->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
-			Damage = SkillData.Damage;
-		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[RotatingProjectile] BeginPlay - Damage : %f"), Damage);
 }
 
 void ARotatingProjectile::Tick(float DeltaTime)
@@ -63,22 +46,8 @@ void ARotatingProjectile::Tick(float DeltaTime)
 			AddActorWorldOffset(DeltaMove, true);
 		}
 
-		FRotator Spin(-RotatingSpeed * DeltaTime, 0.f, 0.f);
+		const FRotator Spin(-RotatingSpeed * DeltaTime, 0.f, 0.f);
 		RootComp->AddLocalRotation(Spin);
-
-#if WITH_EDITOR
-		// Debug Capsule
-		DrawDebugCapsule(
-			GetWorld(),
-			CollisionComp->GetComponentLocation(),
-			CollisionComp->GetScaledCapsuleHalfHeight(),
-			CollisionComp->GetScaledCapsuleRadius(),
-			CollisionComp->GetComponentQuat(),
-			FColor::Green,
-			false, -1.f, 0,
-			1.5f
-		);
-#endif
 	}
 
 	if (bHasLanded && bDestroyOnBossApproach && BossActor)
@@ -86,7 +55,6 @@ void ARotatingProjectile::Tick(float DeltaTime)
 		const float Distance = FVector::DistSquared(GetActorLocation(), BossActor->GetActorLocation());
 		if (Distance < FMath::Square(BossApproachRadius))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[RotatingProjectile] Destroy!"));
 			Destroy();
 		}
 	}
@@ -100,15 +68,14 @@ void ARotatingProjectile::SetBossActor(AActor* InBoss, FName InSocket)
 
 void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, float Speed)
 {
-	AlreadyHitActors.Empty();
 	bIsLaunched = true;
 	TargetLocation = InTargetLocation;
+	TimeSinceLaunch = 0.f;
 
 	if (bIsParabolic)
 	{
 		InitialPosition = GetActorLocation();
 		InitialVelocity = ComputeParabolicVelocity(InitialPosition, TargetLocation, Speed);
-		TimeSinceLaunch = 0.f;
 	}
 	else
 	{
@@ -119,21 +86,14 @@ void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, floa
 	SetActorRotation(FRotator(0.f, MoveDirection.Rotation().Yaw, 0.f));
 	SetActorScale3D(ProjectileScale);
 	
-	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
-	CollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
+	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	CollisionComp->SetGenerateOverlapEvents(true);
 
-	LandingTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	LandingTrigger->SetCollisionObjectType(ECC_WorldDynamic);
-	LandingTrigger->SetCollisionResponseToAllChannels(ECR_Ignore);
-	LandingTrigger->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	LandingTrigger->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	LandingTrigger->SetGenerateOverlapEvents(true);
 
-	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ARotatingProjectile::OnOverlap);
-	LandingTrigger->OnComponentBeginOverlap.AddDynamic(this, &ARotatingProjectile::OnLandingDetected);
-
-	UE_LOG(LogTemp, Warning, TEXT("[RotatingProjectile] LaunchProjectile :  %s throws %s"), *BossActor->GetName(), *this->GetName());
+	CollisionComp->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnOverlap);
+	LandingTrigger->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnLandingDetected);
 }
 
 FVector ARotatingProjectile::ComputeParabolicVelocity(const FVector& Start, const FVector& Target, float Speed) const
@@ -178,29 +138,10 @@ void ARotatingProjectile::UpdateParabolicMovement(float DeltaTime)
 	SetActorLocation(NewLocation, true);
 }
 
-void ARotatingProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other,
+void ARotatingProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!IsValid(Other) || Other == this || Other == BossActor
-		|| Cast<AAnimalMonster>(Other) || Cast<ABaseMonster>(Other)) return;
-
-	if (AlreadyHitActors.Contains(Other)) return;
-	AlreadyHitActors.Add(Other);
-
-	UE_LOG(LogTemp, Warning, TEXT("[RotatingProjectile] OnOverlap : ApplyDamage %.1f! to %s"), Damage, *Other->GetName());
-
-	UGameplayStatics::ApplyDamage(
-		Other,
-		Damage,
-		GetInstigatorController(),
-		this,
-		UDamageType::StaticClass()
-	);
-
-	if (Other->IsA(APawn::StaticClass()))
-	{
-		return;
-	}
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
 void ARotatingProjectile::OnLandingDetected(UPrimitiveComponent* OverlappedComp, AActor* Other,
@@ -209,7 +150,7 @@ void ARotatingProjectile::OnLandingDetected(UPrimitiveComponent* OverlappedComp,
 	if (!bHasLanded && Other && Other != this && OtherComp)
 	{
 		const ECollisionChannel HitChannel = OtherComp->GetCollisionObjectType();
-		if (HitChannel == ECC_WorldStatic || HitChannel == ECC_WorldDynamic)
+		if (HitChannel == ECC_WorldStatic)
 		{
 			HandleLanding();
 		}
@@ -222,7 +163,6 @@ void ARotatingProjectile::HandleLanding()
 
 	bHasLanded = true;
 	MoveSpeed = 0.f;
-	StaticMeshComp->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 
 	FTimerHandle CollisionUpdateTimer;
 	GetWorld()->GetTimerManager().SetTimer(
@@ -237,8 +177,6 @@ void ARotatingProjectile::HandleLanding()
 	{
 		SetLifeSpan(AutoDestroyDelay);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[RotatingProjectile] Stopped."));
 }
 
 void ARotatingProjectile::UpdateLandingCollision()

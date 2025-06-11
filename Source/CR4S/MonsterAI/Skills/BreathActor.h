@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "MonsterAI/Skills/BaseSkillActor.h"
 #include "BreathActor.generated.h"
 
 class UNiagaraComponent;
 
 UCLASS()
-class CR4S_API ABreathActor : public AActor
+class CR4S_API ABreathActor : public ABaseSkillActor
 {
 	GENERATED_BODY()
 	
@@ -31,15 +31,6 @@ public:
 	void EndSkill();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Skill|Effect")
-	TObjectPtr<USceneComponent> RootComp;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Skill|Effect")
-	TObjectPtr<UStaticMeshComponent> StaticMesh;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Skill|Effect")
-	TObjectPtr<UNiagaraComponent> BreathEffect;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Skill|Damage")
 	float Range = 1200.f;
 
@@ -47,10 +38,7 @@ protected:
 	float Angle = 60.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Skill|Damage")
-	float TickInterval = 0.1f;
-
-	UPROPERTY()
-	TSet<AActor*> AlreadyDamaged;
+	float TickInterval = 0.2f;
 
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> FollowMesh = nullptr;
@@ -60,9 +48,7 @@ protected:
 
 private:
 	FTransform LastSocketTransform;
-	float Damage = 100.f;
 	float TimeSinceLastTick = 0.f;
 	bool bIsInitialized = false;
 	bool bIsActivated = false;
-	bool bAllowMultipleHits = false;
 };
