@@ -7,6 +7,7 @@
 #include "PlayerInventoryComponent.generated.h"
 
 
+class UPlanterBoxInventoryWidget;
 class UInventoryContainerWidget;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -28,15 +29,21 @@ public:
 #pragma region InventoryContainerWidget
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent||InventoryContainerWidget")
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
 	void OpenPlayerInventoryWidget(const int32 CraftingDifficulty = 0) const;
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
 
 	void CloseInventoryWidget() const;
 
+	FORCEINLINE int32 GetInventoryContainerWidgetOrder() const { return InventoryContainerWidgetOrder; }
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
+	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
+	
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
-	
+
 	UPROPERTY(EditDefaultsOnly)
 	int32 InventoryContainerWidgetOrder;
 	UPROPERTY(EditDefaultsOnly)
@@ -52,11 +59,13 @@ private:
 #pragma region QuickSlotInventoryComponent
 
 public:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|QuickSlot")
 	void UseItem(const int32 Index) const;
 
 	FORCEINLINE UBaseInventoryComponent* GetQuickSlotInventoryComponent() { return QuickSlotInventoryComponent; }
 	FORCEINLINE const FGameplayTag& GetHeldToolTag() const { return HeldToolTag; }
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|QuickSlot")
+	FORCEINLINE void GetHeldToolTag(FGameplayTag& OutHeldToolTag) const { OutHeldToolTag = HeldToolTag; } 
 	FORCEINLINE void SetHeldToolTag(const FGameplayTag& NewHeldToolTags) { HeldToolTag = NewHeldToolTags; }
 
 private:

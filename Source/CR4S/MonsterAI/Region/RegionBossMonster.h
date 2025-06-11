@@ -33,7 +33,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;
+	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;	
+
+	UFUNCTION()
 	void HandlePhaseChanged(EBossPhase NewPhase);
 
 #pragma endregion

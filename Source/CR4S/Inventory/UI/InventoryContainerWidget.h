@@ -6,6 +6,7 @@
 #include "ItemSlotWidget/BaseItemSlotWidget.h"
 #include "InventoryContainerWidget.generated.h"
 
+class UPlanterBoxInventoryWidget;
 class UCraftingContainerWidget;
 class UCompostBinWidget;
 class UStorageInventoryWidget;
@@ -50,6 +51,7 @@ public:
 	FORCEINLINE bool IsOpen() const { return bIsOpen; }
 
 private:
+	void ChangeWidgetOrder(const int32 NewOrder);
 	void InitToggleWidget(UUserWidget* Widget) const;
 	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType) const;
 
@@ -66,15 +68,17 @@ public:
 
 private:
 	bool CanMoveItem(const bool bTargetIsPlayer) const;
-	
+
 #pragma endregion
 
 #pragma region BindWidget
-	
+
+public:
+	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const { return PlanterBoxInventoryWidget; }
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> BackgroundBorder;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBaseInventoryWidget> PlayerInventoryWidget;
 	UPROPERTY(meta = (BindWidget))
@@ -86,7 +90,7 @@ private:
 	TObjectPtr<UStorageInventoryWidget> StorageInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseInventoryWidget> PlanterBoxInventoryWidget;
+	TObjectPtr<UPlanterBoxInventoryWidget> PlanterBoxInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCompostBinWidget> CompostBinWidget;

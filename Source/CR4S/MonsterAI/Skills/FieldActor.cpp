@@ -3,6 +3,7 @@
 #include "NiagaraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Curves/CurveVector.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
@@ -248,7 +249,7 @@ void AFieldActor::ApplyDamageTick()
         
 	for (AActor* Actor : ActorsCopy)
 	{
-		if (!IsValid(Actor) || Cast<ABaseMonster>(Actor))
+		if (!IsValid(Actor) || Cast<ABaseMonster>(Actor) || Cast<AAnimalMonster>(Actor))
 		{
 			OverlappingActors.Remove(Actor);
 			continue;

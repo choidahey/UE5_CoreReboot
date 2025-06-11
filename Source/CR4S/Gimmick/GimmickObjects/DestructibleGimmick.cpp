@@ -16,7 +16,7 @@ ADestructibleGimmick::ADestructibleGimmick()
 	  bCanShake(true),
 	  ShakeDuration(0.5f),
 	  ShakeInterval(0.02f),
-	  ShakeIntensity(5.0f),
+	  ShakeIntensity(2.5f),
 	  OriginalLocation(FVector::ZeroVector),
 	  ElapsedTime(0.f)
 {

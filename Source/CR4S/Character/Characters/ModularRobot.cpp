@@ -192,7 +192,7 @@ void AModularRobot::BeginPlay()
 	
 	if (InteractComp)
 	{
-		InteractComp->OnTryInteract.BindDynamic(this,&AModularRobot::MountRobot);
+		InteractComp->OnTryInteract.AddUniqueDynamic(this,&AModularRobot::MountRobot);
 	}
 	
 	InitializeWidgets();

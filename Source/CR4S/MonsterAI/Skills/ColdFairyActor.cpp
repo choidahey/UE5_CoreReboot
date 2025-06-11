@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -169,7 +170,7 @@ void AColdFairyActor::OnHit(
 {
     if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
 
-	if (Cast<ABaseMonster>(OtherActor)) return;
+	if (Cast<ABaseMonster>(OtherActor) || Cast<AAnimalMonster>(OtherActor)) return;
 
     UGameplayStatics::ApplyDamage(
         OtherActor,

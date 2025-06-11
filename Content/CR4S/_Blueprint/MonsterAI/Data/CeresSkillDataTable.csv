@@ -1,4 +1,4 @@
----,SkillName,SkillMontage,Damage,Cooldown,Range,Stunt,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt,ProbabilityList
+---,SkillName,SkillMontage,Damage,Cooldown,Range,StunGauge,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt,ProbabilityList
 MudAmbust,MudAmbust,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_MudAmbust.AM_MudAmbust',3500,3,400,600,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000000)"
 ThornField,ThornField,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_ThronField.AM_ThronField',2000,3,600,500,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000001)"
 ThunderRoad,ThunderRoad,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_ThunderRoad.AM_ThunderRoad',1000,3,400,300,FALSE,FALSE,FALSE,0,0,"((MinDistance=0.000000,MaxDistance=9999.000000,Phase=0,Probability=1.000002)"

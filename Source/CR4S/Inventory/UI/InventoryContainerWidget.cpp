@@ -6,6 +6,7 @@
 #include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
+#include "InventoryWidget/PlanterBoxInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -79,6 +80,11 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	}
 
 	bIsOpen = true;
+
+	if (IsValid(PlayerInventoryComponent))
+	{
+		ChangeWidgetOrder(PlayerInventoryComponent->GetInventoryContainerWidgetOrder());
+	}
 }
 
 void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType InventoryType,
@@ -129,6 +135,8 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	bIsOpen = false;
 
+	ChangeWidgetOrder(0);
+
 	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChanged.IsBound())
 	{
 		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
@@ -155,6 +163,12 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+}
+
+void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)
+{
+	RemoveFromParent();
+	AddToViewport(NewOrder);
 }
 
 void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const
@@ -243,7 +257,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		                                                : OtherInventoryComponent;
 
 	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
-
+	
 	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }
 
