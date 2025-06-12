@@ -124,6 +124,11 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 	{
 		InteractionComponent->StartDetectProcess();
 	}
+
+	if (OnInventoryClosed.IsBound())
+	{
+		OnInventoryClosed.Broadcast();
+	}
 }
 
 void UPlayerInventoryComponent::ToggleQuickSlotBarWidget()

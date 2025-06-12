@@ -95,10 +95,13 @@ private:
 	TObjectPtr<UPlanterBoxInventoryWidget> PlanterBoxInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UCompostBinWidget> CompostBinWidget;
+	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
+	TObjectPtr<UBaseInventoryWidget> RobotWorkshopWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCompostBinWidget> CompostBinWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUserWidget> OpenOtherWidget;

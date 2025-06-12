@@ -86,6 +86,9 @@ public:
 		OutInventoryItems = InventoryItems;
 	}
 
+	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
+	void SetInventoryItems(TArray<UBaseInventoryItem*>& NewInventoryItems);
+
 	FORCEINLINE int32 GetMaxInventorySize() const { return MaxInventorySize; }
 
 	FORCEINLINE void SetMaxInventorySize(const int32 InMaxInventorySlot) { MaxInventorySize = InMaxInventorySlot; }

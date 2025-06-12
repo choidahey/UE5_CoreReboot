@@ -26,7 +26,7 @@ bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 		return false;
 	}
 
-	const UBaseInventoryItem* FromItem = FromSlot->GetCurrentItem();
+	UBaseInventoryItem* FromItem = FromSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, FromItem) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsItemAllowedByFilter(FromItem)))
 	{
