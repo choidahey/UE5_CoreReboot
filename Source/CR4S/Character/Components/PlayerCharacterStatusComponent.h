@@ -36,7 +36,14 @@ public:
 	void ApplyHungerDebuff();
 	UFUNCTION()
 	void RemoveHungerDebuff();
-	void ReduceCurrentHunger();
+	void ConsumeCurrentHunger();
+	FORCEINLINE bool IsStarving() const { return bIsStarving; }
+#pragma endregion
+	
+#pragma region Sprint
+	void StartSprint();
+	void StopSprint();
+	void ConsumeResourceForSprint();
 #pragma endregion
 	
 #pragma region Override
@@ -72,6 +79,8 @@ private:
 	FTimerHandle HungerTimerHandle;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FTimerHandle StarvationDamageTimerHandle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FTimerHandle SprintTimerHandle;
 #pragma endregion
 
 #pragma region Delegate

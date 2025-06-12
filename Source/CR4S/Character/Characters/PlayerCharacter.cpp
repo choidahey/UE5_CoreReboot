@@ -93,7 +93,7 @@ void APlayerCharacter::InitializeWidgets()
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
 				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
-				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
+				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
 				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
 
 				InGameWidget->InitializeStatusWidget(Status,false);
@@ -143,7 +143,7 @@ void APlayerCharacter::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, MappingContextPriority, Options);
+			InputSubsystem->AddMappingContext(InputMappingContext, PlayerCharacterSettings.MappingContextPriority, Options);
 		}
 	}
 	
@@ -165,7 +165,9 @@ void APlayerCharacter::BeginPlay()
 	InitializeWidgets();
 
 	InitializeCurrentTool();
-	
+
+	if (!CR4S_ENSURE(LogHong1,PlayerCharacterSettingsDataAsset)) return;
+	PlayerCharacterSettings=PlayerCharacterSettingsDataAsset->PlayerCharacterSettings;
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -263,7 +265,17 @@ void APlayerCharacter::Input_OnMove(const FInputActionValue& ActionValue)
 
 void APlayerCharacter::Input_OnSprint(const FInputActionValue& ActionValue)
 {
-	SetDesiredGait(ActionValue.Get<bool>() ? AlsGaitTags::Sprinting : AlsGaitTags::Running);
+	const bool bIsSprinting=ActionValue.Get<bool>() && !GetLastMovementInputVector().IsNearlyZero();
+	
+	SetDesiredGait(bIsSprinting ? AlsGaitTags::Sprinting : AlsGaitTags::Running);
+	if (bIsSprinting)
+	{
+		Status->StartSprint();
+	}
+	else
+	{
+		Status->StopSprint();
+	}
 }
 
 void APlayerCharacter::Input_OnWalk()
@@ -334,8 +346,11 @@ void APlayerCharacter::Input_OnRagdoll()
 void APlayerCharacter::Input_OnRoll()
 {
 	static constexpr auto PlayRate{1.3f};
-
+	if (!CR4S_ENSURE(LogHong1,Status->HasEnoughResourceForRoll()
+		&& LocomotionAction!=AlsLocomotionActionTags::Rolling)) return;
+		
 	StartRolling(PlayRate);
+	Status->ConsumeResourceForRoll();
 }
 
 void APlayerCharacter::Input_OnRotationMode()
@@ -358,7 +373,6 @@ void APlayerCharacter::Input_OnSwitchShoulder()
 
 void APlayerCharacter::Input_OnAttack()
 {
-	CR4S_SIMPLE_SCOPE_LOG;
 	if (!CR4S_ENSURE(LogHong1,CurrentTool)
 		||!CR4S_ENSURE(LogHong1,(PlayerInputBuffer->CheckInputQueue(EInputType::Attack))))
 	{

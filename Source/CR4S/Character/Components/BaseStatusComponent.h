@@ -26,7 +26,6 @@ public:
 	
 	FORCEINLINE float GetMaxResource() const { return BaseStatus.MaxResource; }
 	FORCEINLINE float GetCurrentResource() const { return BaseStatus.Resource; }
-	FORCEINLINE float GetResourceConsumptionRate() const { return BaseStatus.ResourceConsumptionRate; }
 	
 	FORCEINLINE float GetAttackPower() const { return BaseStatus.AttackPower; }
 	FORCEINLINE float GetArmor() const { return BaseStatus.Armor; }
@@ -44,13 +43,24 @@ public:
 	
 	void AddMaxResource(const float InAmount);
 	void AddCurrentResource(const float InAmount);
-	void AddResourceConsumptionRate(const float InAmount);
 	
 	void AddAttackPower(const float InAmount);
 	void AddArmor(const float InAmount);
 	void AddColdThreshold(const float InAmount);
 	void AddHeatThreshold(const float InAmount);
 	void AddHumidityThreshold(const float InAmount);
+#pragma endregion
+	
+#pragma region Roll & Dash
+	bool HasEnoughResourceForRoll() const;
+	void ConsumeResourceForRoll();
+#pragma endregion
+
+#pragma region StaminaRegen
+	void StartResourceRegen();
+	void StopResourceRegen();
+	void OnResourceConsumed();
+	void RegenResourceTick();
 #pragma endregion
 	
 #pragma region Override
@@ -74,4 +84,10 @@ public:
 	FOnResourceChangedDelegate OnResourceChanged;
 	FOnDeathDelegate OnDeathState;
 #pragma endregion
+
+#pragma region Timer
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	FTimerHandle StaminaRegenTimerHandle;
+#pragma endregion
 };
+

@@ -24,6 +24,10 @@ public:
 	float StarvationDamage{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StarvationDamageInterval{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SprintResourceCost{100};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SprintCostConsumptionInterval{0.1};
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	// float SpeedDebuffMultiplier{0.5};
 };

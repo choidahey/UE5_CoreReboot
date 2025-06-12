@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "AlsCharacter.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
+#include "Character/Data/PlayerCharacterSettingsDataAsset.h"
 #include "PlayerCharacter.generated.h"
 
+struct FPlayerCharacterSettings;
 class UInputBufferComponent;
 class UPlayerInputBufferComponent;
 class APlayerTool;
@@ -167,9 +169,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Player Character", Meta = (ClampMin = 0, ForceUnits = "deg/s"))
 	float LookRightRate{240.0f};
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Input")
-	int32 MappingContextPriority{2};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Cost")
+	FPlayerCharacterSettings PlayerCharacterSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Data")
+	TObjectPtr<UPlayerCharacterSettingsDataAsset> PlayerCharacterSettingsDataAsset;
 #pragma endregion
 
 #pragma region Navigation Invokers
@@ -191,4 +196,5 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tool")
 	TObjectPtr<APlayerTool> CurrentTool;
 #pragma endregion
+	
 };

@@ -33,7 +33,7 @@ void UPlayerCharacterStatusComponent::BeginPlay()
 		GetWorld()->GetTimerManager().SetTimer(
 			HungerTimerHandle,
 			this,
-			&UPlayerCharacterStatusComponent::ReduceCurrentHunger,
+			&UPlayerCharacterStatusComponent::ConsumeCurrentHunger,
 			PlayerStatus.HungerInterval,
 			true
 		);
@@ -75,15 +75,49 @@ void UPlayerCharacterStatusComponent::ApplyHungerDebuff()
 
 void UPlayerCharacterStatusComponent::RemoveHungerDebuff()
 {
-	CR4S_SIMPLE_SCOPE_LOG;
-	if (!OwningCharacter) return;
+	if (CR4S_ENSURE(LogHong1,!OwningCharacter||!GetWorld())) return;
 
 	GetWorld()->GetTimerManager().ClearTimer(StarvationDamageTimerHandle);
 }
 
-void UPlayerCharacterStatusComponent::ReduceCurrentHunger()
+void UPlayerCharacterStatusComponent::ConsumeCurrentHunger()
 {
 	AddCurrentHunger(-(PlayerStatus.HungerDecreaseAmount));
+}
+
+void UPlayerCharacterStatusComponent::StartSprint()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+	
+	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=PlayerStatus.SprintResourceCost))
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			SprintTimerHandle,
+			this,
+			&UPlayerCharacterStatusComponent::ConsumeResourceForSprint,
+			PlayerStatus.SprintCostConsumptionInterval,
+			true
+		);
+	}
+}
+
+void UPlayerCharacterStatusComponent::StopSprint()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld()&&OwningCharacter)) return;
+
+	OwningCharacter->SetDesiredGait(AlsGaitTags::Running);
+	GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
+}
+
+void UPlayerCharacterStatusComponent::ConsumeResourceForSprint()
+{
+	if (CR4S_ENSURE(LogHong1,GetCurrentResource()<PlayerStatus.SprintResourceCost))
+	{
+		StopSprint();
+		return;
+	}
+	AddCurrentResource(-(PlayerStatus.SprintResourceCost));
+	OnResourceConsumed();
 }
 
 void UPlayerCharacterStatusComponent::AddMaxHunger(const float InAmount)

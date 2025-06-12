@@ -3,6 +3,8 @@
 
 #include "BaseStatusComponent.h"
 
+#include "CR4S.h"
+
 
 // Sets default values for this component's properties
 UBaseStatusComponent::UBaseStatusComponent()
@@ -53,15 +55,10 @@ void UBaseStatusComponent::AddCurrentHP(const float InAmount)
 
 void UBaseStatusComponent::AddCurrentResource(const float InAmount)
 {
-	const float Temp=FMath::Clamp(BaseStatus.Resource+InAmount,0,BaseStatus.Resource);
+	const float Temp=FMath::Clamp(BaseStatus.Resource+InAmount,0,BaseStatus.MaxResource);
 	BaseStatus.Resource=Temp;
 	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
 	OnResourceChanged.Broadcast(Percentage);
-}
-
-void UBaseStatusComponent::AddResourceConsumptionRate(const float InAmount)
-{
-	BaseStatus.ResourceConsumptionRate+=InAmount;
 }
 
 void UBaseStatusComponent::AddAttackPower(const float InAmount)
@@ -87,6 +84,54 @@ void UBaseStatusComponent::AddHeatThreshold(const float InAmount)
 void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 {
 	BaseStatus.HumidityThreshold+=InAmount;
+}
+
+bool UBaseStatusComponent::HasEnoughResourceForRoll() const
+{
+	return GetCurrentResource()>=BaseStatus.RollStaminaCost;
+}
+
+//Dash & Roll
+void UBaseStatusComponent::ConsumeResourceForRoll()
+{
+	AddCurrentResource(-BaseStatus.RollStaminaCost);
+	OnResourceConsumed();
+}
+
+void UBaseStatusComponent::StartResourceRegen()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		StaminaRegenTimerHandle,
+		this,
+		&UBaseStatusComponent::RegenResourceTick,
+		BaseStatus.ResourceRegenInterval,
+		true,
+		BaseStatus.ResourceRegenDelay
+	);
+}
+
+void UBaseStatusComponent::StopResourceRegen()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+	GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+}
+
+void UBaseStatusComponent::OnResourceConsumed()
+{
+	StopResourceRegen();
+	StartResourceRegen();
+}
+
+void UBaseStatusComponent::RegenResourceTick()
+{
+	if (GetCurrentResource()>=GetMaxResource())
+	{
+		StopResourceRegen();
+		return;
+	}
+	AddCurrentResource(BaseStatus.ResourceRegenPerInterval);
 }
 
 // Called every frame
