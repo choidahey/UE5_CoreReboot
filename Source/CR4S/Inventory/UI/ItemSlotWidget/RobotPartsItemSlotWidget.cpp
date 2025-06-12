@@ -1,6 +1,17 @@
 ﻿#include "RobotPartsItemSlotWidget.h"
 
+#include "Components/Image.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+
+void URobotPartsItemSlotWidget::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+	if (IsValid(BackgroundIcon))
+	{
+		BackgroundIcon->SetBrushFromTexture(BackgroundIconTexture);
+	}
+}
 
 bool URobotPartsItemSlotWidget::IsItemAllowedByFilter(UBaseInventoryItem* Item) const
 {

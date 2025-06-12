@@ -13,6 +13,8 @@ class CR4S_API URobotPartsItemSlotWidget : public UBaseItemSlotWidget
 #pragma region UBaseItemSlotWidget
 
 public:
+	virtual void NativePreConstruct() override;
+	
 	virtual bool IsItemAllowedByFilter(UBaseInventoryItem* Item) const override;
 	
 #pragma endregion
@@ -27,4 +29,15 @@ private:
 	FGameplayTag PartsTypeTag;
 
 #pragma endregion
+
+#pragma region BindWidget
+
+private:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> BackgroundIcon;
+
+	UPROPERTY(EditAnywhere, Category = "BackgroundIcon")
+	TObjectPtr<UTexture2D> BackgroundIconTexture;
+	
+#pragma endregion 
 };

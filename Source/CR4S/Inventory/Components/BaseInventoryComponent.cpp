@@ -322,7 +322,7 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 	FromInventoryComponent->NotifyInventoryItemChanged(FromItemIndex);
 }
 
-void UBaseInventoryComponent::SetInventoryItems(TArray<UBaseInventoryItem*>& NewInventoryItems)
+void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*>& NewInventoryItems)
 {
 	if (InventoryItems.Num() != NewInventoryItems.Num())
 	{
