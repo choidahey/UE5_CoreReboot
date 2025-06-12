@@ -69,8 +69,7 @@ int32 UBTTask_SelectSkill_Vita::SelectSkillFromAvailable(const TArray<int32>& Av
     int32 ChosenSkillID = ShuffledSkills[CurrentShuffleIndex];
     CurrentShuffleIndex++;
     
-    // return ChosenSkillID;
-    return 0;
+    return ChosenSkillID;
 }
 
 void UBTTask_SelectSkill_Vita::ReshuffleSkills(const TArray<int32>& AvailableSkills)

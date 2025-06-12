@@ -6,42 +6,26 @@
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
 
+// TODO :: 리팩토링 중... -> 메시-콜리전 위치, 크기 안맞는 부분 수정,
+// TODO :: AFieldActor로 대체할 수 있을듯
 AAcidWaveActor::AAcidWaveActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	RootComponent = RootComp;
+	StaticMesh->SetupAttachment(GetRootComponent());
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetupAttachment(RootComp);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	BoxCollisionComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollisionComp"));
-	BoxCollisionComp->SetupAttachment(RootComp);
-	BoxCollisionComp->SetBoxExtent(FVector(50.f, 50.f, 50.f));
-	BoxCollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	BoxCollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	BoxCollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	BoxCollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	BoxCollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-	BoxCollisionComp->SetGenerateOverlapEvents(true);
-	BoxCollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AAcidWaveActor::OnOverlapBegin);
+	CollisionComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollisionComp"));
+	CollisionComp->SetupAttachment(GetRootComponent());
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
+	CollisionComp->SetGenerateOverlapEvents(true);
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AAcidWaveActor::OnOverlap);
 }
 
 void AAcidWaveActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (AActor* OwnerMonster = GetOwner())
-	{
-		if (UMonsterSkillComponent* SkillComp = OwnerMonster->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
-			Damage = SkillData.Damage;
-		}
-	}
-
 	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
 
@@ -51,37 +35,31 @@ void AAcidWaveActor::Initialize(AActor* InOwner, AActor* InTarget)
 
 	OwnerActor = InOwner;
 	TargetActor = InTarget;
+
+	// if (auto BoxComp = Cast<UBoxComponent>(CollisionComp))
+	// {
+	// 	const float HalfHeight = BoxComp->GetScaledBoxExtent().Z;
+	// 	FVector BoxLoc = BoxComp->GetRelativeLocation();
+	// 	BoxLoc.Z = HalfHeight;
+	// 	BoxComp->SetRelativeLocation(BoxLoc);
+	// }
+	if (auto BoxComp = Cast<UBoxComponent>(CollisionComp))
+	{
+		const float HalfHeight = BoxComp->GetScaledBoxExtent().Z;
+		FVector MeshLoc = StaticMesh->GetRelativeLocation();
+		MeshLoc.Z = HalfHeight;
+		StaticMesh->SetRelativeLocation(MeshLoc);
+	}
 	
-	if (MeshComp && MeshComp->GetStaticMesh())
+	if (bDynamicScale && IsValid(StaticMesh))
 	{
-		const FVector LocalExtent = MeshComp->GetStaticMesh()->GetBoundingBox().GetExtent();
-		const float HalfHeight = LocalExtent.Z * MeshComp->GetComponentScale().Z;
-		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, HalfHeight));
-	}
-
-	if (BoxCollisionComp)
-	{
-		float BoxHalfHeight = 0.f;
-		if (MeshComp && MeshComp->GetStaticMesh())
-		{
-			const FVector LocalExtent = MeshComp->GetStaticMesh()->GetBoundingBox().GetExtent();
-			BoxHalfHeight = LocalExtent.Z * MeshComp->GetComponentScale().Z;
-		}
-		BoxCollisionComp->SetRelativeLocation(FVector(0.f, 0.f, BoxHalfHeight));
-	}
-
-	if (bDynamicScale && IsValid(MeshComp) && IsValid(BoxCollisionComp))
-	{
-		InitialScale = MeshComp->GetRelativeScale3D();
-		InitialBoxExtent = BoxCollisionComp->GetUnscaledBoxExtent();
+		InitialScale = StaticMesh->GetRelativeScale3D();
 		TargetScale = InitialScale + ScaleOffset;
 		ElapsedScaleTime = 0.f;
 	}
 
 	if (bIsRotating)
-	{
 		InitialRotation = GetActorRotation();
-	}
 
 	ElapsedRotationTime = 0.f;
 	ElapsedDelayTime = 0.f;
@@ -94,6 +72,8 @@ void AAcidWaveActor::Initialize(AActor* InOwner, AActor* InTarget)
 		&AAcidWaveActor::CleanupSelf,
 		TotalLifetime,
 		false);
+
+	CollisionComp->SetWorldTransform( StaticMesh->GetComponentTransform() );
 }
 
 
@@ -101,20 +81,17 @@ void AAcidWaveActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bDynamicScale && MeshComp)
+	if (bDynamicScale && StaticMesh)
 	{
 		ElapsedScaleTime += DeltaTime;
 		float AlphaScale = FMath::Clamp(ElapsedScaleTime / ScaleDuration, 0.f, 1.f);
 		FVector NewScale = FMath::Lerp(InitialScale, TargetScale, AlphaScale);
-		MeshComp->SetRelativeScale3D(NewScale);
-
-		FVector NewExtent = InitialBoxExtent * NewScale;
-		BoxCollisionComp->SetBoxExtent(NewExtent);
+		StaticMesh->SetRelativeScale3D(NewScale);
 
 		if (AlphaScale >= 1.f)
 			bDynamicScale = false;
 	}
-	
+
 	if (ElapsedDelayTime < RotationStartDelay)
 	{
 		ElapsedDelayTime += DeltaTime;
@@ -125,29 +102,51 @@ void AAcidWaveActor::Tick(float DeltaTime)
 	{
 		ElapsedRotationTime += DeltaTime;
 		float Alpha = FMath::Clamp(ElapsedRotationTime / RotationDuration, 0.f, 1.f);
+		
 		FRotator TargetRotation = InitialRotation + RotationOffset;
 		FRotator NewRot;
-		NewRot.Roll  = FMath::Lerp(InitialRotation.Roll,  TargetRotation.Roll,  Alpha);
+		NewRot.Roll = FMath::Lerp(InitialRotation.Roll, TargetRotation.Roll, Alpha);
 		NewRot.Pitch = FMath::Lerp(InitialRotation.Pitch, TargetRotation.Pitch, Alpha);
-		NewRot.Yaw   = FMath::Lerp(InitialRotation.Yaw,   TargetRotation.Yaw,   Alpha);
-	
-		SetActorRotation(NewRot);
+		NewRot.Yaw = FMath::Lerp(InitialRotation.Yaw, TargetRotation.Yaw, Alpha);
+		
+		StaticMesh->SetRelativeRotation(NewRot);
 	
 		if (Alpha >= 1.f)
-		{
 			bIsRotating = false;
+	}
+
+	if (bDrawLine)
+	{
+		// NOTICE :: Test Log
+		if (UBoxComponent* BoxComp = Cast<UBoxComponent>(CollisionComp))
+		{
+			FVector BoxCenter = BoxComp->GetComponentLocation();
+			FVector BoxHalfExtent = BoxComp->GetScaledBoxExtent();
+			FQuat   BoxQuat       = BoxComp->GetComponentQuat();
+			DrawDebugBox(
+				GetWorld(),
+				BoxCenter,
+				BoxHalfExtent,
+				BoxQuat,
+				FColor::Red,
+				false,
+				3.f,
+				0,
+				10.f
+			);
 		}
 	}
 }
 
-void AAcidWaveActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AAcidWaveActor::OnOverlap(
+	UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == OwnerActor) return;
-	if (OtherActor != TargetActor) return;
-
-	if (Damage > 0.f)
-		UGameplayStatics::ApplyDamage(OtherActor, Damage, nullptr, OwnerActor, nullptr);
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
 	const int32 TotalTick = 10;
 	DebuffTicksMap.Add(OtherActor, TotalTick);
@@ -156,14 +155,9 @@ void AAcidWaveActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 	FTimerDelegate TimerDel;
 	TimerDel.BindUObject(this, &AAcidWaveActor::ApplyPeriodicDamage, OtherActor);
 
-	GetWorld()->GetTimerManager().SetTimer(
-		NewHandle,
-		TimerDel,
-		0.5f,
-		true);
+	GetWorld()->GetTimerManager().SetTimer(NewHandle, TimerDel, 0.5f, true);
 
 	DebuffTimerMap.Add(OtherActor, NewHandle);
-		
 }
 
 void AAcidWaveActor::ApplyPeriodicDamage(AActor* AffectedActor)
@@ -207,4 +201,5 @@ void AAcidWaveActor::CleanupSelf()
 
 	Destroy();
 }
+
 

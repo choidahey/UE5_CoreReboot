@@ -27,7 +27,7 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
 	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
+	
 	FVector SpawnLocation = OwnerPawn->GetActorLocation();
 	const FVector TraceStart = SpawnLocation + FVector(0.f, 0.f, TraceHeight);
 	const FVector TraceEnd   = SpawnLocation - FVector(0.f, 0.f, TraceHeight);
@@ -37,6 +37,11 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	if (OwnerPawn->GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
 	{
 		SpawnLocation = Hit.Location;
+	}
+	
+	if (!SpawnLocationOffset.IsNearlyZero())
+	{
+		SpawnLocation += SpawnLocationOffset;
 	}
 
 	const FRotator SpawnRotation = OwnerPawn->GetActorRotation();
@@ -54,7 +59,7 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	);
 	if (!SpawnActor) return;
 
-	SpawnActor->AddActorLocalOffset(SpawnLocationOffset);
+	// SpawnActor->AddActorLocalOffset(SpawnLocationOffset);
 	
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{
@@ -67,5 +72,10 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	else
 	{
 		CR4S_Log(LogDa, Log, TEXT("[%s] Invaild Blizzard Actor"), *MyHeader);
+	}
+
+	if (LifeTime > 0.f)
+	{
+		SpawnActor->SetLifeSpan(LifeTime);
 	}
 }
