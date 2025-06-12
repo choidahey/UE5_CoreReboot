@@ -2,13 +2,13 @@
 #include "AIController.h"
 #include "CR4S.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/Character.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/Skills/AcidWaveActor.h"
 #include "MonsterAI/Skills/FieldActor.h"
+#include "MonsterAI/Skills/SpawnCircleActor.h"
+
 
 void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -69,13 +69,12 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	{
 		WaveActor->Initialize(Cast<AActor>(OwnerPawn), Target);
 	}
+	else if (ASpawnCircleActor* SpawnCircle = Cast<ASpawnCircleActor>(SpawnActor))
+	{
+		SpawnCircle->SpawnInCircle(Cast<AActor>(OwnerPawn));
+	}
 	else
 	{
 		CR4S_Log(LogDa, Log, TEXT("[%s] Invaild Blizzard Actor"), *MyHeader);
-	}
-
-	if (LifeTime > 0.f)
-	{
-		SpawnActor->SetLifeSpan(LifeTime);
 	}
 }
