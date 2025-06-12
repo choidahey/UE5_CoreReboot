@@ -132,6 +132,8 @@ private:
 #pragma endregion
 
 #pragma region Cached
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<APlayerCharacter> MountedCharacter;
 	FTimerHandle DashCooldownTimerHandle;
 	uint8 bIsDashing:1 {false};

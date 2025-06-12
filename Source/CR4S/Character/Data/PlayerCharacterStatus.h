@@ -21,7 +21,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HungerDecreaseAmount{0.1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float SpeedDebuffMultiplier{0.5};
+	float StarvationDamage{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StarvationDamageInterval{1};
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// float SpeedDebuffMultiplier{0.5};
 };
 
 UCLASS(Blueprintable, BlueprintType)

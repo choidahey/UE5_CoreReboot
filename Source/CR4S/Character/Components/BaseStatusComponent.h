@@ -64,7 +64,7 @@ protected:
 	
 #pragma region Status
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FBaseStats BaseStatus;
 #pragma endregion
 	

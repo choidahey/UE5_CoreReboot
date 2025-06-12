@@ -205,7 +205,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(RotationModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnRotationMode);
 		EnhancedInput->BindAction(ViewModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnViewMode);
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
-		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Started,this,&ThisClass::Input_OnAttack);
+		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnAttack);
 	}
 }
 

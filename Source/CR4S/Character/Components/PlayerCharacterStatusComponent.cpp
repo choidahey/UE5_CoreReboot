@@ -49,23 +49,36 @@ void UPlayerCharacterStatusComponent::TickComponent(float DeltaTime, ELevelTick 
 	// ...
 }
 
+void UPlayerCharacterStatusComponent::ApplyStarvationDamage()
+{
+	AddCurrentHP(-PlayerStatus.StarvationDamage);
+}
+
 void UPlayerCharacterStatusComponent::ApplyHungerDebuff()
 {
 	if (!OwningCharacter) return;
 	
-	if (UAlsCharacterMovementComponent* MovementComp=OwningCharacter->FindComponentByClass<UAlsCharacterMovementComponent>())
+	if (PlayerStatus.StarvationDamageInterval>KINDA_SMALL_NUMBER)
 	{
-		
+		if (!GetWorld()->GetTimerManager().IsTimerActive(StarvationDamageTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(
+				StarvationDamageTimerHandle,
+				this,
+				&UPlayerCharacterStatusComponent::ApplyStarvationDamage,
+				PlayerStatus.StarvationDamageInterval,
+				true
+			);
+		}
 	}
 }
 
 void UPlayerCharacterStatusComponent::RemoveHungerDebuff()
 {
+	CR4S_SIMPLE_SCOPE_LOG;
 	if (!OwningCharacter) return;
-	if (UAlsCharacterMovementComponent* MovementComp=OwningCharacter->FindComponentByClass<UAlsCharacterMovementComponent>())
-	{
-		
-	}
+
+	GetWorld()->GetTimerManager().ClearTimer(StarvationDamageTimerHandle);
 }
 
 void UPlayerCharacterStatusComponent::ReduceCurrentHunger()
