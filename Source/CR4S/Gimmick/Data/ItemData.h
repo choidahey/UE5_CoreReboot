@@ -30,15 +30,9 @@ USTRUCT(BlueprintType)
 struct FToolItemData : public FTableRowBase
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "스태틱 메시"))
-	TObjectPtr<UStaticMesh> StaticMesh = nullptr;
+	
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "도구 태그"))
 	FGameplayTag ToolTag = FGameplayTag();
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "공격력", ClampMin = "0"))
-	int32 Damage = 0;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "기절 수치", ClampMin = "0"))
-	int32 StunValue = 0;
 };
 
 USTRUCT(BlueprintType)

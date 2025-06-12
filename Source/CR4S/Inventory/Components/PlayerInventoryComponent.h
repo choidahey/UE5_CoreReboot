@@ -36,6 +36,9 @@ public:
 
 	void CloseInventoryWidget() const;
 
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
+	void ToggleQuickSlotBarWidget();
+
 	FORCEINLINE int32 GetInventoryContainerWidgetOrder() const { return InventoryContainerWidgetOrder; }
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")

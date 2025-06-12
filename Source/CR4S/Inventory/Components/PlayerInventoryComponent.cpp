@@ -126,6 +126,14 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 	}
 }
 
+void UPlayerInventoryComponent::ToggleQuickSlotBarWidget()
+{
+	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
+	{
+		InventoryContainerWidgetInstance->ToggleQuickSlotBar();
+	}
+}
+
 void UPlayerInventoryComponent::UseItem(const int32 Index) const
 {
 	if (IsValid(QuickSlotInventoryComponent))
