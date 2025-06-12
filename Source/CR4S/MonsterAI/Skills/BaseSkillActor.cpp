@@ -5,6 +5,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 
 ABaseSkillActor::ABaseSkillActor()
@@ -57,7 +58,7 @@ void ABaseSkillActor::InitializeSkillData()
 void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 {
 	if (!IsValid(Target) || Target == GetOwner() || Target == GetInstigator()) return;
-	if (Cast<ABaseMonster>(Target)) return;
+	if (Cast<ABaseMonster>(Target) || Cast<AAnimalMonster>(Target)) return;
 	if (!bAllowMultipleHits && AlreadyDamaged.Contains(Target)) return;
 
 	if (Damage > 0.f)

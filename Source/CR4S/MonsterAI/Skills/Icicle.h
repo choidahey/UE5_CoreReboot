@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseSkillActor.h"
 #include "GameFramework/Actor.h"
 #include "Icicle.generated.h"
 
@@ -9,7 +10,7 @@ class UNiagaraSystem;
 class UCapsuleComponent;
 
 UCLASS()
-class CR4S_API AIcicle : public AActor
+class CR4S_API AIcicle : public ABaseSkillActor
 {
 	GENERATED_BODY()
 
@@ -19,31 +20,23 @@ public:
 	void InitIcicle(float Radius);
 
 protected:
-	UFUNCTION()
-	void OnOverlap(
+	virtual void OnOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
-		bool bFromSweep,
+		bool bFromSweep, 
 		const FHitResult& SweepResult
-	);
-	void EndPlay(EEndPlayReason::Type EndPlayReason);
+	) override;
 
-	UPROPERTY(EditAnywhere)
-	USceneComponent* RootComp;
-	
-	UPROPERTY(EditAnywhere)
-	UNiagaraComponent* NiagaraComp;
+	virtual void BeginPlay() override;
+	void EndPlay(EEndPlayReason::Type EndPlayReason);
 
 	UPROPERTY(EditDefaultsOnly)
 	UNiagaraSystem* NiagaraTemplate;
 
 	UPROPERTY()
 	TArray<UCapsuleComponent*> EdgeColliders;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
-	float Damage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	FVector NiagaraScale = FVector(1.f, 1.f, 1.f);
