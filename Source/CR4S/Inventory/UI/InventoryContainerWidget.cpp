@@ -124,11 +124,22 @@ void UInventoryContainerWidget::OpenCraftingWidget(const int32 CraftingDifficult
 	OpenOtherWidget = CraftingContainerWidget;
 }
 
+void UInventoryContainerWidget::ToggleQuickSlotBar() const
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!IsValid(QuickSlotBarWidget))
+	{
+		return;
+	}
+
+	SurvivalHUD->ToggleWidget(QuickSlotBarWidget);
+}
+
 void UInventoryContainerWidget::CloseInventoryWidget()
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(BackgroundBorder)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)))
+		!IsValid(BackgroundBorder) ||
+		!IsValid(PlayerInventoryWidget))
 	{
 		return;
 	}
@@ -257,7 +268,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		                                                : OtherInventoryComponent;
 
 	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
-	
+
 	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }
 

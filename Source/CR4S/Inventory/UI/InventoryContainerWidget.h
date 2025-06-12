@@ -45,6 +45,8 @@ public:
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
 	void OpenCraftingWidget(const int32 CraftingDifficulty);
 
+	void ToggleQuickSlotBar() const;
+
 	UFUNCTION()
 	void CloseInventoryWidget();
 
