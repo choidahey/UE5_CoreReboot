@@ -324,6 +324,11 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 
 void UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int32 Count)
 {
+	if (Count <= 0)
+	{
+		return;
+	}
+	
 	int32 RemainingCount = Count;
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
 	{
@@ -346,6 +351,7 @@ void UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int
 			else
 			{
 				Item->SetCurrentStackCount(ItemCount - RemainingCount);
+				RemainingCount = 0;
 			}
 
 			NotifyInventoryItemChanged(Index);
@@ -370,6 +376,11 @@ void UBaseInventoryComponent::RemoveAllItemByRowName(const FName RowName)
 
 void UBaseInventoryComponent::RemoveItemByIndex(const int32 Index, const int32 Count)
 {
+	if (Count == 0)
+	{
+		return;
+	}
+	
 	if (InventoryItems.IsValidIndex(Index))
 	{
 		UBaseInventoryItem* Item = InventoryItems[Index];

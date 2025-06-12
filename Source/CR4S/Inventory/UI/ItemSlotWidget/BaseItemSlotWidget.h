@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UItemTooltipWidget;
 class UBaseInventoryWidget;
 class UInventoryContainerWidget;
 class UDummyItemSlotWidget;
@@ -58,6 +59,8 @@ protected:
 
 private:
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWidget> RootWidget;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> HoverImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> IconImage;
@@ -94,6 +97,7 @@ public:
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                                  UDragDropOperation*& OutOperation) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
@@ -126,4 +130,44 @@ protected:
 	static const TArray<FKey> QuickSlotKeys;
 	
 #pragma endregion
+
+#pragma region DivideItem
+	
+protected:
+	void OnShortClick();
+	void OnLongPressDetected();
+	void OnLongPress();
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	float LongPressThreshold;
+	
+	FTimerHandle LongPressTimerHandle;
+	
+	double PressStartTime;
+	
+	bool bLongPressTriggered;
+	
+#pragma endregion 
+
+#pragma region ToolTip
+
+public:
+	UFUNCTION()
+	UWidget* ShowToolTip();
+	void CloseToolTip();
+
+	void UpdateToolTip();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "ItemTooltip")
+	bool bCanUseItemTooltip;
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "ItemTooltip")
+	TSubclassOf<UItemTooltipWidget> ItemTooltipWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UItemTooltipWidget> ItemTooltipWidget;
+
+#pragma endregion 
 };

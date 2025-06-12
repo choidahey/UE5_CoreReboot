@@ -33,8 +33,8 @@ void ACropsGimmick::BeginPlay()
 
 	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
-		InteractableComponent->OnDetectionStateChanged.BindDynamic(this, &ThisClass::OnDetectionStateChanged);
-		InteractableComponent->OnTryInteract.BindDynamic(this, &ThisClass::OnGimmickInteracted);
+		InteractableComponent->OnDetectionStateChanged.AddUniqueDynamic(this, &ThisClass::OnDetectionStateChanged);
+		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ThisClass::OnGimmickInteracted);
 
 		DefaultInteractionText = InteractableComponent->GetInteractionText();
 	}

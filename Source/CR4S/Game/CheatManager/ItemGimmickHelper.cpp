@@ -1,11 +1,17 @@
-﻿#include "ItemCheatManager.h"
+﻿#include "ItemGimmickHelper.h"
 
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
-void UItemCheatManager::AddItem(const FName RowName, const int32 Count) const
+void UItemGimmickHelper::AddItem(const FName RowName, const int32 Count) const
 {
-	const APlayerController* PlayerController = GetPlayerController();
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return;
+	}
+	
+	const APlayerController* PlayerController = World->GetFirstPlayerController(); 
 	if (!IsValid(PlayerController))
 	{
 		return;

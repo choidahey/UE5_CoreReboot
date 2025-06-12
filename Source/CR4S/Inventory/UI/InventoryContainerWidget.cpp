@@ -6,6 +6,7 @@
 #include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
+#include "InventoryWidget/PlanterBoxInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -79,6 +80,11 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	}
 
 	bIsOpen = true;
+
+	if (IsValid(PlayerInventoryComponent))
+	{
+		ChangeWidgetOrder(PlayerInventoryComponent->GetInventoryContainerWidgetOrder());
+	}
 }
 
 void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType InventoryType,
@@ -118,16 +124,29 @@ void UInventoryContainerWidget::OpenCraftingWidget(const int32 CraftingDifficult
 	OpenOtherWidget = CraftingContainerWidget;
 }
 
+void UInventoryContainerWidget::ToggleQuickSlotBar() const
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!IsValid(QuickSlotBarWidget))
+	{
+		return;
+	}
+
+	SurvivalHUD->ToggleWidget(QuickSlotBarWidget);
+}
+
 void UInventoryContainerWidget::CloseInventoryWidget()
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(BackgroundBorder)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)))
+		!IsValid(BackgroundBorder) ||
+		!IsValid(PlayerInventoryWidget))
 	{
 		return;
 	}
 
 	bIsOpen = false;
+
+	ChangeWidgetOrder(0);
 
 	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChanged.IsBound())
 	{
@@ -155,6 +174,12 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+}
+
+void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)
+{
+	RemoveFromParent();
+	AddToViewport(NewOrder);
 }
 
 void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const

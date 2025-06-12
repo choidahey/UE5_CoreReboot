@@ -16,7 +16,7 @@ void AAnimalGround::BeginPlay()
 
 	if (InteractableComponent)
 	{
-		InteractableComponent->OnTryInteract.BindDynamic(this, &ABaseAnimal::OnInteract);
+		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ABaseAnimal::OnInteract);
 	}
 	
 	if (AIJumpComponent)

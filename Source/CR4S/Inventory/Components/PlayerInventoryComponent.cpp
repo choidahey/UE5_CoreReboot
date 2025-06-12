@@ -7,7 +7,7 @@
 #include "UI/InGame/SurvivalHUD.h"
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
-	: InventoryContainerWidgetOrder(0),
+	: InventoryContainerWidgetOrder(20),
 	  HeldToolTag(FGameplayTag())
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -37,7 +37,7 @@ void UPlayerInventoryComponent::BeginPlay()
 	}
 
 	InventoryContainerWidgetInstance = SurvivalHUD->CreateAndAddWidget(InventoryContainerWidgetClass,
-	                                                                   InventoryContainerWidgetOrder,
+	                                                                   0,
 	                                                                   ESlateVisibility::Visible);
 
 	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
@@ -59,6 +59,16 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 	}
 
 	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount);
+}
+
+UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWidget() const
+{
+	if (IsValid(InventoryContainerWidgetInstance))
+	{
+		return InventoryContainerWidgetInstance->GetPlanterBoxInventoryWidget(); 
+	}
+
+	return nullptr;
 }
 
 bool UPlayerInventoryComponent::PrepareOpenInventory(UInteractionComponent* InteractionComponent) const
@@ -84,7 +94,7 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDi
 	{
 		return;
 	}
-	
+
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
 }
 
@@ -95,7 +105,7 @@ void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType In
 	{
 		return;
 	}
-	
+
 	InventoryContainerWidgetInstance->OpenOtherInventoryWidget(InventoryType, InventoryComponent);
 }
 
@@ -113,6 +123,14 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 	if (IsValid(InteractionComponent))
 	{
 		InteractionComponent->StartDetectProcess();
+	}
+}
+
+void UPlayerInventoryComponent::ToggleQuickSlotBarWidget()
+{
+	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
+	{
+		InventoryContainerWidgetInstance->ToggleQuickSlotBar();
 	}
 }
 
