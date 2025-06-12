@@ -153,6 +153,11 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
 	}
 
+	if (IsValid(QuickSlotBarWidget) && QuickSlotBarWidget->GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		ToggleQuickSlotBar();
+	}
+
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 
 	if (IsValid(InputGuideContainer))
