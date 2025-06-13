@@ -11,4 +11,13 @@ class CR4S_API AVitaDryBossMonster : public ASeasonBossMonster
 
 public:
 	AVitaDryBossMonster();
+
+protected:
+	virtual UNiagaraSystem* GetOpeningNiagara() const override
+	{
+		return OpeningNiagara;
+	}
+
+	UPROPERTY(EditDefaultsOnly, Category="Boss|Opening Pattern")
+	TObjectPtr<UNiagaraSystem> OpeningNiagara = nullptr;
 };
