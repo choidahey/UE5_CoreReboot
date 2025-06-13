@@ -86,6 +86,11 @@ AModularRobot::AModularRobot()
 	RobotInventoryComponent = CreateDefaultSubobject<URobotInventoryComponent>(TEXT("RobotInventoryComponent"));
 }
 
+void AModularRobot::TakeStun_Implementation(const float StunAmount)
+{
+	 Status->AddStun(StunAmount);
+}
+
 void AModularRobot::LoadDataFromDataLoader()
 {
 	UGameInstance* GI=GetGameInstance();
