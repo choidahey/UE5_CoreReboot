@@ -110,7 +110,12 @@ void AModularRobot::MountRobot(AActor* InActor)
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
 
-		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::KeepWorld,true);
+		FAttachmentTransformRules AttachRule(
+			EAttachmentRule::SnapToTarget,
+			EAttachmentRule::SnapToTarget,
+			EAttachmentRule::KeepWorld,
+			false
+		);
 		PreviousCharacter->AttachToComponent(
 			GetMesh(),
 			AttachRule,
