@@ -34,9 +34,7 @@ public:
 	UFUNCTION()
 	void OpenRecipeSelectWidget(const FRecipeCategoryData& RecipeCategoryData) const;
 	void CloseRecipeSelectWidget() const;
-
-	UFUNCTION()
-	void OpenCraftingWidget(const FRecipeSelectData& NewRecipeSelectData) const;
+	
 	void CloseCraftingWidget() const;
 	
 #pragma endregion 
@@ -49,10 +47,8 @@ public:
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCraftingCategorySelectWidget> CraftingCategorySelectWidget;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class URecipeSelectWidget> RecipeSelectWidget;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCraftingWidget> CraftingWidget;
 

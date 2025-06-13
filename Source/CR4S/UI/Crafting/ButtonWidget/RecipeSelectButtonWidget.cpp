@@ -3,7 +3,6 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/Crafting/CraftingWidget.h"
 
 void URecipeSelectButtonWidget::InitWidget(UCraftingWidget* NewCraftingWidget)

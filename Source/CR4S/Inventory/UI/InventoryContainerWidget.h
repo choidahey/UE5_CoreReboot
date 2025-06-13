@@ -29,6 +29,8 @@ public:
 
 	void InitWidget(ASurvivalHUD* InSurvivalHUD, UPlayerInventoryComponent* InPlayerInventoryComponent);
 
+	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent() const { return PlayerInventoryComponent; }
+	
 private:
 	UPROPERTY()
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;

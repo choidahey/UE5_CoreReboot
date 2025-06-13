@@ -27,7 +27,8 @@ void URecipeSelectWidget::InitWidget(UCraftingWidget* NewCraftingWidget)
 	}
 }
 
-void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryData,
+void URecipeSelectWidget::OpenWidget(UTexture2D* Icon,
+                                     const FText& Name,
                                      TArray<const FItemRecipeData*> RecipeItems)
 {
 	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(ScrollBox)) ||
@@ -39,8 +40,8 @@ void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryDa
 
 	ScrollBox->ScrollToStart();
 
-	CraftingCategoryIcon->SetBrushFromTexture(RecipeCategoryData.Icon, true);
-	CraftingCategoryName->SetText(RecipeCategoryData.Name);
+	CraftingCategoryIcon->SetBrushFromTexture(Icon, true);
+	CraftingCategoryName->SetText(Name);
 
 	for (int32 Index = 0; Index < RecipeSelectButtonWidgets.Num(); Index++)
 	{

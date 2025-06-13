@@ -31,7 +31,7 @@ private:
 #pragma region ToggleWidget
 
 public:
-	void OpenWidget(const FRecipeCategoryData& RecipeCategoryData, TArray<const FItemRecipeData*> RecipeItems);
+	void OpenWidget(UTexture2D* Icon, const FText& Name, TArray<const FItemRecipeData*> RecipeItems);
 	void CloseWidget();
 	
 #pragma endregion

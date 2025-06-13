@@ -17,7 +17,7 @@ class CR4S_API UPlayerItemSlotWidget : public UBaseItemSlotWidget
 public:
 	UPlayerItemSlotWidget(const FObjectInitializer& ObjectInitializer);
 
-	virtual void InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem) override;
+	virtual void InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem) override;
 
 private:
 	UPROPERTY()

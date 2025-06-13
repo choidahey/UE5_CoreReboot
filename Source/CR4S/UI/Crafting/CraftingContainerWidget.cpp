@@ -57,7 +57,7 @@ void UCraftingContainerWidget::OpenRecipeSelectWidget(const FRecipeCategoryData&
 			}
 		}
 		
-		RecipeSelectWidget->OpenWidget(RecipeCategoryData, RecipeItems);
+		RecipeSelectWidget->OpenWidget(RecipeCategoryData.Icon, RecipeCategoryData.Name, RecipeItems);
 	}
 
 	CloseCraftingWidget();
@@ -68,14 +68,6 @@ void UCraftingContainerWidget::CloseRecipeSelectWidget() const
 	if (IsValid(RecipeSelectWidget))
 	{
 		RecipeSelectWidget->CloseWidget();
-	}
-}
-
-void UCraftingContainerWidget::OpenCraftingWidget(const FRecipeSelectData& NewRecipeSelectData) const
-{
-	if (IsValid(CraftingWidget))
-	{
-		CraftingWidget->OpenWidget(NewRecipeSelectData);
 	}
 }
 
