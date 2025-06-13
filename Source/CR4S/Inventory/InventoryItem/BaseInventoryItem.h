@@ -100,7 +100,9 @@ public:
 	FORCEINLINE int32 GetMaxStackCount() const { return InventoryItemData.ItemInfoData.MaxStackCount; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
 	FORCEINLINE int32 GetCurrentStackCount() const { return CurrentStackCount; }
+
 	FORCEINLINE int32 IsEmpty() const { return CurrentStackCount <= 0; }
+	FORCEINLINE const FGameplayTagContainer& GetItemTags() const { return InventoryItemData.ItemInfoData.ItemTags; }
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")

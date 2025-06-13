@@ -31,7 +31,8 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)))
 	{
 		return;
 	}
@@ -50,6 +51,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
+	RobotWorkshopWidget->InitWidget(SurvivalHUD, false);
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
@@ -57,6 +59,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	InitToggleWidget(PlanterBoxInventoryWidget);
 	InitToggleWidget(CompostBinWidget);
 	InitToggleWidget(CraftingContainerWidget);
+	InitToggleWidget(RobotWorkshopWidget);
 }
 
 void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget,
@@ -153,6 +156,11 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
 	}
 
+	if (IsValid(QuickSlotBarWidget) && QuickSlotBarWidget->GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		ToggleQuickSlotBar();
+	}
+
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 
 	if (IsValid(InputGuideContainer))
@@ -225,6 +233,9 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 		break;
 	case EInventoryType::CompostBin:
 		TargetWidget = CompostBinWidget;
+		break;
+	case EInventoryType::RobotWorkshop:
+		TargetWidget = RobotWorkshopWidget;
 		break;
 	}
 

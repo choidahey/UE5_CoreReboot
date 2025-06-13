@@ -163,7 +163,7 @@ void UBaseItemSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	                               .SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
 }
 
-bool UBaseItemSlotWidget::IsItemAllowedByFilter(const UBaseInventoryItem* Item) const
+bool UBaseItemSlotWidget::IsItemAllowedByFilter(UBaseInventoryItem* Item) const
 {
 	if (!IsValid(InventoryComponent) || !IsValid(Item))
 	{
