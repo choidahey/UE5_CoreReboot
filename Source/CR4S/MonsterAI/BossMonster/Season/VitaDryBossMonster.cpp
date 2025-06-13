@@ -3,4 +3,5 @@
 AVitaDryBossMonster::AVitaDryBossMonster()
 {
 	MonsterID = TEXT("VitaDryBoss");
+	EnvTempDelta = 10.f;
 }
