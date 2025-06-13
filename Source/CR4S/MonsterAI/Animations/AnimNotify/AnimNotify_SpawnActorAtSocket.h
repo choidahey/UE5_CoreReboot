@@ -17,8 +17,21 @@ protected:
 	TSubclassOf<AActor> SkillActorClass;
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
-	FName SocketName = TEXT("spine_01");
+	FName SocketName = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	FName SkillActorTag = TEXT("SkillActor");
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	int32 SpawnCount = 1;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	bool bSpawnAllAtOnce = true;
+
+	UPROPERTY(EditAnywhere, Category = "Skill", meta = (EditCondition = "!bSpawnAllAtOnce", ClampMin = "0.01"))
+	float SpawnInterval = 0.2f;
+
+private:
+	void SpawnSkillActor(USkeletalMeshComponent* MeshComp, AActor* Owner);
+
 };
