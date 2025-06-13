@@ -18,21 +18,26 @@ class CR4S_API ACharacterController : public APlayerController
 public:
 	ACharacterController();
 	
+#pragma region Direct Key Binding Handle Function
+	UFUNCTION(BlueprintCallable)
+	void OnPauseRequested();
+#pragma endregion
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;	
 
 #pragma region Inputs
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> MenuAction;
-	
-	
 #pragma endregion
 
-#pragma region Direct Key Binding Handle Function
-	UFUNCTION(BlueprintCallable)
-	void OnPauseRequested();
+#pragma region Settings
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Input")
+	int32 MappingContextPriority{2};
 #pragma endregion
+
 };
