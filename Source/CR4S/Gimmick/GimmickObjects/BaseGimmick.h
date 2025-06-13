@@ -9,7 +9,7 @@ struct FGimmickInfoData;
 struct FItemInfoData;
 struct FResourceItemData;
 
-UCLASS()
+UCLASS(BlueprintType)
 class CR4S_API ABaseGimmick : public AActor
 {
 	GENERATED_BODY()
@@ -45,6 +45,7 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "Gimmick|Data")
 	FORCEINLINE FName GetGimmickDataRowName() const { return GimmickData.RowName; }
+	UFUNCTION(BlueprintCallable, Category = "Gimmick|Data")
 	FORCEINLINE void SetGimmickDataRowName(const FName RowName) { GimmickData.RowName = RowName; }
 
 protected:

@@ -5,4 +5,5 @@
 AHiemsFrostBossMonster::AHiemsFrostBossMonster()
 {
 	MonsterID = TEXT("HiemsFrostBoss");
+	EnvTempDelta = -10.f;
 }

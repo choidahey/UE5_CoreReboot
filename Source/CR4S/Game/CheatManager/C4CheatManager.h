@@ -25,4 +25,17 @@ protected:
 	TObjectPtr<class UTimeCheatHelper> TimeHelper;
 
 	virtual void InitCheatManager() override;
+
+
+#pragma region Item And Gimmick
+
+public:
+	UFUNCTION(Exec)
+	void AddItem(FName RowName, int32 Count) const;
+
+protected:
+	UPROPERTY()
+	TObjectPtr<class UItemGimmickHelper> ItemGimmickHelper;
+	
+#pragma endregion
 };

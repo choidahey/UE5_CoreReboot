@@ -30,10 +30,10 @@ protected:
 	) override;
 
 	virtual void BeginPlay() override;
-	void EndPlay(EEndPlayReason::Type EndPlayReason);
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditDefaultsOnly)
-	UNiagaraSystem* NiagaraTemplate;
+	UNiagaraSystem* NiagaraTemplate = nullptr;
 
 	UPROPERTY()
 	TArray<UCapsuleComponent*> EdgeColliders;
