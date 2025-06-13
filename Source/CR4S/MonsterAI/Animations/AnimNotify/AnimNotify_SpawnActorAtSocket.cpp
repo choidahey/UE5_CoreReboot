@@ -65,7 +65,7 @@ void UAnimNotify_SpawnActorAtSocket::SpawnSkillActor(USkeletalMeshComponent* Mes
 
 	if (MeshComp->DoesSocketExist(SocketName))
 	{
-		SkillActor->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+		SkillActor->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, SocketName);
 	}
 
 	if (!SkillActor->ActorHasTag(SkillActorTag))
