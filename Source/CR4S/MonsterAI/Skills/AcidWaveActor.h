@@ -1,13 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseSkillActor.h"
 #include "GameFramework/Actor.h"
 #include "AcidWaveActor.generated.h"
 
 class UBoxComponent;
 
 UCLASS()
-class CR4S_API AAcidWaveActor : public AActor
+class CR4S_API AAcidWaveActor : public ABaseSkillActor
 {
 	GENERATED_BODY()
 	
@@ -21,29 +22,22 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	USceneComponent* RootComp;
-
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	UStaticMeshComponent* MeshComp;
-
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	UBoxComponent* BoxCollisionComp;
-
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	float Damage{0.f};
+	bool bDrawLine = false;
 	
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
-	bool bIsRotating{false};
+	bool bIsRotating = false;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bIsRotating"))
 	FRotator RotationOffset;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bIsRotating"))
-	float RotationDuration{1.f};
+	float RotationDuration = 1.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bIsRotating"))
-	float RotationStartDelay{2.f};
-	
+	float RotationStartDelay = 2.f;
+
+#pragma region Dymanic Scale
+protected:
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	bool bDynamicScale{false};
 
@@ -53,19 +47,21 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bDynamicScale"))
 	float ScaleDuration = 1.f;
 
+#pragma endregion Dymanic Scale
+
 private:
-	UFUNCTION()
-	void OnOverlapBegin(
+	virtual void OnOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult
-	);
+	) override;
 
 	void ApplyPeriodicDamage(AActor* AffectedActor);
 	void CleanupSelf();
+	void AlignPivotToBottom() const;
 
 	UPROPERTY()
 	AActor* OwnerActor{nullptr};
@@ -84,9 +80,9 @@ private:
 	FVector TargetScale;
 	FVector InitialBoxExtent;
 	
-	float ElapsedRotationTime{0.f};
-	float ElapsedDelayTime{0.f};
-	float ElapsedScaleTime{0.f};
+	float ElapsedRotationTime = 0.f;
+	float ElapsedDelayTime = 0.f;
+	float ElapsedScaleTime = 0.f;
 
 	FString MyHeader{TEXT("AcidWave")};
 };

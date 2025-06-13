@@ -6,7 +6,6 @@
 #include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
-#include "MonsterAI/Components/MonsterSkillComponent.h"
 
 AFieldActor::AFieldActor()
 {
@@ -14,36 +13,23 @@ AFieldActor::AFieldActor()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>("CollisionComp");
-	CapsuleComp->SetupAttachment(RootComponent);
+	CapsuleComp->SetupAttachment(RootComp);
 	CapsuleComp->InitCapsuleSize(InitCapsuleRadius, InitCapsuleHalfHeight);
 	
 	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	CapsuleComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	CapsuleComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	CapsuleComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	CapsuleComp->SetGenerateOverlapEvents(true);
 	
-	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AFieldActor::OnBeginOverlap);
+	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AFieldActor::OnOverlap);
 	CapsuleComp->OnComponentEndOverlap.AddDynamic(this, &AFieldActor::OnEndOverlap);
-
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>("NiagaraComp");
-	NiagaraComp->SetupAttachment(RootComponent);
+	
+	NiagaraComp->SetupAttachment(RootComp);
 	NiagaraComp->bAutoActivate = false;
 }
 
 void AFieldActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (AActor* OwnerMonster = GetOwner())
-	{
-		if (UMonsterSkillComponent* SkillComp = OwnerMonster->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
-			Damage = SkillData.Damage;
-		}
-	}
 
 	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
@@ -137,13 +123,13 @@ void AFieldActor::PerformGroundTrace()
 // 	);
 // #endif
 
-	FHitResult Hit;
-	FCollisionQueryParams Params(NAME_None, false, OwnerActor);
-	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
-	{
-		SetActorLocation(Hit.Location);
-		NiagaraComp->SetWorldLocation(Hit.Location);
-	}
+	// FHitResult Hit;
+	// FCollisionQueryParams Params(NAME_None, false, OwnerActor);
+	// if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	// {
+	// 	SetActorLocation(Hit.Location);
+	// 	NiagaraComp->SetWorldLocation(Hit.Location);
+	// }
 }
 
 void AFieldActor::StartTimers()
@@ -220,17 +206,18 @@ void AFieldActor::FollowOwner()
     }
 }
 
-void AFieldActor::OnBeginOverlap(UPrimitiveComponent* OverlappedComp,
+void AFieldActor::OnOverlap(
+	UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComp,
-    int32 BodyIndex,
-    bool bFromSweep,
-    const FHitResult& SweepResult)
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor != OwnerActor && !OtherActor->IsA(ABaseMonster::StaticClass()))
-	{
 		OverlappingActors.Add(OtherActor);
-	}
+
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
 void AFieldActor::OnEndOverlap(UPrimitiveComponent* OverlappedComp,
