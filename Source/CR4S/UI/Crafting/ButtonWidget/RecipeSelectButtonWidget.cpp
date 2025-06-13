@@ -6,13 +6,9 @@
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/Crafting/CraftingWidget.h"
 
-void URecipeSelectButtonWidget::InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget)
+void URecipeSelectButtonWidget::InitWidget(UCraftingWidget* NewCraftingWidget)
 {
-	CraftingContainerWidget = NewCraftingContainerWidget;
-	if (IsValid(CraftingContainerWidget))
-	{
-		CraftingWidget = CraftingContainerWidget->GetCraftingWidget();
-	}
+	CraftingWidget = NewCraftingWidget;
 	
 	if (IsValid(RecipeButton))
 	{
@@ -25,12 +21,7 @@ void URecipeSelectButtonWidget::OpenCraftingWidget()
 {
 	if (IsValid(CraftingWidget))
 	{
-		
-	}
-	
-	if (IsValid(CraftingContainerWidget))
-	{
-		CraftingContainerWidget->OpenCraftingWidget(RecipeSelectData);
+		CraftingWidget->OpenWidget(RecipeSelectData);
 	}
 }
 

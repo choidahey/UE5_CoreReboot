@@ -10,10 +10,8 @@
 #include "Gimmick/Data/ItemData.h"
 #include "Gimmick/Data/RecipeCategoryData.h"
 
-void URecipeSelectWidget::InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget)
+void URecipeSelectWidget::InitWidget(UCraftingWidget* NewCraftingWidget)
 {
-	CraftingContainerWidget = NewCraftingContainerWidget;
-
 	if (IsValid(ButtonContainer))
 	{
 		for (UWidget* Widget : ButtonContainer->GetAllChildren())
@@ -22,41 +20,27 @@ void URecipeSelectWidget::InitWidget(UCraftingContainerWidget* NewCraftingContai
 			if (IsValid(RecipeSelectButtonWidget))
 			{
 				RecipeSelectButtonWidgets.AddUnique(RecipeSelectButtonWidget);
-				RecipeSelectButtonWidget->InitWidget(CraftingContainerWidget);
+				RecipeSelectButtonWidget->InitWidget(NewCraftingWidget);
 				RecipeSelectButtonWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 		}
 	}
 }
 
-void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryData)
+void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryData,
+                                     TArray<const FItemRecipeData*> RecipeItems)
 {
 	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(ScrollBox)) ||
 		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingCategoryIcon)) ||
-		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingCategoryName)) ||
-		!CR4S_VALIDATE(LogCraftingUI, IsValid(ItemRecipeData)) ||
-		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingContainerWidget)))
+		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingCategoryName)))
 	{
 		return;
 	}
 
 	ScrollBox->ScrollToStart();
-	
+
 	CraftingCategoryIcon->SetBrushFromTexture(RecipeCategoryData.Icon, true);
 	CraftingCategoryName->SetText(RecipeCategoryData.Name);
-
-	TArray<const FItemRecipeData*> RecipeItems;
-	for (auto& Pair : ItemRecipeData->GetRowMap())
-	{
-		if (const FItemRecipeData* Data = reinterpret_cast<FItemRecipeData*>(Pair.Value))
-		{
-			if (Data->RecipeTag == RecipeCategoryData.RecipeTag &&
-				Data->CraftingDifficulty <= CraftingContainerWidget->GetCraftingDifficulty())
-			{
-				RecipeItems.AddUnique(Data);
-			}
-		}
-	}
 
 	for (int32 Index = 0; Index < RecipeSelectButtonWidgets.Num(); Index++)
 	{
@@ -69,9 +53,14 @@ void URecipeSelectWidget::OpenWidget(const FRecipeCategoryData& RecipeCategoryDa
 		if (RecipeItems.IsValidIndex(Index))
 		{
 			const FItemRecipeData* RecipeItem = RecipeItems[Index];
+			const UDataTable* DataTable = RecipeItem->ItemInfoDataHandle.DataTable;
+			if (!CR4S_VALIDATE(LogCraftingUI, IsValid(DataTable)))
+			{
+				continue;
+			}
 
-			if (const FItemInfoData* ItemData = CraftingContainerWidget->
-				GetItemInfoData(RecipeItem->ResultItemName))
+			const FName RowName = RecipeItem->ItemInfoDataHandle.RowName;
+			if (const FItemInfoData* ItemData = DataTable->FindRow<FItemInfoData>(RowName, TEXT("Item")))
 			{
 				RecipeSelectButtonWidget->SetRecipeData(FRecipeSelectData(*RecipeItem,
 				                                                          ItemData->Icon,

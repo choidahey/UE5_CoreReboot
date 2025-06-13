@@ -44,7 +44,7 @@ class CR4S_API URecipeSelectButtonWidget : public UUserWidget
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget);
+	void InitWidget(UCraftingWidget* NewCraftingWidget);
 
 private:
 	UPROPERTY()

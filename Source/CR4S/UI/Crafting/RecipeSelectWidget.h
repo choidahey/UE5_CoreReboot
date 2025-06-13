@@ -2,8 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Gimmick/Data/ItemRecipeData.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 #include "RecipeSelectWidget.generated.h"
 
+class UCraftingWidget;
+struct FItemInfoData;
 class UCraftingContainerWidget;
 struct FRecipeCategoryData;
 class URecipeSelectButtonWidget;
@@ -12,22 +16,22 @@ UCLASS()
 class CR4S_API URecipeSelectWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget);
+	void InitWidget(UCraftingWidget* NewCraftingWidget);
 
 private:
 	UPROPERTY()
-	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
-	
-#pragma endregion 
-	
+	TObjectPtr<UCraftingWidget> CratingWidget;
+
+#pragma endregion
+
 #pragma region ToggleWidget
 
 public:
-	void OpenWidget(const FRecipeCategoryData& RecipeCategoryData);
+	void OpenWidget(const FRecipeCategoryData& RecipeCategoryData, TArray<const FItemRecipeData*> RecipeItems);
 	void CloseWidget();
 	
 #pragma endregion
@@ -43,14 +47,11 @@ private:
 	TObjectPtr<class UScrollBox> ScrollBox;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPanelWidget> ButtonContainer;
-	
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<URecipeSelectButtonWidget> RecipeSelectButtonWidgetClass;
 	UPROPERTY()
 	TArray<TObjectPtr<URecipeSelectButtonWidget>> RecipeSelectButtonWidgets;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UDataTable> ItemRecipeData;
-	
-#pragma endregion 
+#pragma endregion
 };
