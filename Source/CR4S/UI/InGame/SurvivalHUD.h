@@ -23,6 +23,8 @@ class CR4S_API ASurvivalHUD : public AHUD
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE UDefaultInGameWidget* GetInGameWidget() const { return InGameWidget; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE UWorldMapWidget* GetWorldMapWidget() const { return WorldMapWidget; }
 
 #pragma region WidgetSetting
 public:
@@ -82,6 +84,8 @@ public:
 	// Sets the player input mode and mouse cursor visibility.
 	// Supports GameOnly, GameAndUI, and UIOnly modes with optional widget focus and mouse lock.
 	void SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidget = nullptr, bool bShowCursor = true, bool bLockMouse = false);
+
+	void ChangeWidgetZOrder(UUserWidget* Widget, int32 NewZOrder);
 
 #pragma endregion
 

@@ -32,6 +32,7 @@ void UDefaultInGameWidget::InitializeStatusWidget(UBaseStatusComponent* InCompon
 		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentStun()/RobotStatusComp->GetMaxStun(), 0.f, 1.f);
 		UpdateStunWidget(Percentage);
 	}
+
 	StatusWidget->ToggleWidgetMode(bIsRobot);
 }
 

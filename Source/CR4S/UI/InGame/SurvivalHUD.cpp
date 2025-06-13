@@ -8,10 +8,10 @@ void ASurvivalHUD::BeginPlay()
 
 	InGameWidget = CreateAndAddWidget<UDefaultInGameWidget>(InGameWidgetClass, 0, ESlateVisibility::Visible);
 
-	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 10, ESlateVisibility::Collapsed);
+	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 11, ESlateVisibility::Collapsed);
 	PauseWidget->OnResumeRequested.BindUObject(this, &ASurvivalHUD::HandlePauseToggle);
 
-	WorldMapWidget = CreateAndAddWidget<UWorldMapWidget>(WorldMapWidgetClass, 9, ESlateVisibility::Collapsed);
+	WorldMapWidget = CreateAndAddWidget<UWorldMapWidget>(WorldMapWidgetClass, 11, ESlateVisibility::Collapsed);
 }
 
 void ASurvivalHUD::PlayEndingSequence()
@@ -44,14 +44,15 @@ void ASurvivalHUD::HandleMapToggle()
 
 	if (bIsVisible)
 	{
-		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 		SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+		WorldMapWidget->HideMarker();
+		WorldMapWidget->PlayCloseMapSound();
 	}
 	else
 	{
-		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0001f);
 		SetInputMode(ESurvivalInputMode::GameAndUI, WorldMapWidget, true);
 		WorldMapWidget->UpdateWorldMap();
+		WorldMapWidget->PlayOpenMapSound();
 	}
 
 	ToggleWidget(WorldMapWidget);
@@ -67,10 +68,12 @@ void ASurvivalHUD::ToggleWidget(UUserWidget* Widget)
 	if (bIsVisible)
 	{
 		Widget->SetVisibility(ESlateVisibility::Collapsed);
+		ChangeWidgetZOrder(Widget, 0);
 	}
 	else
 	{
 		Widget->SetVisibility(ESlateVisibility::Visible);
+		ChangeWidgetZOrder(Widget, 11);
 	}
 }
 
@@ -97,6 +100,11 @@ void ASurvivalHUD::SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidge
 
 		if (FocusWidget)
 		{
+			if (!FocusWidget->IsFocusable())
+			{
+				FocusWidget->SetIsFocusable(true);
+			}
+
 			InputMode.SetWidgetToFocus(FocusWidget->TakeWidget());
 		}
 
@@ -127,4 +135,12 @@ void ASurvivalHUD::SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidge
 	}
 
 	PC->bShowMouseCursor = bShowCursor;
+}
+
+void ASurvivalHUD::ChangeWidgetZOrder(UUserWidget* Widget, int32 NewZOrder)
+{
+	if (!Widget || !Widget->IsInViewport())
+		return;
+
+	Widget->AddToViewport(NewZOrder); 
 }
