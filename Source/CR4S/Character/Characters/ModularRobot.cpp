@@ -20,6 +20,7 @@
 #include "Character/Components/InputBufferComponent.h"
 #include "Character/Components/RobotInputBufferComponent.h"
 #include "Gimmick/Components/InteractionComponent.h"
+#include "Inventory/Components/RobotInventoryComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
 
@@ -81,6 +82,8 @@ AModularRobot::AModularRobot()
 	WeaponManager=CreateDefaultSubobject<URobotWeaponComponent>(TEXT("WeaponManager"));
 
 	InputBuffer=CreateDefaultSubobject<URobotInputBufferComponent>(TEXT("RobotInputBuffer"));
+	
+	RobotInventoryComponent = CreateDefaultSubobject<URobotInventoryComponent>(TEXT("RobotInventoryComponent"));
 }
 
 void AModularRobot::LoadDataFromDataLoader()
@@ -103,6 +106,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 	if (IsValid(PreviousCharacter))
 	{
 		MountedCharacter=Cast<APlayerCharacter>(PreviousCharacter);
+		RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
 
@@ -145,6 +149,7 @@ void AModularRobot::UnMountRobot()
 		}
 	}
 	MountedCharacter=nullptr;
+	RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 }
 
 void AModularRobot::InitializeWidgets()

@@ -58,10 +58,6 @@ void UToolInventoryItem::EquipItem() const
 		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
 
-		if (IsValid(PlayerStatusComponent))
-		{
-			PlayerStatusComponent->AddAttackPower(ToolItemData.Damage);
-		}
 	}
 }
 
@@ -72,9 +68,5 @@ void UToolInventoryItem::UnEquipItem() const
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
 
-		if (IsValid(PlayerStatusComponent))
-		{
-			PlayerStatusComponent->AddAttackPower(-ToolItemData.Damage);
-		}
 	}
 }
