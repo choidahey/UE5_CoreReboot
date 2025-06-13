@@ -58,7 +58,7 @@ void ABaseSkillActor::InitializeSkillData()
 void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 {
 	if (!IsValid(Target) || Target == GetOwner() || Target == GetInstigator()) return;
-	if (Cast<ABaseMonster>(Target) || Cast<AAnimalMonster>(Target)) return;
+	if (Cast<ABaseMonster>(Target) || Cast<AAnimalMonster>(Target) || Cast<ABaseSkillActor>(Target)) return;
 	if (!bAllowMultipleHits && AlreadyDamaged.Contains(Target)) return;
 
 	if (Damage > 0.f)
