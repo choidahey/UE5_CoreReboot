@@ -55,14 +55,8 @@ void UToolInventoryItem::EquipItem() const
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
 	{
-		OwnerPlayer->SetToolStaticMesh(ToolItemData.StaticMesh);
 		OwnerPlayer->SetOverlayMode(ToolItemData.ToolTag);
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
-
-		if (IsValid(PlayerStatusComponent))
-		{
-			PlayerStatusComponent->AddAttackPower(ToolItemData.Damage);
-		}
 	}
 }
 
@@ -70,13 +64,7 @@ void UToolInventoryItem::UnEquipItem() const
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
 	{
-		OwnerPlayer->SetToolStaticMesh(nullptr);
 		OwnerPlayer->SetOverlayMode(DefaultTag);
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
-
-		if (IsValid(PlayerStatusComponent))
-		{
-			PlayerStatusComponent->AddAttackPower(-ToolItemData.Damage);
-		}
 	}
 }

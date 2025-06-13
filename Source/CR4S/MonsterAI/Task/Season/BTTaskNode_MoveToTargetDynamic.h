@@ -13,6 +13,7 @@ class CR4S_API UBTTaskNode_MoveToTargetDynamic : public UBTTaskNode
 
 public:
 	UBTTaskNode_MoveToTargetDynamic();
+	float GetCurrentAcceptanceRadius(FName KeyName, UBlackboardComponent* BB) const;
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
@@ -20,10 +21,13 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector TargetActorKey;
+
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector PlayerAcceptanceRadiusKey;
 	
-	UPROPERTY(EditAnywhere, Category = "State")
-	EMonsterState MovementState = EMonsterState::Chase;
-	
-	UPROPERTY(EditAnywhere, Category = "Chase")
-	float AcceptanceRadius = 1000.f;
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector HouseAcceptanceRadiusKey;
+
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	float DefaultAcceptanceRadius = 1000.f;
 };

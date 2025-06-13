@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "MonsterAI/Skills/BaseSkillActor.h"
 #include "GroundShockActor.generated.h"
 
 class UNiagaraSystem;
@@ -9,7 +9,7 @@ class UNiagaraComponent;
 class UCapsuleComponent;
 
 UCLASS()
-class CR4S_API AGroundShockActor : public AActor
+class CR4S_API AGroundShockActor : public ABaseSkillActor
 {
 	GENERATED_BODY()
 
@@ -18,19 +18,17 @@ public:
 	void InitShock(const FRotator& FacingRot);
 
 protected:
-	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-		bool bFromSweep, const FHitResult& SweepResult);
-
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<USceneComponent> RootComp;
-
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UNiagaraComponent> NiagaraComp;
+	virtual void OnOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	) override;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UNiagaraSystem> NiagaraPerCapsule;
+	TObjectPtr<UNiagaraSystem> NiagaraPerCapsule = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Shock")
 	float MinRadius = 400.f;
@@ -54,14 +52,15 @@ protected:
 	float CoverageFactor = 0.8f;
 
 	UPROPERTY(EditAnywhere)
-	float Damage = 100.f;
-
-	UPROPERTY(EditAnywhere)
 	float LifeTime = 1.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Skill|Shock")
+	float TraceHeightAbove = 2000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Skill|Shock")
+	float TraceDepthBelow = 2000.f;
 
 	UPROPERTY()
 	TArray<TObjectPtr<UCapsuleComponent>> ArcColliders;
 
-	UPROPERTY()
-	TSet<TObjectPtr<AActor>> AlreadyHitActors;
 };

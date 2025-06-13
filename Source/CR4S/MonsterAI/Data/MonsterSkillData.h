@@ -34,7 +34,7 @@ struct FMonsterSkillData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Damage = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Cooldown = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Range = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Stunt = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunGauge = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) uint8 bAllowMultipleHits : 1 = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) uint8 bUseWeaponCollision : 1 = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) uint8 bUseBodyCollision : 1 = 0;

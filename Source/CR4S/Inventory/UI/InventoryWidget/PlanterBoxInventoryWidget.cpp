@@ -3,9 +3,18 @@
 #include "CR4S.h"
 #include "Components/TextBlock.h"
 #include "Gimmick/Data/GimmickData.h"
-#include "Gimmick/GimmickObjects/Buildings/PlanterBoxGimmick.h"
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
+
+UPlanterBoxInventoryWidget::UPlanterBoxInventoryWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	bCanSort = false;
+	bCanDrag = false;
+	bCanDrop = true;
+	bCanRemoveItem = false;
+	bCanMoveItem = true;
+}
 
 void UPlanterBoxInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent)
 {
@@ -69,8 +78,15 @@ void UPlanterBoxInventoryWidget::UpdatePlanterBoxInfo(const float CurrentGrowthP
 // ReSharper disable once CppMemberFunctionMayBeConst
 void UPlanterBoxInventoryWidget::ClearPlanterBoxInfo()
 {
-	CropsNameTextBlock->SetText(DefaultNameText);
-	PlanterBoxInfoTextBlock->SetText(DefaultInfoText);
+	if (IsValid(CropsNameTextBlock))
+	{
+		CropsNameTextBlock->SetText(DefaultNameText);
+	}
+
+	if (IsValid(PlanterBoxInfoTextBlock))
+	{
+		PlanterBoxInfoTextBlock->SetText(DefaultInfoText);
+	}
 }
 
 void UPlanterBoxInventoryWidget::ConnectCropsGimmick()
@@ -82,21 +98,16 @@ void UPlanterBoxInventoryWidget::ConnectCropsGimmick()
 		return;
 	}
 
-	const APlanterBoxGimmick* PlanterBoxGimmick = Cast<APlanterBoxGimmick>(OwnerActor);
-	if (IsValid(PlanterBoxGimmick))
+	if (IsValid(PlantedCropsGimmick))
 	{
-		PlantedCropsGimmick = PlanterBoxGimmick->GetPlantedGimmick();
-		if (IsValid(PlantedCropsGimmick))
-		{
-			PlantedCropsGimmick->OnGrow.AddUniqueDynamic(this, &ThisClass::UpdatePlanterBoxInfo);
-			PlantedCropsGimmick->OnHarvest.AddUniqueDynamic(this, &ThisClass::ClearPlanterBoxInfo);
-			PlantedCropsGimmick->OnCropComposted.AddUniqueDynamic(this, &ThisClass::ClearPlanterBoxInfo);
+		PlantedCropsGimmick->OnGrow.AddUniqueDynamic(this, &ThisClass::UpdatePlanterBoxInfo);
+		PlantedCropsGimmick->OnHarvest.AddUniqueDynamic(this, &ThisClass::ClearPlanterBoxInfo);
+		PlantedCropsGimmick->OnCropComposted.AddUniqueDynamic(this, &ThisClass::ClearPlanterBoxInfo);
 
-			UpdatePlanterBoxInfo(PlantedCropsGimmick->GetCurrentGrowthPercent());
-		}
-		else
-		{
-			ClearPlanterBoxInfo();
-		}
+		UpdatePlanterBoxInfo(PlantedCropsGimmick->GetCurrentGrowthPercent());
+	}
+	else
+	{
+		ClearPlanterBoxInfo();
 	}
 }

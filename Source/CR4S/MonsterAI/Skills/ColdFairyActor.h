@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseSkillActor.h"
 #include "GameFramework/Actor.h"
 #include "ColdFairyActor.generated.h"
 
@@ -8,7 +9,7 @@ class USphereComponent;
 class UProjectileMovementComponent;
 
 UCLASS()
-class CR4S_API AColdFairyActor : public AActor
+class CR4S_API AColdFairyActor : public ABaseSkillActor
 {
 	GENERATED_BODY()
 	
@@ -22,15 +23,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Attack")
-	USceneComponent* RootComp;
-
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	USphereComponent* CollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Attack")
-	UStaticMeshComponent* StaticMeshComp;
-
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
 	UProjectileMovementComponent* ProjectileMovementComp;
 
@@ -39,9 +31,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack", meta=(ClampMin="0.0"))
 	float Interval = 0.05f;
-
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	float Damage = 0.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
 	float Speed = 1500.f;
@@ -55,14 +44,13 @@ protected:
 	FVector LaunchDirection;
 
 private:
-	UFUNCTION()
-	void OnHit(
+	virtual void OnHit(
 		UPrimitiveComponent* HitComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		FVector NormalImpulse,
 		const FHitResult& Hit
-		);
+	) override;
 
 	void Launch();
 	void HandleSequenceLaunch();

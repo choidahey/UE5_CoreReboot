@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class URobotInventoryComponent;
 class URobotCombatComponent;
 class UModularRobotStatusComponent;
 class APlayerCharacter;
@@ -30,8 +31,10 @@ public:
 
 #pragma region Get
 	FORCEINLINE float GetAttackPowerMultiplier() const { return Status->GetAttackPowerMultiplier(); }
+	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
 #pragma endregion
 	
+
 #pragma region ChangePossess
 	UFUNCTION(BlueprintCallable)
 	void MountRobot(AActor* InActor);
@@ -128,6 +131,8 @@ private:
 	TObjectPtr<UGridDetectionComponent> GridDetection;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<URobotInventoryComponent> RobotInventoryComponent;
 
 #pragma endregion
 
