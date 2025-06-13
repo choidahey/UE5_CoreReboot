@@ -30,5 +30,17 @@ namespace WeaponTags
 	UE_DEFINE_GAMEPLAY_TAG(Comet, FName(TEXT("Weapon.Ranged.Comet")));
 }
 
+namespace ToolTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(Axe,FName(TEXT("Als.OverlayMode.Axe")));
+	UE_DEFINE_GAMEPLAY_TAG(PickAxe,FName(TEXT("Als.OverlayMode.PickAxe")));
+	UE_DEFINE_GAMEPLAY_TAG(Hammer,FName(TEXT("Als.OverlayMode.Hammer")));
+}
+
+namespace OverlayMode
+{
+	UE_DEFINE_GAMEPLAY_TAG(Mounted,FName(TEXT("Als.OverlayMode.Mounted")));
+}
+
 
 

@@ -8,6 +8,9 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "DataLoaderSubsystem.generated.h"
 
+struct FWeaponSettings;
+struct FRobotSettings;
+class URobotSettingsDataAsset;
 class UWeaponInfoDataAsset;
 struct FGameplayTag;
 /**
@@ -20,6 +23,10 @@ class CR4S_API UDataLoaderSubsystem : public UGameInstanceSubsystem
 	
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+	void LoadRobotSettingsData(FRobotSettings& OutSettingsInfo) const;
+	void LoadWeaponSettingsData(FWeaponSettings& OutSettingsInfo) const;
+	bool LoadToolInfoByTag(const FGameplayTag& Tag, FPlayerToolInfo& OutSettingsInfo) const;
 	
 	template<typename T>
 	bool LoadWeaponInfoByTag(const FGameplayTag& Tag, T& OutInfo, FBaseWeaponInfo& OutBaseInfo)
@@ -48,7 +55,14 @@ public:
 		}
 		return false;
 	}
+	
 private:
 	UPROPERTY()
-	TObjectPtr<UWeaponInfoDataAsset> WeaponDataAsset; 
+	TObjectPtr<UWeaponInfoDataAsset> WeaponDataAsset;
+
+	UPROPERTY()
+	TObjectPtr<URobotSettingsDataAsset> RobotSettingsDataAsset;
+
+	UPROPERTY()
+	TObjectPtr<UPlayerToolInfoDataAsset> PlayerToolInfoDataAsset;
 };

@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
+#include "Character/Data/RobotSettings.h"
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
-class URobotInventoryComponent;
-class URobotCombatComponent;
+class URobotInputBufferComponent;
+class UInputBufferComponent;
+class URobotWeaponComponent;
 class UModularRobotStatusComponent;
 class APlayerCharacter;
 class UInteractableComponent;
@@ -29,12 +31,10 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
-#pragma region Get
-	FORCEINLINE float GetAttackPowerMultiplier() const { return Status->GetAttackPowerMultiplier(); }
-	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
+#pragma region Load Data
+	void LoadDataFromDataLoader();
 #pragma endregion
 	
-
 #pragma region ChangePossess
 	UFUNCTION(BlueprintCallable)
 	void MountRobot(AActor* InActor);
@@ -51,7 +51,7 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 protected:
 	virtual void BeginPlay() override;
 	virtual void NotifyControllerChanged() override;
@@ -106,12 +106,8 @@ protected:
 
 #pragma region Settings
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
-	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
-	FName MountSocketName {FName("cockpit")};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
-	float DashStrength{3000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	FRobotSettings RobotSettings;
 #pragma endregion
 	
 #pragma region Components
@@ -124,7 +120,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UModularRobotStatusComponent> Status;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<URobotCombatComponent> RobotCombat;
+	TObjectPtr<URobotWeaponComponent> WeaponManager;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -132,13 +128,15 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<URobotInventoryComponent> RobotInventoryComponent;
-
+	TObjectPtr<URobotInputBufferComponent> InputBuffer;
 #pragma endregion
 
 #pragma region Cached
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<APlayerCharacter> MountedCharacter;
 	FTimerHandle DashCooldownTimerHandle;
 	uint8 bIsDashing:1 {false};
 #pragma endregion
 };
+
