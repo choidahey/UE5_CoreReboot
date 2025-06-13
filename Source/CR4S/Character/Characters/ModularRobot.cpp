@@ -18,6 +18,7 @@
 #include "Character/Components/GridDetectionComponent.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Gimmick/Components/InteractionComponent.h"
+#include "Inventory/Components/RobotInventoryComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 
@@ -76,6 +77,8 @@ AModularRobot::AModularRobot()
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 
 	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
+
+	RobotInventoryComponent = CreateDefaultSubobject<URobotInventoryComponent>(TEXT("RobotInventoryComponent"));
 }
 
 void AModularRobot::MountRobot(AActor* InActor)
@@ -86,6 +89,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 	if (IsValid(PreviousCharacter))
 	{
 		MountedCharacter=Cast<APlayerCharacter>(PreviousCharacter);
+		RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
 
@@ -128,6 +132,7 @@ void AModularRobot::UnMountRobot()
 		}
 	}
 	MountedCharacter=nullptr;
+	RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 }
 
 void AModularRobot::InitializeWidgets()
