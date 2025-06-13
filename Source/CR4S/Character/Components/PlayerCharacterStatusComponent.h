@@ -31,11 +31,19 @@ public:
 	void AddMaxHunger(const float InAmount);
 	void AddCurrentHunger(const float InAmount);
 
+	void ApplyStarvationDamage();
 	UFUNCTION()
 	void ApplyHungerDebuff();
 	UFUNCTION()
 	void RemoveHungerDebuff();
-	void ReduceCurrentHunger();
+	void ConsumeCurrentHunger();
+	FORCEINLINE bool IsStarving() const { return bIsStarving; }
+#pragma endregion
+	
+#pragma region Sprint
+	void StartSprint();
+	void StopSprint();
+	void ConsumeResourceForSprint();
 #pragma endregion
 	
 #pragma region Override
@@ -62,14 +70,17 @@ protected:
 	
 #pragma region Status
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FPlayerCharacterStats PlayerStatus;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
-	float OriginalMaxWalkSpeed{0};
-	
 	uint8 bIsStarving:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FTimerHandle HungerTimerHandle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FTimerHandle StarvationDamageTimerHandle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FTimerHandle SprintTimerHandle;
 #pragma endregion
 
 #pragma region Delegate
@@ -79,6 +90,7 @@ public:
 	FOnHungerDebuffChanged OnHungerDebuffChanged;
 #pragma endregion
 };
+
 
 
 
