@@ -6,6 +6,7 @@
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Data/RobotSettings.h"
 #include "GameFramework/Character.h"
+#include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
 class URobotInventoryComponent;
@@ -24,7 +25,7 @@ class UCameraComponent;
 struct FInputActionValue;
 
 UCLASS()
-class CR4S_API AModularRobot : public ACharacter
+class CR4S_API AModularRobot : public ACharacter, public IStunnableInterface
 {
 	GENERATED_BODY()
 
@@ -32,6 +33,10 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
+#pragma region Stun
+	virtual void TakeStun_Implementation(const float StunAmount) override;
+#pragma endregion
+	
 #pragma region Get
 	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
 #pragma endregion
