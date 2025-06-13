@@ -21,20 +21,10 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     UBlackboardComponent* BB = AIC->GetBlackboardComponent();
     if (!IsValid(BB)) return INDEX_NONE;
 
-    if (IsValid(Target))
-    {
-        const FVector MonsterLoc = CachedMonster->GetActorLocation();
-        const FVector TargetLoc  = Target->GetActorLocation();
-        const float Distance     = FVector::Dist(MonsterLoc, TargetLoc);
-        
-        if (Distance <= IceRoadAwayTreshold || Distance >= IceRoadForwardTreshold)
-        {
-            const bool bToward = (Distance >= IceRoadForwardTreshold);
-            BB->SetValueAsBool(FSeasonBossAIKeys::bIsIceRoadForward, bToward);
+    const bool bAway = BB->GetValueAsBool(FSeasonBossAIKeys::bIsDashAway);
+    const bool bForward = BB->GetValueAsBool(FSeasonBossAIKeys::bIsDashForward);
 
-            return 3;
-        }
-    }
+    if (bAway || bForward) return 3;
     
     if (AvailableSkills.Num() == 0) return INDEX_NONE;
     

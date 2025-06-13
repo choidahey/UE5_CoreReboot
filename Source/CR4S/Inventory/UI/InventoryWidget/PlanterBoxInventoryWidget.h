@@ -14,6 +14,8 @@ class CR4S_API UPlanterBoxInventoryWidget : public UBaseInventoryWidget
 #pragma region UBaseInventoryWidget Override
 
 public:
+	UPlanterBoxInventoryWidget(const FObjectInitializer& ObjectInitializer);
+	
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) override;
 
 	virtual void UpdateItemSlotWidget(int32 SlotIndex, UBaseInventoryItem* Item) override;
@@ -24,6 +26,12 @@ public:
 #pragma region UPlanterBoxInventoryWidget
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "PlanterBoxInventoryWidget")
+	FORCEINLINE void ConnectPlantedCropsGimmick(ACropsGimmick* NewPlantedCropsGimmick)
+	{
+		PlantedCropsGimmick = NewPlantedCropsGimmick;
+	}
+	
 	UFUNCTION()
 	void UpdatePlanterBoxInfo(float CurrentGrowthPercent);
 

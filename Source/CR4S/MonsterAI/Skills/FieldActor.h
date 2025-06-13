@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "BaseSkillActor.h"
 #include "NiagaraComponent.h"
 #include "GameFramework/Actor.h"
 #include "FieldActor.generated.h"
@@ -13,7 +14,7 @@ enum class ESpawnSource : uint8
 };
 
 UCLASS()
-class CR4S_API AFieldActor : public AActor
+class CR4S_API AFieldActor : public ABaseSkillActor
 {
 	GENERATED_BODY()
 
@@ -28,9 +29,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	
-	UPROPERTY(VisibleAnywhere, Category="Boss|Skill")
-	class UNiagaraComponent* NiagaraComp;
 
     UPROPERTY(VisibleAnywhere, Category="Boss|Skill")
     class UCapsuleComponent* CapsuleComp;
@@ -49,9 +47,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float LifeTime = 5.f;
-
-	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	float Damage = 0.f;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float DamageTickInterval = 0.5f;
@@ -78,10 +73,14 @@ private:
 	void UpdateDynamicScale(float DeltaTime);
 	void FollowOwner();
 	
-	UFUNCTION()
-	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-						bool bFromSweep, const FHitResult& SweepResult);
+	virtual void OnOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	) override;
     
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

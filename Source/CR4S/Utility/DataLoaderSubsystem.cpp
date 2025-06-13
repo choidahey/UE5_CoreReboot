@@ -3,6 +3,7 @@
 
 #include "DataLoaderSubsystem.h"
 
+#include "Character/Data/RobotSettings.h"
 #include "DeveloperSettings/CR4SDataTableSettings.h"
 
 void UDataLoaderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -11,5 +12,28 @@ void UDataLoaderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	if (const UCR4SDataTableSettings* Settings=GetDefault<UCR4SDataTableSettings>())
 	{
 		WeaponDataAsset=Cast<UWeaponInfoDataAsset>(Settings->GetDataAssetByName(TEXT("WeaponInfoDataAsset")));
+		RobotSettingsDataAsset=Cast<URobotSettingsDataAsset>(Settings->GetDataAssetByName(TEXT("RobotSettingsDataAsset")));
+		PlayerToolInfoDataAsset=Cast<UPlayerToolInfoDataAsset>(Settings->GetDataAssetByName(TEXT("PlayerToolInfoDataAsset")));
 	}
 }
+
+void UDataLoaderSubsystem::LoadRobotSettingsData(FRobotSettings& OutSettingsInfo) const
+{
+	OutSettingsInfo=RobotSettingsDataAsset->RobotSettings;
+}
+
+void UDataLoaderSubsystem::LoadWeaponSettingsData(FWeaponSettings& OutSettingsInfo) const
+{
+	OutSettingsInfo=RobotSettingsDataAsset->WeaponSettings;
+}
+
+bool UDataLoaderSubsystem::LoadToolInfoByTag(const FGameplayTag& Tag, FPlayerToolInfo& OutSettingsInfo) const
+{
+	const FPlayerToolInfo* Info=PlayerToolInfoDataAsset->PlayerToolInfo.Find(Tag);
+	if (!CR4S_ENSURE(LogHong1,Info)) return false;
+	
+	OutSettingsInfo=*Info;
+	return true;
+}
+
+

@@ -3,49 +3,36 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
-#include "Kismet/GameplayStatics.h"
-#include "MonsterAI/BaseMonster.h"
-#include "MonsterAI/Components/MonsterSkillComponent.h"
+#include "CR4S.h"
 
 AIceSpike::AIceSpike()
 {
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	RootComponent = RootComp;
+	PrimaryActorTick.bCanEverTick = true;
 	
 	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionComp"));
 	CollisionComp->SetupAttachment(RootComponent);
-	CollisionComp->InitCapsuleSize(50.f, 50.f);
-
+	if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(CollisionComp))
+	{
+		CapsuleComp->InitCapsuleSize(50.f, 50.f);
+	}
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
-	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-	CollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	CollisionComp->SetGenerateOverlapEvents(true);
-	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AIceSpike::OnOverlapBegin);
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AIceSpike::OnOverlap);
 
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
 	StaticMeshComp->SetupAttachment(RootComponent);
 	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	InitialLifeSpan = LifeTime;
-
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AIceSpike::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (AActor* OwnerActor = GetOwner())
-	{
-		if (UMonsterSkillComponent* SkillComp = OwnerActor->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
-			Damage = SkillData.Damage;
-		}
-	}
+	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
 void AIceSpike::Launch()
 {
@@ -74,23 +61,14 @@ void AIceSpike::Tick(float DeltaTime)
 		bRising = false;
 }
 
-void AIceSpike::OnOverlapBegin(
-	UPrimitiveComponent* OverlappedComp,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex,
-	bool bFromSweep,
-	const FHitResult& SweepResult)
+void AIceSpike::OnOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult)
 {
-	if (!OverlappedComp || !OtherActor) return;
-
-	if (Cast<ABaseMonster>(OtherActor)) return;
-	
-	APawn* OwnerPawn = Cast<APawn>(GetInstigator());
-	if (!OwnerPawn || OtherActor == OwnerPawn) return;
-	
-	OverlappedComp->SetGenerateOverlapEvents(false);
-
 	if (ACharacter* Char = Cast<ACharacter>(OtherActor))
 	{
 		const FVector Dir = (Char->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
@@ -98,13 +76,7 @@ void AIceSpike::OnOverlapBegin(
 		Char->LaunchCharacter(LaunchVel, true, true);
 	}
 
-	UGameplayStatics::ApplyDamage(
-		OtherActor,
-		Damage,
-		OwnerPawn->GetController(),
-		this,
-		UDamageType::StaticClass()
-	);
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
 

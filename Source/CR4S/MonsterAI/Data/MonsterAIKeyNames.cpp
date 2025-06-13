@@ -25,3 +25,5 @@ const FName FRegionBossAIKeys::LastIdleBoredTime = TEXT("LastIdleBoredTime");
 // Season Boss AI Key
 const FName FSeasonBossAIKeys::NearestHouseActor = TEXT("NearestHouseActor");
 const FName FSeasonBossAIKeys::bIsIceRoadForward = TEXT("bIsIceRoadForward");
+const FName FSeasonBossAIKeys::bIsDashAway = TEXT("bIsDashAway");
+const FName FSeasonBossAIKeys::bIsDashForward = TEXT("bIsDashForward");

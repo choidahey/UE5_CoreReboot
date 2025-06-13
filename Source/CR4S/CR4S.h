@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogHong1, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogCheatManager, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogSetting, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogGimmick, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(LogInventory, Log, All);

@@ -7,6 +7,8 @@
 #include "Utility/Cr4sGameplayTags.h"
 #include "WeaponData.generated.h"
 
+class APlayerTool;
+class ABaseTool;
 class ABaseBullet;
 /**
  * 
@@ -52,7 +54,6 @@ public:
 	uint8 bHasSelfStun:1 {false};
 };
 
-
 USTRUCT(BlueprintType)
 struct CR4S_API FMeleeWeaponInfo
 {
@@ -60,6 +61,10 @@ struct CR4S_API FMeleeWeaponInfo
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxCombo{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName TopSocketName{};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName BottomSocketName{};
 };
 
 USTRUCT(BlueprintType)
@@ -82,11 +87,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 BulletPerShot{1};
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletsPerShot > 1"))
-	float SpreadAngle = 5.f;
+	float SpreadAngle{5.f};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName BulletSocketName{};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ABaseBullet> ProjectileClass {nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FBulletInfo BulletInfo;
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FPlayerToolInfo
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UStaticMesh> StaticMesh{nullptr};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UAnimMontage> AttackMontage{nullptr};
 };
 
 UCLASS(BlueprintType)
@@ -124,6 +142,7 @@ public:
 			{ WeaponTags::ShockBat,{} },
 			{ WeaponTags::CrystalSword,{} },
 	};
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ranged")
 	TMap<FGameplayTag,FRangedWeaponInfo> RangedInfo
 	{
@@ -140,5 +159,21 @@ public:
 			{ WeaponTags::IceShotgun,{} },
 			{ WeaponTags::ThunderStrike,{} },
 			{ WeaponTags::Comet,{} }
+	};
+
+	
+};
+
+UCLASS(BlueprintType)
+class CR4S_API UPlayerToolInfoDataAsset : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PlayerTool")
+	TMap<FGameplayTag,FPlayerToolInfo> PlayerToolInfo
+	{
+				{ToolTags::Axe,{}},
+				{ToolTags::PickAxe,{}},
+				{ToolTags::Hammer,{}}
 	};
 };

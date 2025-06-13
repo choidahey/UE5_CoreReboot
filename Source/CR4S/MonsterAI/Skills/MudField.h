@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseSkillActor.h"
 #include "GameFramework/Actor.h"
 #include "MudField.generated.h"
 
@@ -10,18 +11,21 @@ class UNiagaraComponent;
 class USphereComponent;
 
 UCLASS()
-class CR4S_API AMudField : public AActor
+class CR4S_API AMudField : public ABaseSkillActor
 {
 	GENERATED_BODY()
 	
 public:	
 	AMudField();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Boss|Skill")
-	UNiagaraComponent* NiagaraComp;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Boss|Skill")
+	// UNiagaraComponent* NiagaraComp;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Boss|Skill")
 	TSubclassOf<AActor> MudActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	int32 SpawnCount = 1;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Boss|Skill", meta=(ClampMin="0.1"))
 	float SpawnInterval = 1.0f;

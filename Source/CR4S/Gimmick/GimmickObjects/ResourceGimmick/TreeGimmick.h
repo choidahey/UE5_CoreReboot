@@ -7,7 +7,7 @@
 
 class UDestructibleComponent;
 
-UCLASS()
+UCLASS(BlueprintType)
 class CR4S_API ATreeGimmick : public ADestructibleGimmick
 {
 	GENERATED_BODY()

@@ -12,6 +12,15 @@ class CR4S_API ACeresRainyBossMonster : public ASeasonBossMonster
 public:
 	ACeresRainyBossMonster();
 
+protected:
+	virtual UNiagaraSystem* GetOpeningNiagara() const override
+	{
+		return OpeningNiagara;
+	}
+
+	UPROPERTY(EditDefaultsOnly, Category="Boss|Opening Pattern")
+	TObjectPtr<UNiagaraSystem> OpeningNiagara = nullptr;
+
 private:
 	FString MyHeader = TEXT("CeresRainyBossMonster");
 };
