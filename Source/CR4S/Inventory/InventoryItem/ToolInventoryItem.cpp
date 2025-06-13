@@ -57,6 +57,7 @@ void UToolInventoryItem::EquipItem() const
 	{
 		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
+
 	}
 }
 
@@ -66,5 +67,6 @@ void UToolInventoryItem::UnEquipItem() const
 	{
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
+
 	}
 }

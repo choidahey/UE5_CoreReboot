@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "ModularRobot.generated.h"
 
+class URobotInventoryComponent;
 class URobotInputBufferComponent;
 class UInputBufferComponent;
 class URobotWeaponComponent;
@@ -31,6 +32,10 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
+#pragma region Get
+	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
+#pragma endregion
+	
 #pragma region Load Data
 	void LoadDataFromDataLoader();
 #pragma endregion
@@ -129,6 +134,8 @@ private:
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<URobotInputBufferComponent> InputBuffer;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<URobotInventoryComponent> RobotInventoryComponent;
 #pragma endregion
 
 #pragma region Cached
