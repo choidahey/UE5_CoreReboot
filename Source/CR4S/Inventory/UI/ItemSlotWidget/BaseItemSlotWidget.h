@@ -93,7 +93,7 @@ protected:
 #pragma region Drag And Drop
 
 public:
-	bool IsItemAllowedByFilter(const UBaseInventoryItem* Item) const;
+	virtual bool IsItemAllowedByFilter(UBaseInventoryItem* Item) const;
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

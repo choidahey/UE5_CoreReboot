@@ -45,6 +45,8 @@ public:
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
 	void OpenCraftingWidget(const int32 CraftingDifficulty);
 
+	void ToggleQuickSlotBar() const;
+
 	UFUNCTION()
 	void CloseInventoryWidget();
 
@@ -93,10 +95,13 @@ private:
 	TObjectPtr<UPlanterBoxInventoryWidget> PlanterBoxInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UCompostBinWidget> CompostBinWidget;
+	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
+	TObjectPtr<UBaseInventoryWidget> RobotWorkshopWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCompostBinWidget> CompostBinWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUserWidget> OpenOtherWidget;

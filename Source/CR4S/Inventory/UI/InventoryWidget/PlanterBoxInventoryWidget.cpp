@@ -3,7 +3,6 @@
 #include "CR4S.h"
 #include "Components/TextBlock.h"
 #include "Gimmick/Data/GimmickData.h"
-#include "Gimmick/GimmickObjects/Buildings/PlanterBoxGimmick.h"
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 

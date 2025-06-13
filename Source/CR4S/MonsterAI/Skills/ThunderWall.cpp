@@ -10,23 +10,20 @@
 AThunderWall::AThunderWall()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	RootComponent = Root;
-
+	
 	CollisionComp = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionComp"));
 	CollisionComp->SetupAttachment(RootComponent);
 
-	CollisionComp->SetBoxExtent(WallExtent);
+	if (UBoxComponent* BoxComp = Cast<UBoxComponent>(CollisionComp))
+	{
+		BoxComp->SetBoxExtent(WallExtent);
+	}
+	
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-	CollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 
-	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AThunderWall::OnOverlapBegin);
-
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComp"));
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AThunderWall::OnOverlap);
+	
 	NiagaraComp->SetupAttachment(RootComponent);
 	NiagaraComp->SetAutoActivate(false);
 
@@ -41,26 +38,9 @@ void AThunderWall::BeginPlay()
 	{
 		NiagaraComp->Activate(true);
 	}
-
-	CollisionComp->SetBoxExtent(WallExtent);
-
-	if (AActor* OwnerActor = GetOwner())
-	{
-		if (UMonsterSkillComponent* SkillComp = OwnerActor->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
-			Damage = SkillData.Damage;
-		}
-	}
-	
 }
 
-void AThunderWall::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void AThunderWall::OnOverlapBegin(
+void AThunderWall::OnOverlap(
 	UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComp,
@@ -68,18 +48,6 @@ void AThunderWall::OnOverlapBegin(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	APawn* OwnerPawn = Cast<APawn>(GetInstigator());
-	if (!OwnerPawn || !OtherActor || OtherActor == GetOwner())
-		return;
-	
-	if (Cast<ABaseMonster>(OtherActor) || Cast<AAnimalMonster>(OtherActor)) return;
-	
-	UGameplayStatics::ApplyDamage(
-		OtherActor,
-		Damage,
-		OwnerPawn->GetController(),
-		this,
-		UDamageType::StaticClass()
-	);
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
 
