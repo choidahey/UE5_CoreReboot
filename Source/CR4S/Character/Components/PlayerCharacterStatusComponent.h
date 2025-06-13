@@ -31,12 +31,13 @@ public:
 	void AddMaxHunger(const float InAmount);
 	void AddCurrentHunger(const float InAmount);
 
-	void ApplyStarvationDamage();
 	UFUNCTION()
 	void ApplyHungerDebuff();
 	UFUNCTION()
 	void RemoveHungerDebuff();
-	void ConsumeCurrentHunger();
+	void ApplyStarvationDamage();
+	void StartConsumeHunger();
+	void ConsumeCurrentHungerForInterval();
 	FORCEINLINE bool IsStarving() const { return bIsStarving; }
 #pragma endregion
 	
