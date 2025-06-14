@@ -1,7 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "PlayerCharacterStatusComponent.h"
-
-#include "AlsCharacterMovementComponent.h"
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 
@@ -28,16 +26,7 @@ void UPlayerCharacterStatusComponent::BeginPlay()
 		PlayerStatus=StatusData->PlayerStats;
 	}
 
-	if (PlayerStatus.HungerInterval>KINDA_SMALL_NUMBER)
-	{
-		GetWorld()->GetTimerManager().SetTimer(
-			HungerTimerHandle,
-			this,
-			&UPlayerCharacterStatusComponent::ConsumeCurrentHunger,
-			PlayerStatus.HungerInterval,
-			true
-		);
-	}
+	StartConsumeHunger();
 }
 
 // Called every frame
@@ -52,6 +41,20 @@ void UPlayerCharacterStatusComponent::TickComponent(float DeltaTime, ELevelTick 
 void UPlayerCharacterStatusComponent::ApplyStarvationDamage()
 {
 	AddCurrentHP(-PlayerStatus.StarvationDamage);
+}
+
+void UPlayerCharacterStatusComponent::StartConsumeHunger()
+{
+	if (PlayerStatus.HungerInterval>KINDA_SMALL_NUMBER&&GetWorld())
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			HungerTimerHandle,
+			this,
+			&UPlayerCharacterStatusComponent::ConsumeCurrentHungerForInterval,
+			PlayerStatus.HungerInterval,
+			true
+		);
+	}
 }
 
 void UPlayerCharacterStatusComponent::ApplyHungerDebuff()
@@ -80,9 +83,28 @@ void UPlayerCharacterStatusComponent::RemoveHungerDebuff()
 	GetWorld()->GetTimerManager().ClearTimer(StarvationDamageTimerHandle);
 }
 
-void UPlayerCharacterStatusComponent::ConsumeCurrentHunger()
+void UPlayerCharacterStatusComponent::ConsumeCurrentHungerForInterval()
 {
 	AddCurrentHunger(-(PlayerStatus.HungerDecreaseAmount));
+	
+	if (PlayerStatus.Hunger<=KINDA_SMALL_NUMBER)
+	{
+		if (!bIsStarving)
+		{
+			bIsStarving=true;
+			ApplyHungerDebuff();
+			OnHungerDebuffChanged.Broadcast(true);
+		}
+	}
+	else
+	{
+		if (bIsStarving)
+		{
+			bIsStarving=false;
+			RemoveHungerDebuff();
+			OnHungerDebuffChanged.Broadcast(false);
+		}
+	}
 }
 
 void UPlayerCharacterStatusComponent::StartSprint()
@@ -133,25 +155,6 @@ void UPlayerCharacterStatusComponent::AddCurrentHunger(const float InAmount)
 	PlayerStatus.Hunger=Temp;
 	const float Percentage=FMath::Clamp((PlayerStatus.Hunger)/PlayerStatus.MaxHunger,0.f,1.f);
 	OnHungerChanged.Broadcast(Percentage);
-
-	if (PlayerStatus.Hunger<=KINDA_SMALL_NUMBER)
-	{
-		if (!bIsStarving)
-		{
-			bIsStarving=true;
-			ApplyHungerDebuff();
-			OnHungerDebuffChanged.Broadcast(true);
-		}
-	}
-	else
-	{
-		if (bIsStarving)
-		{
-			bIsStarving=false;
-			RemoveHungerDebuff();
-			OnHungerDebuffChanged.Broadcast(false);
-		}
-	}
 }
 
 

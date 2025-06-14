@@ -23,6 +23,8 @@ URobotWeaponComponent::URobotWeaponComponent()
 
 void URobotWeaponComponent::Input_OnAttackLeftArm()
 {
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	
 	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
 	FGameplayTag TempTag=Weapons[0]->GetGameplayTag();
 	if ((TempTag.MatchesTag(WeaponTags::Melee)&&InputBuffer->CheckInputQueue(EInputType::RobotAttack1))
@@ -35,6 +37,8 @@ void URobotWeaponComponent::Input_OnAttackLeftArm()
 
 void URobotWeaponComponent::Input_OnAttackRightArm()
 {
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	
 	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
 	FGameplayTag TempTag=Weapons[0]->GetGameplayTag();
 	if ((TempTag.MatchesTag(WeaponTags::Melee)&&InputBuffer->CheckInputQueue(EInputType::RobotAttack2))
@@ -47,6 +51,8 @@ void URobotWeaponComponent::Input_OnAttackRightArm()
 
 void URobotWeaponComponent::Input_OnAttackLeftShoulder()
 {
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	
 	if (Weapons.IsValidIndex(2)&&IsValid(Weapons[2]))
 	{
 		Weapons[2]->OnAttack();
@@ -55,6 +61,8 @@ void URobotWeaponComponent::Input_OnAttackLeftShoulder()
 
 void URobotWeaponComponent::Input_OnAttackRightShoulder()
 {
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	
 	if (Weapons.IsValidIndex(3)&&IsValid(Weapons[3]))
 	{
 		Weapons[3]->OnAttack();

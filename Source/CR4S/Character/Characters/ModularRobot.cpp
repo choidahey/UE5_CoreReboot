@@ -21,6 +21,7 @@
 #include "Character/Components/RobotInputBufferComponent.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
 
@@ -91,6 +92,42 @@ void AModularRobot::TakeStun_Implementation(const float StunAmount)
 	 Status->AddStun(StunAmount);
 }
 
+void AModularRobot::SetInputEnable(const bool bEnableInput)
+{
+	APlayerController* PC=Cast<APlayerController>(GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
+	
+	if (bEnableInput)
+	{
+		InputSubsystem->AddMappingContext(InputMappingContext,RobotSettings.MappingContextPriority);
+	}
+	else
+	{
+		InputSubsystem->RemoveMappingContext(InputMappingContext);
+	}
+}
+
+void AModularRobot::OnDeath()
+{
+	APlayerCharacter* PC=MountedCharacter;
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	AController* CachedController=GetController();
+	if (!CR4S_ENSURE(LogHong1,CachedController)) return;
+	
+	UnMountRobot();
+	UGameplayStatics::ApplyDamage(
+		PC,
+		FLT_MAX,
+		CachedController,
+		this,
+		UDamageType::StaticClass()
+	);
+}
+
 void AModularRobot::LoadDataFromDataLoader()
 {
 	UGameInstance* GI=GetGameInstance();
@@ -133,6 +170,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 	
 	InController->UnPossess();
 	InController->Possess(this);
+	Status->StartConsumeEnergy();
 }
 
 void AModularRobot::UnMountRobot()
@@ -160,6 +198,7 @@ void AModularRobot::UnMountRobot()
 	}
 	MountedCharacter=nullptr;
 	RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
+	Status->StopConsumeEnergy();
 }
 
 void AModularRobot::InitializeWidgets()
@@ -208,6 +247,10 @@ void AModularRobot::BeginPlay()
 	if (InteractComp)
 	{
 		InteractComp->OnTryInteract.AddUniqueDynamic(this,&AModularRobot::MountRobot);
+	}
+	if (Status)
+	{
+		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
 	}
 	
 	InitializeWidgets();
@@ -274,7 +317,7 @@ void AModularRobot::Tick(float DeltaTime)
 
 void AModularRobot::Input_Move(const FInputActionValue& Value)
 {
-	if (!Controller) return;
+	if (!Controller||!Status->IsRobotActive()) return;
 	//Move Logic
 	// input is a Vector2D
 	FVector2D MoveInput = Value.Get<FVector2D>();
@@ -291,6 +334,7 @@ void AModularRobot::Input_Move(const FInputActionValue& Value)
 
 void AModularRobot::Input_Look(const FInputActionValue& Value)
 {
+	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	FVector2D LookInput=Value.Get<FVector2D>();
 
 	AddControllerYawInput(LookInput.X);
@@ -299,6 +343,7 @@ void AModularRobot::Input_Look(const FInputActionValue& Value)
 
 void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
+	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	// Jump 함수는 Character가 기본 제공
 	if (Value.Get<bool>())
 	{
@@ -308,6 +353,7 @@ void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
+	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	// StopJumping 함수도 Character가 기본 제공
 	if (!Value.Get<bool>())
 	{
@@ -317,7 +363,7 @@ void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (bIsDashing) return;
+	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
 
 	bIsDashing = true;
 	
@@ -326,6 +372,7 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
 	
 	FVector LaunchVelocity=DashDirection*RobotSettings.DashStrength;
+	Status->ConsumeResourceForRoll();
 	LaunchCharacter(LaunchVelocity,true,false);
 	GetWorldTimerManager().SetTimer(
 		DashCooldownTimerHandle,

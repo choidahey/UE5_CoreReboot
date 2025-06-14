@@ -25,7 +25,7 @@ public:
 #pragma region Get
 	FORCEINLINE float GetMaxEnergy() const { return RobotStatus.MaxEnergy; }
 	FORCEINLINE float GetCurrentEnergy() const { return RobotStatus.Energy; }
-	FORCEINLINE float GetEnergyConsumptionRate() const { return RobotStatus.EnergyConsumptionRate; }
+	FORCEINLINE float GetEnergyConsumptionRate() const { return RobotStatus.EnergyConsumptionAmount; }
 
 	FORCEINLINE float GetMaxStun() const { return RobotStatus.MaxStun; }
 	FORCEINLINE float GetCurrentStun() const { return RobotStatus.Stun; }
@@ -64,6 +64,18 @@ protected:
 	virtual void BeginPlay() override;
 #pragma endregion
 
+#pragma region Stun
+public:
+	void RemoveStunDebuff();
+#pragma endregion
+
+#pragma region Energy
+public:
+	FORCEINLINE bool IsRobotActive() const { return bIsRobotActive; }
+	void StartConsumeEnergy();
+	void StopConsumeEnergy();
+	void ConsumeEnergyForInterval();
+#pragma endregion
 	
 #pragma region DataAsset
 protected:
@@ -71,15 +83,20 @@ protected:
 	TObjectPtr<UModularRobotStatusAsset> StatusData; 
 #pragma endregion
 
-#pragma region Owner
+#pragma region Cached
 protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	uint8 bIsStunned:1 {false};
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	uint8 bIsRobotActive:1 {true};
+	
 #pragma endregion
 	
 #pragma region Status
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FModularRobotStats RobotStatus;
 #pragma endregion
 
@@ -88,5 +105,13 @@ public:
 	FOnEnergyChangedDelegate OnEnergyChanged;
 	FOnStunChangedDelegate OnStunChanged;
 	FOnWeightChangedDelegate OnWeightChanged;
+#pragma endregion
+
+#pragma region Timer
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
+	FTimerHandle StunTimerHandle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
+	FTimerHandle EnergyTimerHandle;
+	
 #pragma endregion
 };

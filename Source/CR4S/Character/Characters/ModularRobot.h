@@ -35,10 +35,16 @@ public:
 
 #pragma region Stun
 	virtual void TakeStun_Implementation(const float StunAmount) override;
+	void SetInputEnable(const bool bEnableInput);
 #pragma endregion
 	
 #pragma region Get
 	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
+	FORCEINLINE bool IsRobotActive() const { return Status->IsRobotActive(); }
+#pragma endregion
+
+#pragma region Death
+	void OnDeath();
 #pragma endregion
 	
 #pragma region Load Data
@@ -147,7 +153,9 @@ private:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<APlayerCharacter> MountedCharacter;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FTimerHandle DashCooldownTimerHandle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsDashing:1 {false};
 #pragma endregion
 };
