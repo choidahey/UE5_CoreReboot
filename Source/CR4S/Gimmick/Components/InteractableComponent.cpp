@@ -4,7 +4,7 @@
 
 UInteractableComponent::UInteractableComponent()
 	: InteractionTraceChannel(ECC_GameTraceChannel1),
-	  DefaultHighlightColor(FColor::Green)
+	  DefaultHighlightColor(FLinearColor::Green)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -96,7 +96,19 @@ void UInteractableComponent::SetHighlight(const bool bIsDetected) const
 	HighlightMaterialInstance->SetScalarParameterValue(HighlightOpacityParamName, Opacity);
 }
 
-void UInteractableComponent::ChangeHighlightColor(const FColor& InHighlightColor) const
+void UInteractableComponent::ChangeHighlightColor(const FLinearColor& InHighlightColor)
 {
 	HighlightMaterialInstance->SetVectorParameterValue(HighlightColorParamName, InHighlightColor);
+}
+
+FLinearColor UInteractableComponent::GetHighlightColor() const
+{
+	if (IsValid(HighlightMaterialInstance))
+	{
+		FLinearColor CurrentColor;
+		HighlightMaterialInstance->GetVectorParameterValue(FMaterialParameterInfo(HighlightColorParamName), CurrentColor);
+		return CurrentColor;
+	}
+
+	return DefaultHighlightColor;
 }

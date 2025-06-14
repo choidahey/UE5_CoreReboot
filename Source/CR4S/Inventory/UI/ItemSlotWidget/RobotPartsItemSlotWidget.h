@@ -34,9 +34,9 @@ public:
 	FORCEINLINE const FGameplayTag& GetPartsTypeTag() const { return PartsTypeTag; }
 
 private:
-	UPROPERTY(EditAnywhere, Category = "PartsTypeTag")
+	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|PartsTypeTag")
 	FGameplayTag PartsTypeTag;
-	UPROPERTY(EditAnywhere, Category = "PartsTypeName")
+	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|PartsTypeName")
 	FText PartsTypeName;
 	
 #pragma endregion
@@ -48,6 +48,9 @@ public:
 	void OpenRecipeSelectWidget();
 	UFUNCTION()
 	void UpdateRobotWorkshopMode(ERobotWorkshopMode RobotWorkshopMode);
+
+	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|CreateMode")
+	bool bCanCreateParts;
 	
 #pragma endregion 
 
