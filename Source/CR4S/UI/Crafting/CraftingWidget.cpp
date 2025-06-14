@@ -127,12 +127,12 @@ void UCraftingWidget::CraftItem()
 		return;
 	}
 
-	for (const auto& [DataTableHandle, IngredientItemName, Count] : ItemRecipeData.Ingredients)
+	for (const auto& [DataTableHandle, Count] : ItemRecipeData.Ingredients)
 	{
-		PlayerInventoryComponent->RemoveItemByRowName(IngredientItemName, Count);
+		PlayerInventoryComponent->RemoveItemByRowName(DataTableHandle.RowName, Count);
 	}
 
-	PlayerInventoryComponent->AddItem(ItemRecipeData.ResultItemName, ItemRecipeData.ResultCount);
+	PlayerInventoryComponent->AddItem(ItemRecipeData.ItemInfoDataHandle.RowName, ItemRecipeData.ResultCount);
 
 	for (int32 Index = 0; Index < CurrentIngredients.Num(); Index++)
 	{

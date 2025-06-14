@@ -12,8 +12,6 @@ struct FRecipeIngredient
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "제작 재료 아이템 핸들"))
 	FDataTableRowHandle ItemInfoDataHandle;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "제작 재료 아이템 행 이름"))
-	FName IngredientItemName = NAME_None;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "제작 재료 필요 개수"))
 	int32 Count = 0;
 };
@@ -27,8 +25,6 @@ struct FItemRecipeData : public FTableRowBase
 	FGameplayTag RecipeTag = FGameplayTag();
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "결과 아이템 핸들"))
 	FDataTableRowHandle ItemInfoDataHandle;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "결과 아이템 행 이름"))
-	FName ResultItemName = NAME_None;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "결과 아이템 개수", ClampMin = "0"))
 	int32 ResultCount = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "제작 난이도", ClampMin = "0"))

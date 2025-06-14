@@ -46,7 +46,8 @@ private:
 public:
 	UFUNCTION()
 	void OpenRecipeSelectWidget();
-	void UpdateRobotWorkshopMode(ERobotWorkshopMode RobotWorkshopMode) const;
+	UFUNCTION()
+	void UpdateRobotWorkshopMode(ERobotWorkshopMode RobotWorkshopMode);
 	
 #pragma endregion 
 
@@ -59,7 +60,7 @@ private:
 	TObjectPtr<UButton> SelectButton;
 
 	UPROPERTY(EditAnywhere, Category = "BackgroundIcon")
-	TObjectPtr<UTexture2D> BackgroundIconTexture;
+	FSlateBrush BackgroundIconBrush;
 	
 	
 #pragma endregion 

@@ -1,7 +1,7 @@
 ﻿#include "RobotInventoryWidget.h"
 
-#include "CR4S.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Gimmick/Data/RecipeCategoryData.h"
 #include "UI/Crafting/CraftingWidget.h"
 #include "UI/Crafting/RecipeSelectWidget.h"
@@ -11,10 +11,12 @@ void URobotInventoryWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	bCanSort = false;
-	bCanDrag = true;
-	bCanDrop = true;
-	bCanRemoveItem = true;
-	bCanMoveItem = true;
+	bCanDrag = false;
+	bCanDrop = false;
+	bCanRemoveItem = false;
+	bCanMoveItem = false;
+
+	RobotWorkshopMode = ERobotWorkshopMode::Assembly;
 }
 
 void URobotInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNewCanSort)
@@ -42,6 +44,13 @@ void URobotInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNe
 	}
 }
 
+void URobotInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent)
+{
+	Super::ConnectInventoryComponent(NewInventoryComponent);
+
+	ChangeModeCreate();
+}
+
 void URobotInventoryWidget::OpenRecipeSelectWidget(UTexture2D* Icon, const FText& Name,
                                                    const FGameplayTag& RecipeTag) const
 {
@@ -52,21 +61,14 @@ void URobotInventoryWidget::OpenRecipeSelectWidget(UTexture2D* Icon, const FText
 		{
 			if (const FItemRecipeData* Data = reinterpret_cast<FItemRecipeData*>(Pair.Value))
 			{
-				if (Data->RecipeTag == RecipeTag)
+				if (RecipeTag.MatchesTag(Data->RecipeTag))
 				{
 					RecipeItems.AddUnique(Data);
 				}
 			}
 		}
 
-		if (RecipeItems.Num() > 0)
-		{
-			RecipeSelectWidget->OpenWidget(Icon, Name, RecipeItems);
-		}
-		else
-		{
-			RecipeSelectWidget->CloseWidget();
-		}
+		RecipeSelectWidget->OpenWidget(Icon, Name, RecipeItems);
 	}
 
 	CloseCraftingWidget();
@@ -100,10 +102,9 @@ void URobotInventoryWidget::ChangeModeAssembly()
 
 void URobotInventoryWidget::ChangeMode(const ERobotWorkshopMode NewRobotWorkshopMode)
 {
+	const FString ModeString = UEnum::GetValueAsString(NewRobotWorkshopMode);
 	if (RobotWorkshopMode == NewRobotWorkshopMode)
 	{
-		const FString ModeString = UEnum::GetValueAsString(NewRobotWorkshopMode);
-		CR4S_Log(LogInventoryUI, Warning, TEXT("Already %s Mode"), *ModeString);
 		return;
 	}
 
@@ -111,4 +112,21 @@ void URobotInventoryWidget::ChangeMode(const ERobotWorkshopMode NewRobotWorkshop
 
 	CloseCraftingWidget();
 	CloseRecipeSelectWidget();
+
+	const bool bIsCreateMode = RobotWorkshopMode == ERobotWorkshopMode::Create;
+	
+	if (IsValid(InventoryTitleTextBlock))
+	{
+		InventoryTitleTextBlock->SetText(bIsCreateMode
+			                                 ? CreateModeText
+			                                 : AssemblyModeText);
+	}
+
+	if (OnRobotWorkshopModeChange.IsBound())
+	{
+		OnRobotWorkshopModeChange.Broadcast(RobotWorkshopMode);
+	}
+	
+	bCanDrag = !bIsCreateMode;
+	bCanDrop = !bIsCreateMode;
 }

@@ -6,6 +6,7 @@
 #include "ItemSlotWidget/BaseItemSlotWidget.h"
 #include "InventoryContainerWidget.generated.h"
 
+class URobotInventoryWidget;
 class UPlanterBoxInventoryWidget;
 class UCraftingContainerWidget;
 class UCompostBinWidget;
@@ -30,7 +31,7 @@ public:
 	void InitWidget(ASurvivalHUD* InSurvivalHUD, UPlayerInventoryComponent* InPlayerInventoryComponent);
 
 	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent() const { return PlayerInventoryComponent; }
-	
+
 private:
 	UPROPERTY()
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
@@ -79,6 +80,7 @@ private:
 
 public:
 	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const { return PlanterBoxInventoryWidget; }
+	FORCEINLINE URobotInventoryWidget* GetRobotInventoryWidget() const { return RobotWorkshopWidget; }
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -100,7 +102,7 @@ private:
 	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseInventoryWidget> RobotWorkshopWidget;
+	TObjectPtr<URobotInventoryWidget> RobotWorkshopWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCompostBinWidget> CompostBinWidget;

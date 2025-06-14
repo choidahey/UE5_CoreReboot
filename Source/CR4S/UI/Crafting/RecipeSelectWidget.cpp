@@ -8,7 +8,6 @@
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Gimmick/Data/ItemData.h"
-#include "Gimmick/Data/RecipeCategoryData.h"
 
 void URecipeSelectWidget::InitWidget(UCraftingWidget* NewCraftingWidget)
 {
@@ -38,6 +37,11 @@ void URecipeSelectWidget::OpenWidget(UTexture2D* Icon,
 		return;
 	}
 
+	if (RecipeItems.Num() == 0)
+	{
+		CloseWidget();
+	}
+	
 	ScrollBox->ScrollToStart();
 
 	CraftingCategoryIcon->SetBrushFromTexture(Icon, true);

@@ -11,14 +11,8 @@ void URobotPartsItemSlotWidget::NativePreConstruct()
 
 	if (IsValid(BackgroundIcon))
 	{
-		BackgroundIcon->SetBrushFromTexture(BackgroundIconTexture);
+		BackgroundIcon->SetBrush(BackgroundIconBrush);
 	}
-
-	PartsTypeName = FText();
-	
-	UpdateRobotWorkshopMode(ERobotWorkshopMode::Create);
-
-	bCanRightClick = false;
 }
 
 void URobotPartsItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget,
@@ -27,10 +21,19 @@ void URobotPartsItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInve
 	Super::InitSlotWidgetData(NewInventoryWidget, NewItem);
 
 	RobotInventoryWidget = Cast<URobotInventoryWidget>(NewInventoryWidget);
-	
+
+	if (IsValid(RobotInventoryWidget))
+	{
+		RobotInventoryWidget->OnRobotWorkshopModeChange.AddUniqueDynamic(this, &ThisClass::UpdateRobotWorkshopMode);
+	}
+
 	if (IsValid(SelectButton))
 	{
-		SelectButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OpenRecipeSelectWidget);
+		if (bCanCreateParts)
+		{
+			SelectButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OpenRecipeSelectWidget);
+		}
+		SelectButton->SetIsEnabled(false);
 	}
 }
 
@@ -54,16 +57,25 @@ void URobotPartsItemSlotWidget::OpenRecipeSelectWidget()
 {
 	if (IsValid(RobotInventoryWidget))
 	{
-		UTexture2D* Icon = Cast<UTexture2D>(IconImage->GetBrush().GetResourceObject());
+		UTexture2D* Icon = Cast<UTexture2D>(BackgroundIcon->GetBrush().GetResourceObject());
 		RobotInventoryWidget->OpenRecipeSelectWidget(Icon, PartsTypeName, PartsTypeTag);
 	}
 }
 
-void URobotPartsItemSlotWidget::UpdateRobotWorkshopMode(const ERobotWorkshopMode RobotWorkshopMode) const
+// ReSharper disable once CppMemberFunctionMayBeConst
+void URobotPartsItemSlotWidget::UpdateRobotWorkshopMode(const ERobotWorkshopMode RobotWorkshopMode)
 {
-	if (IsValid(SelectButton))
+	const bool bIsCreateMode = RobotWorkshopMode == ERobotWorkshopMode::Create;
+
+	if (!bCanCreateParts)
 	{
-		const bool bIsCreateMode = RobotWorkshopMode == ERobotWorkshopMode::Create;
-		SelectButton->SetVisibility(bIsCreateMode ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+		SetVisibility(bIsCreateMode ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 	}
+	else if (IsValid(SelectButton))
+	{
+		SelectButton->SetIsEnabled(bIsCreateMode);
+	}
+
+	bCanDrag = !bIsCreateMode;
+	bCanDrop = !bIsCreateMode;
 }

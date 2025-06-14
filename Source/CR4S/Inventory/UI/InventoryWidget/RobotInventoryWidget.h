@@ -25,6 +25,7 @@ public:
 	virtual void NativeConstruct() override;
 
 	virtual void InitWidget(ASurvivalHUD* SurvivalHUD, bool bNewCanSort) override;
+	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) override;
 	
 #pragma endregion
 	
@@ -62,8 +63,22 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCraftingWidget> CraftingWidget;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "RobotInventoryWidget")
 	TObjectPtr<UDataTable> ItemRecipeData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "RobotInventoryWidget")
+	FText CreateModeText;
+	UPROPERTY(EditDefaultsOnly, Category = "RobotInventoryWidget")
+	FText AssemblyModeText;
+	
+#pragma endregion
+
+#pragma region Delegate
+
+public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRobotWorkshopModeChange, const ERobotWorkshopMode, RobotWorkshopMode);
+	UPROPERTY(BlueprintAssignable, Category = "RobotInventoryWidget|Delegate")
+	FOnRobotWorkshopModeChange OnRobotWorkshopModeChange;
 	
 #pragma endregion 
 };
