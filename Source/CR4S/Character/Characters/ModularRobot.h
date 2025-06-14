@@ -6,8 +6,10 @@
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Data/RobotSettings.h"
 #include "GameFramework/Character.h"
+#include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class URobotInventoryComponent;
 class URobotInputBufferComponent;
 class UInputBufferComponent;
 class URobotWeaponComponent;
@@ -23,7 +25,7 @@ class UCameraComponent;
 struct FInputActionValue;
 
 UCLASS()
-class CR4S_API AModularRobot : public ACharacter
+class CR4S_API AModularRobot : public ACharacter, public IStunnableInterface
 {
 	GENERATED_BODY()
 
@@ -31,6 +33,20 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
+#pragma region Stun
+	virtual void TakeStun_Implementation(const float StunAmount) override;
+	void SetInputEnable(const bool bEnableInput);
+#pragma endregion
+	
+#pragma region Get
+	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
+	FORCEINLINE bool IsRobotActive() const { return Status->IsRobotActive(); }
+#pragma endregion
+
+#pragma region Death
+	void OnDeath();
+#pragma endregion
+	
 #pragma region Load Data
 	void LoadDataFromDataLoader();
 #pragma endregion
@@ -129,13 +145,17 @@ private:
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<URobotInputBufferComponent> InputBuffer;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<URobotInventoryComponent> RobotInventoryComponent;
 #pragma endregion
 
 #pragma region Cached
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<APlayerCharacter> MountedCharacter;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FTimerHandle DashCooldownTimerHandle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsDashing:1 {false};
 #pragma endregion
 };

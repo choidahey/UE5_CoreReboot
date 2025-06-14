@@ -32,6 +32,10 @@ public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
 
+#pragma region Death
+	void OnDeath();
+#pragma endregion
+	
 #pragma region Tool
 	FORCEINLINE APlayerTool* GetCurrentTool() const { return CurrentTool; }
 	UFUNCTION(BlueprintCallable)

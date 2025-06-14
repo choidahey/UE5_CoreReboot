@@ -6,8 +6,7 @@ UMonsterDataSubsystem::UMonsterDataSubsystem()
 	: MyHeader(TEXT("MonsterDataSubsyetem"))
 {
     static ConstructorHelpers::FObjectFinder<UDataTable> MonsterAttributeDataTablePath(
-        TEXT("DataTable'/Game/CR4S/_Blueprint/MonsterAI/Data/MonsterAttributeDataTable."
-            "MonsterAttributeDataTable'"));
+        TEXT("DataTable'/Game/CR4S/_Data/Monster/MonsterAttributeDataTable.MonsterAttributeDataTable'"));
 
     if (MonsterAttributeDataTablePath.Succeeded())
     {
