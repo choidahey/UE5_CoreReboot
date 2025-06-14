@@ -7,6 +7,7 @@
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
 #include "InventoryWidget/PlanterBoxInventoryWidget.h"
+#include "InventoryWidget/RobotInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -73,7 +74,6 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	}
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Visible);
 
@@ -88,6 +88,8 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	{
 		ChangeWidgetOrder(PlayerInventoryComponent->GetInventoryContainerWidgetOrder());
 	}
+
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 }
 
 void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType InventoryType,

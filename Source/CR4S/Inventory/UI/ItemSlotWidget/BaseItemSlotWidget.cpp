@@ -30,6 +30,7 @@ UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitial
 	  bIsPlayerItemSlot(false),
 	  bCanDrag(true),
 	  bCanDrop(true),
+	  bCanRightClick(true),
 	  bCanRemoveItem(true),
 	  bCanMoveItem(true),
 	  LongPressThreshold(0.5f),
@@ -65,7 +66,7 @@ void UBaseItemSlotWidget::InitSlotWidget(const int32 NewSlotIndex)
 	}
 }
 
-void UBaseItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget,
+void UBaseItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget,
                                              UBaseInventoryItem* NewItem)
 {
 	if (IsValid(NewInventoryWidget))
@@ -180,7 +181,7 @@ FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 		return FReply::Unhandled();
 	}
 
-	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	if (bCanRightClick && InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
 		bLongPressTriggered = false;
 
