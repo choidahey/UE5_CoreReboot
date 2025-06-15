@@ -95,8 +95,8 @@ void UHelperBotStateManagerWidget::OpenInventory()
 		return;
 	}
 
-	PlayerInvComp->OpenOtherInventoryWidget(EInventoryType::ItemPouch, AIInvComp);
 	CloseWidgetAndResetInput();
+	PlayerInvComp->OpenOtherInventoryWidget(EInventoryType::ItemPouch, AIInvComp);
 }
 
 void UHelperBotStateManagerWidget::SetMining()

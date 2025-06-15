@@ -1,12 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "ObjectPoolable.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AnimalProjectile.generated.h"
 
 UCLASS()
-class CR4S_API AAnimalProjectile : public AActor
+class CR4S_API AAnimalProjectile : public AObjectPoolable
 {
 	GENERATED_BODY()
 
@@ -14,8 +14,6 @@ public:
 	AAnimalProjectile();
 
 protected:
-	virtual void BeginPlay() override;
-
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 						 UPrimitiveComponent* OtherComp, FVector NormalImpulse,
@@ -30,4 +28,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Damage;
+	
+	void OnSpawnFromPool() override;
+	
+	void OnReturnToPool() override;
 };
