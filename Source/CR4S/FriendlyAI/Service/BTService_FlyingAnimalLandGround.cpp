@@ -1,36 +1,40 @@
 #include "BTService_FlyingAnimalLandGround.h"
 #include "AIController.h"
-#include "../Component/FlyingMovementComponent.h"
-#include "GameFramework/Pawn.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/Actor.h"
+#include "FriendlyAI/AnimalFlying.h"
+#include "FriendlyAI/Component/FlyingMovementComponent.h"
 
 UBTService_FlyingAnimalLandGround::UBTService_FlyingAnimalLandGround()
 {
-	NodeName = TEXT("FlyingAnimal: Land When Close To GroundTarget");
-	bNotifyBecomeRelevant = false;
-	bNotifyCeaseRelevant = false;
-	bCreateNodeInstance = true;
+	NodeName = TEXT("Land When Close To Ground Target");
 }
 
 void UBTService_FlyingAnimalLandGround::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (!AIController) return;
-
-	APawn* ControlledPawn = AIController->GetPawn();
+	APawn* ControlledPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (!ControlledPawn) return;
-	
-	UFlyingMovementComponent* FlyComp = ControlledPawn->FindComponentByClass<UFlyingMovementComponent>();
-	if (!FlyComp) return;
-	
-	AActor* GroundTarget = FlyComp->GroundTarget;
+
+	AAnimalFlying* FlyingAnimal = Cast<AAnimalFlying>(ControlledPawn);
+	if (!FlyingAnimal) return;
+
+	UFlyingMovementComponent* FlyMove = FlyingAnimal->FlyingComp;
+	if (!FlyMove) return;
+
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB) return;
+
+	AActor* GroundTarget = Cast<AActor>(BB->GetValueAsObject(TEXT("BirdGroundTarget")));
 	if (!GroundTarget) return;
-	
-	const float DistSq = FVector::DistSquared(ControlledPawn->GetActorLocation(), GroundTarget->GetActorLocation());
-	if (DistSq < FMath::Square(LandDistanceThreshold))
+
+	float Distance = ControlledPawn->GetDistanceTo(GroundTarget);
+	if (Distance <= LandingDistanceThreshold)
 	{
-		FlyComp->ResetPitchAndRoll();
-		FlyComp->SetToWalkingMode();
+		BB->SetValueAsBool(TEXT("AreWeFlying"), false);
+		BB->SetValueAsBool(TEXT("AreWePerched"), false);
+		BB->SetValueAsBool(TEXT("TimeToLand"), false);
+		BB->SetValueAsBool(TEXT("AreWeWalking"), true);
 	}
 }

@@ -9,7 +9,6 @@
 #include "AIController.h"
 #include "Engine/World.h"
 #include "../Animation/FlyingAnimalAnimInstance.h"
-#include "Kismet/GameplayStatics.h"
 
 UFlyingMovementComponent::UFlyingMovementComponent()
 {
@@ -41,7 +40,7 @@ UFlyingMovementComponent::UFlyingMovementComponent()
 void UFlyingMovementComponent::BeginPlay()
 {
     Super::BeginPlay();
-    StartFlightTick();
+    //StartFlightTick();
     if (GetOwner()) GetOwner()->OnActorHit.AddDynamic(this, &UFlyingMovementComponent::OnHit);
 
     TArray<AActor*> OutActors;
@@ -111,7 +110,7 @@ void UFlyingMovementComponent::TickFlight()
         FVector NewTarget = MyLocation + Forward * 1000.f;
         SetTargetLocation(NewTarget);
     }
-    UpdateAnimaion();
+    //UpdateAnimaion();
     // UE_LOG(LogTemp, Warning, TEXT("[TickFlight] Current Location: %s → Target: %s"), *GetOwner()->GetActorLocation().ToString(), *TargetLocation.ToString());
     //
     // UE_LOG(LogTemp, Warning, TEXT("[TickFlight] Phase: %d | CurrentDir: %s | Target: %s"), 
@@ -560,43 +559,53 @@ bool UFlyingMovementComponent::CanLand(const FVector& CurPos) const
     return bCanLand;
 }
 
-void UFlyingMovementComponent::SetToFlyingMode()
-{
-    if (!OwnerCharacter)
-    {
-        OwnerCharacter = Cast<ACharacter>(GetOwner());
-    }
-    if (OwnerCharacter)
-    {
-        OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-        SetPhase(EPhase::Ascend);
-    }
-    //UE_LOG(LogTemp, Warning, TEXT("[SetToFlyingMode] Called."));
-}
+// void UFlyingMovementComponent::SetToFlyingMode()
+// {
+//     if (!OwnerCharacter)
+//     {
+//         OwnerCharacter = Cast<ACharacter>(GetOwner());
+//     }
+//     if (OwnerCharacter)
+//     {
+//         if (DisableCollisionDuringFlight)
+//         {
+//             OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+//         }
+//         else
+//         {
+//             OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+//         }
+//
+//         OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+//         OwnerCharacter->GetCharacterMovement()->GravityScale = 0.0f;
+//     }
+// }
 
-void UFlyingMovementComponent::SetToWalkingMode()
-{
-    if (!OwnerCharacter)
-    {
-        OwnerCharacter = Cast<ACharacter>(GetOwner());
-    }
-    if (OwnerCharacter)
-    {
-        OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-        SetPhase(EPhase::Idle);
-
-        if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
-        {
-            if (UFlyingAnimalAnimInstance* MyAnim = Cast<UFlyingAnimalAnimInstance>(AnimInst))
-            {
-                MyAnim->bIsFlying    = 0;
-                MyAnim->bIsWalking   = 1;
-                MyAnim->bIsAir       = 0;
-                MyAnim->WalkingSpeed = OwnerCharacter->GetVelocity().Size();
-            }
-        }
-    }
-}
+// void UFlyingMovementComponent::SetToWalkingMode()
+// {
+//     if (!OwnerCharacter)
+//     {
+//         OwnerCharacter = Cast<ACharacter>(GetOwner());
+//     }
+//     if (OwnerCharacter)
+//     {
+//         OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+//         SetPhase(EPhase::Idle);
+//
+//         CurrentSkyTarget = nullptr;
+//         
+//         if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
+//         {
+//             if (UFlyingAnimalAnimInstance* MyAnim = Cast<UFlyingAnimalAnimInstance>(AnimInst))
+//             {
+//                 MyAnim->bIsFlying    = 0;
+//                 MyAnim->bIsWalking   = 1;
+//                 MyAnim->bIsAir       = 0;
+//                 MyAnim->WalkingSpeed = OwnerCharacter->GetVelocity().Size();
+//             }
+//         }
+//     }
+// }
 
 void UFlyingMovementComponent::SetTargetLocation(const FVector& NewLocation)
 {
@@ -869,26 +878,78 @@ void UFlyingMovementComponent::MoveToGroundTarget(float DeltaTime)
     
     FVector ForwardMove = FVector(MoveSpeed * DeltaTime, 0.0f, 0.0f);
     OwnerCharacter->AddActorLocalOffset(ForwardMove, true);
-    UpdateAnimaion();
+    //UpdateAnimaion();
 }
 
-void UFlyingMovementComponent::UpdateAnimaion()
-{
-    if (!OwnerCharacter || !OwnerCharacter->GetMesh()) return;
+// void UFlyingMovementComponent::UpdateAnimaion()
+// {
+//     if (!OwnerCharacter || !OwnerCharacter->GetMesh()) return;
+//
+//     if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
+//     {
+//         if (UFlyingAnimalAnimInstance* MyAnim = Cast<UFlyingAnimalAnimInstance>(AnimInst))
+//         {
+//             MyAnim->bIsFlying       = 1;
+//             MyAnim->bIsWalking      = 0;
+//             MyAnim->bIsAir          = 1;
+//             MyAnim->WalkingSpeed    = 0.f;
+//             MyAnim->Direction       = CurrentDir.Y;
+//             MyAnim->bFlapFast       = bFlapFast;
+//             MyAnim->bFlyingDownward = bFlyingDownward;
+//             MyAnim->bIdleLoop       = bIdleLoop;
+//             MyAnim->RandomIdleAnim  = RandomIdleAnim;
+//         }
+//     }
+// }
 
-    if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
+bool UFlyingMovementComponent::PerformAvoidanceTrace(float TraceDistance)
+{
+    FVector Start = OwnerCharacter->GetActorLocation();
+    FVector End = Start - OwnerCharacter->GetActorUpVector() * TraceDistance;
+
+    FHitResult HitResult;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(OwnerCharacter);
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+    
+    DrawDebugLine(
+        GetWorld(),
+        Start,
+        End,
+        bHit ? FColor::Red : FColor::Green,
+        false,
+        1.0f,
+        0,
+        2.0f
+    );
+
+    bAvoidanceResult = bHit;
+    LastAvoidanceHit = HitResult;
+    return bHit;
+}
+
+FVector UFlyingMovementComponent::GetAvoidanceDirection() const
+{
+    if (bAvoidanceResult)
     {
-        if (UFlyingAnimalAnimInstance* MyAnim = Cast<UFlyingAnimalAnimInstance>(AnimInst))
-        {
-            MyAnim->bIsFlying       = 1;
-            MyAnim->bIsWalking      = 0;
-            MyAnim->bIsAir          = 1;
-            MyAnim->WalkingSpeed    = 0.f;
-            MyAnim->Direction       = CurrentDir.Y;
-            MyAnim->bFlapFast       = bFlapFast;
-            MyAnim->bFlyingDownward = bFlyingDownward;
-            MyAnim->bIdleLoop       = bIdleLoop;
-            MyAnim->RandomIdleAnim  = RandomIdleAnim;
-        }
+        FVector Forward = OwnerCharacter->GetActorForwardVector();
+        FVector Right = OwnerCharacter->GetActorRightVector();
+        return (Forward + Right).GetSafeNormal();
     }
+    return OwnerCharacter->GetActorForwardVector();
+}
+
+float UFlyingMovementComponent::ComputeVerticalThrustAdjustment() const
+{
+    if (bAvoidanceResult && LastAvoidanceHit.bBlockingHit)
+    {
+        return VerticalThrustAmount;
+    }
+    return 0.0f;
+}
+
+bool UFlyingMovementComponent::ShouldFlapFast() const
+{
+    return bAvoidanceResult;
 }

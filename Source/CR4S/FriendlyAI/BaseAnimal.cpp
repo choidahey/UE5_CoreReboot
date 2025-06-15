@@ -347,7 +347,10 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     }
 
     float ActualDamage = DamageAmount;
-    if (ActualDamage <= 0.f) return 0.f;
+    if (ActualDamage <= 0.f)
+    {
+        return 0.f;
+    }
 
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
@@ -588,8 +591,7 @@ void ABaseAnimal::PerformMeleeAttack()
         }
         return;
     }
-
-    bIsMeleeOnCooldown = true;
+    
     GetWorldTimerManager().SetTimer(
         MeleeAttackTimerHandle,
         this,
@@ -605,8 +607,7 @@ void ABaseAnimal::PerformMeleeAttack()
 void ABaseAnimal::PerformChargeAttack()
 {
     if (!bCanCharge || bIsChargeOnCooldown) return;
-
-    bIsChargeOnCooldown = true;
+    
     GetWorldTimerManager().SetTimer(
         ChargeAttackTimerHandle,
         this,
@@ -618,14 +619,19 @@ void ABaseAnimal::PerformChargeAttack()
 
 void ABaseAnimal::PerformRangedAttack()
 {
-    if (!bCanRanged || bIsRangedOnCooldown) return;
-
+    // if (!bCanRanged || bIsRangedOnCooldown)
+    // {
+    //     UE_LOG(LogTemp, Error, TEXT("bCanRanged: %s, bIsRangedOnCooldown: %s"),
+    // bCanRanged ? TEXT("true") : TEXT("false"),
+    // bIsRangedOnCooldown ? TEXT("true") : TEXT("false"));
+    //
+    //     return;
+    // }
     if (RangedAttackComponent)
     {
         RangedAttackComponent->FireProjectile();
     }
-
-    bIsRangedOnCooldown = true;
+    
     GetWorldTimerManager().SetTimer(
         RangedAttackTimerHandle,
         this,

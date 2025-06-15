@@ -1,13 +1,19 @@
 #include "AnimalFlying.h"
+#include "AIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../Gimmick/Components/InteractableComponent.h"
 #include "Component/FlyingMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 AAnimalFlying::AAnimalFlying()
 {
-	FlyingComp = CreateDefaultSubobject<UFlyingMovementComponent>(TEXT("FlyingMovementComponent"));
+	//FlyingComp = CreateDefaultSubobject<UFlyingMovementComponent>(TEXT("FlyingMovementComponent"));
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 	InteractableComponent->SetActive(false);
+
+	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AAnimalFlying::OnCapsuleHit);
 }
 
 void AAnimalFlying::BeginPlay()
@@ -17,6 +23,124 @@ void AAnimalFlying::BeginPlay()
 	if (InteractableComponent)
 	{
 		InteractableComponent->OnTryInteract.BindDynamic(this, &ABaseAnimal::OnInteract);
+	}
+
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		BlackboardComponent = AIController->FindComponentByClass<UBlackboardComponent>();
+	}
+
+	if (bBeginLevelFlying)
+	{
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->SetMovementMode(MOVE_Flying);
+		}
+
+		if (bBeginLevelFlying && BlackboardComponent)
+		{
+			BlackboardComponent->SetValueAsBool("AreWeWalking", false);
+			BlackboardComponent->SetValueAsBool("AreWePerched", false);
+			BlackboardComponent->SetValueAsBool("AreWeFlying", true);
+		}
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			if (bDisableCollisionDuringFlight)
+			{
+				//Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				//Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			}
+			else
+			{
+				//Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			}
+		}
+
+		GetWorldTimerManager().SetTimer(
+		AnimationUpdateTimer,
+		this,
+		&AAnimalFlying::UpdateAnimationParametersFromBlackboard,
+		0.1f,
+		true
+	);
+	}
+	else
+	{
+		if (bBeginLevelWalking && BlackboardComponent)
+		{
+			if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+			{
+				MoveComp->SetMovementMode(MOVE_Walking);
+			}
+
+			BlackboardComponent->SetValueAsBool("AreWeWalking", true);
+			BlackboardComponent->SetValueAsBool("AreWePerched", true);
+			BlackboardComponent->SetValueAsBool("AreWeFlying", false);
+		}
+		else
+		{
+			if (bBeginLevelPerched && BlackboardComponent)
+			{
+				if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+				{
+					MoveComp->SetMovementMode(MOVE_Flying);
+				}
+
+				BlackboardComponent->SetValueAsBool("AreWeWalking", false);
+				BlackboardComponent->SetValueAsBool("AreWePerched", true);
+				BlackboardComponent->SetValueAsBool("AreWeFlying", false);
+				BlackboardComponent->SetValueAsBool("PlayPerchIdle", true);
+			}
+		}
+	}
+
+}
+
+void AAnimalFlying::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (bDisableCollisionDuringFlight)
+	{
+		return;
+	}
+
+	if (BlackboardComponent &&
+	!BlackboardComponent->GetValueAsBool("AreWeWalking") &&
+	!BlackboardComponent->GetValueAsBool("IsLookingForPerch") &&
+	!BlackboardComponent->GetValueAsBool("AreWePerched") &&
+	!BlackboardComponent->GetValueAsBool("FlyToPerch"))
+	{
+		if (OtherComp != GetMesh())
+		{
+			SetMovementToWalking();
+			GetCharacterMovement()->GravityScale = 0.4f;
+
+			BlackboardComponent->SetValueAsBool("AreWeWalking", true);
+			BlackboardComponent->SetValueAsBool("AreWeFlying", false);
+			BlackboardComponent->SetValueAsBool("AreWePerched", false);
+			BlackboardComponent->SetValueAsBool("TimeToLand", false);
+			BlackboardComponent->SetValueAsBool("IsLookingForPerch", false);
+		}
+	}
+}
+
+void AAnimalFlying::SetMovementToFlying()
+{
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		bAreWeFlying = true;
+		bAreWeWalking = false;
+		MoveComp->SetMovementMode(MOVE_Flying);
+	}
+}
+
+void AAnimalFlying::SetMovementToWalking()
+{
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		bAreWeFlying = false;
+		bAreWeWalking = true;
+		IdleAnimIndex = FMath::RandRange(0, 2);
+		MoveComp->SetMovementMode(MOVE_Walking);
 	}
 }
 
@@ -31,7 +155,7 @@ void AAnimalFlying::ApplyStun(float Amount)
 	{
 		SkelMesh->SetAllBodiesSimulatePhysics(true);
 		SkelMesh->SetSimulatePhysics(true);
-		SkelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//SkelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 	
 	if (GetCharacterMovement())
@@ -49,7 +173,7 @@ void AAnimalFlying::RecoverFromStun()
 	{
 		SkelMesh->SetSimulatePhysics(false);
 		SkelMesh->SetAllBodiesSimulatePhysics(false);
-		SkelMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		//SkelMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		SkelMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	}
 
@@ -99,5 +223,23 @@ void AAnimalFlying::Land()
 	if (FlyingComp)
 	{
 		FlyingComp->SetPhase(UFlyingMovementComponent::EPhase::Descend);
+	}
+}
+
+void AAnimalFlying::UpdateAnimationParametersFromBlackboard()
+{
+	if (!BlackboardComponent) return;
+	
+	bPlayPerchedIdle = BlackboardComponent->GetValueAsBool("PlayPerchIdle");
+	bLandOnPerch = BlackboardComponent->GetValueAsBool("PlayPerchIdle");
+	bFlyToPerch = BlackboardComponent->GetValueAsBool("FlyToPerch");
+
+	if (bAreWeWalking && !bAreWeFlying)
+	{
+		bPlayIdleLoop = true;
+	}
+	else
+	{
+		bPlayIdleLoop = false;
 	}
 }
