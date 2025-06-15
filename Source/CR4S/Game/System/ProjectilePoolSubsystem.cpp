@@ -1,68 +1,205 @@
 #include "ProjectilePoolSubsystem.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
 #include "GameFramework/Actor.h"
 
-void UProjectilePoolSubsystem::SpawnFromPool(const TSubclassOf<AObjectPoolable> PoolClass, const FVector& Location, const FRotator& Rotation, AObjectPoolable*& SpawnedActor)
+AActor* UProjectilePoolSubsystem::SpawnFromPool(const TSubclassOf<AActor> ActorClass, const FVector& Location, const FRotator& Rotation)
 {
-	SpawnedActor = GetActorFromPool(PoolClass, Location, Rotation);
-}
-
-void UProjectilePoolSubsystem::ReturnToPool(AObjectPoolable* Poolable)
-{
-	if (!Poolable) return;
-
-	Poolable->OnReturnToPool();
-	FPoolArray& Pool = ObjectPools.FindOrAdd(Poolable->GetClass());
-	Pool.Add(Poolable);
-}
-
-void UProjectilePoolSubsystem::InitializePool(const TSubclassOf<AObjectPoolable>& PoolClass, int32 MaxSize, const FActorSpawnParameters& SpawnParams)
-{
-	FPoolArray& Pool = ObjectPools.FindOrAdd(PoolClass);
-	for (int32 i = 0; i < MaxSize; ++i)
+	if (!ActorClass)
 	{
-		if (AObjectPoolable* NewActor = GetWorld()->SpawnActor<AObjectPoolable>(PoolClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams))
+		UE_LOG(LogTemp, Warning, TEXT("[ObjectPool] SpawnFromPool: ActorClass is null"));
+		return nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ObjectPool] SpawnFromPool: World is null"));
+		return nullptr;
+	}
+	
+	if (!RegisteredClasses.Contains(ActorClass))
+	{
+		AActor* TempActor = World->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		
+		if (TempActor)
 		{
-			NewActor->OnReturnToPool();
-			Pool.Add(NewActor);
+			if (UObjectPoolComponent* PoolComponent = TempActor->FindComponentByClass<UObjectPoolComponent>())
+			{
+				PoolComponent->SetIsBeingInitialized(true);
+			}
+			
+			TempActor->FinishSpawning(FTransform::Identity);
+			
+			if (UObjectPoolComponent* PoolComponent = TempActor->FindComponentByClass<UObjectPoolComponent>())
+			{
+				PoolComponent->SetIsBeingInitialized(false);
+				
+				int32 SafePoolSize = FMath::Max(0, PoolComponent->InitialPoolSize);
+				if (SafePoolSize > 0)
+				{
+					InitializePool(ActorClass, SafePoolSize);
+				}
+				
+				PoolComponent->OnReturnToPool();
+				FPoolArray& Pool = ObjectPools.FindOrAdd(ActorClass);
+				Pool.Add(TempActor);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[ObjectPool] Actor doesn't have ObjectPoolComponent: %s"), *ActorClass->GetName());
+				TempActor->Destroy();
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ObjectPool] Failed to spawn temp actor: %s"), *ActorClass->GetName());
+		}
+		RegisteredClasses.Add(ActorClass);
+	}
+
+	return GetActorFromPool(ActorClass, Location, Rotation);
+}
+
+void UProjectilePoolSubsystem::ReturnToPool(AActor* ActorToReturn)
+{
+	if (!ActorToReturn) 
+	{
+		return;
+	}
+
+	if (!IsValid(ActorToReturn))
+	{
+		return;
+	}
+
+	if (UObjectPoolComponent* PoolComponent = ActorToReturn->FindComponentByClass<UObjectPoolComponent>())
+	{
+		PoolComponent->OnReturnToPool();
+		FPoolArray& Pool = ObjectPools.FindOrAdd(ActorToReturn->GetClass());
+		Pool.Add(ActorToReturn);
+	}
+}
+
+void UProjectilePoolSubsystem::RegisterPoolableActor(AActor* Actor)
+{
+	if (!Actor) 
+	{
+		return;
+	}
+
+	if (!IsValid(Actor))
+	{
+		return;
+	}
+
+	UClass* ActorClass = Actor->GetClass();
+	if (!ActorClass)
+	{
+		return;
+	}
+
+	if (!RegisteredClasses.Contains(ActorClass))
+	{
+		if (UObjectPoolComponent* PoolComponent = Actor->FindComponentByClass<UObjectPoolComponent>())
+		{
+			int32 SafePoolSize = FMath::Max(0, PoolComponent->InitialPoolSize - 1);
+			if (SafePoolSize > 0)
+			{
+				InitializePool(ActorClass, SafePoolSize);
+			}
+			RegisteredClasses.Add(ActorClass);
 		}
 	}
 }
 
-
-void UProjectilePoolSubsystem::LoadProjectilePools()
+void UProjectilePoolSubsystem::InitializePool(const TSubclassOf<AActor>& ActorClass, int32 PoolSize)
 {
-	UE_LOG(LogTemp, Display, TEXT("Loading ProjectilePools"));
-	static const FString ContextString(TEXT("ProjectilePoolInit"));
-	UDataTable* ProjectileTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/CR4S/_Data/Projectile/ProjectileDataTable.ProjectileDataTable"));
-	if (!ProjectileTable) return;
-	
-	TArray<FProjectileDataTableRow*> Rows;
-	ProjectileTable->GetAllRows(ContextString, Rows);
-
-	FActorSpawnParameters SpawnParams;
-	for (const FProjectileDataTableRow* Row : Rows)
+	if (!ActorClass)
 	{
-		InitializePool(Row->BP, Row->PoolSize, SpawnParams);
+		return;
+	}
+
+	if (PoolSize <= 0)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ObjectPool] InitializePool: World is null"));
+		return;
+	}
+
+	FPoolArray& Pool = ObjectPools.FindOrAdd(ActorClass);
+	
+	for (int32 i = 0; i < PoolSize; ++i)
+	{
+		AActor* NewActor = World->SpawnActorDeferred<AActor>(ActorClass, FTransform::Identity, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		
+		if (NewActor)
+		{
+			if (UObjectPoolComponent* PoolComponent = NewActor->FindComponentByClass<UObjectPoolComponent>())
+			{
+				PoolComponent->SetIsBeingInitialized(true);
+			}
+			
+			NewActor->FinishSpawning(FTransform::Identity);
+			
+			if (UObjectPoolComponent* PoolComponent = NewActor->FindComponentByClass<UObjectPoolComponent>())
+			{
+				PoolComponent->SetIsBeingInitialized(false);
+				PoolComponent->OnReturnToPool();
+				Pool.Add(NewActor);
+			}
+			else
+			{
+				NewActor->Destroy();
+			}
+		}
 	}
 }
 
-AObjectPoolable* UProjectilePoolSubsystem::GetActorFromPool(const TSubclassOf<AObjectPoolable> PoolClass, const FVector& Location, const FRotator& Rotation)
+AActor* UProjectilePoolSubsystem::GetActorFromPool(const TSubclassOf<AActor> ActorClass, const FVector& Location, const FRotator& Rotation)
 {
-	FPoolArray& Pool = ObjectPools.FindOrAdd(PoolClass);
+	if (!ActorClass)
+	{
+		return nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ObjectPool] GetActorFromPool: World is null"));
+		return nullptr;
+	}
+
+	FPoolArray& Pool = ObjectPools.FindOrAdd(ActorClass);
 
 	if (!Pool.IsEmpty())
 	{
-		AObjectPoolable* Actor = Pool.Pop();
-		Actor->SetActorLocationAndRotation(Location, Rotation);
-		Actor->OnSpawnFromPool();
-		return Actor;
+		AActor* Actor = Pool.Pop();
+		if (IsValid(Actor))
+		{
+			Actor->SetActorLocationAndRotation(Location, Rotation);
+			
+			if (UObjectPoolComponent* PoolComponent = Actor->FindComponentByClass<UObjectPoolComponent>())
+			{
+				PoolComponent->OnSpawnFromPool();
+			}
+			return Actor;
+		}
 	}
-
+	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	if (AObjectPoolable* NewActor = GetWorld()->SpawnActor<AObjectPoolable>(PoolClass, Location, Rotation, SpawnParams))
+	
+	if (AActor* NewActor = World->SpawnActor<AActor>(ActorClass, Location, Rotation, SpawnParams))
 	{
-		NewActor->OnSpawnFromPool();
+		if (UObjectPoolComponent* PoolComponent = NewActor->FindComponentByClass<UObjectPoolComponent>())
+		{
+			PoolComponent->OnSpawnFromPool();
+		}
 		return NewActor;
 	}
 
