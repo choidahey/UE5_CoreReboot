@@ -32,7 +32,7 @@ public:
 
 public:
 	void InitSlotWidget(int32 NewSlotIndex);
-	virtual void InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem);
+	virtual void InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem);
 
 	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
 	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
@@ -57,7 +57,7 @@ protected:
 
 #pragma region BindWidget
 
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWidget> RootWidget;
 	UPROPERTY(meta = (BindWidget))
@@ -122,6 +122,8 @@ public:
 	static void UnEquipItem(const UBaseInventoryComponent* QuickSlotInventoryComponent, const int32 Index);
 
 protected:
+	UPROPERTY(VisibleAnywhere, Category = "Input")
+	bool bCanRightClick;
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	bool bCanRemoveItem;
 	UPROPERTY(VisibleAnywhere, Category = "Input")

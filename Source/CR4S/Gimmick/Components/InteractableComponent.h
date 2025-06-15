@@ -52,9 +52,14 @@ private:
 public:
 	void InitHighlightMaterial();
 
+	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
 	void SetHighlight(const bool bIsDetected) const;
-	void ChangeHighlightColor(const FColor& InHighlightColor) const;
+	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
+	void ChangeHighlightColor(const FLinearColor& InHighlightColor);
 
+	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
+	FLinearColor GetHighlightColor() const;
+	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
 	TObjectPtr<UMaterialInterface> HighlightMaterial;
@@ -69,7 +74,7 @@ private:
 	FName HighlightColorParamName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
-	FColor DefaultHighlightColor;
+	FLinearColor DefaultHighlightColor;
 	
 #pragma endregion
 

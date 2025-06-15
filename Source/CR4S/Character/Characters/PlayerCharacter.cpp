@@ -47,6 +47,20 @@ APlayerCharacter::APlayerCharacter()
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
 }
 
+void APlayerCharacter::OnDeath()
+{
+	SetOverlayMode(AlsOverlayModeTags::Default);
+	StartRagdolling();
+	
+	APlayerController* PC=Cast<APlayerController>(GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
+
+	InputSubsystem->RemoveMappingContext(InputMappingContext);
+}
+
 void APlayerCharacter::SetCurrentToolByTag(const FGameplayTag& ToolTag)
 {
 	if (!CurrentTool||CurrentTool->GetGameplayTag().MatchesTagExact(ToolTag)) return;
@@ -168,6 +182,9 @@ void APlayerCharacter::BeginPlay()
 
 	if (!CR4S_ENSURE(LogHong1,PlayerCharacterSettingsDataAsset)) return;
 	PlayerCharacterSettings=PlayerCharacterSettingsDataAsset->PlayerCharacterSettings;
+
+	if (!CR4S_ENSURE(LogHong1,Status)) return;
+	Status->OnDeathState.AddUObject(this,&APlayerCharacter::OnDeath);
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)

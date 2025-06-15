@@ -71,6 +71,16 @@ UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWid
 	return nullptr;
 }
 
+URobotInventoryWidget* UPlayerInventoryComponent::GetRobotInventoryWidget() const
+{
+	if (IsValid(InventoryContainerWidgetInstance))
+	{
+		return InventoryContainerWidgetInstance->GetRobotInventoryWidget();
+	}
+
+	return nullptr;
+}
+
 bool UPlayerInventoryComponent::PrepareOpenInventory(UInteractionComponent* InteractionComponent) const
 {
 	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerActor)) ||
