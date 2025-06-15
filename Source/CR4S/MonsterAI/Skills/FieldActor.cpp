@@ -40,6 +40,11 @@ void AFieldActor::Initialize(AActor* OwnerMonster, AActor* Target)
 	OwnerActor  = OwnerMonster;
 	EnemyActor = Target;
 	TargetActor = GetTargetActor();
+
+	if (TargetActor)
+	{
+		InitialOffset = GetActorLocation() - TargetActor->GetActorLocation();
+	}
 	
 	NiagaraComp->Activate(true);
 	
@@ -117,7 +122,7 @@ void AFieldActor::FollowTarget()
 {
 	if (!TargetActor) return;
 
-	FVector TargetLocation = TargetActor->GetActorLocation();
+	FVector TargetLocation = TargetActor->GetActorLocation() + InitialOffset;
 
 	if (bIsAttachGround)
 	{

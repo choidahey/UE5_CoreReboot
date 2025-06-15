@@ -97,6 +97,7 @@ private:
 	float ElapsedTime = 0.f;
 	float TraceHeight = 1000.f;
 	FVector InitialActorScale = FVector(1.f);
+	FVector InitialOffset = FVector(0.f);
 
 	FTimerHandle LifeTimerHandle;
 	FTimerHandle DamageTimerHandle;
