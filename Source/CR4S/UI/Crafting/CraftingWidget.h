@@ -4,6 +4,7 @@
 #include "IngredientWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Gimmick/Data/ItemRecipeData.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 
 #include "CraftingWidget.generated.h"
 
@@ -20,14 +21,21 @@ class CR4S_API UCraftingWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+#pragma region UUserWidget Override
+
+public:
+	UCraftingWidget(const FObjectInitializer& ObjectInitializer);
+	
+#pragma endregion 
+	
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget);
+	void InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent);
 
 private:
 	UPROPERTY()
-	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
 
 #pragma endregion
 
@@ -59,14 +67,14 @@ private:
 #pragma endregion
 
 #pragma region Crafting
-	
+
 private:
 	UFUNCTION()
 	void CraftItem();
 	
-	bool bCanCraft = false;
-
-	FItemRecipeData ItemRecipeData = FItemRecipeData();
+	bool bCanCraft;
+	
+	FItemRecipeData ItemRecipeData;
 
 	TArray<FIngredientData> CurrentIngredients;
 	

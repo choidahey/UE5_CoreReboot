@@ -2,13 +2,13 @@
 #include "AIController.h"
 #include "CR4S.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/Character.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/Skills/AcidWaveActor.h"
 #include "MonsterAI/Skills/FieldActor.h"
+#include "MonsterAI/Skills/SpawnCircleActor.h"
+
 
 void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -27,7 +27,7 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
 	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
+	
 	FVector SpawnLocation = OwnerPawn->GetActorLocation();
 	const FVector TraceStart = SpawnLocation + FVector(0.f, 0.f, TraceHeight);
 	const FVector TraceEnd   = SpawnLocation - FVector(0.f, 0.f, TraceHeight);
@@ -37,6 +37,11 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	if (OwnerPawn->GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
 	{
 		SpawnLocation = Hit.Location;
+	}
+	
+	if (!SpawnLocationOffset.IsNearlyZero())
+	{
+		SpawnLocation += SpawnLocationOffset;
 	}
 
 	const FRotator SpawnRotation = OwnerPawn->GetActorRotation();
@@ -54,7 +59,7 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	);
 	if (!SpawnActor) return;
 
-	SpawnActor->AddActorLocalOffset(SpawnLocationOffset);
+	// SpawnActor->AddActorLocalOffset(SpawnLocationOffset);
 	
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{
@@ -63,6 +68,10 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	else if (AAcidWaveActor* WaveActor = Cast<AAcidWaveActor>(SpawnActor))
 	{
 		WaveActor->Initialize(Cast<AActor>(OwnerPawn), Target);
+	}
+	else if (ASpawnCircleActor* SpawnCircle = Cast<ASpawnCircleActor>(SpawnActor))
+	{
+		SpawnCircle->SpawnInCircle(Cast<AActor>(OwnerPawn));
 	}
 	else
 	{

@@ -52,9 +52,14 @@ private:
 public:
 	void InitHighlightMaterial();
 
+	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
 	void SetHighlight(const bool bIsDetected) const;
-	void ChangeHighlightColor(const FColor& InHighlightColor) const;
+	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
+	void ChangeHighlightColor(const FLinearColor& InHighlightColor);
 
+	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
+	FLinearColor GetHighlightColor() const;
+	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
 	TObjectPtr<UMaterialInterface> HighlightMaterial;
@@ -69,17 +74,19 @@ private:
 	FName HighlightColorParamName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
-	FColor DefaultHighlightColor;
+	FLinearColor DefaultHighlightColor;
 	
 #pragma endregion
 
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnDetectionStateChanged, AActor*, DetectingActor, const bool, bIsDetected);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AActor*, DetectingActor, const bool, bIsDetected);
+	UPROPERTY(BlueprintAssignable, Category = "InteractableComponent|Interaction")
 	FOnDetectionStateChanged OnDetectionStateChanged;
 	
-	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnTryInteract, AActor*, Interactor);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AActor*, Interactor);
+	UPROPERTY(BlueprintAssignable, Category = "InteractableComponent|Interaction")
 	FOnTryInteract OnTryInteract;
 	
 #pragma endregion

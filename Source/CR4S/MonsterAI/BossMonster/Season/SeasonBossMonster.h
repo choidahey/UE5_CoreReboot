@@ -5,6 +5,9 @@
 #include "SeasonBossMonster.generated.h"
 
 
+class UNiagaraComponent;
+class UNiagaraSystem;
+class AEnvironmentalModifierVolume;
 class UNavigationInvokerComponent;
 
 UCLASS()
@@ -17,9 +20,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void HandleDeath() override;
 
+	void SpawnOpeningPattern();  // Template Method
+	virtual UNiagaraSystem* GetOpeningNiagara() const PURE_VIRTUAL(ASeasonBossMonster::GetOpeningNiagara, return nullptr;);
+	
 	UPROPERTY(EditAnywhere, Category = "MonsterAI")
-	UNavigationInvokerComponent* NavInvoker;
+	TObjectPtr<UNavigationInvokerComponent> NavInvoker;
 	
 	UPROPERTY(EditAnywhere, Category = "MonsterAI")
 	float NavInvokerRadius = 5000.0f;
@@ -27,6 +34,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "MonsterAI")
 	float NavInvokerRemovalRadius = 5500.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
+	float EnvVolRadius = 500.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
+	float EnvVolHeight = 500.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
+	float EnvVolChangeSpeed = 2.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
+	float EnvTempDelta = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
+	float EnvHumidDelta = 0.f;
+
 private:
+	UPROPERTY()
+	TObjectPtr<AEnvironmentalModifierVolume> SpawnedEnvVolume = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<UNiagaraComponent> SpawnedNiagaraComp = nullptr;
+	
 	FString MyHeader = TEXT("SeasonMonster");
 };

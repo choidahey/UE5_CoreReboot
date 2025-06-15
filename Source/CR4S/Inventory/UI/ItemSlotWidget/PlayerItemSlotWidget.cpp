@@ -12,7 +12,7 @@ UPlayerItemSlotWidget::UPlayerItemSlotWidget(const FObjectInitializer& ObjectIni
 	bIsPlayerItemSlot = true;
 }
 
-void UPlayerItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget,
+void UPlayerItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget,
                                                UBaseInventoryItem* NewItem)
 {
 	Super::InitSlotWidgetData(NewInventoryWidget, NewItem);

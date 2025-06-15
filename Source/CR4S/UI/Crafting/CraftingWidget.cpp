@@ -1,7 +1,6 @@
 ﻿#include "CraftingWidget.h"
 
 #include "CR4S.h"
-#include "CraftingContainerWidget.h"
 #include "ButtonWidget/RecipeSelectButtonWidget.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
@@ -9,9 +8,15 @@
 #include "Components/TextBlock.h"
 #include "Gimmick/Data/ItemData.h"
 
-void UCraftingWidget::InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget)
+UCraftingWidget::UCraftingWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer),
+	  bCanCraft(false)
 {
-	CraftingContainerWidget = NewCraftingContainerWidget;
+}
+
+void UCraftingWidget::InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent)
+{
+	PlayerInventoryComponent = NewPlayerInventoryComponent;
 
 	if (IsValid(IngredientsContainer))
 	{
@@ -39,7 +44,7 @@ void UCraftingWidget::OpenWidget(const FRecipeSelectData& RecipeSelectData)
 		!CR4S_VALIDATE(LogCraftingUI, IsValid(ItemName)) ||
 		!CR4S_VALIDATE(LogCraftingUI, IsValid(ItemDescription)) ||
 		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftButton)) ||
-		!CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingContainerWidget)))
+		!CR4S_VALIDATE(LogCraftingUI, IsValid(PlayerInventoryComponent)))
 	{
 		return;
 	}
@@ -65,10 +70,18 @@ void UCraftingWidget::OpenWidget(const FRecipeSelectData& RecipeSelectData)
 		if (Ingredients.IsValidIndex(Index))
 		{
 			const FRecipeIngredient& Ingredient = Ingredients[Index];
-			if (const FItemInfoData* ItemData = CraftingContainerWidget->GetItemInfoData(Ingredient.IngredientItemName))
+			const UDataTable* DataTable = Ingredient.ItemInfoDataHandle.DataTable;
+			if (!CR4S_VALIDATE(LogCraftingUI, IsValid(DataTable)))
 			{
-				const int32 CurrentCount = CraftingContainerWidget->
-					GetItemCountByRowName(Ingredient.IngredientItemName);
+				bCanCraft = false;
+				continue;
+			}
+
+			const FName RowName = Ingredient.ItemInfoDataHandle.RowName;
+			if (const FItemInfoData* ItemData
+				= DataTable->FindRow<FItemInfoData>(RowName,TEXT("Item")))
+			{
+				const int32 CurrentCount = PlayerInventoryComponent->GetItemCountByRowName(RowName);
 				const int32 RequiredCount = Ingredient.Count;
 
 				if (bCanCraft && CurrentCount < RequiredCount)
@@ -109,33 +122,40 @@ void UCraftingWidget::CloseWidget()
 
 void UCraftingWidget::CraftItem()
 {
-	if (CR4S_VALIDATE(LogCraftingUI, IsValid(CraftingContainerWidget)))
+	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(PlayerInventoryComponent)))
 	{
-		CraftingContainerWidget->CraftItem(ItemRecipeData);
+		return;
+	}
 
-		for (int32 Index = 0; Index < CurrentIngredients.Num(); Index++)
+	for (const auto& [DataTableHandle, Count] : ItemRecipeData.Ingredients)
+	{
+		PlayerInventoryComponent->RemoveItemByRowName(DataTableHandle.RowName, Count);
+	}
+
+	PlayerInventoryComponent->AddItem(ItemRecipeData.ItemInfoDataHandle.RowName, ItemRecipeData.ResultCount);
+
+	for (int32 Index = 0; Index < CurrentIngredients.Num(); Index++)
+	{
+		if (!IngredientWidgets.IsValidIndex(Index))
 		{
-			if (!IngredientWidgets.IsValidIndex(Index))
-			{
-				return;
-			}
-			
-			UIngredientWidget* IngredientWidget = IngredientWidgets[Index];
-			if (IsValid(IngredientWidget))
-			{
-				FIngredientData& IngredientData = CurrentIngredients[Index];
-				
-				IngredientData.CurrentCount -= IngredientData.RequiredCount;
-				
-				IngredientWidget->InitWidget(IngredientData);
-				
-				if (bCanCraft && IngredientData.CurrentCount < IngredientData.RequiredCount)
-				{
-					bCanCraft = false;
-				}
-			}
-
-			CraftButton->SetIsEnabled(bCanCraft);
+			return;
 		}
+
+		const UIngredientWidget* IngredientWidget = IngredientWidgets[Index];
+		if (IsValid(IngredientWidget))
+		{
+			FIngredientData& IngredientData = CurrentIngredients[Index];
+
+			IngredientData.CurrentCount -= IngredientData.RequiredCount;
+
+			IngredientWidget->InitWidget(IngredientData);
+
+			if (bCanCraft && IngredientData.CurrentCount < IngredientData.RequiredCount)
+			{
+				bCanCraft = false;
+			}
+		}
+
+		CraftButton->SetIsEnabled(bCanCraft);
 	}
 }

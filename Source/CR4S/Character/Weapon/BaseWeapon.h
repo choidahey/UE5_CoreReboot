@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseTool.h"
 #include "GameplayTagContainer.h"
 #include "Character/Data/WeaponData.h"
 #include "UObject/Object.h"
@@ -13,25 +14,20 @@ class AModularRobot;
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DefaultToInstanced)
-class CR4S_API UBaseWeapon : public UObject
+UCLASS(BlueprintType, Blueprintable, DefaultToInstanced)
+class CR4S_API ABaseWeapon : public ABaseTool
 {
 	GENERATED_BODY()
 
 public:
-	UBaseWeapon();
-
-#pragma region Set
-	void SetGameplayTag(const FGameplayTag GameplayTag);
-#pragma endregion
-
+	ABaseWeapon();
+	
 	virtual void Initialize(AModularRobot* OwnerCharacter);
 	
 #pragma region Attack
 public:
-	virtual void OnAttack(const int32 WeaponIdx);
+	virtual float ComputeFinalDamage() override;
 protected:
-	float ComputeFinalDamage();
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
 #pragma endregion
@@ -39,8 +35,6 @@ protected:
 	
 #pragma region WeaponInfo
 protected:
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Tags")
-	FGameplayTag WeaponTag;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Tags")
 	FBaseWeaponInfo BaseInfo;
 #pragma endregion
@@ -53,5 +47,10 @@ protected:
 	uint8 bCanAttack:1 {true};
 
 	FTimerHandle AttackCooldownTimerHandler;	
+#pragma endregion
+
+#pragma region Components
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComp;
 #pragma endregion
 };

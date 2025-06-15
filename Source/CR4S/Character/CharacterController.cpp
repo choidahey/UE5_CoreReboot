@@ -17,7 +17,7 @@ void ACharacterController::BeginPlay()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem=LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
-			Subsystem->AddMappingContext(InputMappingContext,0);
+			Subsystem->AddMappingContext(InputMappingContext,MappingContextPriority);
 		}
 	}
 	

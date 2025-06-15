@@ -110,7 +110,7 @@ void UInteractionComponent::HideInteractionWidget() const
 
 bool UInteractionComponent::TryStartInteraction() const
 {
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(DetectedActor)) ||
+	if (!IsValid(DetectedActor) ||
 		!CR4S_VALIDATE(LogGimmick, IsValid(DetectedInteractableComponent)))
 	{
 		return false;

@@ -14,6 +14,8 @@ void UAnimNotifyState_MudAmbust::NotifyBegin(
 	UAnimSequenceBase* Animation,
 	float TotalDuration)
 {
+	if (MeshComp->GetWorld()->WorldType != EWorldType::Game && MeshComp->GetWorld()->WorldType != EWorldType::PIE) return;
+	
 	if (!IsValid(MeshComp->GetWorld())
 		|| !IsValid(MeshComp)
 		|| !IsValid(MudFieldClass)
@@ -58,6 +60,8 @@ void UAnimNotifyState_MudAmbust::NotifyBegin(
 void UAnimNotifyState_MudAmbust::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float FrameDeltaTime)
 {
+	if (MeshComp->GetWorld()->WorldType != EWorldType::Game && MeshComp->GetWorld()->WorldType != EWorldType::PIE) return;
+	
 	if (!SpawnedMudField || !MeshComp) return;
 
 	FVector BossLoc = MeshComp->GetOwner()->GetActorLocation();
@@ -99,6 +103,8 @@ void UAnimNotifyState_MudAmbust::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 
 void UAnimNotifyState_MudAmbust::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	if (MeshComp->GetWorld()->WorldType != EWorldType::Game && MeshComp->GetWorld()->WorldType != EWorldType::PIE) return;
+	
 	AActor* OwnerActor = MeshComp->GetOwner();
 
 	if (SpawnedMudField)

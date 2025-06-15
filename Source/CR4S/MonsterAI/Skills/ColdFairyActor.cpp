@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -12,14 +13,15 @@ AColdFairyActor::AColdFairyActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	RootComponent = RootComp;
-
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
-	CollisionComp->InitSphereRadius(20.f);
+	if (USphereComponent* Sphere = Cast<USphereComponent>(CollisionComp))
+	{
+		Sphere->SetSphereRadius(20.f);
+		Sphere->SetupAttachment(RootComp);
+	}
 	CollisionComp->SetupAttachment(RootComp);
-	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	// CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	CollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
@@ -27,9 +29,9 @@ AColdFairyActor::AColdFairyActor()
 	CollisionComp->SetNotifyRigidBodyCollision(true);
 	CollisionComp->OnComponentHit.AddDynamic(this, &AColdFairyActor::OnHit);
 
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
-	StaticMeshComp->SetupAttachment(RootComp);
-	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
+	StaticMesh->SetupAttachment(RootComp);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
 	ProjectileMovementComp->UpdatedComponent = CollisionComp;
@@ -46,14 +48,7 @@ void AColdFairyActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (AActor* OwnerActor = GetOwner())
-	{
-		if (UMonsterSkillComponent* SkillComp = OwnerActor->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			const FMonsterSkillData& SkillData = SkillComp->GetCurrentSkillData();
-			Damage = SkillData.Damage;
-		}
-	}
+	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
 
 void AColdFairyActor::Tick(float DeltaTime)
@@ -161,23 +156,13 @@ void AColdFairyActor::Launch()
 }
 
 void AColdFairyActor::OnHit(
-    UPrimitiveComponent* HitComp,
-    AActor* OtherActor,
-    UPrimitiveComponent* OtherComp,
-    FVector NormalImpulse,
-    const FHitResult& Hit)
+	UPrimitiveComponent* HitComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse,
+	const FHitResult& Hit)
 {
-    if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
-
-	if (Cast<ABaseMonster>(OtherActor)) return;
-
-    UGameplayStatics::ApplyDamage(
-        OtherActor,
-        Damage,
-        GetInstigatorController(),
-        this,
-        UDamageType::StaticClass()
-    );
+	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 	
     ProjectileMovementComp->StopMovementImmediately();
     SetActorLocation(Hit.ImpactPoint);
