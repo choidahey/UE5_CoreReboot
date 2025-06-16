@@ -9,7 +9,7 @@ class UBaseInventoryItem;
 class UBaseInventoryComponent;
 class UInteractableComponent;
 
-UCLASS()
+UCLASS(BlueprintType)
 class CR4S_API AItemPouchGimmick : public ABaseGimmick
 {
 	GENERATED_BODY()

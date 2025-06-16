@@ -1,4 +1,5 @@
 #include "BaseHelperBot.h"
+#include "BaseHelperBot.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "../UI/InGame/HelperBotStateManagerWidget.h"
@@ -12,6 +13,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
+#include "NavigationInvokerComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 
@@ -27,6 +29,8 @@ ABaseHelperBot::ABaseHelperBot()
 	ChopSpline->SetupAttachment(RootComponent);
 
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
+
+	NavInvokerComponent = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvokerComponent"));
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -42,8 +46,8 @@ void ABaseHelperBot::BeginPlay()
 
 	if (InteractableComp)
 	{
-		InteractableComp->OnTryInteract.BindDynamic(this, &ABaseHelperBot::HandleInteract);
-		InteractableComp->OnDetectionStateChanged.BindDynamic(this, &ABaseHelperBot::OnDetectedChange);
+		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
+		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
 	}
 }
 

@@ -5,11 +5,17 @@
 #include "CoreMinimal.h"
 #include "AlsCharacter.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
+#include "Character/Data/PlayerCharacterSettingsDataAsset.h"
 #include "PlayerCharacter.generated.h"
 
+struct FPlayerCharacterSettings;
+class UInputBufferComponent;
+class UPlayerInputBufferComponent;
+class APlayerTool;
+class ABaseTool;
+class UWeaponTraceComponent;
 class UInteractionComponent;
 class UPlayerCharacterStatusComponent;
-class UCombatComponent;
 struct FInputActionValue;
 class UAlsCameraComponent;
 class UInputMappingContext;
@@ -26,11 +32,15 @@ public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
 
-#pragma region Get
-	FORCEINLINE UStaticMeshComponent* GetOverlayStaticMesh() { return OverlayStaticMesh; }
-
+#pragma region Death
+	void OnDeath();
+#pragma endregion
+	
+#pragma region Tool
+	FORCEINLINE APlayerTool* GetCurrentTool() const { return CurrentTool; }
 	UFUNCTION(BlueprintCallable)
-	void SetToolStaticMesh(UStaticMesh* InMesh);
+	void SetCurrentToolByTag(const FGameplayTag& ToolTag);
+	void InitializeCurrentTool();
 #pragma endregion
 	
 #pragma region Widget
@@ -78,6 +88,8 @@ private:
 	virtual void Input_OnViewMode();
 
 	virtual void Input_OnSwitchShoulder();
+
+	void Input_OnAttack();
 #pragma endregion
 
 #pragma region Components
@@ -87,21 +99,17 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<USkeletalMeshComponent> VisibleMesh;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
-	TObjectPtr<UCombatComponent> Combat;
+	TObjectPtr<UWeaponTraceComponent> WeaponTrace;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UPlayerInputBufferComponent> PlayerInputBuffer;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UPlayerCharacterStatusComponent> Status;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UInteractionComponent> Interaction;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
-	TObjectPtr<USkeletalMeshComponent> OverlaySkeletalMesh;
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
-	TObjectPtr<UStaticMeshComponent> OverlayStaticMesh;
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UGridDetectionComponent> GridDetection;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
-
-
 #pragma endregion
 
 #pragma region InputActions
@@ -165,11 +173,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Player Character", Meta = (ClampMin = 0, ForceUnits = "deg/s"))
 	float LookRightRate{240.0f};
-#pragma endregion
-	
-#pragma region Properties
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Tool")
-	TObjectPtr<UStaticMesh> ToolStaticMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Cost")
+	FPlayerCharacterSettings PlayerCharacterSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Data")
+	TObjectPtr<UPlayerCharacterSettingsDataAsset> PlayerCharacterSettingsDataAsset;
 #pragma endregion
 
 #pragma region Navigation Invokers
@@ -186,4 +195,10 @@ protected:
 
 #pragma endregion
 
+#pragma region Tool
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tool")
+	TObjectPtr<APlayerTool> CurrentTool;
+#pragma endregion
+	
 };

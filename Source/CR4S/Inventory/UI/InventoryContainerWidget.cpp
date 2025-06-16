@@ -6,6 +6,8 @@
 #include "Inventory/InventoryType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
+#include "InventoryWidget/PlanterBoxInventoryWidget.h"
+#include "InventoryWidget/RobotInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -30,7 +32,8 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)))
 	{
 		return;
 	}
@@ -49,6 +52,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	StorageInventoryWidget->InitWidget(SurvivalHUD, true);
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
+	RobotWorkshopWidget->InitWidget(SurvivalHUD, false);
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
@@ -56,6 +60,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	InitToggleWidget(PlanterBoxInventoryWidget);
 	InitToggleWidget(CompostBinWidget);
 	InitToggleWidget(CraftingContainerWidget);
+	InitToggleWidget(RobotWorkshopWidget);
 }
 
 void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget,
@@ -69,7 +74,6 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	}
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Visible);
 
@@ -79,6 +83,13 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	}
 
 	bIsOpen = true;
+
+	if (IsValid(PlayerInventoryComponent))
+	{
+		ChangeWidgetOrder(PlayerInventoryComponent->GetInventoryContainerWidgetOrder());
+	}
+
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 }
 
 void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType InventoryType,
@@ -118,20 +129,38 @@ void UInventoryContainerWidget::OpenCraftingWidget(const int32 CraftingDifficult
 	OpenOtherWidget = CraftingContainerWidget;
 }
 
+void UInventoryContainerWidget::ToggleQuickSlotBar() const
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!IsValid(QuickSlotBarWidget))
+	{
+		return;
+	}
+
+	SurvivalHUD->ToggleWidget(QuickSlotBarWidget);
+}
+
 void UInventoryContainerWidget::CloseInventoryWidget()
 {
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(BackgroundBorder)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)))
+		!IsValid(BackgroundBorder) ||
+		!IsValid(PlayerInventoryWidget))
 	{
 		return;
 	}
 
 	bIsOpen = false;
 
+	ChangeWidgetOrder(0);
+
 	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChanged.IsBound())
 	{
 		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
+	}
+
+	if (IsValid(QuickSlotBarWidget) && QuickSlotBarWidget->GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		ToggleQuickSlotBar();
 	}
 
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
@@ -155,6 +184,12 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+}
+
+void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)
+{
+	RemoveFromParent();
+	AddToViewport(NewOrder);
 }
 
 void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const
@@ -200,6 +235,9 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 		break;
 	case EInventoryType::CompostBin:
 		TargetWidget = CompostBinWidget;
+		break;
+	case EInventoryType::RobotWorkshop:
+		TargetWidget = RobotWorkshopWidget;
 		break;
 	}
 

@@ -13,11 +13,13 @@ struct CR4S_API FModularRobotStats
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxEnergy{10000};
+	float MaxEnergy{30000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Energy{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ForceUnits="Energy/s"))
-	float EnergyConsumptionRate{200};
+	float Energy{30000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float EnergyConsumptionAmount{100};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float EnergyConsumptionInterval{0.1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxStun{1000};
@@ -25,6 +27,8 @@ public:
 	float Stun{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunResistance{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunDuration{1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ArmorMultiplier{1};

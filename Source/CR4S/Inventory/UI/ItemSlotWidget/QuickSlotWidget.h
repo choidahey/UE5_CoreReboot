@@ -9,6 +9,13 @@ class CR4S_API UQuickSlotWidget : public UBaseItemSlotWidget
 {
 	GENERATED_BODY()
 
+#pragma region UBaseItemSlotWidget Override
+
+public:
+	UQuickSlotWidget(const FObjectInitializer& ObjectInitializer);
+	
+#pragma endregion 
+	
 #pragma region Drag And Drop
 
 protected:

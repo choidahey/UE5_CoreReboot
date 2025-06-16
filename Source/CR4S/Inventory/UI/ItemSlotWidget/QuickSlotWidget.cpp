@@ -4,8 +4,14 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 
+UQuickSlotWidget::UQuickSlotWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	bCanUseItemTooltip = false;
+}
+
 bool UQuickSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
-	UDragDropOperation* InOperation)
+                                    UDragDropOperation* InOperation)
 {
 	const bool bResult = Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 	

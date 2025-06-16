@@ -18,7 +18,7 @@ void ABarnGimmick::BeginPlay()
 
 	if (IsValid(InteractableComponent))
 	{
-		InteractableComponent->OnTryInteract.BindDynamic(this, &ABarnGimmick::OnInteract);
+		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ABarnGimmick::OnInteract);
 	}
 }
 

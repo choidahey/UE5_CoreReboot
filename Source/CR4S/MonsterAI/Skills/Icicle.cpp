@@ -1,36 +1,20 @@
 #include "MonsterAI/Skills/Icicle.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "MonsterAI/Components/MonsterAttributeComponent.h"
-#include "MonsterAI/Components/MonsterSkillComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
-#include "MonsterAI/BaseMonster.h"
 
 AIcicle::AIcicle()
 {
-	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
-	RootComponent = RootComp;
-
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComp"));
 	NiagaraComp->SetupAttachment(RootComp);
-	NiagaraComp->SetAutoActivate(false);
+	NiagaraComp->bAutoActivate = false;
 	NiagaraComp->Activate(true);
 }
 
 void AIcicle::InitIcicle(float Radius)
 {
-	if (APawn* OwnerPawn = GetInstigator())
-	{
-		if (UMonsterSkillComponent* SkillComp = OwnerPawn->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			Damage = SkillComp->GetCurrentSkillData().Damage;
-		}
-	}
-
 	for (UCapsuleComponent* C : EdgeColliders)
 		if (C) C->DestroyComponent();
 
@@ -50,32 +34,22 @@ void AIcicle::InitIcicle(float Radius)
     {
         float Angle = CircleAngle * float(i) / float(NumSeg);
         FVector Dir = FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.f);
-
-        FVector LocXY = FVector(BaseLoc.X + Dir.X * Radius,
-                                BaseLoc.Y + Dir.Y * Radius,
-                                0.f);
-    	
+        FVector LocXY = FVector(BaseLoc.X + Dir.X * Radius, BaseLoc.Y + Dir.Y * Radius, 0.f);
         float GroundZ = BottomZ;
-        {
-            FVector TraceStart = FVector(LocXY.X, LocXY.Y, BaseLoc.Z + TraceHeight);
-            FVector TraceEnd   = FVector(LocXY.X, LocXY.Y, BaseLoc.Z - TraceHeight);
+    	
+    	FVector TraceStart = FVector(LocXY.X, LocXY.Y, BaseLoc.Z + TraceHeight);
+    	FVector TraceEnd   = FVector(LocXY.X, LocXY.Y, BaseLoc.Z - TraceHeight);
 
-            FHitResult Hit;
-            FCollisionQueryParams Params;
-            Params.AddIgnoredActor(this);
-            if (GetInstigator())
-                Params.AddIgnoredActor(GetInstigator());
+    	FHitResult Hit;
+    	FCollisionQueryParams Params;
+    	Params.AddIgnoredActor(this);
+    	if (GetInstigator())
+    		Params.AddIgnoredActor(GetInstigator());
 
-            if (GetWorld()->LineTraceSingleByChannel(
-                    Hit,
-                    TraceStart,
-                    TraceEnd,
-                    ECC_WorldStatic,
-                    Params))
-            {
-                GroundZ = Hit.Location.Z;
-            }
-        }
+    	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params))
+    	{
+    		GroundZ = Hit.Location.Z;
+    	}
     	
         const FVector CapsuleCenter = FVector(LocXY.X, LocXY.Y, CenterZ);
 
@@ -84,10 +58,7 @@ void AIcicle::InitIcicle(float Radius)
     	
         CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     	CapsuleComp->SetCollisionObjectType(ECC_WorldDynamic);
-        CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-        CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-        CapsuleComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-        CapsuleComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+    	CapsuleComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
     	CapsuleComp->SetGenerateOverlapEvents(true);
     	
     	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AIcicle::OnOverlap);
@@ -146,17 +117,12 @@ void AIcicle::InitIcicle(float Radius)
 
 void AIcicle::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == GetOwner() || OtherActor == GetInstigator()) return;
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
 
-	if (Cast<ABaseMonster>(OtherActor)) return;
-
-	UGameplayStatics::ApplyDamage(
-		OtherActor,
-		Damage,
-		GetInstigatorController(),
-		this,
-		UDamageType::StaticClass()
-	);
+void AIcicle::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void AIcicle::EndPlay(const EEndPlayReason::Type EndPlayReason)

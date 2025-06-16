@@ -32,4 +32,6 @@ struct FSeasonBossAIKeys : public FAIKeys
 {
 	static const FName NearestHouseActor;
 	static const FName bIsIceRoadForward;
+	static const FName bIsDashAway;
+	static const FName bIsDashForward;
 };

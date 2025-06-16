@@ -108,7 +108,7 @@ void ABaseMonster::HandleDeath()
 	bIsDead = true;
 	StateComponent->SetState(EMonsterState::Dead);
 
-	OnDied.Broadcast(this); // Delegate Broadcast On Death for Spawner
+	OnDied.Broadcast(this);
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		MoveComp->DisableMovement();
@@ -147,7 +147,15 @@ void ABaseMonster::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	if (bInterrupted)
 		return;
 
-	SetLifeSpan(4.f);
+	SetLifeSpan(1.5f);
+	
+	if (DissolveMaterial)
+	{
+		for (int32 i = 0; i < GetMesh()->GetNumMaterials(); ++i)
+		{
+			GetMesh()->SetMaterial(i, DissolveMaterial);
+		}
+	}
 }
 
 

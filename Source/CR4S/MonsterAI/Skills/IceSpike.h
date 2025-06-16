@@ -1,13 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseSkillActor.h"
 #include "GameFramework/Actor.h"
 #include "IceSpike.generated.h"
 
 class UCapsuleComponent;
 
 UCLASS()
-class CR4S_API AIceSpike : public AActor
+class CR4S_API AIceSpike : public ABaseSkillActor
 {
 	GENERATED_BODY()
 	
@@ -20,12 +21,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
-	USceneComponent* RootComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
-	UCapsuleComponent* CollisionComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
 	UStaticMeshComponent* StaticMeshComp;
@@ -48,19 +43,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
 	float PushUpStrength = 0.f;
 
-	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
-	float Damage = 0.f;
-
 private:
-	UFUNCTION()
-	void OnOverlapBegin(
+	virtual void OnOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
 		const FHitResult& SweepResult
-		);
+	) override;
 
 	bool  bRising = true;
 	float ElapsedRise = 0.f;

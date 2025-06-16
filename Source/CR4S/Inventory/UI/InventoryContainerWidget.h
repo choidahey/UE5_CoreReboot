@@ -6,6 +6,8 @@
 #include "ItemSlotWidget/BaseItemSlotWidget.h"
 #include "InventoryContainerWidget.generated.h"
 
+class URobotInventoryWidget;
+class UPlanterBoxInventoryWidget;
 class UCraftingContainerWidget;
 class UCompostBinWidget;
 class UStorageInventoryWidget;
@@ -28,6 +30,8 @@ public:
 
 	void InitWidget(ASurvivalHUD* InSurvivalHUD, UPlayerInventoryComponent* InPlayerInventoryComponent);
 
+	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent() const { return PlayerInventoryComponent; }
+
 private:
 	UPROPERTY()
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
@@ -44,12 +48,15 @@ public:
 	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent);
 	void OpenCraftingWidget(const int32 CraftingDifficulty);
 
+	void ToggleQuickSlotBar() const;
+
 	UFUNCTION()
 	void CloseInventoryWidget();
 
 	FORCEINLINE bool IsOpen() const { return bIsOpen; }
 
 private:
+	void ChangeWidgetOrder(const int32 NewOrder);
 	void InitToggleWidget(UUserWidget* Widget) const;
 	UUserWidget* GetTargetInventoryWidget(EInventoryType InventoryType) const;
 
@@ -66,15 +73,18 @@ public:
 
 private:
 	bool CanMoveItem(const bool bTargetIsPlayer) const;
-	
+
 #pragma endregion
 
 #pragma region BindWidget
-	
+
+public:
+	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const { return PlanterBoxInventoryWidget; }
+	FORCEINLINE URobotInventoryWidget* GetRobotInventoryWidget() const { return RobotWorkshopWidget; }
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> BackgroundBorder;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBaseInventoryWidget> PlayerInventoryWidget;
 	UPROPERTY(meta = (BindWidget))
@@ -86,13 +96,16 @@ private:
 	TObjectPtr<UStorageInventoryWidget> StorageInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBaseInventoryWidget> PlanterBoxInventoryWidget;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UCompostBinWidget> CompostBinWidget;
+	TObjectPtr<UPlanterBoxInventoryWidget> PlanterBoxInventoryWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<URobotInventoryWidget> RobotWorkshopWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCompostBinWidget> CompostBinWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUserWidget> OpenOtherWidget;
