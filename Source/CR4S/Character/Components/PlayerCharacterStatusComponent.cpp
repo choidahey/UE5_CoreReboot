@@ -167,23 +167,22 @@ void UPlayerCharacterStatusComponent::RemoveColdDebuff()
 
 void UPlayerCharacterStatusComponent::ApplyHighHumidityDebuff()
 {
-	PlayerStatus.DefaultMontagePlayRate*=PlayerStatus.HighHumidityMontagePlayRate;
-	if (CR4S_ENSURE(LogHong1,OwningCharacter)) return;
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
 	
 	APlayerTool* Tool=OwningCharacter->GetCurrentTool();
-	if (CR4S_ENSURE(LogHong1,Tool)) return;
-
-	Tool->SetMontagePlayRate(PlayerStatus.DefaultMontagePlayRate);
+	if (!CR4S_ENSURE(LogHong1,Tool)) return;
+	
+	Tool->SetMontagePlayRate(PlayerStatus.HighHumidityMontagePlayRate);
 }
 
 void UPlayerCharacterStatusComponent::RemoveHighHumidityDebuff()
 {
-	PlayerStatus.DefaultMontagePlayRate/=PlayerStatus.HighHumidityMontagePlayRate;
-
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
+	
 	APlayerTool* Tool=OwningCharacter->GetCurrentTool();
-	if (CR4S_ENSURE(LogHong1,Tool)) return;
+	if (!CR4S_ENSURE(LogHong1,Tool)) return;
 
-	Tool->SetMontagePlayRate(PlayerStatus.HighHumidityMontagePlayRate);
+	Tool->SetMontagePlayRate(PlayerStatus.DefaultMontagePlayRate);
 }
 
 void UPlayerCharacterStatusComponent::AddMaxHunger(const float InAmount)

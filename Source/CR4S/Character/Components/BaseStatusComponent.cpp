@@ -213,15 +213,21 @@ void UBaseStatusComponent::RemoveColdDebuff()
 
 void UBaseStatusComponent::HandleHumidityChanged(float NewHumidity)
 {
-	if (NewHumidity>BaseStatus.HumidityThreshold&&!bIsHumidityAffected)
+	if (NewHumidity>BaseStatus.HumidityThreshold)
 	{
-		bIsHumidityAffected=true;
-		ApplyHighHumidityDebuff();
+		if (!bIsHumidityAffected)
+		{
+			bIsHumidityAffected=true;
+			ApplyHighHumidityDebuff();
+		}
 	}
-	else if (bIsHumidityAffected)
+	else
 	{
-		bIsHumidityAffected=false;
-		RemoveHighHumidityDebuff();
+		if (bIsHumidityAffected)
+		{
+			bIsHumidityAffected=false;
+			RemoveHighHumidityDebuff();
+		}
 	}
 }
 

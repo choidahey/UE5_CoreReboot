@@ -37,7 +37,9 @@ public:
 	float GetBaseTemperatureBySeason(ESeasonType Season) const;
 	float GetBaseHumidityBySeason(ESeasonType Season) const;
 
+	UFUNCTION(BlueprintCallable, Category = "EnvironmentalStatus")
 	void ModifyTemperature(float Delta, float Speed);
+	UFUNCTION(BlueprintCallable, Category = "EnvironmentalStatus")
 	void ModifyHumidity(float Delta, float Speed);
 
 	void SetMaxTemperature(float Max);
