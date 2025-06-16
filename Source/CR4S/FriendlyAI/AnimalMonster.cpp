@@ -1,70 +1,357 @@
 #include "AnimalMonster.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Component/AIJumpComponent.h"
-#include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
+#include "FriendlyAI/Controller/AnimalMonsterAIController.h"
+#include "Kismet/GameplayStatics.h"
+#include "NavigationSystem.h"
+#include "Character/Characters/PlayerCharacter.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Gimmick/GimmickObjects/Buildings/BaseBuildingGimmick.h"
+#include "Components/SphereComponent.h"
+#include "FriendlyAI/Component/AnimalRangedAttackComponent.h"
+#include "Engine/World.h"
+#include "FriendlyAI/BaseHelperBot.h"
+#include "DrawDebugHelpers.h"
 
+#pragma region AActor Override
 AAnimalMonster::AAnimalMonster()
 {
-	AIJumpComponent = CreateDefaultSubobject<UAIJumpComponent>(TEXT("AIJumpComponent"));
+    PrimaryActorTick.bCanEverTick = true;
+    
+    AIControllerClass = AAnimalMonsterAIController::StaticClass();
+    AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void AAnimalMonster::BeginPlay()
 {
-	Super::BeginPlay();
-	UCharacterMovementComponent* Move = GetCharacterMovement();
-	if (Move)
-	{
-		Move->bOrientRotationToMovement = true;
-		Move->RotationRate = FRotator(0.f, 120.f, 0.f);
-	}
-
-	if (AIJumpComponent)
-	{
-		AIJumpComponent->SetJumpPower(JumpPower);
-	}
+    Super::BeginPlay();
+    
+    InitializeMonster();
 }
 
-#pragma region Stun
-void AAnimalMonster::ApplyStun(float Amount)
+void AAnimalMonster::Tick(float DeltaTime)
 {
-	Super::ApplyStun(Amount);
+    Super::Tick(DeltaTime);
+    
+    if (bDrawTargetDebug || bDrawPathDebug)
+    {
+        DrawMonsterDebugVisuals();
+    }
+}
+#pragma endregion
 
-	if (!bIsStunned) return;
-
-	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-
-	if (GetController())
-	{
-		GetController()->StopMovement();
-	}
-
-	GetCharacterMovement()->StopMovementImmediately();
-	GetCharacterMovement()->DisableMovement();
-
-	FName BoneName = GetMesh()->GetSocketBoneName(TEXT("TS"));
-	GetMesh()->SetSimulatePhysics(false);
-	GetMesh()->SetAllBodiesBelowSimulatePhysics(BoneName, true, true);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+#pragma region Initialization
+void AAnimalMonster::InitializeMonster()
+{
+    SetInitialTarget();
+    
+    bUseControllerRotationYaw = false;
+    
+    if (AttackRange)
+    {
+        AttackRange->SetCollisionProfileName(TEXT("Trigger"));
+    }
 }
 
-void AAnimalMonster::RecoverFromStun()
+void AAnimalMonster::SetInitialTarget()
 {
-	Super::RecoverFromStun();
+    AActor* PlayerTarget = GetCurrentPlayerTarget();
+    if (PlayerTarget)
+    {
+        SetPrimaryTarget(PlayerTarget);
+        CurrentTarget = PlayerTarget;
+        
+        if (AAnimalMonsterAIController* MonsterAI = Cast<AAnimalMonsterAIController>(GetController()))
+        {
+            MonsterAI->SetTargetActor(PlayerTarget);
+        }
+    }
+}
+#pragma endregion
 
-	bUseControllerRotationYaw = true;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+#pragma region Target Management
+void AAnimalMonster::SetPrimaryTarget(AActor* Target)
+{
+    PrimaryTarget = Target;
+}
 
-	GetMesh()->bBlendPhysics = true;
-	GetMesh()->SetAllBodiesSimulatePhysics(false);
-	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+void AAnimalMonster::SetSecondaryTarget(AActor* Target)
+{
+    SecondaryTarget = Target;
+}
 
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+void AAnimalMonster::SetBuildingTarget(AActor* Target)
+{
+    BuildingTarget = Target;
+    bIsDestroyingBuilding = IsValid(Target);
+}
+
+void AAnimalMonster::ClearAllTargets()
+{
+    PrimaryTarget = nullptr;
+    SecondaryTarget = nullptr;
+    BuildingTarget = nullptr;
+    CurrentTarget = nullptr;
+    bIsDestroyingBuilding = false;
 }
 #pragma endregion
 
 #pragma region Attack
+void AAnimalMonster::PerformMeleeAttack()
+{
+    if (!CurrentTarget || !bCanMelee || bIsMeleeOnCooldown) return;
+
+    const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
+    if (Distance > MeleeRange) return;
+    
+    if (!AttackRange || !AttackRange->IsOverlappingActor(CurrentTarget))
+    {
+        if (AAnimalMonsterAIController* MonsterAI = Cast<AAnimalMonsterAIController>(GetController()))
+        {
+            MonsterAI->OnTargetOutOfRange();
+        }
+        return;
+    }
+    
+    GetWorldTimerManager().SetTimer(
+        MeleeAttackTimerHandle,
+        this,
+        &AAnimalMonster::ResetMeleeCooldown,
+        MeleeAttackCooldown,
+        false
+    );
+
+    ApplyDamageToTarget(CurrentTarget);
+}
+
 void AAnimalMonster::PerformChargeAttack()
 {
+    if (!bCanCharge || bIsChargeOnCooldown || !CurrentTarget) return;
+    
+    GetWorldTimerManager().SetTimer(
+        ChargeAttackTimerHandle,
+        this,
+        &AAnimalMonster::ResetChargeCooldown,
+        ChargeAttackCooldown,
+        false
+    );
+
+    ApplyDamageToTarget(CurrentTarget);
+}
+
+void AAnimalMonster::PerformRangedAttack()
+{
+    if (!bCanRanged || bIsRangedOnCooldown || !CurrentTarget) return;
+
+    if (RangedAttackComponent)
+    {
+        RangedAttackComponent->FireProjectile();
+    }
+    
+    GetWorldTimerManager().SetTimer(
+        RangedAttackTimerHandle,
+        this,
+        &AAnimalMonster::ResetRangedCooldown,
+        RangedAttackCooldown,
+        false
+    );
+}
+#pragma endregion
+
+#pragma region Damage
+float AAnimalMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, 
+                                AController* EventInstigator, AActor* DamageCauser)
+{
+    if (AAnimalMonster* OtherMonster = Cast<AAnimalMonster>(DamageCauser))
+    {
+        return 0.f;
+    }
+
+    float ActualDamage = DamageAmount;
+    if (ActualDamage <= 0.f)
+    {
+        return 0.f;
+    }
+
+    CurrentHealth -= ActualDamage;
+    if (CurrentHealth <= 0.f)
+    {
+        Die();
+    }
+    return ActualDamage;
+}
+#pragma endregion
+
+#pragma region Monster Functions
+// bool AAnimalMonster::CanReachTarget(AActor* Target) const
+// {
+//     if (!IsValid(Target)) return false;
+//
+//     UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+//     if (!NavSystem) return false;
+//
+//     FPathFindingQuery Query;
+//     Query.StartLocation = GetActorLocation();
+//     Query.EndLocation = Target->GetActorLocation();
+//     Query.NavData = NavSystem->GetDefaultNavDataInstance();
+//
+//     FPathFindingResult Result = NavSystem->FindPathSync(Query);
+//     return Result.IsSuccessful() && Result.Path.IsValid();
+// }
+
+AActor* AAnimalMonster::FindNearestDestructibleBuilding() const
+{
+    TArray<AActor*> FoundBuildings;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseBuildingGimmick::StaticClass(), FoundBuildings);
+
+    AActor* NearestBuilding = nullptr;
+    float NearestDistance = BuildingDetectionRange;
+
+    FVector MyLocation = GetActorLocation();
+    
+    for (AActor* Building : FoundBuildings)
+    {
+        if (!IsValid(Building) || IsBuildingDestroyed(Building)) continue;
+
+        float Distance = FVector::Dist(MyLocation, Building->GetActorLocation());
+        if (Distance < NearestDistance)
+        {
+            NearestDistance = Distance;
+            NearestBuilding = Building;
+        }
+    }
+
+    return NearestBuilding;
+}
+
+bool AAnimalMonster::IsDestructibleBuilding(AActor* Building) const
+{
+    return IsValid(Building) && Building->IsA<ABaseBuildingGimmick>();
+}
+
+AActor* AAnimalMonster::GetCurrentPlayer() const
+{
+    return UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+}
+
+AActor* AAnimalMonster::GetCurrentPlayerTarget() const
+{
+    APlayerCharacter* Player = Cast<APlayerCharacter>(GetCurrentPlayer());
+    if (!IsValid(Player)) return nullptr;
+    
+    TArray<AActor*> FoundRobots;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AModularRobot::StaticClass(), FoundRobots);
+
+    for (AActor* RobotActor : FoundRobots)
+    {
+        if (AModularRobot* Robot = Cast<AModularRobot>(RobotActor))
+        {
+            APlayerCharacter* MountedChar = Robot->GetMountedCharacter();            
+            if (MountedChar == Player)
+            {
+                return Robot;
+            }
+        }
+    }
+    return Player;
+}
+
+TArray<AActor*> AAnimalMonster::FindNearbyAutomatedAI() const
+{
+    TArray<AActor*> AutomatedAI;
+    TArray<AActor*> FoundHelperBots;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseHelperBot::StaticClass(), FoundHelperBots);
+
+    FVector MyLocation = GetActorLocation();
+
+    for (AActor* HelperBotActor : FoundHelperBots)
+    {
+        float Distance = FVector::Dist(MyLocation, HelperBotActor->GetActorLocation());
+        if (Distance <= AutomatedAIDetectionRange)
+        {
+            AutomatedAI.Add(HelperBotActor);
+        }
+    }
+
+    return AutomatedAI;
+}
+
+bool AAnimalMonster::IsBuildingDestroyed(AActor* Building) const
+{
+    if (ABaseBuildingGimmick* BuildingGimmick = Cast<ABaseBuildingGimmick>(Building))
+    {
+        return BuildingGimmick->GetDurabilityRatio() <= 0.0f;
+    }
+    return false;
+}
+#pragma endregion
+
+#pragma region Debug
+void AAnimalMonster::DrawMonsterDebugVisuals()
+{
+    if (!GetWorld()) return;
+
+    FVector MyLocation = GetActorLocation();
+
+    if (bDrawTargetDebug)
+    {
+        // Primary Target
+        if (IsValid(PrimaryTarget))
+        {
+            DrawDebugLine(GetWorld(), MyLocation, PrimaryTarget->GetActorLocation(), 
+                         FColor::Red, false, -1.f, 0, 3.f);
+            DrawDebugString(GetWorld(), PrimaryTarget->GetActorLocation() + FVector(0, 0, 100), 
+                           TEXT("PRIMARY"), nullptr, FColor::Red, -1.f);
+        }
+
+        // Secondary Target
+        if (IsValid(SecondaryTarget))
+        {
+            DrawDebugLine(GetWorld(), MyLocation, SecondaryTarget->GetActorLocation(), 
+                         FColor::Blue, false, -1.f, 0, 2.f);
+            DrawDebugString(GetWorld(), SecondaryTarget->GetActorLocation() + FVector(0, 0, 100), 
+                           TEXT("SECONDARY"), nullptr, FColor::Blue, -1.f);
+        }
+
+        // Building Target
+        if (IsValid(BuildingTarget))
+        {
+            DrawDebugLine(GetWorld(), MyLocation, BuildingTarget->GetActorLocation(), 
+                         FColor::Orange, false, -1.f, 0, 2.f);
+            DrawDebugString(GetWorld(), BuildingTarget->GetActorLocation() + FVector(0, 0, 100), 
+                           TEXT("BUILDING"), nullptr, FColor::Orange, -1.f);
+        }
+    }
+
+    if (bDrawPathDebug)
+    {
+        // Detection Range
+        DrawDebugSphere(GetWorld(), MyLocation, AutomatedAIDetectionRange, 16, 
+                       FColor::Cyan, false, -1.f, 0, 1.f);
+        DrawDebugSphere(GetWorld(), MyLocation, BuildingDetectionRange, 16, 
+                       FColor::Yellow, false, -1.f, 0, 1.f);
+    }
+}
+#pragma endregion
+
+#pragma region Internal Functions
+float AAnimalMonster::GetDamageForTarget(AActor* Target) const
+{
+    if (Cast<APlayerCharacter>(Target) || Cast<AModularRobot>(Target))
+    {
+        return PlayerDamage;
+    }
+    else if (Cast<ABaseBuildingGimmick>(Target))
+    {
+        return BuildingDamage;
+    }
+    
+    return PlayerDamage;
+}
+
+void AAnimalMonster::ApplyDamageToTarget(AActor* Target)
+{
+    if (!IsValid(Target)) return;
+
+    float Damage = GetDamageForTarget(Target);
+    UGameplayStatics::ApplyDamage(Target, Damage, GetController(), this, nullptr);
 }
 #pragma endregion
