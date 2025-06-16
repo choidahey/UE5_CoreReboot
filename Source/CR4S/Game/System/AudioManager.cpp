@@ -2,6 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundMix.h"
 #include "GameFramework/GameUserSettings.h"
+#include "Game/SaveGame/SettingsSaveGame.h"
 #include "AudioManager.h"
 
 void UAudioManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -48,11 +49,6 @@ void UAudioManager::SetBGMVolume(float Volume)
 
 		BGMVolume = Volume;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Missing MasterSoundMix or BGMClass"));
-	}
-
 }
 
 void UAudioManager::SetSFXVolume(float Volume)
@@ -67,11 +63,24 @@ void UAudioManager::SetSFXVolume(float Volume)
 
 void UAudioManager::SaveVolumeSettings()
 {
-	// Use SaveGame to persist volume settings
+	USettingsSaveGame* SaveGame = NewObject<USettingsSaveGame>();
+	SaveGame->MasterVolume = MasterVolume;
+	SaveGame->BGMVolume = BGMVolume;
+	SaveGame->SFXVolume = SFXVolume;
 
+	UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("SettingsSave"), 0);
 }
 
 void UAudioManager::LoadVolumeSettings()
 {
-	// Use Save Game to Load volume settings
+	if (UGameplayStatics::DoesSaveGameExist(TEXT("SettingsSave"), 0))
+	{
+		USettingsSaveGame* Loaded = Cast<USettingsSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("SettingsSave"), 0));
+		if (Loaded)
+		{
+			SetMasterVolume(Loaded->MasterVolume);
+			SetBGMVolume(Loaded->BGMVolume);
+			SetSFXVolume(Loaded->SFXVolume);
+		}
+	}
 }

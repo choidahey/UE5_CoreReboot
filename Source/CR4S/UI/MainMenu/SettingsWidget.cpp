@@ -6,6 +6,8 @@
 #include "Components/VerticalBox.h"
 #include "Components/Slider.h"
 #include "Game/System/AudioManager.h"
+#include "Game/SaveGame/SaveGameManager.h"
+#include "Game/SaveGame/SettingsSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 
 void USettingsWidget::NativeConstruct()
@@ -15,6 +17,11 @@ void USettingsWidget::NativeConstruct()
 	if (!WindowWidget->OnBackClicked.IsAlreadyBound(this, &USettingsWidget::HandleCloseWindow))
 	{
 		WindowWidget->OnBackClicked.AddDynamic(this, &USettingsWidget::HandleCloseWindow);
+	}
+
+	if (!WindowWidget->OnApplyClicked.IsAlreadyBound(this, &USettingsWidget::RequestSaveSettings))
+	{
+		WindowWidget->OnApplyClicked.AddDynamic(this, &USettingsWidget::RequestSaveSettings);
 	}
 
 	if (IsCategoryValid())
@@ -34,7 +41,7 @@ void USettingsWidget::NativeConstruct()
 	SetupButtonAnimation(GraphicsButton);
 	SetupButtonAnimation(ControlsButton);
 
-	InitializeAudioSettings();
+	LoadSettingsData();
 }
 
 void USettingsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -188,15 +195,40 @@ void USettingsWidget::OnSFXVolumeChanged(float Value)
 	}
 }
 
-void USettingsWidget::InitializeAudioSettings()
+#pragma endregion
+
+void USettingsWidget::RequestSaveSettings()
 {
-	AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>();
-	if (AudioManager)
+	USaveGameManager* SaveManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
+	if(SaveManager)
 	{
-		MasterVolumeSlider->SetValue(AudioManager->GetMasterVolume());
-		BGMVolumeSlider->SetValue(AudioManager->GetBGMVolume());
-		SFXVolumeSlider->SetValue(AudioManager->GetSFXVolume());
+		SaveManager->SaveSettings();
 	}
 }
 
-#pragma endregion "Audio Settings"
+void USettingsWidget::LoadSettingsData()
+{
+	AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>();
+
+	USaveGameManager* SaveManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
+	if (!SaveManager) return;
+
+	USettingsSaveGame* SettingsData = SaveManager->LoadSettings();
+	if (!SettingsData) return;
+
+	if (MasterVolumeSlider)
+	{
+		MasterVolumeSlider->SetValue(SettingsData->MasterVolume);
+	}
+	if (BGMVolumeSlider)
+	{
+		BGMVolumeSlider->SetValue(SettingsData->BGMVolume);
+	}
+	if (SFXVolumeSlider)
+	{
+		SFXVolumeSlider->SetValue(SettingsData->SFXVolume);
+	}
+
+	// TODO: 밝기, 언어 등 추가 UI 요소 동기화
+}
+

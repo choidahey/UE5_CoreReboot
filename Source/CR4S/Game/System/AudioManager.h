@@ -19,6 +19,8 @@ public:
 	FORCEINLINE float GetBGMVolume() const { return BGMVolume; }
 	FORCEINLINE float GetSFXVolume() const { return SFXVolume; }
 
+
+
 	void SetMasterVolume(float Volume);
 	void SetBGMVolume(float Volume);
 	void SetSFXVolume(float Volume);

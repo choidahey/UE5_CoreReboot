@@ -1,5 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Game/SaveGame/SettingsSaveGame.h"
 
+USettingsSaveGame::USettingsSaveGame()
+{
+	MasterVolume = 1.0f;
+	BGMVolume = 1.0f;
+	SFXVolume = 1.0f;
+}

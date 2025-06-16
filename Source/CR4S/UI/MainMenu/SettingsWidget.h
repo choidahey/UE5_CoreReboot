@@ -17,11 +17,6 @@ class CR4S_API USettingsWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UFUNCTION()
-	void HandleCloseWindow();
-	UFUNCTION()
-	void HandleOpenWindow();
-
 	UPROPERTY()
 	TObjectPtr<UMainMenuWidget> MainMenuWidgetRef;
 
@@ -79,6 +74,11 @@ protected:
 #pragma endregion
 
 #pragma region Handlers
+public:
+	UFUNCTION()
+	void HandleCloseWindow();
+	UFUNCTION()
+	void HandleOpenWindow();
 
 protected:
 	UFUNCTION()
@@ -100,6 +100,9 @@ protected:
 	UFUNCTION()
 	void OnSFXVolumeChanged(float Value);
 
+	UFUNCTION()
+	void RequestSaveSettings();
+
 private:
 
 	void HandleOpenCategory(TObjectPtr<UBorder> SettingsCategory);
@@ -111,13 +114,10 @@ private:
 
 
 #pragma region Audio Settings
-
-protected:
-	void InitializeAudioSettings();
+;
 
 private:
+	void LoadSettingsData();
 	TObjectPtr<UAudioManager> AudioManager;
-
-
 #pragma endregion
 };
