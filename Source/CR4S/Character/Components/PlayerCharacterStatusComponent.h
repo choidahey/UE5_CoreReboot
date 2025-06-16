@@ -46,6 +46,19 @@ public:
 	void StopSprint();
 	void ConsumeResourceForSprint();
 #pragma endregion
+
+#pragma region Temperatur
+	virtual void ApplyHeatDebuff() override;
+	virtual void RemoveHeatDebuff() override;
+
+	virtual void ApplyColdDebuff() override;
+	virtual void RemoveColdDebuff() override;
+#pragma endregion
+
+#pragma region Humidity
+	virtual void ApplyHighHumidityDebuff() override;
+	virtual void RemoveHighHumidityDebuff() override;
+#pragma endregion
 	
 #pragma region Override
 public:
@@ -73,9 +86,12 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FPlayerCharacterStats PlayerStatus;
+#pragma endregion
 
+#pragma region Flag&Timer
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	uint8 bIsStarving:1 {false};
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FTimerHandle HungerTimerHandle;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))

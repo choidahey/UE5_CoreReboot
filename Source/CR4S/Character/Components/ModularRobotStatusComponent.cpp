@@ -75,6 +75,36 @@ void UModularRobotStatusComponent::ConsumeEnergyForInterval()
 	}
 }
 
+void UModularRobotStatusComponent::ApplyHeatDebuff()
+{
+	Super::ApplyHeatDebuff();
+}
+
+void UModularRobotStatusComponent::RemoveHeatDebuff()
+{
+	Super::RemoveHeatDebuff();
+}
+
+void UModularRobotStatusComponent::ApplyColdDebuff()
+{
+	BaseStatus.ResourceConsumptionMultiplier*=RobotStatus.ColdResourceConsumptionMultiplier;
+}
+
+void UModularRobotStatusComponent::RemoveColdDebuff()
+{
+	BaseStatus.ResourceConsumptionMultiplier/=RobotStatus.ColdResourceConsumptionMultiplier;
+}
+
+void UModularRobotStatusComponent::ApplyHighHumidityDebuff()
+{
+	RobotStatus.AttackPowerMultiplier*=RobotStatus.HighHumidityAttackPowerMultiplier;
+}
+
+void UModularRobotStatusComponent::RemoveHighHumidityDebuff()
+{
+	RobotStatus.AttackPowerMultiplier/=RobotStatus.HighHumidityAttackPowerMultiplier;
+}
+
 // Called every frame
 void UModularRobotStatusComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 												 FActorComponentTickFunction* ThisTickFunction)

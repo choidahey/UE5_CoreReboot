@@ -16,6 +16,7 @@
 #include "Utility/AlsVector.h"
 #include "NavigationInvokerComponent.h"
 #include "Character/Components/PlayerInputBufferComponent.h"
+#include "Character/Components/PlayerInputBufferComponent.h"
 #include "Character/Components/WeaponTraceComponent.h"
 #include "Character/Weapon/BaseTool.h"
 #include "Character/Weapon/PlayerTool.h"
@@ -185,6 +186,10 @@ void APlayerCharacter::BeginPlay()
 
 	if (!CR4S_ENSURE(LogHong1,Status)) return;
 	Status->OnDeathState.AddUObject(this,&APlayerCharacter::OnDeath);
+
+	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
+	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)

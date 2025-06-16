@@ -2,6 +2,7 @@
 #include "PlayerCharacterStatusComponent.h"
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Character/Weapon/PlayerTool.h"
 
 
 // Sets default values for this component's properties
@@ -85,7 +86,7 @@ void UPlayerCharacterStatusComponent::RemoveHungerDebuff()
 
 void UPlayerCharacterStatusComponent::ConsumeCurrentHungerForInterval()
 {
-	AddCurrentHunger(-(PlayerStatus.HungerDecreaseAmount));
+	AddCurrentHunger(-(PlayerStatus.HungerDecreaseAmount*PlayerStatus.HungerConsumptionMultiplier));
 	
 	if (PlayerStatus.Hunger<=KINDA_SMALL_NUMBER)
 	{
@@ -140,6 +141,49 @@ void UPlayerCharacterStatusComponent::ConsumeResourceForSprint()
 	}
 	AddCurrentResource(-(PlayerStatus.SprintResourceCost));
 	OnResourceConsumed();
+}
+
+void UPlayerCharacterStatusComponent::ApplyHeatDebuff()
+{
+	Super::ApplyHeatDebuff();
+}
+
+void UPlayerCharacterStatusComponent::RemoveHeatDebuff()
+{
+	Super::RemoveHeatDebuff();
+}
+
+void UPlayerCharacterStatusComponent::ApplyColdDebuff()
+{
+	BaseStatus.ResourceRegenMultiplier*=PlayerStatus.ColdResourceRegenMultiplier;
+	PlayerStatus.HungerConsumptionMultiplier*=PlayerStatus.ColdHungerConsumptionMultiplier;
+}
+
+void UPlayerCharacterStatusComponent::RemoveColdDebuff()
+{
+	BaseStatus.ResourceRegenMultiplier/=PlayerStatus.ColdResourceRegenMultiplier;
+	PlayerStatus.HungerConsumptionMultiplier/=PlayerStatus.ColdHungerConsumptionMultiplier;
+}
+
+void UPlayerCharacterStatusComponent::ApplyHighHumidityDebuff()
+{
+	PlayerStatus.DefaultMontagePlayRate*=PlayerStatus.HighHumidityMontagePlayRate;
+	if (CR4S_ENSURE(LogHong1,OwningCharacter)) return;
+	
+	APlayerTool* Tool=OwningCharacter->GetCurrentTool();
+	if (CR4S_ENSURE(LogHong1,Tool)) return;
+
+	Tool->SetMontagePlayRate(PlayerStatus.DefaultMontagePlayRate);
+}
+
+void UPlayerCharacterStatusComponent::RemoveHighHumidityDebuff()
+{
+	PlayerStatus.DefaultMontagePlayRate/=PlayerStatus.HighHumidityMontagePlayRate;
+
+	APlayerTool* Tool=OwningCharacter->GetCurrentTool();
+	if (CR4S_ENSURE(LogHong1,Tool)) return;
+
+	Tool->SetMontagePlayRate(PlayerStatus.HighHumidityMontagePlayRate);
 }
 
 void UPlayerCharacterStatusComponent::AddMaxHunger(const float InAmount)

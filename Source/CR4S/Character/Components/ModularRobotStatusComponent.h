@@ -76,6 +76,19 @@ public:
 	void StopConsumeEnergy();
 	void ConsumeEnergyForInterval();
 #pragma endregion
+
+#pragma region Temperatur
+	virtual void ApplyHeatDebuff() override;
+	virtual void RemoveHeatDebuff() override;
+
+	virtual void ApplyColdDebuff() override;
+	virtual void RemoveColdDebuff() override;
+#pragma endregion
+
+#pragma region Humidity
+	virtual void ApplyHighHumidityDebuff() override;
+	virtual void RemoveHighHumidityDebuff() override;
+#pragma endregion
 	
 #pragma region DataAsset
 protected:

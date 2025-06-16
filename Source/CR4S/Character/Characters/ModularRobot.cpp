@@ -252,6 +252,9 @@ void AModularRobot::BeginPlay()
 	{
 		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
 	}
+	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
+	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
 	
 	InitializeWidgets();
 }
