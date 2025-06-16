@@ -32,7 +32,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
 	void OpenPlayerInventoryWidget(const int32 CraftingDifficulty = 0) const;
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
+	void OpenOtherInventoryWidget(EOpenWidgetType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
 
 	void CloseInventoryWidget() const;
 

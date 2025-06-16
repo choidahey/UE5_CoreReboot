@@ -6,7 +6,7 @@
 #include "../../FriendlyAI/BaseHelperBot.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "UI/InGame/SurvivalHUD.h"
-#include "Inventory/InventoryType.h"
+#include "Inventory/OpenWidgetType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Character/Characters/PlayerCharacter.h"
 
@@ -95,7 +95,7 @@ void UHelperBotStateManagerWidget::OpenInventory()
 		return;
 	}
 
-	PlayerInvComp->OpenOtherInventoryWidget(EInventoryType::ItemPouch, AIInvComp);
+	PlayerInvComp->OpenOtherInventoryWidget(EOpenWidgetType::ItemPouch, AIInvComp);
 	CloseWidgetAndResetInput();
 }
 
