@@ -1,7 +1,7 @@
 #include "AnimalProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "../Projectile/Manager/AnimalProjectilePoolManager.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
 
 AAnimalProjectile::AAnimalProjectile()
 {
@@ -25,11 +25,6 @@ AAnimalProjectile::AAnimalProjectile()
 	Damage = 10.f;
 }
 
-void AAnimalProjectile::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void AAnimalProjectile::OnProjectileHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 										UPrimitiveComponent* OtherComp, FVector NormalImpulse,
 										const FHitResult& Hit)
@@ -45,10 +40,32 @@ void AAnimalProjectile::OnProjectileHit(UPrimitiveComponent* HitComp, AActor* Ot
 
 		if (UWorld* World = GetWorld())
 		{
-			if (UAnimalProjectilePoolManager* Pool = UAnimalProjectilePoolManager::Get(World))
+			if (UProjectilePoolSubsystem* Pool = World->GetSubsystem<UProjectilePoolSubsystem>())
 			{
-				Pool->Release(this);
+				Pool->ReturnToPool(this);
 			}
 		}
+	}
+}
+
+void AAnimalProjectile::OnSpawnFromPool()
+{
+	Super::OnSpawnFromPool();
+	SetActorTickEnabled(true);
+	
+	if (ProjectileMovement)
+	{
+		ProjectileMovement->Velocity = FVector::ZeroVector;
+	}
+}
+
+void AAnimalProjectile::OnReturnToPool()
+{
+	Super::OnReturnToPool();
+	SetActorTickEnabled(false);
+
+	if (ProjectileMovement)
+	{
+		ProjectileMovement->StopMovementImmediately();
 	}
 }

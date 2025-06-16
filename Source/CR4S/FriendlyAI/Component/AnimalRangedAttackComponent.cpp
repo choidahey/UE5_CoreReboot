@@ -1,13 +1,9 @@
 #include "AnimalRangedAttackComponent.h"
-#include "../AnimalProjectileSubsystem.h"
-#include "../Projectile/Manager/AnimalProjectilePoolManager.h"
-#include "../Projectile/AnimalProjectile.h"
-#include "Engine/World.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
+#include "FriendlyAI/Projectile/AnimalProjectile.h"
 #include "GameFramework/Actor.h"
-#include "Engine/World.h"
-#include "../BaseAnimal.h"
 #include "Components/ArrowComponent.h"
-#include "Components/SceneComponent.h"
+#include "../BaseAnimal.h"
 
 UAnimalRangedAttackComponent::UAnimalRangedAttackComponent()
 {
@@ -17,48 +13,46 @@ UAnimalRangedAttackComponent::UAnimalRangedAttackComponent()
 void UAnimalRangedAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	ProjectileSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UAnimalProjectileSubsystem>();
-	PoolManager = UAnimalProjectilePoolManager::Get(GetWorld());
 }
 
 void UAnimalRangedAttackComponent::FireProjectile()
 {
-	if (!ProjectileSubsystem) return;
-
-	const FAnimalProjectileInfo* Info = ProjectileSubsystem->GetProjectileInfo(ProjectileRowHandle.RowName);
-	if (!Info) return;
+	if (!ProjectileClass) return;
 
 	ABaseAnimal* OwnerAnimal = Cast<ABaseAnimal>(GetOwner());
-	FTransform SpawnTransform = OwnerAnimal
+	FTransform SpawnTransform = OwnerAnimal && OwnerAnimal->MuzzleArrow
 		? OwnerAnimal->MuzzleArrow->GetComponentTransform()
 		: GetOwner()->GetActorTransform();
 
 	UWorld* World = GetWorld();
 	if (!World) return;
 
-	PoolManager = UAnimalProjectilePoolManager::Get(World);
-
 	AAnimalProjectile* Projectile = nullptr;
-	if (PoolManager)
+	if (UProjectilePoolSubsystem* Pool = World->GetSubsystem<UProjectilePoolSubsystem>())
 	{
-		Projectile = PoolManager->Acquire(Info->ProjectileClass);
-	}
-	if (!Projectile)
-	{
-		Projectile = World->SpawnActor<AAnimalProjectile>(
-			Info->ProjectileClass,
-			SpawnTransform.GetLocation(),
-			SpawnTransform.GetRotation().Rotator()
-		);
+		TSubclassOf<AObjectPoolable> BaseClass = ProjectileClass;
+		AObjectPoolable* PooledObj = nullptr;
+		Pool->SpawnFromPool(BaseClass,
+							SpawnTransform.GetLocation(),
+							SpawnTransform.GetRotation().Rotator(),
+							PooledObj);
+		Projectile = Cast<AAnimalProjectile>(PooledObj);
+		if (!Projectile) return;
 	}
 
-	Projectile->SetActorTransform(SpawnTransform);
-	Projectile->SetActorHiddenInGame(false);
-	Projectile->SetActorEnableCollision(true);
-	
+	if (!Projectile) return;
+
+	FTimerHandle ReturnHandle;
+	World->GetTimerManager().SetTimer(ReturnHandle, FTimerDelegate::CreateWeakLambda(Projectile, [=]()
+	{
+		if (UProjectilePoolSubsystem* Pool = World->GetSubsystem<UProjectilePoolSubsystem>())
+		{
+			Pool->ReturnToPool(Projectile);
+		}
+	}), ProjectileLifetime, false);
+
 	if (Projectile->ProjectileMovement)
 	{
-		Projectile->ProjectileMovement->Velocity = SpawnTransform.GetRotation().GetForwardVector() * Info->Speed;
+		Projectile->ProjectileMovement->Velocity = SpawnTransform.GetRotation().GetForwardVector() * ProjectileSpeed;
 	}
-	Projectile->SetLifeSpan(Info->Lifetime);
 }

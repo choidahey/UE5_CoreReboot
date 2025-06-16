@@ -64,6 +64,13 @@ struct FAnimalStatsRow : public FTableRowBase
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float TargetLostRange = 0.0f;
+    
+    //Item
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 TotalDropItemCount = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FName> DropItemRowNames;
 
     // UPROPERTY(EditAnywhere, BlueprintReadWrite)
     // uint8 bCanBeTamed = 0;

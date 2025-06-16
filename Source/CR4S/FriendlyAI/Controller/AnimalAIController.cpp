@@ -10,6 +10,7 @@
 #include "../AnimalFlying.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "../Component/AIJumpComponent.h"
+#include "FriendlyAI/Component/FlyingMovementComponent.h"
 #include "Components/SphereComponent.h"
 
 AAnimalAIController::AAnimalAIController()
@@ -56,9 +57,9 @@ void AAnimalAIController::OnPossess(APawn* InPawn)
         {
             BlackboardComponent->InitializeBlackboard(
                 *SelectedBT->BlackboardAsset);
-            BlackboardComponent->SetValueAsBool(TEXT("IsTamed"), Animal->bIsTamed);
             SetAnimalState(EAnimalState::Patrol);
             BehaviorTreeComponent->StartTree(*SelectedBT);
+            
         }
     }
 }
@@ -165,7 +166,7 @@ void AAnimalAIController::Tick(float DeltaSeconds)
     }
 
     UObject* BBTarget = BlackboardComponent->GetValueAsObject(TEXT("TargetActor"));
-    if (!IsValid(BBTarget) || !IsValid(Animal->CurrentTarget))
+    if (!IsValid(BBTarget) && !IsValid(Animal->CurrentTarget))
     {
         ClearTargetActor();
         if (Animal->CurrentState != EAnimalState::Patrol)
