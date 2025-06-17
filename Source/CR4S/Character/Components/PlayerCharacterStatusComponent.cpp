@@ -41,6 +41,8 @@ void UPlayerCharacterStatusComponent::TickComponent(float DeltaTime, ELevelTick 
 
 void UPlayerCharacterStatusComponent::ApplyStarvationDamage()
 {
+	if (bIsUnPossessed) return;
+	
 	AddCurrentHP(-PlayerStatus.StarvationDamage);
 }
 
@@ -60,7 +62,7 @@ void UPlayerCharacterStatusComponent::StartConsumeHunger()
 
 void UPlayerCharacterStatusComponent::ApplyHungerDebuff()
 {
-	if (!OwningCharacter) return;
+	if (!GetWorld()) return;
 	
 	if (PlayerStatus.StarvationDamageInterval>KINDA_SMALL_NUMBER)
 	{
@@ -134,7 +136,7 @@ void UPlayerCharacterStatusComponent::StopSprint()
 
 void UPlayerCharacterStatusComponent::ConsumeResourceForSprint()
 {
-	if (CR4S_ENSURE(LogHong1,GetCurrentResource()<PlayerStatus.SprintResourceCost))
+	if (GetCurrentResource()<PlayerStatus.SprintResourceCost)
 	{
 		StopSprint();
 		return;

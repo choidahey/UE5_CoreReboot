@@ -143,11 +143,6 @@ void UBaseStatusComponent::HandleTemperatureChanged(float NewTemperature)
 			bIsOverHeated=true;
 			ApplyHeatDebuff();
 		}
-		if (bIsFreezing)
-		{
-			bIsFreezing=false;
-			RemoveColdDebuff();
-		}
 	}
 	else if (NewTemperature<BaseStatus.ColdThreshold)
 	{
@@ -156,18 +151,13 @@ void UBaseStatusComponent::HandleTemperatureChanged(float NewTemperature)
 			bIsFreezing=true;
 			ApplyColdDebuff();
 		}
-		if (bIsOverHeated)
-		{
-			bIsOverHeated=false;
-			RemoveHeatDebuff();
-		}
 	}
 	else
 	{
 		if (bIsOverHeated)
 		{
 			bIsOverHeated=false;
-			RemoveColdDebuff();
+			RemoveHeatDebuff();
 		}
 		if (bIsFreezing)
 		{

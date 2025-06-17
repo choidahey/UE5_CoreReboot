@@ -22,9 +22,11 @@ class CR4S_API UPlayerCharacterStatusComponent : public UBaseStatusComponent
 public:
 	// Sets default values for this component's properties
 	UPlayerCharacterStatusComponent();
-#pragma region Get
+#pragma region Get & Set
 	FORCEINLINE float GetMaxHunger() const { return PlayerStatus.MaxHunger; }
 	FORCEINLINE float GetCurrentHunger() const { return PlayerStatus.Hunger; }
+
+	FORCEINLINE void SetIsUnPossessed(const bool bIsMounted) { bIsUnPossessed = bIsMounted; } 
 #pragma endregion
 
 #pragma region Hunger
@@ -91,6 +93,8 @@ private:
 #pragma region Flag&Timer
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	uint8 bIsStarving:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsUnPossessed:1 {false};
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FTimerHandle HungerTimerHandle;
