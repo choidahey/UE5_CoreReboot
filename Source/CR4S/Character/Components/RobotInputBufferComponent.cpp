@@ -39,6 +39,12 @@ void URobotInputBufferComponent::ExecuteInputQueue() const
 		if (!CR4S_ENSURE(LogHong1,(Weapons.IsValidIndex(1)||IsValid(Weapons[1])))) return;
 		Weapons[1]->OnAttack();
 		break;
+	case EInputType::RobotAttack3:
+		if (!CR4S_ENSURE(LogHong1,(Weapons.IsValidIndex(2)||IsValid(Weapons[2])))) return;
+		Weapons[2]->OnAttack();
+	case EInputType::RobotAttack4:
+		if (!CR4S_ENSURE(LogHong1,(Weapons.IsValidIndex(3)||IsValid(Weapons[3])))) return;
+		Weapons[3]->OnAttack();
 	default:
 		break;
 	}

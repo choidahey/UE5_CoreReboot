@@ -13,6 +13,7 @@
 class UInteractableComponent;
 class UHelperBotInfoWidget;
 class UBaseInventoryComponent;
+class UNavigationInvokerComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
@@ -95,14 +96,27 @@ public:
 	FORCEINLINE float GetWoodDamagePerSecond() const { return CurrentStats.WoodDamagePerSecond; }
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetRockPerSecond() const { return CurrentStats.RockDamagePerSecond; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetRepairingPerSecond() const { return CurrentStats.RepairingPerSecond; }
+
+	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 #pragma endregion
 
 #pragma region Inventory Component
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	TObjectPtr<USplineComponent> ChopSpline = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	UNavigationInvokerComponent* NavInvokerComponent;
+	
 #pragma endregion
 
 #pragma region Info Widget
@@ -128,8 +142,7 @@ public:
 	FOnDetectionStateChanged OnDetectionStateChanged;
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Chopping")
-	TObjectPtr<USplineComponent> ChopSpline = nullptr;
+	
 
 	UFUNCTION(BlueprintCallable, Category = "Chopping")
 	void UpdateChopSplineTarget(AActor* TargetActor);

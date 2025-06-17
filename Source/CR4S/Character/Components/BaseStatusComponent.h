@@ -60,7 +60,27 @@ public:
 	void StartResourceRegen();
 	void StopResourceRegen();
 	void OnResourceConsumed();
-	void RegenResourceTick();
+	void RegenResourceForInterval();
+#pragma endregion
+
+#pragma region Temperature 
+	UFUNCTION()
+	void HandleTemperatureChanged(float NewTemperature);
+
+	virtual void ApplyHeatDebuff();
+	virtual void RemoveHeatDebuff();
+	void ApplyOverHeatDamage();
+
+	virtual void ApplyColdDebuff();
+	virtual void RemoveColdDebuff();
+#pragma endregion
+
+#pragma region Humidity
+	UFUNCTION()
+	void HandleHumidityChanged(float NewHumidity);
+
+	virtual void ApplyHighHumidityDebuff();
+	virtual void RemoveHighHumidityDebuff();
 #pragma endregion
 	
 #pragma region Override
@@ -85,9 +105,20 @@ public:
 	FOnDeathDelegate OnDeathState;
 #pragma endregion
 
+#pragma region Flag
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsOverHeated:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsFreezing:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsHumidityAffected:1 {false};
+#pragma endregion
+
 #pragma region Timer
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	FTimerHandle StaminaRegenTimerHandle;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	FTimerHandle OverHeatDamageTimerHandle;
 #pragma endregion
 };
 
