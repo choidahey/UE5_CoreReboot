@@ -43,6 +43,11 @@ void UHealthDecayComponent::StopHealthDecay()
 		WorldTimeManager->OnWorldTimeUpdated
 		                .RemoveDynamic(this, &ThisClass::HandleWorldTimeUpdated);
 	}
+
+	if (OnEndHealthDecay.IsBound())
+	{
+		OnEndHealthDecay.Broadcast();
+	}
 }
 
 void UHealthDecayComponent::ResetHealthDecay()
@@ -80,10 +85,11 @@ void UHealthDecayComponent::HandleWorldTimeUpdated(const int64 NewPlayTime)
 
 		if (CurrentHealth <= MinHealth)
 		{
-			if (OnEndHealthDecay.IsBound())
-			{
-				OnEndHealthDecay.Broadcast();
-			}
+			StopHealthDecay();
 		}
+	}
+	else
+	{
+		StopHealthDecay();
 	}
 }
