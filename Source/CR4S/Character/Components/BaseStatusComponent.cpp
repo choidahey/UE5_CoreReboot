@@ -74,16 +74,19 @@ void UBaseStatusComponent::AddArmor(const float InAmount)
 void UBaseStatusComponent::AddColdThreshold(const float InAmount)
 {
 	BaseStatus.ColdThreshold+=InAmount;
+	OnColdThresholdChanged.Broadcast(BaseStatus.ColdThreshold);
 }
 
 void UBaseStatusComponent::AddHeatThreshold(const float InAmount)
 {
 	BaseStatus.HeatThreshold+=InAmount;
+	OnHeatThresholdChanged.Broadcast(BaseStatus.HeatThreshold);
 }
 
 void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 {
 	BaseStatus.HumidityThreshold+=InAmount;
+	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
 }
 
 bool UBaseStatusComponent::HasEnoughResourceForRoll() const
