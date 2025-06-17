@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "BaseInventoryItem.h"
-#include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "ConsumableInventoryItem.generated.h"
 
 class UWorldTimeManager;
@@ -13,6 +12,17 @@ enum class EResistanceBuffType : uint8
 	Heat UMETA(DisplayName = "더위"),
 	Humidity UMETA(DisplayName = "습기"),
 	Cold UMETA(DisplayName = "추위")
+};
+
+USTRUCT()
+struct FResistanceEffect
+{
+	GENERATED_BODY()
+	
+	float Duration = 0.f;
+	float Elapsed = 0.f;
+	int32  ResistanceValue = 0;
+	int64  PrevPlayTime = -1;
 };
 
 UCLASS()
@@ -28,7 +38,7 @@ public:
 	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0) override;
 	
 	virtual void UseItem(int32 Index) override;
-	virtual void HandlePassiveEffect() override;
+	virtual void HandlePassiveEffect(int64 NewPlayTime) override;
 
 #pragma endregion
 
@@ -38,23 +48,23 @@ public:
 	
 private:
 	void ApplyResistanceEffect();
-	void ClearResistanceEffect(EResistanceBuffType Type) const;
 
+	void AddResistanceBuff(EResistanceBuffType Type, int32 Value, float DurationMinutes);
+	
 	UFUNCTION()
-	void UpdateHeatResistanceEffect(int64 PlayTime);
-	UFUNCTION()
-	void UpdateHumidityResistanceEffect(int64 PlayTime);
-	UFUNCTION()
-	void UpdateColdResistanceEffect(int64 PlayTime);
-
-	UPROPERTY()
-	TObjectPtr<UWorldTimeManager> WorldTimeManager;
+	void UpdateAllResistanceEffects(int64 NewPlayTime);
+	void ClearAllEffects();
+	void ClearResistanceEffect(EResistanceBuffType Type);
+	
+	void ApplyThreshold(EResistanceBuffType Type, int32 Value) const;
 	
 	FConsumableItemData ConsumableItemData;
+	
+	TMap<EResistanceBuffType, FResistanceEffect> ResistanceEffects;
 
-	int32 HeatEffectDuration;
-	int32 HumidityEffectDuration;
-	int32 ColdEffectDuration;
+	float Freshness;
+	float DecayRateMultiplier;
+	
 
 #pragma endregion
 };

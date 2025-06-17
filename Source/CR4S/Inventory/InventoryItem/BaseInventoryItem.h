@@ -6,6 +6,7 @@
 
 #include "BaseInventoryItem.generated.h"
 
+class UWorldTimeManager;
 class UPlayerInventoryComponent;
 class UPlayerCharacterStatusComponent;
 class UBaseInventoryComponent;
@@ -80,8 +81,17 @@ protected:
 public:
 	virtual void UseItem(int32 Index);
 
-	virtual void HandlePassiveEffect();
+	virtual void StartPassiveEffect();
+	UFUNCTION()
+	virtual void HandlePassiveEffect(int64 NewPlayTime);
+	virtual void EndPassiveEffect();
 
+protected:
+	UPROPERTY()
+	TObjectPtr<UWorldTimeManager> WorldTimeManager;
+	
+	bool bUsePassiveEffect;
+	
 #pragma endregion
 
 #pragma region Data
