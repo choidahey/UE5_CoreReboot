@@ -1,17 +1,14 @@
 ﻿#include "DestructibleGimmick.h"
 
+#include "BaseDestructObject.h"
 #include "CR4S.h"
-#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
-	: bIsDestroyed(false),
-	  DestroyDelay(1.f),
-	  DestroyImpulseRadius(50.f),
-	  DestroyImpulseStrength(50.f),
+	: DestroyDelay(1.f),
 	  ToolBonusDamageMultiplier(2.f),
 	  bCanShake(true),
 	  ShakeDuration(0.5f),
@@ -23,17 +20,6 @@ ADestructibleGimmick::ADestructibleGimmick()
 	PrimaryActorTick.bCanEverTick = false;
 
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
-
-	GeometryCollectionComponent
-		= CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("GeometryCollectionComponent"));
-	GeometryCollectionComponent->SetupAttachment(RootComponent);
-	GeometryCollectionComponent->SetVisibility(false);
-	GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GeometryCollectionComponent->SetSimulatePhysics(false);
-	GeometryCollectionComponent->DamageThreshold.Init(0.f, 1);
-	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
-	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 }
 
 void ADestructibleGimmick::BeginPlay()
@@ -53,12 +39,6 @@ void ADestructibleGimmick::BeginPlay()
 				DestructibleComponent->SetMaxHealth(GimmickInfoData->GimmickMaxHealth);
 			}
 		}
-	}
-
-	if (CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent)))
-	{
-		GeometryCollectionComponent->SetVisibility(false);
-		GeometryCollectionComponent->SetSimulatePhysics(false);
 	}
 
 	OriginalLocation = GetActorLocation();
@@ -102,33 +82,19 @@ void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
 	GetResources(DamageCauser);
 
-	if (CR4S_VALIDATE(LogGimmick, IsValid(GimmickMeshComponent)) &&
-		CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent)) &&
-		CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent->GetRestCollection())))
+	Destroy();
+	
+	if (CR4S_VALIDATE(LogGimmick, DestructObjectClass))
 	{
-		GimmickMeshComponent->SetVisibility(false);
-		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride
+			= ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		GeometryCollectionComponent->SetVisibility(true);
-		GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		GeometryCollectionComponent->SetSimulatePhysics(true);
-		GeometryCollectionComponent->AddRadialImpulse(
-			GeometryCollectionComponent->GetComponentLocation(),
-			DestroyImpulseRadius,
-			DestroyImpulseStrength,
-			RIF_Linear,
-			true
-		);
+		GetWorld()->SpawnActor<ABaseDestructObject>(DestructObjectClass,
+		                                            GetActorLocation(),
+		                                            GetActorRotation(),
+		                                            SpawnParameters);
 	}
-
-	bIsDestroyed = true;
-
-	if (DestroyDelay == 0.f)
-	{
-		GimmickDestroy();
-	}
-
-	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::GimmickDestroy, DestroyDelay, false);
 }
 
 void ADestructibleGimmick::StartShake()
