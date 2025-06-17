@@ -46,7 +46,6 @@ public:
 	void SetMinTemperature(float Min);
 	void SetMaxHumidity(float Max);
 
-
 #pragma endregion
 
 #pragma region Utility Functions
@@ -68,7 +67,9 @@ public:
 #pragma region Environment Parameters
 
 private:
+	UPROPERTY(VisibleAnywhere)
 	float CurrentTemperature = 0.0f;
+	UPROPERTY(VisibleAnywhere)
 	float CurrentHumidity = 0.0f;
 
 	float CurrentSeasonBaseTemperature = 0.0f;
