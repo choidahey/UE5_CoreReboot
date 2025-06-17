@@ -108,7 +108,7 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDi
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
 }
 
-void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType,
+void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EOpenWidgetType InventoryType,
                                                          UBaseInventoryComponent* InventoryComponent) const
 {
 	if (!PrepareOpenInventory())
