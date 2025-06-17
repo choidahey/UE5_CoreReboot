@@ -2,6 +2,7 @@
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "FriendlyAI/BaseHelperBot.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -74,6 +75,20 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
     {
         OwnerCompPtr->GetBlackboardComponent()
             ->SetValueAsObject(ResourceTargetKey.SelectedKeyName, ResultActors[0]);
+
+        if (ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(OwnerCompPtr->GetAIOwner()->GetPawn()))
+        {
+            if (HelperBot->WorkTargetParticle)
+            {
+                FVector Origin, BoxExtent;
+                ResultActors[0]->GetActorBounds(false, Origin, BoxExtent);
+                FVector ParticleLocation = FVector(Origin.X, Origin.Y, Origin.Z - BoxExtent.Z);
+
+                HelperBot->WorkTargetParticle->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+                HelperBot->WorkTargetParticle->SetWorldLocation(ParticleLocation);
+                HelperBot->WorkTargetParticle->Activate(true);
+            }
+        }
     }
     
     AAIController* AICon = Cast<AAIController>(OwnerCompPtr->GetAIOwner());
@@ -150,6 +165,14 @@ EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::AbortTask(
         AICon->StopMovement();
         AICon->ReceiveMoveCompleted
             .RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::HandleMoveCompleted);
+        
+        if (ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(AICon->GetPawn()))
+        {
+            if (HelperBot->WorkTargetParticle)
+            {
+                HelperBot->WorkTargetParticle->Deactivate();
+            }
+        }
     }
 
     return EBTNodeResult::Aborted;

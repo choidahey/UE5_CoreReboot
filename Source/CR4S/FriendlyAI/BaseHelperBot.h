@@ -15,6 +15,7 @@ class UHelperBotInfoWidget;
 class UBaseInventoryComponent;
 class UNavigationInvokerComponent;
 class UNiagaraComponent;
+class UParticleSystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
@@ -131,16 +132,20 @@ protected:
 	UNiagaraComponent* LeftEyeWorkVFXComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
-	UNiagaraComponent* RightEyeWorkVFXComponent;
+	UNiagaraComponent* RightEyeWorkVFXComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
-	class UPointLightComponent* LeftEyeLight;
+	class UPointLightComponent* LeftEyeLight = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
-	class UPointLightComponent* RightEyeLight;
+	class UPointLightComponent* RightEyeLight = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	class UNavigationInvokerComponent* NavInvokerComponent = nullptr;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	class UParticleSystemComponent* WorkTargetParticle = nullptr;
 
 #pragma endregion
 	

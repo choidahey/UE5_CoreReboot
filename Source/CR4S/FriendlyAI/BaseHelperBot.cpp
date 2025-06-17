@@ -18,6 +18,7 @@
 #include "Components/PointLightComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -53,6 +54,9 @@ ABaseHelperBot::ABaseHelperBot()
 
 	RightEyeLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("RightEyeLight"));
 	RightEyeLight->SetupAttachment(GetMesh(), TEXT("RightEye"));
+
+	WorkTargetParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("WorkTargetParticle"));
+	WorkTargetParticle->SetAutoActivate(false);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -152,6 +156,12 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 		return;
 	}
 
+	if (bIsWorking)
+	{
+		SetIsWorking(false);
+		StopEyeBeamWork();
+	}
+
 	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
 	{
 		if (StateUIClass)
@@ -192,16 +202,8 @@ void ABaseHelperBot::UpdateEyeBeamWorkTarget(AActor* TargetActor)
 		return;
 	}
 	
-	static bool bStartPointsSet = false;
-	static FVector LeftEyeStart;
-	static FVector RightEyeStart;
-	
-	if (!bStartPointsSet)
-	{
-		LeftEyeStart = LeftEyeLight ? LeftEyeLight->GetComponentLocation() : GetActorLocation();
-		RightEyeStart = RightEyeLight ? RightEyeLight->GetComponentLocation() : GetActorLocation();
-		bStartPointsSet = true;
-	}
+	FVector LeftEyeStart = LeftEyeLight ? LeftEyeLight->GetComponentLocation() : GetActorLocation();
+	FVector RightEyeStart = RightEyeLight ? RightEyeLight->GetComponentLocation() : GetActorLocation();
 
 	FVector TargetLocation = TargetActor->GetActorLocation();
 	const FVector End = FVector(TargetLocation.X, TargetLocation.Y, LeftEyeStart.Z);

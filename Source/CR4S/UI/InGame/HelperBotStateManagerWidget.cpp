@@ -135,6 +135,7 @@ void UHelperBotStateManagerWidget::CloseWidgetAndResetInput()
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(DistanceCheckTimer);
+		GetWorld()->GetTimerManager().ClearTimer(LookAtPlayerTimer);
 	}
 	
 	if (ASurvivalHUD* HUD = Cast<ASurvivalHUD>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetHUD()))
@@ -149,6 +150,7 @@ void UHelperBotStateManagerWidget::CloseWidgetAndRestorePreviousState()
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(DistanceCheckTimer);
+		GetWorld()->GetTimerManager().ClearTimer(LookAtPlayerTimer);
 	}
 	if (OwnerAIController)
 	{

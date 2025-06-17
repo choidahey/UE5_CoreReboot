@@ -7,7 +7,6 @@
 #include "../../Gimmick/GimmickObjects/DestructibleGimmick.h"
 #include "../BaseHelperBot.h"
 #include "../../Inventory/Components/PlayerInventoryComponent.h"
-#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
 #include "Gimmick/GimmickObjects/ResourceGimmick/TreeGimmick.h"
 #include "../Controller/HelperBotAIController.h"
 #include "Engine/Engine.h"
@@ -41,6 +40,7 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 	}
 	
 	CachedTarget = TargetActor;
+	CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperGatherResource::OnTargetDestroyed);
 	CachedTarget->OnDestroyed.AddDynamic(this, &UBTTask_HelperGatherResource::OnTargetDestroyed);
 	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
 
@@ -78,17 +78,6 @@ void UBTTask_HelperGatherResource::TickTask(UBehaviorTreeComponent& OwnerComp, u
 	
 	if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed())
 	{
-		if (Helper)
-		{
-			Helper->SetIsWorking(false);
-			Helper->StopEyeBeamWork();
-		}
-   
-		if (CachedTarget)
-		{
-			CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperGatherResource::OnTargetDestroyed);
-		}
-    
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;
 	}
