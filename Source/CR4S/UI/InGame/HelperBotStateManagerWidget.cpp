@@ -10,14 +10,30 @@
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Character/Characters/PlayerCharacter.h"
 
-void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIController* InController)
+void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIController* InController, EHelperBotState InPreviousState)
 {
 	OwnerAIController = InController;
 	if (InController)
 	{
 		HelperBot = Cast<ABaseHelperBot>(InController->GetPawn());
+		PreviousState = InPreviousState;
+		
+		InController->SetBotState(EHelperBotState::Idle);
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			if (APawn* Player = PC->GetPawn())
+			{
+				FVector LookDirection = (Player->GetActorLocation() - HelperBot->GetActorLocation()).GetSafeNormal();
+				TargetLookRotation = LookDirection.Rotation();
+				TargetLookRotation.Pitch = 0.0f;
+
+				GetWorld()->GetTimerManager().SetTimer(LookAtPlayerTimer, this,
+				                                       &UHelperBotStateManagerWidget::UpdateLookAtPlayer, 0.02f, true);
+			}
+		}
 	}
 }
+
 
 void UHelperBotStateManagerWidget::NativeConstruct()
 {
@@ -32,6 +48,9 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (OpenInventoryButton) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
 	if (SetMiningButton) SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
 	if (SetRepairingButton) SetRepairingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetRepairing);
+
+	GetWorld()->GetTimerManager().SetTimer(DistanceCheckTimer, this, 
+		&UHelperBotStateManagerWidget::CheckPlayerDistance, 0.5f, true);
 
 	if (APlayerController* PC = GetOwningPlayer())
 	{
@@ -113,9 +132,67 @@ void UHelperBotStateManagerWidget::SetRepairing()
 
 void UHelperBotStateManagerWidget::CloseWidgetAndResetInput()
 {
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(DistanceCheckTimer);
+	}
+	
 	if (ASurvivalHUD* HUD = Cast<ASurvivalHUD>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetHUD()))
 	{
 		HUD->ToggleWidget(this);
 		HUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	}
+}
+
+void UHelperBotStateManagerWidget::CloseWidgetAndRestorePreviousState()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(DistanceCheckTimer);
+	}
+	if (OwnerAIController)
+	{
+		OwnerAIController->SetBotState(PreviousState);
+	}
+	
+	if (ASurvivalHUD* HUD = Cast<ASurvivalHUD>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetHUD()))
+	{
+		HUD->ToggleWidget(this);
+		HUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	}
+}
+
+void UHelperBotStateManagerWidget::CheckPlayerDistance()
+{
+	if (!HelperBot)
+	{
+		return;
+	}
+	
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!PC || !PC->GetPawn())
+	{
+		return;
+	}
+	
+	float Distance = FVector::Dist(HelperBot->GetActorLocation(), PC->GetPawn()->GetActorLocation());
+	
+	if (Distance > MaxInteractionDistance)
+	{
+		CloseWidgetAndRestorePreviousState();
+	}
+}
+
+void UHelperBotStateManagerWidget::UpdateLookAtPlayer()
+{
+	if (!HelperBot) return;
+    
+	FRotator CurrentRotation = HelperBot->GetActorRotation();
+	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetLookRotation, 0.02f, 3.0f);
+	HelperBot->SetActorRotation(NewRotation);
+    
+	if (FMath::IsNearlyEqual(CurrentRotation.Yaw, TargetLookRotation.Yaw, 1.0f))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(LookAtPlayerTimer);
 	}
 }

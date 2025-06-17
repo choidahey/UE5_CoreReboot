@@ -14,6 +14,7 @@
 #include "NiagaraComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "NavigationInvokerComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
@@ -164,7 +165,8 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 
 					if (StateUIInstance)
 					{
-						StateUIInstance->InitializeWithController(BotAI);
+						EHelperBotState CurrentState = static_cast<EHelperBotState>(BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+						StateUIInstance->InitializeWithController(BotAI, CurrentState);
 						HUD->SetInputMode(ESurvivalInputMode::GameAndUI, StateUIInstance, true);
 					}
 				}

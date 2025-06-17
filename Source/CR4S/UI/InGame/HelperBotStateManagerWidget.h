@@ -14,23 +14,10 @@ class CR4S_API UHelperBotStateManagerWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void InitializeWithController(class AHelperBotAIController* InController);
+	void InitializeWithController(AHelperBotAIController* InController, EHelperBotState InPreviousState);
 	void CloseWidgetAndResetInput();
-
-protected:
+	void CloseWidgetAndRestorePreviousState();
 	virtual void NativeConstruct() override;
-
-	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot;
-	
-	UPROPERTY(meta=(BindWidget)) class UCanvasPanel* RootCanvas;
-	UPROPERTY(meta=(BindWidget)) class UButton* SetIdleButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* SetFollowingButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* SetChopWoodButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* CloseButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* SetMiningButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* OpenInventoryButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* SetRepairingButton;
-	
 protected:
 	UFUNCTION() void SetIdle();
 	UFUNCTION() void SetFollowing();
@@ -39,7 +26,27 @@ protected:
 	UFUNCTION() void SetMining();
 	UFUNCTION() void OpenInventory();
 	UFUNCTION() void SetRepairing();
+	UFUNCTION() void UpdateLookAtPlayer();
+	UFUNCTION() void CheckPlayerDistance();
+	
+protected:
+	UPROPERTY(meta=(BindWidget)) class UCanvasPanel* RootCanvas;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetIdleButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetFollowingButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetChopWoodButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* CloseButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetMiningButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* OpenInventoryButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetRepairingButton;
+
+	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot;
 
 private:
 	class AHelperBotAIController* OwnerAIController;
+	FRotator TargetLookRotation;
+	
+	UPROPERTY() float MaxInteractionDistance = 300.0f;
+	UPROPERTY() EHelperBotState PreviousState;
+	UPROPERTY() FTimerHandle DistanceCheckTimer;
+	UPROPERTY() FTimerHandle LookAtPlayerTimer;
 };
