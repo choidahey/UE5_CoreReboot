@@ -1,11 +1,11 @@
-﻿#include "IngredientWidget.h"
+﻿#include "IngredientsWidget.h"
 
 #include "CR4S.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
-void UIngredientWidget::InitWidget(const FIngredientData& IngredientData) const
+void UIngredientsWidget::InitWidget(const FIngredientData& IngredientData) const
 {
 	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(IngredientIcon)) ||
 		!CR4S_VALIDATE(LogCraftingUI, IsValid(IngredientName)) ||
@@ -26,7 +26,7 @@ void UIngredientWidget::InitWidget(const FIngredientData& IngredientData) const
 	UpdateProgressBar(IngredientData.CurrentCount, IngredientData.RequiredCount);
 }
 
-void UIngredientWidget::UpdateProgressBar(const int32 CurrentCount, const int32 RequiredCount) const
+void UIngredientsWidget::UpdateProgressBar(const int32 CurrentCount, const int32 RequiredCount) const
 {
 	if (!IsValid(ResourceProgressBar))
 	{

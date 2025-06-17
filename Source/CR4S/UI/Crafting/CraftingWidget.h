@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "IngredientWidget.h"
+#include "IngredientsWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Gimmick/Data/ItemRecipeData.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
@@ -11,7 +11,7 @@
 struct FRecipeIngredient;
 class UButton;
 struct FRecipeSelectData;
-class UIngredientWidget;
+class UIngredientsWidget;
 class UCraftingContainerWidget;
 class UTextBlock;
 class UImage;
@@ -62,7 +62,7 @@ private:
 	TObjectPtr<UPanelWidget> IngredientsContainer;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UIngredientWidget>> IngredientWidgets;
+	TArray<TObjectPtr<UIngredientsWidget>> IngredientWidgets;
 
 #pragma endregion
 

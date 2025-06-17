@@ -22,6 +22,9 @@ public:
 	float EnergyConsumptionInterval{0.1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ColdResourceConsumptionMultiplier {1.2};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxStun{1000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Stun{0};
@@ -34,6 +37,9 @@ public:
 	float ArmorMultiplier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackPowerMultiplier{1};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HighHumidityAttackPowerMultiplier{0.9};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxWeight{0};
