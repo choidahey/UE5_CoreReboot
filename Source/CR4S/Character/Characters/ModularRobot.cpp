@@ -22,6 +22,7 @@
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/InGame/CharacterEnvironmentStatusWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
 
@@ -85,6 +86,8 @@ AModularRobot::AModularRobot()
 	InputBuffer=CreateDefaultSubobject<URobotInputBufferComponent>(TEXT("RobotInputBuffer"));
 	
 	RobotInventoryComponent = CreateDefaultSubobject<URobotInventoryComponent>(TEXT("RobotInventoryComponent"));
+
+	EnvironmentalStatus=CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 }
 
 void AModularRobot::TakeStun_Implementation(const float StunAmount)
@@ -215,6 +218,15 @@ void AModularRobot::InitializeWidgets()
 				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
 				
 				InGameWidget->InitializeStatusWidget(Status,true);
+				
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+					EnvironmentWidget->InitializeWidget(this);
+				}
 			}
 		}
 	}
@@ -232,6 +244,14 @@ void AModularRobot::DisconnectWidgets()
 				Status->OnResourceChanged.RemoveAll(InGameWidget);
 				Status->OnEnergyChanged.RemoveAll(InGameWidget);
 				Status->OnStunChanged.RemoveAll(InGameWidget);
+
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+				}
 			}
 		}
 	}
@@ -252,11 +272,12 @@ void AModularRobot::BeginPlay()
 	{
 		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
 	}
+	
+	InitializeWidgets();
+
 	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
 	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
 	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
-	
-	InitializeWidgets();
 }
 
 void AModularRobot::NotifyControllerChanged()
