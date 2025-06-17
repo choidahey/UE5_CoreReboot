@@ -55,6 +55,19 @@ void ABaseSkillActor::InitializeSkillData()
 	}
 }
 
+void ABaseSkillActor::ApplyInitialOverlapDamage()
+{
+	if (!IsValid(CollisionComp)) return;
+
+	TArray<AActor*> OverlappingActors;
+	CollisionComp->GetOverlappingActors(OverlappingActors);
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		ApplyEffectToActor(Actor);
+	}
+}
+
 void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 {
 	if (!IsValid(Target) || Target == GetOwner() || Target == GetInstigator()) return;
