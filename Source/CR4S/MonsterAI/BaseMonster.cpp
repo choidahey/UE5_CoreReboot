@@ -83,7 +83,7 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 void ABaseMonster::TakeStun_Implementation(const float StunAmount)
 {
 	if (StateComponent)
-		StateComponent->ApplyStun(StunAmount);
+		StateComponent->AddStun(StunAmount);
 }
 
 

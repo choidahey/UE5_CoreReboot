@@ -92,7 +92,7 @@ void UMonsterStateComponent::SetPhase(EBossPhase NewPhase)
 }
 
 
-void UMonsterStateComponent::ApplyStun(float StunAmount)
+void UMonsterStateComponent::AddStun(float StunAmount)
 {
 	if (bIsStunned) return;
 	
@@ -113,7 +113,8 @@ void UMonsterStateComponent::ApplyStun(float StunAmount)
 		if (ABaseMonster* Monster = Cast<ABaseMonster>(GetOwner()))
 			if (Monster->AnimComponent)
 				Monster->AnimComponent->PlayStunnedMontage();
-		
+
+		// TODO :: 마지막 공격 맞은 후부터 StunChargeStartDelay 동안 피해 안입으면 스턴 회복하도록 수정하기
 		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryTimerHandle);
 		GetWorld()->GetTimerManager().SetTimer(
 			StunRecoveryTimerHandle,

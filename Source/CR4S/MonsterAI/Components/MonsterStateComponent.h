@@ -83,7 +83,7 @@ public:
 	void InitializeStunData(const FMonsterAttributeRow& Data);
 	
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
-	void ApplyStun(float StunAmount);
+	void AddStun(float StunAmount);
     
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	void RemoveStunDebuff();
