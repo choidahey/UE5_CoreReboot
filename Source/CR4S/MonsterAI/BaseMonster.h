@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Game/Interface/Spawnable.h"
 #include "Data/MonsterEnum.h"
+#include "Utility/StunnableInterface.h"
 #include "BaseMonster.generated.h"
 
 class UMonsterAttributeComponent;
@@ -13,7 +14,7 @@ class UMonsterAnimComponent;
 class UBehaviorTree;
 
 UCLASS()
-class CR4S_API ABaseMonster : public ACharacter, public ISpawnable
+class CR4S_API ABaseMonster : public ACharacter, public ISpawnable, public IStunnableInterface
 {
 	GENERATED_BODY()
 
@@ -40,7 +41,11 @@ public:
 #pragma endregion
 
 #pragma region BaseMonster Components
- 
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	TObjectPtr<UMonsterAnimComponent> AnimComponent;
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
@@ -50,9 +55,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterStateComponent> StateComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	TObjectPtr<UMonsterAnimComponent> AnimComponent;
 
 #pragma endregion
 
@@ -129,6 +131,12 @@ private:
 
 #pragma endregion
 
+#pragma region Stun
+protected:
+	virtual void TakeStun_Implementation(const float StunAmount) override;
+
+#pragma endregion
+	
 private:
 	FString MyHeader;
 
