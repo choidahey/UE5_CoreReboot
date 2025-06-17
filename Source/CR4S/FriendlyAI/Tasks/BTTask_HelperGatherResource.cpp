@@ -48,12 +48,12 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 	if (Helper)
 	{
 		CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
-		Helper->bIsChopping = true;
+		Helper->SetIsWorking(true);
 	}
 
 	if (Helper && TargetActor)
 	{
-		Helper->UpdateChopSplineTarget(TargetActor);
+		Helper->UpdateEyeBeamWorkTarget(TargetActor);
 	}
 	
 	return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
@@ -80,18 +80,15 @@ void UBTTask_HelperGatherResource::TickTask(UBehaviorTreeComponent& OwnerComp, u
 	{
 		if (Helper)
 		{
-			Helper->bIsChopping = false;
+			Helper->SetIsWorking(false);
+			Helper->StopEyeBeamWork();
 		}
-    
+   
 		if (CachedTarget)
 		{
 			CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperGatherResource::OnTargetDestroyed);
 		}
-		if (Helper && Helper->ActiveChopVFX)
-		{
-			Helper->ActiveChopVFX->Deactivate();
-			Helper->ActiveChopVFX = nullptr;
-		}
+    
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;
 	}
@@ -103,12 +100,8 @@ void UBTTask_HelperGatherResource::OnTargetDestroyed(AActor* /*DestroyedActor*/)
 {
 	if (ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper))
 	{
-		Helper->bIsChopping = false;
-		if (Helper->ActiveChopVFX)
-		{
-			Helper->ActiveChopVFX->Deactivate();
-			Helper->ActiveChopVFX = nullptr;
-		}
+		Helper->SetIsWorking(false);
+		Helper->StopEyeBeamWork();
 	}
 	if (CachedTarget)
 	{

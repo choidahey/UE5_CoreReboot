@@ -14,6 +14,7 @@
 #include "NiagaraComponent.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "NavigationInvokerComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 
@@ -25,12 +26,32 @@ ABaseHelperBot::ABaseHelperBot()
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
 	InteractableComp->SetInteractionText(FText::FromString("MySon"));
 
-	ChopSpline = CreateDefaultSubobject<USplineComponent>(TEXT("ChopSpline"));
-	ChopSpline->SetupAttachment(RootComponent);
-
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
 
 	NavInvokerComponent = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvokerComponent"));
+	
+
+	LeftEyeWorkSpline = CreateDefaultSubobject<USplineComponent>(TEXT("LeftEyeWorkSpline"));
+	LeftEyeWorkSpline->SetupAttachment(RootComponent);
+
+	RightEyeWorkSpline = CreateDefaultSubobject<USplineComponent>(TEXT("RightEyeWorkSpline"));
+	RightEyeWorkSpline->SetupAttachment(RootComponent);
+
+	LeftEyeWorkVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LeftEyeWorkVFX"));
+	LeftEyeWorkVFXComponent->SetupAttachment(LeftEyeWorkSpline);
+	LeftEyeWorkVFXComponent->SetAutoActivate(false);
+	LeftEyeWorkVFXComponent->SetVisibility(false);
+
+	RightEyeWorkVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("RightEyeWorkVFX"));
+	RightEyeWorkVFXComponent->SetupAttachment(RightEyeWorkSpline);
+	RightEyeWorkVFXComponent->SetAutoActivate(false);
+	RightEyeWorkVFXComponent->SetVisibility(false);
+
+	LeftEyeLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("LeftEyeLight"));
+	LeftEyeLight->SetupAttachment(GetMesh(), TEXT("LeftEye"));
+
+	RightEyeLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("RightEyeLight"));
+	RightEyeLight->SetupAttachment(GetMesh(), TEXT("RightEye"));
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -152,35 +173,78 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 	}
 }
 
-void ABaseHelperBot::UpdateChopSplineTarget(AActor* TargetActor)
+void ABaseHelperBot::UpdateEyeBeamWorkTarget(AActor* TargetActor)
 {
-	if (!ChopSpline || !TargetActor) return;
-	
-	const FVector Start = GetMesh()
-		? GetMesh()->GetSocketLocation(TEXT("test"))
-		: GetActorLocation();
-
-	const FVector End = TargetActor->GetActorLocation();
-
-	ChopSpline->ClearSplinePoints(false);
-	ChopSpline->AddSplinePoint(Start, ESplineCoordinateSpace::World, false);
-	ChopSpline->AddSplinePoint(End, ESplineCoordinateSpace::World, true);
-	
-	if (ChopVFXSystem && !ActiveChopVFX)
+	if (!LeftEyeWorkSpline || !RightEyeWorkSpline || !TargetActor) 
 	{
-		FVector SpawnLocation = Start;
-		FRotator SpawnRotation = FRotator::ZeroRotator;
-		UNiagaraComponent* Spawned = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			ChopVFXSystem,
-			SpawnLocation,
-			SpawnRotation
-		);
-		if (Spawned)
-		{
-			// Spawned->SetNiagaraVariableVec3(FName("Start"), Start);
-			// Spawned->SetNiagaraVariableVec3(FName("End"), End);
-			ActiveChopVFX = Spawned;
-		}
+		return;
+	}
+	
+	if (!LeftEyeWorkVFXComponent || !RightEyeWorkVFXComponent)
+	{
+		return;
+	}
+	
+	if (!LeftEyeWorkVFXComponent->GetAsset())
+	{
+		return;
+	}
+	
+	static bool bStartPointsSet = false;
+	static FVector LeftEyeStart;
+	static FVector RightEyeStart;
+	
+	if (!bStartPointsSet)
+	{
+		LeftEyeStart = LeftEyeLight ? LeftEyeLight->GetComponentLocation() : GetActorLocation();
+		RightEyeStart = RightEyeLight ? RightEyeLight->GetComponentLocation() : GetActorLocation();
+		bStartPointsSet = true;
+	}
+
+	FVector TargetLocation = TargetActor->GetActorLocation();
+	const FVector End = FVector(TargetLocation.X, TargetLocation.Y, LeftEyeStart.Z);
+
+	LeftEyeWorkSpline->ClearSplinePoints(false);
+	LeftEyeWorkSpline->AddSplinePoint(LeftEyeStart, ESplineCoordinateSpace::World, false);
+	LeftEyeWorkSpline->AddSplinePoint(End, ESplineCoordinateSpace::World, true);
+	
+	LeftEyeWorkVFXComponent->SetVariableObject(FName("SplineComponent"), LeftEyeWorkSpline);
+	LeftEyeWorkVFXComponent->SetVariableVec3(FName("StartLocation"), LeftEyeStart);
+	LeftEyeWorkVFXComponent->SetVariableVec3(FName("EndLocation"), End);
+	
+	float LeftSplineLength = LeftEyeWorkSpline->GetSplineLength();
+	LeftEyeWorkVFXComponent->SetVariableFloat(FName("SplineLength"), LeftSplineLength);
+	LeftEyeWorkVFXComponent->SetVisibility(true);
+	LeftEyeWorkVFXComponent->Activate(true);
+
+	RightEyeWorkSpline->ClearSplinePoints(false);
+	RightEyeWorkSpline->AddSplinePoint(RightEyeStart, ESplineCoordinateSpace::World, false);
+	RightEyeWorkSpline->AddSplinePoint(End, ESplineCoordinateSpace::World, true);
+	
+	if (RightEyeWorkVFXComponent->GetAsset() != LeftEyeWorkVFXComponent->GetAsset())
+	{
+		RightEyeWorkVFXComponent->SetAsset(LeftEyeWorkVFXComponent->GetAsset());
+	}
+	
+	RightEyeWorkVFXComponent->SetVariableObject(FName("SplineComponent"), RightEyeWorkSpline);
+	RightEyeWorkVFXComponent->SetVariableVec3(FName("StartLocation"), RightEyeStart);
+	RightEyeWorkVFXComponent->SetVariableVec3(FName("EndLocation"), End);
+	
+	float RightSplineLength = RightEyeWorkSpline->GetSplineLength();
+	RightEyeWorkVFXComponent->SetVariableFloat(FName("SplineLength"), RightSplineLength);
+	RightEyeWorkVFXComponent->SetVisibility(true);
+	RightEyeWorkVFXComponent->Activate(true);
+}
+
+void ABaseHelperBot::StopEyeBeamWork()
+{
+	if (LeftEyeWorkVFXComponent)
+	{
+		LeftEyeWorkVFXComponent->Deactivate();
+	}
+	
+	if (RightEyeWorkVFXComponent)
+	{
+		RightEyeWorkVFXComponent->Deactivate();
 	}
 }

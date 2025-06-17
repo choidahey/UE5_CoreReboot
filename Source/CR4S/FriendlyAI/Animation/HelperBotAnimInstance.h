@@ -44,7 +44,7 @@ protected:
 	bool bIsJumping = false;
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsChopping = false;
+	bool bIsWorking = false;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsFalling = false;

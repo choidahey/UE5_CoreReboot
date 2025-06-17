@@ -31,7 +31,7 @@ EBTNodeResult::Type UBTTask_HelperRepair::ExecuteTask(UBehaviorTreeComponent& Ow
     if (Helper)
     {
         CachedRepairPerSecond = Helper->GetRepairingPerSecond();
-        Helper->bIsChopping = true;
+        Helper->SetIsWorking(true);
     }
 
     return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
@@ -64,7 +64,7 @@ void UBTTask_HelperRepair::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
 
     if (DestructibleComp->GetCurrentHealth() >= DestructibleComp->GetMaxHealth())
     {
-        Helper->bIsChopping = false;
+        Helper->SetIsWorking(false);
         FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
     }
 }
