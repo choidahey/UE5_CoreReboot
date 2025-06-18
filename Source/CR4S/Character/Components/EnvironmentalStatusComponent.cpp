@@ -1,4 +1,6 @@
 #include "Character/Components/EnvironmentalStatusComponent.h"
+
+#include "CR4S.h"
 #include "Game/System/EnvironmentManager.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Game/System/SeasonManager.h"
@@ -216,3 +218,4 @@ void UEnvironmentalStatusComponent::SetMaxHumidity(float Max)
 {
 	// TODO:
 }
+

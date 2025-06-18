@@ -58,6 +58,16 @@ void UWorldTimeManager::StartWorldTime()
 	}
 }
 
+void UWorldTimeManager::SetWorldTime(FWorldTimeData NewTimeData)
+{
+	//CurrentTimeData = NewTimeData;
+	//TotalPlayTime = NewTimeData.Day * DayCycleLength * 60 + NewTimeData.Minute * 60 + NewTimeData.Second;
+
+	//AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
+	//UpdateTimeWidget();
+	//OnWorldTimeUpdated.Broadcast(TotalPlayTime);
+}
+
 void UWorldTimeManager::UpdateTime()
 {
 	TotalPlayTime += 1;

@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "IngredientWidget.generated.h"
+#include "IngredientsWidget.generated.h"
 
 class UProgressBar;
 class UImage;
@@ -37,7 +37,7 @@ struct FIngredientData
 };
 
 UCLASS()
-class CR4S_API UIngredientWidget : public UUserWidget
+class CR4S_API UIngredientsWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
