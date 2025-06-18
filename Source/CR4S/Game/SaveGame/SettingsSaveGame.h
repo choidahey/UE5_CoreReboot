@@ -19,7 +19,6 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Audio")
 	float SFXVolume;
 
-	// 나중에 추가될 수 있는 설정들을 위한 예시
 	// UPROPERTY(VisibleAnywhere, Category = "Graphics")
 	// int32 ScreenResolutionIndex;
 };

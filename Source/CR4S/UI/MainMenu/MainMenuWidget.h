@@ -17,11 +17,6 @@ class CR4S_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
-
-public:
-	UFUNCTION()
-	void FadeOutBGM(float FadeDuration = 1.0f);
-
 protected:
 	virtual void NativeConstruct() override;
 

@@ -3,11 +3,14 @@
 #include "Sound/SoundMix.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Game/SaveGame/SettingsSaveGame.h"
-#include "AudioManager.h"
+#include "Game/SaveGame/SaveGameManager.h"
+#include "Components/AudioComponent.h"
 
 void UAudioManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+
+	Collection.InitializeDependency<USaveGameManager>();
 
 	MasterSoundMix = LoadObject<USoundMix>(nullptr, TEXT("/Game/CR4S/_Sounds/SCM_CR4S.SCM_CR4S"));
 
@@ -73,14 +76,61 @@ void UAudioManager::SaveVolumeSettings()
 
 void UAudioManager::LoadVolumeSettings()
 {
-	if (UGameplayStatics::DoesSaveGameExist(TEXT("SettingsSave"), 0))
+	if (UGameInstance* GameInstance = GetGameInstance())
 	{
-		USettingsSaveGame* Loaded = Cast<USettingsSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("SettingsSave"), 0));
-		if (Loaded)
+		if (USaveGameManager* SaveGameManager = GameInstance->GetSubsystem<USaveGameManager>())
 		{
-			SetMasterVolume(Loaded->MasterVolume);
-			SetBGMVolume(Loaded->BGMVolume);
-			SetSFXVolume(Loaded->SFXVolume);
+			if (USettingsSaveGame* SaveGame = SaveGameManager->LoadSettings())
+			{
+				SetMasterVolume(SaveGame->MasterVolume);
+				SetBGMVolume(SaveGame->BGMVolume);
+				SetSFXVolume(SaveGame->SFXVolume);
+
+				UE_LOG(LogTemp, Log, TEXT("[AudioManager] Volume loaded - Master: %.2f, BGM: %.2f, SFX: %.2f"),
+					SaveGame->MasterVolume, SaveGame->BGMVolume, SaveGame->SFXVolume);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[AudioManager] Failed to load settings."));
+			}
 		}
+	}
+}
+
+void UAudioManager::Play2DSound(USoundBase* Sound, float VolumeMultiplier, float PitchMultiplier, float StartTime)
+{
+	if (!Sound) return;
+
+	UGameplayStatics::SpawnSound2D(GetWorld(), Sound, VolumeMultiplier, PitchMultiplier, StartTime);
+}
+
+UAudioComponent* UAudioManager::PlayBGM(USoundBase* BGM)
+{
+	if (!BGM) return nullptr;
+
+	if (CurrentBGMComponent && CurrentBGMComponent->IsPlaying())
+	{
+		CurrentBGMComponent->FadeOut(1.0f, 0.0f);
+	}
+
+	CurrentBGMComponent = UGameplayStatics::SpawnSound2D(GetWorld(), BGM, BGMVolume, 1.0f, 0.0f, nullptr, true);
+	if (CurrentBGMComponent)
+	{
+		CurrentBGMComponent->FadeIn(1.5f, 1.0f);
+		SetMasterVolume(MasterVolume);
+		SetBGMVolume(BGMVolume);
+		SetSFXVolume(SFXVolume);
+		UE_LOG(LogTemp, Log, TEXT("Set BGM Volume to: %.2f"), BGMVolume);
+	}
+
+	return CurrentBGMComponent;
+}
+
+void UAudioManager::StopBGM()
+{
+	if (CurrentBGMComponent && CurrentBGMComponent->IsPlaying())
+	{
+		CurrentBGMComponent->FadeOut(1.0f, 0.0f);
+		CurrentBGMComponent = nullptr;
 	}
 }

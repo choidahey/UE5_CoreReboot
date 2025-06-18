@@ -5,8 +5,7 @@
 #include "UI/Common/ConfirmWidget.h"
 #include "UI/Common/ButtonWidget.h"
 #include "Components/TextBlock.h"
-#include "Kismet/GameplayStatics.h"
-#include "Components/AudioComponent.h"
+#include "Game/System/AudioManager.h"
 
 void UMainMenuWidget::NativeConstruct()
 {
@@ -44,14 +43,11 @@ void UMainMenuWidget::NativeConstruct()
 		QuitButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnQuitButtonClicked);
 	}
 
-	if (MainMenuBGM)
+	if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
 	{
-		BGMComponent = UGameplayStatics::SpawnSound2D(this, MainMenuBGM, 1.0f, 1.0f, 0.0f, nullptr, true);
-		if (BGMComponent)
-		{
-			BGMComponent->FadeIn(1.5f, 1.0f);
-		}
+		AudioManager->PlayBGM(MainMenuBGM);
 	}
+
 
 	HideGameButtons();
 }
@@ -217,15 +213,6 @@ void UMainMenuWidget::SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility 
 	if (Widget)
 	{
 		Widget->SetVisibility(InVisibility);
-	}
-}
-
-
-void UMainMenuWidget::FadeOutBGM(float FadeDuration)
-{
-	if (BGMComponent && BGMComponent->IsPlaying())
-	{
-		BGMComponent->FadeOut(FadeDuration, 0.0f);
 	}
 }
 

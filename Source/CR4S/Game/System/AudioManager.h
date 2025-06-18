@@ -14,12 +14,9 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-
 	FORCEINLINE float GetMasterVolume() const { return MasterVolume; }
 	FORCEINLINE float GetBGMVolume() const { return BGMVolume; }
 	FORCEINLINE float GetSFXVolume() const { return SFXVolume; }
-
-
 
 	void SetMasterVolume(float Volume);
 	void SetBGMVolume(float Volume);
@@ -27,6 +24,28 @@ public:
 
 	void SaveVolumeSettings();
 	void LoadVolumeSettings();
+
+#pragma region Play Sound Functions
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void Play2DSound(USoundBase* Sound, float VolumeMultiplier = 1.0f, float PitchMultiplier = 1.0f, float StartTime = 0.0f);
+
+	UFUNCTION(BlueprintCallable)
+	UAudioComponent* PlayBGM(USoundBase* BGM);
+
+	UFUNCTION(BlueprintCallable)
+	void StopBGM();
+
+protected:
+
+
+
+	UPROPERTY()
+	UAudioComponent* CurrentBGMComponent;
+
+
+#pragma endregion 
 
 protected:
 	UPROPERTY()

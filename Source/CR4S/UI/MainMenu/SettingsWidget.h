@@ -7,6 +7,7 @@ class UButton;
 class UBorder;
 class UVerticalBox;
 class USlider;
+class UNotificationWidget;
 class UBaseWindowWidget;
 class UMainMenuWidget;
 class UAudioManager;
@@ -56,6 +57,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UVerticalBox> ParamZone;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UNotificationWidget> NotificationWidgetClass;
 
 #pragma endregion
 

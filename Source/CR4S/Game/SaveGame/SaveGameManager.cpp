@@ -7,7 +7,6 @@
 //#include "Game/SaveGame/BuildingSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 
-
 void USaveGameManager::SaveAll(const FString& SlotName)
 {
     //UCoreSaveGame* Core = NewObject<UCoreSaveGame>();
@@ -18,9 +17,6 @@ void USaveGameManager::SaveAll(const FString& SlotName)
 
     WorldSave = NewObject<UWorldSaveGame>();
     UGameplayStatics::SaveGameToSlot(WorldSave, SlotName + "_World", 0);
-
-	SettingsSave = NewObject<USettingsSaveGame>();
-	UGameplayStatics::SaveGameToSlot(SettingsSave, SlotName + "_Settings", 0);
 
     if (!MetaSave)
         MetaSave = NewObject<UC4MetaSaveGame>();
@@ -42,18 +38,9 @@ void USaveGameManager::LoadAll(const FString& SlotName)
         WorldSave = Cast<UWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_World", 0));
         if (WorldSave)
         {
-            // 월드 상태 복원
+            //
         }
     }
-
-    if (UGameplayStatics::DoesSaveGameExist(SlotName + "_Settings", 0))
-    {
-        SettingsSave = Cast<USettingsSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_Settings", 0));
-        if (SettingsSave)
-        {
-            // 설정 상태 복원
-        }
-	}
 }
 
 void USaveGameManager::SaveMeta()

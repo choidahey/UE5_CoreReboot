@@ -1,14 +1,17 @@
 #include "UI/MainMenu/SettingsWidget.h"
 #include "UI/Common/BaseWindowWidget.h"
 #include "UI/MainMenu/MainMenuWidget.h"
+#include "UI/Common/NotificationWidget.h"
 #include "Components/Button.h"
 #include "Components/Border.h"
 #include "Components/VerticalBox.h"
 #include "Components/Slider.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Game/System/AudioManager.h"
 #include "Game/SaveGame/SaveGameManager.h"
 #include "Game/SaveGame/SettingsSaveGame.h"
 #include "Kismet/GameplayStatics.h"
+
 
 void USettingsWidget::NativeConstruct()
 {
@@ -200,9 +203,19 @@ void USettingsWidget::OnSFXVolumeChanged(float Value)
 void USettingsWidget::RequestSaveSettings()
 {
 	USaveGameManager* SaveManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
-	if(SaveManager)
+	if (SaveManager)
 	{
 		SaveManager->SaveSettings();
+
+		if (NotificationWidgetClass)
+		{
+			UNotificationWidget* Notification = CreateWidget<UNotificationWidget>(GetWorld(), NotificationWidgetClass);
+			if (Notification)
+			{
+				Notification->AddToViewport(100);
+				Notification->ShowNotification(FText::FromString(TEXT("Settings saved.")), 1.5f);
+			}
+		}
 	}
 }
 

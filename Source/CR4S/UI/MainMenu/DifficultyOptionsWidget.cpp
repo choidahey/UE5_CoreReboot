@@ -4,6 +4,7 @@
 #include "UI/Common/BaseWindowWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Button.h"
+#include "Game/System/AudioManager.h"
 
 void UDifficultyOptionsWidget::NativeConstruct()
 {
@@ -54,9 +55,10 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 		LoadingWidgetInstance = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
 	}	
 
-	if (MainMenuWidgetRef)
+	
+	if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
 	{
-		MainMenuWidgetRef->FadeOutBGM(1.0f); // 1초 페이드 아웃
+		AudioManager->StopBGM();
 	}
 
 
