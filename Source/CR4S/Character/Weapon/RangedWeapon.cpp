@@ -19,9 +19,7 @@ void ARangedWeapon::OnAttack()
 
 void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
-	Super::Initialize(OwnerCharacter);
-
-	UGameInstance* GI=OwningCharacter->GetGameInstance();
+	UGameInstance* GI=GetGameInstance();
 	if (!GI) return;
 
 	UDataLoaderSubsystem* DataLoader=GI->GetSubsystem<UDataLoaderSubsystem>();
@@ -32,6 +30,7 @@ void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter)
 	{
 		return;
 	}
+	Super::Initialize(OwnerCharacter);
 }
 
 void ARangedWeapon::FireMultiBullet(AActor* HomingTarget)

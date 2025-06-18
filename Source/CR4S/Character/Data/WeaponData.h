@@ -39,7 +39,8 @@ struct CR4S_API FBaseWeaponInfo
 {
 	GENERATED_BODY()
 public:
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMesh> SkeletalMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UAnimMontage> AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

@@ -41,6 +41,7 @@ void ABaseWeapon::ResetAttackCooldown()
 void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
 	OwningCharacter=OwnerCharacter;
+	SkeletalMeshComp->SetSkeletalMesh(BaseInfo.SkeletalMesh);
 }
 
 void ABaseWeapon::StopAttack()
