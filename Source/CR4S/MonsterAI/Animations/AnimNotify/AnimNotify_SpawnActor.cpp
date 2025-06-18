@@ -29,8 +29,15 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	
 	FVector SpawnLocation = OwnerPawn->GetActorLocation();
+	FVector FinalOffset = FVector::ZeroVector;
+
+	if (!SpawnLocationOffset.IsNearlyZero())
+	{
+		FinalOffset = OwnerPawn->GetActorTransform().TransformVector(SpawnLocationOffset);
+	}
+	
 	const FVector TraceStart = SpawnLocation + FVector(0.f, 0.f, TraceHeight);
-	const FVector TraceEnd   = SpawnLocation - FVector(0.f, 0.f, TraceHeight);
+	const FVector TraceEnd = SpawnLocation - FVector(0.f, 0.f, TraceHeight);
 
 	FHitResult Hit;
 	FCollisionQueryParams Params(NAME_None, false, OwnerPawn);
@@ -38,11 +45,8 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	{
 		SpawnLocation = Hit.Location;
 	}
-	
-	if (!SpawnLocationOffset.IsNearlyZero())
-	{
-		SpawnLocation += SpawnLocationOffset;
-	}
+
+	SpawnLocation += FinalOffset;
 
 	const FRotator SpawnRotation = OwnerPawn->GetActorRotation();
 
@@ -58,8 +62,6 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 		SpawnParams
 	);
 	if (!SpawnActor) return;
-
-	// SpawnActor->AddActorLocalOffset(SpawnLocationOffset);
 	
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{

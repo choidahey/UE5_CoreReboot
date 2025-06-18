@@ -14,11 +14,6 @@ AThunderWall::AThunderWall()
 	CollisionComp = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionComp"));
 	CollisionComp->SetupAttachment(RootComponent);
 
-	if (UBoxComponent* BoxComp = Cast<UBoxComponent>(CollisionComp))
-	{
-		BoxComp->SetBoxExtent(WallExtent);
-	}
-	
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 
@@ -37,6 +32,37 @@ void AThunderWall::BeginPlay()
 	if (NiagaraComp)
 	{
 		NiagaraComp->Activate(true);
+	}
+
+	if (AActor* OwnerActor = GetOwner())
+	{
+		BossActor = OwnerActor;
+	}
+
+	if (IsValid(BossActor))
+	{
+		TargetRotation = BossActor->GetActorRotation();
+		SetActorRotation(TargetRotation);
+	}
+}
+
+void AThunderWall::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	
+	if (BossActor)
+	{
+		FRotator CurrentBossRotation = BossActor->GetActorRotation();
+		
+		if (!CurrentBossRotation.Equals(TargetRotation, 1.0f))
+		{
+			TargetRotation = CurrentBossRotation;
+		}
+		
+		if (!GetActorRotation().Equals(TargetRotation, 0.1f))
+		{
+			SetActorRotation(TargetRotation);
+		}
 	}
 }
 

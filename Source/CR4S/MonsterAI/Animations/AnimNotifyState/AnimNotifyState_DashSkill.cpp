@@ -42,10 +42,10 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 	
 	StartingLocation = OwnerPawn->GetActorLocation();
 	const FVector SocketLocation = MeshComp->GetSocketLocation(ActorAttachSocketName);
-	if (DashDistance > 0.0f && TotalDuration > 0.0f)
-	{
-		BossMoveSpeed = DashDistance / TotalDuration;
-	}
+	// if (DashDistance > 0.0f && TotalDuration > 0.0f)
+	// {
+	// 	BossMoveSpeed = DashDistance / TotalDuration;
+	// }
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Cast<AActor>(OwnerPawn);
@@ -112,8 +112,8 @@ void UAnimNotifyState_DashSkill::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!IsValid(OwnerPawn) || InitialDashDirection.IsNearlyZero()) return;
 
-	float EffectiveSpeed = (DashDistance > 0.f && Animation) ? (DashDistance / Animation->GetPlayLength()) : BossMoveSpeed;
-	float MoveStep = EffectiveSpeed * FrameDeltaTime;
+	// float EffectiveSpeed = (DashDistance > 0.f && Animation) ? (DashDistance / Animation->GetPlayLength()) : BossMoveSpeed;
+	float MoveStep = BossMoveSpeed * FrameDeltaTime;
 	const FVector CurrentLoc = OwnerPawn->GetActorLocation();
 	FVector DesiredLoc = CurrentLoc + InitialDashDirection * MoveStep;
 	
