@@ -23,7 +23,7 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     if (!IsValid(BB)) return INDEX_NONE;
 
     APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-    if (IsValid(PlayerPawn))
+    if (IsValid(PlayerPawn) && PlayerPawn == BB->GetValueAsObject(FAIKeys::TargetActor))
     {
         float DistanceToPlayer = FVector::Dist(CachedMonster->GetActorLocation(), PlayerPawn->GetActorLocation());
         
