@@ -48,6 +48,12 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsFalling = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	FVector Velocity = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly)
+	FVector HorizontalVelocity = FVector::ZeroVector;
 	
 #pragma endregion
 };
