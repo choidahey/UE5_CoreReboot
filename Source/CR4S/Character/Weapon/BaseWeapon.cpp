@@ -43,3 +43,7 @@ void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 	OwningCharacter=OwnerCharacter;
 }
 
+void ABaseWeapon::StopAttack()
+{
+}
+

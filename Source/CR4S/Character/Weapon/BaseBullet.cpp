@@ -39,7 +39,7 @@ ABaseBullet::ABaseBullet()
 	
 }
 
-void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage)
+void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AActor* HomingTarget)
 {
 	BulletInfo=InData;
 	ProjectileMovementComponent->InitialSpeed=BulletInfo.InitialBulletSpeed;

@@ -21,12 +21,13 @@ class CR4S_API ABaseWeapon : public ABaseTool
 
 public:
 	ABaseWeapon();
-	
+
+	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
 	virtual void Initialize(AModularRobot* OwnerCharacter);
-	
 #pragma region Attack
 public:
 	virtual float ComputeFinalDamage() override;
+	virtual void StopAttack();
 protected:
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
