@@ -98,6 +98,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|State")
 	float MaxStun = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|State")
+	float StunningTime = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|State")
 	float StunDamageMultiplier = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|State")
 	float StunChargeStartDelay = 0.f;
@@ -107,17 +109,18 @@ protected:
 	float StunRecoveryMax = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|State")
 	float StunRecoveryRampUpTime = 3.f;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Stun")
+	UPROPERTY(BlueprintReadOnly, Category = "Monster|State")
 	float CurrentStun = 0.f;
-    
-	UPROPERTY(BlueprintReadOnly, Category = "Stun")
+	UPROPERTY(BlueprintReadOnly, Category = "Monster|State")
 	bool bIsStunned = false;
 
 private:
-	FTimerHandle StunRecoveryTimerHandle;
 	float RecoveryElapsedTime = 0.f;
-
+	bool bCanRecover = false;
+	
+	FTimerHandle StunRecoveryTimerHandle;
+	FTimerHandle RecoveryDelayTimerHandle;
+	
 #pragma endregion
 
 private:

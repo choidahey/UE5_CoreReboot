@@ -15,6 +15,7 @@ struct FMonsterAttributeRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float AttackSpeed = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float MoveSpeed = 0.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) float MaxStun = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunningTime = 0.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunDamageMultiplier = 0.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunChargeStartDelay = 0.f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) float StunRecoveryMin = 0.f;

@@ -1,5 +1,4 @@
 #include "MonsterStateComponent.h"
-
 #include "CR4S.h"
 #include "MonsterAnimComponent.h"
 #include "GameFramework/Character.h"
@@ -40,7 +39,7 @@ void UMonsterStateComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	StateElapsedTime += DeltaTime;
 	StateDuration.FindOrAdd(CurrentState) += DeltaTime;
 
-	if (!bIsStunned && CurrentStun > 0.f)
+	if (!bIsStunned && bCanRecover && CurrentStun > 0.f)
 	{
 		RecoveryElapsedTime = FMath::Clamp(RecoveryElapsedTime + DeltaTime, 0.f, StunRecoveryRampUpTime);
 		
@@ -91,7 +90,6 @@ void UMonsterStateComponent::SetPhase(EBossPhase NewPhase)
 	OnPhaseChanged.Broadcast(NewPhase);
 }
 
-
 void UMonsterStateComponent::AddStun(float StunAmount)
 {
 	if (bIsStunned) return;
@@ -99,6 +97,15 @@ void UMonsterStateComponent::AddStun(float StunAmount)
 	CurrentStun = FMath::Clamp(CurrentStun + StunAmount, 0.f, MaxStun);
 	CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
 
+	bCanRecover = false;
+	GetWorld()->GetTimerManager().ClearTimer(RecoveryDelayTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		RecoveryDelayTimerHandle,
+		[this]() { bCanRecover = true; },
+		StunChargeStartDelay,
+		false
+	);
+	
 	if (CurrentStun >= MaxStun)
 	{
 		bIsStunned = true;
@@ -114,13 +121,13 @@ void UMonsterStateComponent::AddStun(float StunAmount)
 			if (Monster->AnimComponent)
 				Monster->AnimComponent->PlayStunnedMontage();
 
-		// TODO :: 마지막 공격 맞은 후부터 StunChargeStartDelay 동안 피해 안입으면 스턴 회복하도록 수정하기
+		GetWorld()->GetTimerManager().ClearTimer(RecoveryDelayTimerHandle);
 		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryTimerHandle);
 		GetWorld()->GetTimerManager().SetTimer(
 			StunRecoveryTimerHandle,
 			this,
 			&UMonsterStateComponent::RemoveStunDebuff,
-			StunChargeStartDelay,
+			StunningTime,
 			false
 		);
 	}
@@ -141,12 +148,13 @@ void UMonsterStateComponent::RemoveStunDebuff()
 		if (UCharacterMovementComponent* Movement = Owner->GetCharacterMovement())
 			Movement->SetMovementMode(EMovementMode::MOVE_Walking);
 
-	CR4S_Log(LogMonster, Log, TEXT("Stunned! Remove stun"));
+	CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
 }
 
 void UMonsterStateComponent::InitializeStunData(const FMonsterAttributeRow& Data)
 {
 	MaxStun                = Data.MaxStun;
+	StunningTime           = Data.StunningTime;
 	StunDamageMultiplier   = Data.StunDamageMultiplier;
 	StunChargeStartDelay   = Data.StunChargeStartDelay;
 	StunRecoveryMin        = Data.StunRecoveryMin;
