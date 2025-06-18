@@ -24,6 +24,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Time")
 	void SetSkyTime(float Time);
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Time")
+	bool IsSleepTime() const;
+
 protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Weather")
