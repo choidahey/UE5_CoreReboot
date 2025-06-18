@@ -1,7 +1,10 @@
 #include "AnimalGround.h"
 #include "Component/AIJumpComponent.h"
 #include "../Gimmick/Components/InteractableComponent.h"
+#include "Components/SphereComponent.h"
+#include "Controller/AnimalAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AAnimalGround::AAnimalGround()
 {
@@ -21,7 +24,7 @@ void AAnimalGround::BeginPlay()
 	
 	if (AIJumpComponent)
 	{
-		AIJumpComponent->SetJumpPower(JumpPower);
+		//AIJumpComponent->SetJumpPower(JumpPower);
 	}
 
 	UCharacterMovementComponent* Move = GetCharacterMovement();
@@ -72,6 +75,37 @@ void AAnimalGround::RecoverFromStun()
 #pragma endregion
 
 #pragma region Attack
+void AAnimalGround::PerformMeleeAttack()
+{
+	Super::PerformMeleeAttack();
+    
+	if (!CurrentTarget) return;
+
+	if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
+	{
+		if (HitAnimal->CurrentState == EAnimalState::Dead)
+		{
+			if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+			{
+				C->OnTargetDied();
+			}
+			return;
+		}
+	}
+
+	if (!AttackRange || !AttackRange->IsOverlappingActor(CurrentTarget))
+	{
+		if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+		{
+			C->OnTargetOutOfRange();
+		}
+		return;
+	}
+
+	float Damage = GetCurrentStats().AttackDamage;
+	UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);
+}
+
 void AAnimalGround::PerformChargeAttack()
 {
 	// if (StatsRow)

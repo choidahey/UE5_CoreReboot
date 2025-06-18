@@ -5,6 +5,7 @@
 #include "AnimalMonster.generated.h"
 
 class AAnimalMonsterAIController;
+class UAIJumpComponent;
 
 UCLASS()
 class CR4S_API AAnimalMonster : public ABaseAnimal
@@ -44,7 +45,6 @@ public:
 public:
 	virtual void PerformMeleeAttack() override;
 	virtual void PerformChargeAttack() override;
-	virtual void PerformRangedAttack() override;
 #pragma endregion
 
 #pragma region Damage
@@ -132,4 +132,8 @@ private:
 	float GetDamageForTarget(AActor* Target) const;
 	void ApplyDamageToTarget(AActor* Target);
 #pragma endregion
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI Jump")
+	UAIJumpComponent* AIJumpComponent;
 };

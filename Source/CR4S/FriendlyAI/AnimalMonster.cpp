@@ -9,6 +9,7 @@
 #include "FriendlyAI/Component/AnimalRangedAttackComponent.h"
 #include "Engine/World.h"
 #include "FriendlyAI/BaseHelperBot.h"
+#include "FriendlyAI/Component/AIJumpComponent.h"
 #include "DrawDebugHelpers.h"
 
 #pragma region AActor Override
@@ -18,6 +19,8 @@ AAnimalMonster::AAnimalMonster()
     
     AIControllerClass = AAnimalMonsterAIController::StaticClass();
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+    AIJumpComponent = CreateDefaultSubobject<UAIJumpComponent>(TEXT("AIJumpComponent"));
 }
 
 void AAnimalMonster::BeginPlay()
@@ -25,6 +28,16 @@ void AAnimalMonster::BeginPlay()
     Super::BeginPlay();
     
     InitializeMonster();
+
+    //Temporary
+    if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
+    {
+        MovementComp->bOrientRotationToMovement = true;
+        MovementComp->RotationRate = FRotator(0.f, 180.f, 0.f);
+        MovementComp->bUseRVOAvoidance = true;
+        MovementComp->MaxAcceleration = 1024.f;
+        MovementComp->BrakingDecelerationWalking = 1024.f;
+    }
 }
 
 void AAnimalMonster::Tick(float DeltaTime)
@@ -97,10 +110,9 @@ void AAnimalMonster::ClearAllTargets()
 #pragma region Attack
 void AAnimalMonster::PerformMeleeAttack()
 {
-    if (!CurrentTarget || !bCanMelee || bIsMeleeOnCooldown) return;
-
-    const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
-    if (Distance > MeleeRange) return;
+    Super::PerformMeleeAttack();
+    
+    if (!CurrentTarget) return;
     
     if (!AttackRange || !AttackRange->IsOverlappingActor(CurrentTarget))
     {
@@ -111,14 +123,6 @@ void AAnimalMonster::PerformMeleeAttack()
         return;
     }
     
-    GetWorldTimerManager().SetTimer(
-        MeleeAttackTimerHandle,
-        this,
-        &AAnimalMonster::ResetMeleeCooldown,
-        MeleeAttackCooldown,
-        false
-    );
-
     ApplyDamageToTarget(CurrentTarget);
 }
 
@@ -126,34 +130,9 @@ void AAnimalMonster::PerformChargeAttack()
 {
     if (!bCanCharge || bIsChargeOnCooldown || !CurrentTarget) return;
     
-    GetWorldTimerManager().SetTimer(
-        ChargeAttackTimerHandle,
-        this,
-        &AAnimalMonster::ResetChargeCooldown,
-        ChargeAttackCooldown,
-        false
-    );
-
     ApplyDamageToTarget(CurrentTarget);
 }
 
-void AAnimalMonster::PerformRangedAttack()
-{
-    if (!bCanRanged || bIsRangedOnCooldown || !CurrentTarget) return;
-
-    if (RangedAttackComponent)
-    {
-        RangedAttackComponent->FireProjectile();
-    }
-    
-    GetWorldTimerManager().SetTimer(
-        RangedAttackTimerHandle,
-        this,
-        &AAnimalMonster::ResetRangedCooldown,
-        RangedAttackCooldown,
-        false
-    );
-}
 #pragma endregion
 
 #pragma region Damage
@@ -337,11 +316,11 @@ float AAnimalMonster::GetDamageForTarget(AActor* Target) const
 {
     if (Cast<APlayerCharacter>(Target) || Cast<AModularRobot>(Target))
     {
-        return PlayerDamage;
+        return 1000.0f;
     }
     else if (Cast<ABaseBuildingGimmick>(Target))
     {
-        return BuildingDamage;
+        return 1000000.0f;
     }
     
     return PlayerDamage;

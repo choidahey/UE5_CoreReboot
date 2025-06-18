@@ -570,27 +570,6 @@ void ABaseAnimal::PerformMeleeAttack()
 
     const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
     if (Distance > MeleeRange) return;
-
-    if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
-    {
-        if (HitAnimal->CurrentState == EAnimalState::Dead)
-        {
-            if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-            {
-                C->OnTargetDied();
-            }
-            return;
-        }
-    }
-
-    if (!AttackRange || !AttackRange->IsOverlappingActor(CurrentTarget))
-    {
-        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-        {
-            C->OnTargetOutOfRange();
-        }
-        return;
-    }
     
     GetWorldTimerManager().SetTimer(
         MeleeAttackTimerHandle,
@@ -599,9 +578,6 @@ void ABaseAnimal::PerformMeleeAttack()
         MeleeAttackCooldown,
         false
     );
-
-    float Damage = CurrentStats.AttackDamage;
-    UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);
 }
 
 void ABaseAnimal::PerformChargeAttack()
