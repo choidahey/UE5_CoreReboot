@@ -1,6 +1,4 @@
-#include "MonsterAI/Animations/AnimNotify/AnimNotify_IceSpikeAttack.h"
-#include "MonsterAI/Components/MonsterSkillComponent.h"
-#include "MonsterAI/Components/MonsterStateComponent.h"
+#include "MonsterAI/Animations/AnimNotify/AnimNotify_SpawnActorDelay.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -9,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Skills/IceSpike.h"
 
-void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void UAnimNotify_SpawnActorDelay::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	if (!IsValid(MeshComp->GetWorld())
 		|| !IsValid(MeshComp)
@@ -19,7 +17,7 @@ void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!OwnerPawn || !SpawnActorClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] Invalid OwnerPawn or SpawnActorClass"), *MyHeader);
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Invalid OwnerPawn or SpawnActorClass"), *GetClass()->GetName());
 		return;
 	}
 	
@@ -27,8 +25,8 @@ void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
 	if (!AIC || !BB) return;
 
-	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
-	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(TEXT("NearestHouseActor")));
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
 
 	FVector CenterLoc = Target->GetActorLocation();
@@ -51,9 +49,7 @@ void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(OwnerPawn);
 
-	if (GetWorld()->LineTraceSingleByChannel(
-			Hit, TraceStart, TraceEnd,
-			ECC_Visibility, CollisionParam))
+	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd,ECC_Visibility, CollisionParam))
 	{
 		float OffsetLoc = SpawnLocation.Z - Hit.Location.Z;
 		if (!FMath::IsNearlyZero(OffsetLoc, 1.0f))
@@ -62,22 +58,33 @@ void UAnimNotify_IceSpikeAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 		}
 	}
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = OwnerPawn;
-	SpawnParams.Instigator = OwnerPawn;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	AActor* SpawnActor = OwnerPawn->GetWorld()->SpawnActor<AActor>(
-		SpawnActorClass,
-		SpawnLocation,
-		FRotator::ZeroRotator,
-		SpawnParams
-	);
-	if (!SpawnActor) return;
-
-	if (AIceSpike* SpikeActor = Cast<AIceSpike>(SpawnActor))
+	const FVector SavedLocation = SpawnLocation;
+	FTimerDelegate Del;
+	Del.BindLambda([OwnerPawn, this, SavedLocation]()
 	{
-		if (SpikeActor)
-			SpikeActor->Launch();
-	}
+		if (!IsValid(OwnerPawn) || !SpawnActorClass) return;
+		
+		FActorSpawnParameters Params;
+		Params.Owner = OwnerPawn;
+		Params.Instigator = OwnerPawn;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AActor* NewActor = OwnerPawn->GetWorld()->SpawnActor<AActor>(
+			SpawnActorClass,
+			SavedLocation,
+			FRotator::ZeroRotator,
+			Params);
+		
+		if (AIceSpike* Spike = Cast<AIceSpike>(NewActor))
+			Spike->Launch();
+	});
+
+
+	MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+	MeshComp->GetWorld()->GetTimerManager().SetTimer(
+		SpawnTimerHandle,
+		Del,
+		SpawnDelayTime,
+		false
+		);
 }

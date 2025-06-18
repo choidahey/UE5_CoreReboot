@@ -19,18 +19,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WallSkill")
-	// UNiagaraComponent* NiagaraComp;
-
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WallSkill")
-	// UBoxComponent* CollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "WallSkill|Dimensions")
-	FVector WallExtent = FVector(50.f, 500.f, 800.f);
-
-	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "WallSkill|Damage")
-	// float Damage = 0.f;
+	virtual void Tick(float DeltaTime) override;
 
 private:
 	virtual void OnOverlap(
@@ -41,4 +30,10 @@ private:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	) override;
+
+	UPROPERTY()
+	AActor* BossActor = nullptr;;
+    
+	UPROPERTY()
+	FRotator TargetRotation = FRotator::ZeroRotator;
 };
