@@ -97,6 +97,7 @@ void USeasonManager::HandleDayChange()
 	}
 }
 
+
 void USeasonManager::GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime)
 {
 	switch (Season)

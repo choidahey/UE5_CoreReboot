@@ -38,8 +38,6 @@ public:
 
 	void GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime);
 	void SetCurrentSeason(ESeasonType NewSeason);
-
-
 	
 	void HandleDayChange();
 
