@@ -1,4 +1,6 @@
 #include "MonsterAI/Task/Season/BTTask_SelectSkill_Hiems.h"
+
+#include "CR4S.h"
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -26,6 +28,8 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     if (IsValid(PlayerPawn) && PlayerPawn == BB->GetValueAsObject(FAIKeys::TargetActor))
     {
         float DistanceToPlayer = FVector::Dist(CachedMonster->GetActorLocation(), PlayerPawn->GetActorLocation());
+
+        CR4S_Log(LogDa, Log, TEXT("[%s] DistanceToPlayer : %f"), *GetClass()->GetName(), DistanceToPlayer);
         
         if (DistanceToPlayer <= DistanceAwayIceRoad && AvailableSkills.Contains(static_cast<int32>(EHiemsSkill::IceRoadAway)))
         {
