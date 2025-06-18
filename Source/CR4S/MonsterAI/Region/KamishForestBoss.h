@@ -16,13 +16,18 @@ public:
 	AKamishForestBoss();
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;
 	virtual void HandleDeath() override;
 
+	void AttachWeaponActor();
 	void SpawnCloudEffect();
 	void DestroyActiveClouds();
 	
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Weapon")
+	TSubclassOf<AActor> WeaponActorClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Cloud")
 	TObjectPtr<UNiagaraSystem> CloudAsset;
 
