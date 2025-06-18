@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "PlayerCharacterStatusComponent.h"
-
-#include "AlsCharacterMovementComponent.h"
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Character/Weapon/PlayerTool.h"
 
 
 // Sets default values for this component's properties
@@ -28,16 +27,7 @@ void UPlayerCharacterStatusComponent::BeginPlay()
 		PlayerStatus=StatusData->PlayerStats;
 	}
 
-	if (PlayerStatus.HungerInterval>KINDA_SMALL_NUMBER)
-	{
-		GetWorld()->GetTimerManager().SetTimer(
-			HungerTimerHandle,
-			this,
-			&UPlayerCharacterStatusComponent::ReduceCurrentHunger,
-			PlayerStatus.HungerInterval,
-			true
-		);
-	}
+	StartConsumeHunger();
 }
 
 // Called every frame
@@ -49,44 +39,57 @@ void UPlayerCharacterStatusComponent::TickComponent(float DeltaTime, ELevelTick 
 	// ...
 }
 
+void UPlayerCharacterStatusComponent::ApplyStarvationDamage()
+{
+	if (bIsUnPossessed) return;
+	
+	AddCurrentHP(-PlayerStatus.StarvationDamage);
+}
+
+void UPlayerCharacterStatusComponent::StartConsumeHunger()
+{
+	if (PlayerStatus.HungerInterval>KINDA_SMALL_NUMBER&&GetWorld())
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			HungerTimerHandle,
+			this,
+			&UPlayerCharacterStatusComponent::ConsumeCurrentHungerForInterval,
+			PlayerStatus.HungerInterval,
+			true
+		);
+	}
+}
+
 void UPlayerCharacterStatusComponent::ApplyHungerDebuff()
 {
-	if (!OwningCharacter) return;
+	if (!GetWorld()) return;
 	
-	if (UAlsCharacterMovementComponent* MovementComp=OwningCharacter->FindComponentByClass<UAlsCharacterMovementComponent>())
+	if (PlayerStatus.StarvationDamageInterval>KINDA_SMALL_NUMBER)
 	{
-		
+		if (!GetWorld()->GetTimerManager().IsTimerActive(StarvationDamageTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(
+				StarvationDamageTimerHandle,
+				this,
+				&UPlayerCharacterStatusComponent::ApplyStarvationDamage,
+				PlayerStatus.StarvationDamageInterval,
+				true
+			);
+		}
 	}
 }
 
 void UPlayerCharacterStatusComponent::RemoveHungerDebuff()
 {
-	if (!OwningCharacter) return;
-	if (UAlsCharacterMovementComponent* MovementComp=OwningCharacter->FindComponentByClass<UAlsCharacterMovementComponent>())
-	{
-		
-	}
+	if (CR4S_ENSURE(LogHong1,!OwningCharacter||!GetWorld())) return;
+
+	GetWorld()->GetTimerManager().ClearTimer(StarvationDamageTimerHandle);
 }
 
-void UPlayerCharacterStatusComponent::ReduceCurrentHunger()
+void UPlayerCharacterStatusComponent::ConsumeCurrentHungerForInterval()
 {
-	AddCurrentHunger(-(PlayerStatus.HungerDecreaseAmount));
-}
-
-void UPlayerCharacterStatusComponent::AddMaxHunger(const float InAmount)
-{
-	PlayerStatus.MaxHunger+=InAmount;
-	const float Percentage=FMath::Clamp((PlayerStatus.Hunger)/PlayerStatus.MaxHunger,0.f,1.f);
-	OnHungerChanged.Broadcast(Percentage);
-}
-
-void UPlayerCharacterStatusComponent::AddCurrentHunger(const float InAmount)
-{
-	const float Temp=FMath::Clamp(PlayerStatus.Hunger+InAmount,0,PlayerStatus.MaxHunger);
-	PlayerStatus.Hunger=Temp;
-	const float Percentage=FMath::Clamp((PlayerStatus.Hunger)/PlayerStatus.MaxHunger,0.f,1.f);
-	OnHungerChanged.Broadcast(Percentage);
-
+	AddCurrentHunger(-(PlayerStatus.HungerDecreaseAmount*PlayerStatus.HungerConsumptionMultiplier));
+	
 	if (PlayerStatus.Hunger<=KINDA_SMALL_NUMBER)
 	{
 		if (!bIsStarving)
@@ -105,6 +108,98 @@ void UPlayerCharacterStatusComponent::AddCurrentHunger(const float InAmount)
 			OnHungerDebuffChanged.Broadcast(false);
 		}
 	}
+}
+
+void UPlayerCharacterStatusComponent::StartSprint()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+	
+	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=PlayerStatus.SprintResourceCost))
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			SprintTimerHandle,
+			this,
+			&UPlayerCharacterStatusComponent::ConsumeResourceForSprint,
+			PlayerStatus.SprintCostConsumptionInterval,
+			true
+		);
+	}
+}
+
+void UPlayerCharacterStatusComponent::StopSprint()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld()&&OwningCharacter)) return;
+
+	OwningCharacter->SetDesiredGait(AlsGaitTags::Running);
+	GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
+}
+
+void UPlayerCharacterStatusComponent::ConsumeResourceForSprint()
+{
+	if (GetCurrentResource()<PlayerStatus.SprintResourceCost)
+	{
+		StopSprint();
+		return;
+	}
+	AddCurrentResource(-(PlayerStatus.SprintResourceCost));
+	OnResourceConsumed();
+}
+
+void UPlayerCharacterStatusComponent::ApplyHeatDebuff()
+{
+	Super::ApplyHeatDebuff();
+}
+
+void UPlayerCharacterStatusComponent::RemoveHeatDebuff()
+{
+	Super::RemoveHeatDebuff();
+}
+
+void UPlayerCharacterStatusComponent::ApplyColdDebuff()
+{
+	BaseStatus.ResourceRegenMultiplier*=PlayerStatus.ColdResourceRegenMultiplier;
+	PlayerStatus.HungerConsumptionMultiplier*=PlayerStatus.ColdHungerConsumptionMultiplier;
+}
+
+void UPlayerCharacterStatusComponent::RemoveColdDebuff()
+{
+	BaseStatus.ResourceRegenMultiplier/=PlayerStatus.ColdResourceRegenMultiplier;
+	PlayerStatus.HungerConsumptionMultiplier/=PlayerStatus.ColdHungerConsumptionMultiplier;
+}
+
+void UPlayerCharacterStatusComponent::ApplyHighHumidityDebuff()
+{
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
+	
+	APlayerTool* Tool=OwningCharacter->GetCurrentTool();
+	if (!CR4S_ENSURE(LogHong1,Tool)) return;
+	
+	Tool->SetMontagePlayRate(PlayerStatus.HighHumidityMontagePlayRate);
+}
+
+void UPlayerCharacterStatusComponent::RemoveHighHumidityDebuff()
+{
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
+	
+	APlayerTool* Tool=OwningCharacter->GetCurrentTool();
+	if (!CR4S_ENSURE(LogHong1,Tool)) return;
+
+	Tool->SetMontagePlayRate(PlayerStatus.DefaultMontagePlayRate);
+}
+
+void UPlayerCharacterStatusComponent::AddMaxHunger(const float InAmount)
+{
+	PlayerStatus.MaxHunger+=InAmount;
+	const float Percentage=FMath::Clamp((PlayerStatus.Hunger)/PlayerStatus.MaxHunger,0.f,1.f);
+	OnHungerChanged.Broadcast(Percentage);
+}
+
+void UPlayerCharacterStatusComponent::AddCurrentHunger(const float InAmount)
+{
+	const float Temp=FMath::Clamp(PlayerStatus.Hunger+InAmount,0,PlayerStatus.MaxHunger);
+	PlayerStatus.Hunger=Temp;
+	const float Percentage=FMath::Clamp((PlayerStatus.Hunger)/PlayerStatus.MaxHunger,0.f,1.f);
+	OnHungerChanged.Broadcast(Percentage);
 }
 
 

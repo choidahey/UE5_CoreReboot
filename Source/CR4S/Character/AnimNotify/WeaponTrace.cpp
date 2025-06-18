@@ -2,7 +2,10 @@
 
 
 #include "WeaponTrace.h"
-#include "Character/Components/CombatComponent.h"
+
+#include "Character/Components/WeaponTraceComponent.h"
+#include "Character/Components/InputBufferComponent.h"
+#include "Character/Components/RobotWeaponComponent.h"
 #include "GameFramework/Character.h"
 
 void UWeaponTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
@@ -11,8 +14,10 @@ void UWeaponTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
 
-	UCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCombatComponent>();
-	Combat->SetWeaponTrace(true);
+	if (UWeaponTraceComponent* WeaponTraceComp=OwningCharacter->FindComponentByClass<UWeaponTraceComponent>())
+	{
+		WeaponTraceComp->SetWeaponTrace(true);
+	}
 	//Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 }
 
@@ -22,7 +27,9 @@ void UWeaponTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
 
-	UCombatComponent* Combat=OwningCharacter->FindComponentByClass<UCombatComponent>();
-	Combat->SetWeaponTrace(false);
+	if (UWeaponTraceComponent* WeaponTraceComp=OwningCharacter->FindComponentByClass<UWeaponTraceComponent>())
+	{
+		WeaponTraceComp->SetWeaponTrace(false);
+	}
 	//Super::NotifyEnd(MeshComp, Animation, EventReference);
 }

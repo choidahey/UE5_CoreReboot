@@ -10,16 +10,21 @@
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
-#include "Character/Components/RobotCombatComponent.h"
+#include "Character/Components/RobotWeaponComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Character/Components/GridDetectionComponent.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
+#include "Character/Components/InputBufferComponent.h"
+#include "Character/Components/RobotInputBufferComponent.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "UI/InGame/CharacterEnvironmentStatusWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
+#include "Utility/DataLoaderSubsystem.h"
 
 
 // Sets default values
@@ -76,9 +81,66 @@ AModularRobot::AModularRobot()
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 
-	RobotCombat=CreateDefaultSubobject<URobotCombatComponent>(TEXT("RobotCombat"));
+	WeaponManager=CreateDefaultSubobject<URobotWeaponComponent>(TEXT("WeaponManager"));
 
+	InputBuffer=CreateDefaultSubobject<URobotInputBufferComponent>(TEXT("RobotInputBuffer"));
+	
 	RobotInventoryComponent = CreateDefaultSubobject<URobotInventoryComponent>(TEXT("RobotInventoryComponent"));
+
+	EnvironmentalStatus=CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
+}
+
+void AModularRobot::TakeStun_Implementation(const float StunAmount)
+{
+	 Status->AddStun(StunAmount);
+}
+
+void AModularRobot::SetInputEnable(const bool bEnableInput)
+{
+	APlayerController* PC=Cast<APlayerController>(GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
+	
+	if (bEnableInput)
+	{
+		InputSubsystem->AddMappingContext(InputMappingContext,RobotSettings.MappingContextPriority);
+	}
+	else
+	{
+		InputSubsystem->RemoveMappingContext(InputMappingContext);
+	}
+}
+
+void AModularRobot::OnDeath()
+{
+	APlayerCharacter* PC=MountedCharacter;
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	AController* CachedController=GetController();
+	if (!CR4S_ENSURE(LogHong1,CachedController)) return;
+	
+	UnMountRobot();
+	UGameplayStatics::ApplyDamage(
+		PC,
+		FLT_MAX,
+		CachedController,
+		this,
+		UDamageType::StaticClass()
+	);
+}
+
+void AModularRobot::LoadDataFromDataLoader()
+{
+	UGameInstance* GI=GetGameInstance();
+	if (!CR4S_ENSURE(LogHong1,GI)) return;
+	
+	UDataLoaderSubsystem* Loader=GI->GetSubsystem<UDataLoaderSubsystem>();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+
+	Loader->LoadRobotSettingsData(RobotSettings);
+	
 }
 
 void AModularRobot::MountRobot(AActor* InActor)
@@ -93,11 +155,16 @@ void AModularRobot::MountRobot(AActor* InActor)
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
 
-		FAttachmentTransformRules AttachRule(EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::KeepWorld,true);
+		FAttachmentTransformRules AttachRule(
+			EAttachmentRule::SnapToTarget,
+			EAttachmentRule::SnapToTarget,
+			EAttachmentRule::KeepWorld,
+			false
+		);
 		PreviousCharacter->AttachToComponent(
 			GetMesh(),
 			AttachRule,
-			MountSocketName
+			RobotSettings.MountSocketName
 		);
 	}
 	AController* InController=Cast<AController>(PreviousCharacter->GetController());
@@ -106,6 +173,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 	
 	InController->UnPossess();
 	InController->Possess(this);
+	Status->StartConsumeEnergy();
 }
 
 void AModularRobot::UnMountRobot()
@@ -115,7 +183,7 @@ void AModularRobot::UnMountRobot()
 	{
 		NextCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		
-		FVector UnMountOffset=GetActorForwardVector()*UnMountLocation;
+		FVector UnMountOffset=GetActorForwardVector()*RobotSettings.UnMountLocation;
 		FVector DropLocation=GetActorLocation()+UnMountOffset;
 		NextCharacter->TeleportTo(DropLocation,NextCharacter->GetActorRotation(),false,true);
 		
@@ -133,6 +201,7 @@ void AModularRobot::UnMountRobot()
 	}
 	MountedCharacter=nullptr;
 	RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
+	Status->StopConsumeEnergy();
 }
 
 void AModularRobot::InitializeWidgets()
@@ -149,6 +218,15 @@ void AModularRobot::InitializeWidgets()
 				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
 				
 				InGameWidget->InitializeStatusWidget(Status,true);
+				
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+					EnvironmentWidget->InitializeWidget(this);
+				}
 			}
 		}
 	}
@@ -166,6 +244,14 @@ void AModularRobot::DisconnectWidgets()
 				Status->OnResourceChanged.RemoveAll(InGameWidget);
 				Status->OnEnergyChanged.RemoveAll(InGameWidget);
 				Status->OnStunChanged.RemoveAll(InGameWidget);
+
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+				}
 			}
 		}
 	}
@@ -176,12 +262,22 @@ void AModularRobot::BeginPlay()
 {
 	Super::BeginPlay();
 
+	LoadDataFromDataLoader();
+	
 	if (InteractComp)
 	{
 		InteractComp->OnTryInteract.AddUniqueDynamic(this,&AModularRobot::MountRobot);
 	}
-
+	if (Status)
+	{
+		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
+	}
+	
 	InitializeWidgets();
+
+	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
+	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
 }
 
 void AModularRobot::NotifyControllerChanged()
@@ -209,7 +305,7 @@ void AModularRobot::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, 2, Options);
+			InputSubsystem->AddMappingContext(InputMappingContext, RobotSettings.MappingContextPriority, Options);
 		}
 	}
 
@@ -245,7 +341,7 @@ void AModularRobot::Tick(float DeltaTime)
 
 void AModularRobot::Input_Move(const FInputActionValue& Value)
 {
-	if (!Controller) return;
+	if (!Controller||!Status->IsRobotActive()) return;
 	//Move Logic
 	// input is a Vector2D
 	FVector2D MoveInput = Value.Get<FVector2D>();
@@ -262,6 +358,7 @@ void AModularRobot::Input_Move(const FInputActionValue& Value)
 
 void AModularRobot::Input_Look(const FInputActionValue& Value)
 {
+	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	FVector2D LookInput=Value.Get<FVector2D>();
 
 	AddControllerYawInput(LookInput.X);
@@ -270,6 +367,7 @@ void AModularRobot::Input_Look(const FInputActionValue& Value)
 
 void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
+	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	// Jump 함수는 Character가 기본 제공
 	if (Value.Get<bool>())
 	{
@@ -279,6 +377,7 @@ void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
+	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	// StopJumping 함수도 Character가 기본 제공
 	if (!Value.Get<bool>())
 	{
@@ -288,7 +387,7 @@ void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (bIsDashing) return;
+	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
 
 	bIsDashing = true;
 	
@@ -296,14 +395,14 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
 	
-	FVector LaunchVelocity=DashDirection*DashStrength;
-	UE_LOG(LogHong1,Warning,TEXT("Dash!"));
+	FVector LaunchVelocity=DashDirection*RobotSettings.DashStrength;
+	Status->ConsumeResourceForRoll();
 	LaunchCharacter(LaunchVelocity,true,false);
 	GetWorldTimerManager().SetTimer(
 		DashCooldownTimerHandle,
 		this,
 		&AModularRobot::ResetDashCooldown,
-		1.0f,
+		RobotSettings.DashCooldown,
 		false
 	);
 }
@@ -333,12 +432,18 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
 			//Attack
-			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftArm);
-			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightArm);
-			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackLeftShoulder);
-			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Triggered,RobotCombat.Get(),&URobotCombatComponent::Input_OnAttackRightShoulder);
+			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
+			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightArm);
+			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftShoulder);
+			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightShoulder);
 			
 		}
 	}
 }
 
+float AModularRobot::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	Status->AddCurrentHP(DamageAmount);
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}

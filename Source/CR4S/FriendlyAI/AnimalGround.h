@@ -27,7 +27,8 @@ public:
 #pragma endregion
 
 #pragma region Attack
-	
+
+	void PerformMeleeAttack() override;
 	void PerformChargeAttack() override;
 	
 #pragma endregion

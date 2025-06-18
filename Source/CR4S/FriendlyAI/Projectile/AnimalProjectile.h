@@ -5,6 +5,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AnimalProjectile.generated.h"
 
+class UObjectPoolComponent;
+
 UCLASS()
 class CR4S_API AAnimalProjectile : public AActor
 {
@@ -14,8 +16,6 @@ public:
 	AAnimalProjectile();
 
 protected:
-	virtual void BeginPlay() override;
-
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 						 UPrimitiveComponent* OtherComp, FVector NormalImpulse,
@@ -27,6 +27,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovement;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UObjectPoolComponent* PoolComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Damage;

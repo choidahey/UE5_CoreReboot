@@ -22,9 +22,11 @@ class CR4S_API UPlayerCharacterStatusComponent : public UBaseStatusComponent
 public:
 	// Sets default values for this component's properties
 	UPlayerCharacterStatusComponent();
-#pragma region Get
+#pragma region Get & Set
 	FORCEINLINE float GetMaxHunger() const { return PlayerStatus.MaxHunger; }
 	FORCEINLINE float GetCurrentHunger() const { return PlayerStatus.Hunger; }
+
+	FORCEINLINE void SetIsUnPossessed(const bool bIsMounted) { bIsUnPossessed = bIsMounted; } 
 #pragma endregion
 
 #pragma region Hunger
@@ -35,7 +37,29 @@ public:
 	void ApplyHungerDebuff();
 	UFUNCTION()
 	void RemoveHungerDebuff();
-	void ReduceCurrentHunger();
+	void ApplyStarvationDamage();
+	void StartConsumeHunger();
+	void ConsumeCurrentHungerForInterval();
+	FORCEINLINE bool IsStarving() const { return bIsStarving; }
+#pragma endregion
+	
+#pragma region Sprint
+	void StartSprint();
+	void StopSprint();
+	void ConsumeResourceForSprint();
+#pragma endregion
+
+#pragma region Temperatur
+	virtual void ApplyHeatDebuff() override;
+	virtual void RemoveHeatDebuff() override;
+
+	virtual void ApplyColdDebuff() override;
+	virtual void RemoveColdDebuff() override;
+#pragma endregion
+
+#pragma region Humidity
+	virtual void ApplyHighHumidityDebuff() override;
+	virtual void RemoveHighHumidityDebuff() override;
 #pragma endregion
 	
 #pragma region Override
@@ -62,14 +86,22 @@ protected:
 	
 #pragma region Status
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FPlayerCharacterStats PlayerStatus;
+#pragma endregion
 
+#pragma region Flag&Timer
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
-	float OriginalMaxWalkSpeed{0};
-	
 	uint8 bIsStarving:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsUnPossessed:1 {false};
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FTimerHandle HungerTimerHandle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FTimerHandle StarvationDamageTimerHandle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FTimerHandle SprintTimerHandle;
 #pragma endregion
 
 #pragma region Delegate
@@ -79,6 +111,7 @@ public:
 	FOnHungerDebuffChanged OnHungerDebuffChanged;
 #pragma endregion
 };
+
 
 
 

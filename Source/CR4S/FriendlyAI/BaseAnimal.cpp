@@ -347,7 +347,10 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     }
 
     float ActualDamage = DamageAmount;
-    if (ActualDamage <= 0.f) return 0.f;
+    if (ActualDamage <= 0.f)
+    {
+        return 0.f;
+    }
 
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
@@ -380,16 +383,35 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 
 void ABaseAnimal::OnInteract(AActor* Interactor)
 {
-    if (!IsValid(InteractWidgetClass)) return;
+    if (CurrentState != EAnimalState::Dead) return;
 
-    UAnimalInteractWidget* InteractUI = CreateWidget<UAnimalInteractWidget>(GetWorld(), InteractWidgetClass);
-    if (IsValid(InteractUI))
+    APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor);
+    if (!IsValid(Player)) return;
+
+    UBaseInventoryComponent* Inventory = Player->FindComponentByClass<UBaseInventoryComponent>();
+    if (!IsValid(Inventory)) return;
+
+    if (!bStatsReady || !StatsRow || CurrentStats.DropItemRowNames.Num() == 0 || CurrentStats.TotalDropItemCount <= 0)
     {
-        InteractUI->OwningAnimal = this;
-        InteractUI->InitByAnimalState(bIsStunned);
-        InteractUI->AddToViewport();
-        ActiveInteractWidget = InteractUI;
+        Destroy();
+        return;
     }
+
+    TMap<FName, int32> DroppedItems;
+
+    for (int32 i = 0; i < CurrentStats.TotalDropItemCount; ++i)
+    {
+        int32 Index = FMath::RandRange(0, CurrentStats.DropItemRowNames.Num() - 1);
+        FName SelectedItem = CurrentStats.DropItemRowNames[Index];
+        DroppedItems.FindOrAdd(SelectedItem)++;
+    }
+
+    if (DroppedItems.Num() > 0)
+    {
+        Inventory->AddItems(DroppedItems);
+    }
+
+    Destroy();
 }
 
 void ABaseAnimal::Capture()
@@ -548,29 +570,7 @@ void ABaseAnimal::PerformMeleeAttack()
 
     const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
     if (Distance > MeleeRange) return;
-
-    if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
-    {
-        if (HitAnimal->CurrentState == EAnimalState::Dead)
-        {
-            if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-            {
-                C->OnTargetDied();
-            }
-            return;
-        }
-    }
-
-    if (!AttackRange || !AttackRange->IsOverlappingActor(CurrentTarget))
-    {
-        if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-        {
-            C->OnTargetOutOfRange();
-        }
-        return;
-    }
-
-    bIsMeleeOnCooldown = true;
+    
     GetWorldTimerManager().SetTimer(
         MeleeAttackTimerHandle,
         this,
@@ -578,16 +578,12 @@ void ABaseAnimal::PerformMeleeAttack()
         MeleeAttackCooldown,
         false
     );
-
-    float Damage = CurrentStats.AttackDamage;
-    UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);
 }
 
 void ABaseAnimal::PerformChargeAttack()
 {
     if (!bCanCharge || bIsChargeOnCooldown) return;
-
-    bIsChargeOnCooldown = true;
+    
     GetWorldTimerManager().SetTimer(
         ChargeAttackTimerHandle,
         this,
@@ -599,14 +595,19 @@ void ABaseAnimal::PerformChargeAttack()
 
 void ABaseAnimal::PerformRangedAttack()
 {
-    if (!bCanRanged || bIsRangedOnCooldown) return;
-
+    // if (!bCanRanged || bIsRangedOnCooldown)
+    // {
+    //     UE_LOG(LogTemp, Error, TEXT("bCanRanged: %s, bIsRangedOnCooldown: %s"),
+    // bCanRanged ? TEXT("true") : TEXT("false"),
+    // bIsRangedOnCooldown ? TEXT("true") : TEXT("false"));
+    //
+    //     return;
+    // }
     if (RangedAttackComponent)
     {
         RangedAttackComponent->FireProjectile();
     }
-
-    bIsRangedOnCooldown = true;
+    
     GetWorldTimerManager().SetTimer(
         RangedAttackTimerHandle,
         this,

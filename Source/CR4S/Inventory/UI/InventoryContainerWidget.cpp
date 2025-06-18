@@ -3,10 +3,12 @@
 #include "CR4S.h"
 #include "Components/Border.h"
 #include "Gimmick/UI/CompostBinWidget.h"
-#include "Inventory/InventoryType.h"
+#include "Gimmick/UI/HelperBotWorkshop/HelperBotWorkshopWidget.h"
+#include "Inventory/OpenWidgetType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
 #include "InventoryWidget/PlanterBoxInventoryWidget.h"
+#include "InventoryWidget/RobotInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -32,7 +34,8 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(HelperBotWorkshopWidget)))
 	{
 		return;
 	}
@@ -52,6 +55,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
 	RobotWorkshopWidget->InitWidget(SurvivalHUD, false);
+	HelperBotWorkshopWidget->InitWidget(PlayerInventoryComponent);
 
 	InitToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
@@ -60,6 +64,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	InitToggleWidget(CompostBinWidget);
 	InitToggleWidget(CraftingContainerWidget);
 	InitToggleWidget(RobotWorkshopWidget);
+	InitToggleWidget(HelperBotWorkshopWidget);
 }
 
 void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget,
@@ -73,7 +78,6 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	}
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Visible);
 
@@ -88,9 +92,11 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	{
 		ChangeWidgetOrder(PlayerInventoryComponent->GetInventoryContainerWidgetOrder());
 	}
+
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 }
 
-void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType InventoryType,
+void UInventoryContainerWidget::OpenOtherInventoryWidget(const EOpenWidgetType InventoryType,
                                                          UBaseInventoryComponent* InventoryComponent)
 {
 	OpenPlayerInventoryWidget();
@@ -199,16 +205,15 @@ void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const
 }
 
 UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
-	const EInventoryType InventoryType) const
+	const EOpenWidgetType OpenWidgetType) const
 {
 	UUserWidget* TargetWidget = nullptr;
 
-	switch (InventoryType)
+	switch (OpenWidgetType)
 	{
-	case EInventoryType::Player:
-	case EInventoryType::Greenhouse:
+	case EOpenWidgetType::Player:
 		return nullptr;
-	case EInventoryType::Storage:
+	case EOpenWidgetType::Storage:
 		{
 			if (IsValid(StorageInventoryWidget))
 			{
@@ -218,7 +223,7 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 			TargetWidget = StorageInventoryWidget;
 			break;
 		}
-	case EInventoryType::ItemPouch:
+	case EOpenWidgetType::ItemPouch:
 		{
 			if (IsValid(StorageInventoryWidget))
 			{
@@ -228,14 +233,17 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 			TargetWidget = StorageInventoryWidget;
 			break;
 		}
-	case EInventoryType::PlantBox:
+	case EOpenWidgetType::PlantBox:
 		TargetWidget = PlanterBoxInventoryWidget;
 		break;
-	case EInventoryType::CompostBin:
+	case EOpenWidgetType::CompostBin:
 		TargetWidget = CompostBinWidget;
 		break;
-	case EInventoryType::RobotWorkshop:
+	case EOpenWidgetType::RobotWorkshop:
 		TargetWidget = RobotWorkshopWidget;
+		break;
+	case EOpenWidgetType::HelperBotWorkshop:
+		TargetWidget = HelperBotWorkshopWidget;
 		break;
 	}
 

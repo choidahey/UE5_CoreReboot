@@ -1,9 +1,9 @@
-RowName,BehaviorType,bCanBeTamed,MaxHealth,JumpPower,AttackDamage,AttackRange,AttackInterval,KnockbackForce,StunAmount,ChargeSpeed,ChargeDistance,WalkSpeed,RunSpeed,MaxStamina,StaminaRegenRate,StunThreshold,StunDuration,SightRadius,HearingRadius,PeripheralVisionAngle,TargetLostRange,Mood,Hunger,bIsMale,GestationPeriod,OffspringCount,GrowthTime
-Wolf,Aggressive,1,100,300,15,300,1.5,200,0,600,0,300,600,100,10,50,2,1000,500,90,1500,50,50,1,60,4,120
-Deer,Coward,1,80,600,10,80,1.2,100,0,500,0,350,700,120,12,0,0,800,400,100,1200,50,50,0,45,2,90
-Elephant,Passive_AggroOnHit,0,300,0,100,120,2,300,5,400,200,250,500,140,8,30,1.5,700,300,80,1300,50,50,1,120,3,180
-Rabbit,Passive_FleeOnHit,1,300,600,5,60,1,0,0,800,0,400,800,80,15,0,0,600,200,120,1000,50,50,0,30,5,60
-Eagle,Aggressive,0,75,600,20,80,1,0,0,1000,500,0,500,120,15,0,0,2000,300,60,2500,50,50,0,0,0,365
-Hawk,Coward,0,60,600,15,70,1.2,0,0,900,400,0,450,110,14,0,0,1800,250,70,2300,50,50,1,0,0,365
-Owl,Passive_AggroOnHit,0,65,600,18,75,1.1,0,0,850,450,0,480,115,13,0,0,1900,280,65,2400,50,50,0,0,0,365
-Sparrow,Passive_FleeOnHit,1,30,600,5,50,0.8,0,0,1100,0,0,1000,90,20,0,0,1500,200,100,2000,50,50,1,0,0,365
+RowName,BehaviorType,MaxHealth,JumpPower,AttackDamage,AttackRange,AttackInterval,KnockbackForce,StunAmount,ChargeSpeed,ChargeDistance,WalkSpeed,RunSpeed,MaxStamina,StaminaRegenRate,StunThreshold,StunDuration,SightRadius,HearingRadius,PeripheralVisionAngle,TargetLostRange,TotalDropItemCount,DropItemRowNames
+Wolf,Aggressive,100,300,15,300,1.5,200,0,600,0,300,600,100,10,50,2,1000,500,90,1500,2,"(""FoxTail"", ""Bone"")"
+Deer,Coward,80,600,10,80,1.2,100,0,500,0,350,700,120,12,0,0,800,400,100,1200,1,"(""PredatorsFeather"", ""Bone"")"
+Elephant,Passive_AggroOnHit,300,0,100,120,2,300,5,400,200,250,500,140,8,30,1.5,700,300,80,1300,2,"(""PredatorsFeather"", ""Bone"")"
+Rabbit,Passive_FleeOnHit,300,600,5,60,1,0,0,800,0,400,800,80,15,0,0,600,200,120,1000,4,"(""PredatorsFeather"", ""Bone"")"
+Eagle,Aggressive,75,600,20,80,1,0,0,1000,500,0,500,120,15,0,0,2000,300,60,2500,3,"(""PredatorsFeather"", ""Bone"")"
+Hawk,Coward,60,600,15,70,1.2,0,0,900,400,0,450,110,14,0,0,1800,250,70,2300,3,"(""PredatorsFeather"", ""Bone"")"
+Owl,Passive_AggroOnHit,65,600,18,75,1.1,0,0,850,450,0,480,115,13,0,0,1900,280,65,2400,2,"(""PredatorsFeather"", ""Bone"")"
+Sparrow,Passive_FleeOnHit,30,600,5,50,0.8,0,0,1100,0,0,1000,90,20,0,0,1500,200,100,2000,2,"(""PredatorsFeather"", ""Bone"")"

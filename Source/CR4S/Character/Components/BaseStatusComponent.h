@@ -26,7 +26,6 @@ public:
 	
 	FORCEINLINE float GetMaxResource() const { return BaseStatus.MaxResource; }
 	FORCEINLINE float GetCurrentResource() const { return BaseStatus.Resource; }
-	FORCEINLINE float GetResourceConsumptionRate() const { return BaseStatus.ResourceConsumptionRate; }
 	
 	FORCEINLINE float GetAttackPower() const { return BaseStatus.AttackPower; }
 	FORCEINLINE float GetArmor() const { return BaseStatus.Armor; }
@@ -44,13 +43,44 @@ public:
 	
 	void AddMaxResource(const float InAmount);
 	void AddCurrentResource(const float InAmount);
-	void AddResourceConsumptionRate(const float InAmount);
 	
 	void AddAttackPower(const float InAmount);
 	void AddArmor(const float InAmount);
 	void AddColdThreshold(const float InAmount);
 	void AddHeatThreshold(const float InAmount);
 	void AddHumidityThreshold(const float InAmount);
+#pragma endregion
+	
+#pragma region Roll & Dash
+	bool HasEnoughResourceForRoll() const;
+	void ConsumeResourceForRoll();
+#pragma endregion
+
+#pragma region StaminaRegen
+	void StartResourceRegen();
+	void StopResourceRegen();
+	void OnResourceConsumed();
+	void RegenResourceForInterval();
+#pragma endregion
+
+#pragma region Temperature 
+	UFUNCTION()
+	void HandleTemperatureChanged(float NewTemperature);
+
+	virtual void ApplyHeatDebuff();
+	virtual void RemoveHeatDebuff();
+	void ApplyOverHeatDamage();
+
+	virtual void ApplyColdDebuff();
+	virtual void RemoveColdDebuff();
+#pragma endregion
+
+#pragma region Humidity
+	UFUNCTION()
+	void HandleHumidityChanged(float NewHumidity);
+
+	virtual void ApplyHighHumidityDebuff();
+	virtual void RemoveHighHumidityDebuff();
 #pragma endregion
 	
 #pragma region Override
@@ -64,7 +94,7 @@ protected:
 	
 #pragma region Status
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FBaseStats BaseStatus;
 #pragma endregion
 	
@@ -74,4 +104,21 @@ public:
 	FOnResourceChangedDelegate OnResourceChanged;
 	FOnDeathDelegate OnDeathState;
 #pragma endregion
+
+#pragma region Flag
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsOverHeated:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsFreezing:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	uint8 bIsHumidityAffected:1 {false};
+#pragma endregion
+
+#pragma region Timer
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	FTimerHandle StaminaRegenTimerHandle;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	FTimerHandle OverHeatDamageTimerHandle;
+#pragma endregion
 };
+

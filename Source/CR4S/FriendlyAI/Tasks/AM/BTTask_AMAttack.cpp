@@ -1,126 +1,183 @@
 #include "BTTask_AMAttack.h"
-#include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "DrawDebugHelpers.h"
-#include "../../Controller/AnimalMonsterAIController.h"
-#include "../../BaseAnimal.h"
-#include "Components/SphereComponent.h"
+#include "FriendlyAI/Controller/AnimalMonsterAIController.h"
+#include "FriendlyAI/AnimalMonster.h"
 
 UBTTask_AMAttack::UBTTask_AMAttack()
 {
 	NodeName = TEXT("AM Attack");
 	bNotifyTick = true;
-	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_AMAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	StoredOwnerComp = &OwnerComp;
-	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!Animal || !Animal->MeleeAttackMontage || !Animal->GetCurrentStats().AttackInterval)
-		return EBTNodeResult::Failed;
-	
-	AActor* Target = Animal->CurrentTarget;
-	//
-	// if (!Target)
-	// {
-	// 	if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
-	// 	{
-	// 		Target = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
-	// 		if (Target) Animal->CurrentTarget = Target;
-	// 	}
-	// }
-	//
-	
-	if (!Animal->AttackRange || !Target) return EBTNodeResult::Failed;
-
-	const float Distance = FVector::Dist(Animal->GetActorLocation(), Target->GetActorLocation());
-	float RandValue = FMath::FRand();
-
-	if (Animal->CurrentState != EAnimalState::Attack ||
-	(!Animal->bCanMelee && !Animal->bCanCharge && !Animal->bCanRanged))
+	AAnimalMonsterAIController* AIController = Cast<AAnimalMonsterAIController>(OwnerComp.GetAIOwner());
+	if (!IsValid(AIController))
 	{
-		if (AAnimalMonsterAIController* C = Cast<AAnimalMonsterAIController>(Animal->GetController()))
-		{
-			C->SetAnimalState(EAnimalState::Chase);
-		}
-		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
 	}
 
-	if (Target->ActorHasTag("House"))
+	AAnimalMonster* Monster = Cast<AAnimalMonster>(AIController->GetPawn());
+	if (!IsValid(Monster) || !IsValid(Monster->CurrentTarget))
 	{
-		float Duration = Animal->PlayAttackMontage();
-		Animal->GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UBTTask_AMAttack::OnAttackFinished, Duration, false);
-		return EBTNodeResult::InProgress;
+		return EBTNodeResult::Failed;
 	}
 	
-     	if (Distance <= Animal->RangedRange && Animal->bCanRanged && !Animal->bIsRangedOnCooldown && RandValue < Animal->RangedProbability)
-     	{
-     		float Duration = Animal->PlayRangedAttackMontage();
-     		Animal->GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UBTTask_AMAttack::OnAttackFinished, Duration, false);
-     		return EBTNodeResult::InProgress;
-     	}
-     	else if (Distance <= Animal->DashRange && Animal->bCanCharge && !Animal->bIsChargeOnCooldown && RandValue < Animal->RangedProbability + Animal->ChargeProbability)
-     	{
-     		float Duration = Animal->PlayChargeAttackMontage();
-     		Animal->GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UBTTask_AMAttack::OnAttackFinished, Duration, false);
-     		return EBTNodeResult::InProgress;
-     	}
-     	else if (Distance <= Animal->MeleeRange && Animal->bCanMelee && !Animal->bIsMeleeOnCooldown && RandValue < Animal->MeleeProbability)
-     	{
-     		float Duration = Animal->PlayAttackMontage();
-     		Animal->GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UBTTask_AMAttack::OnAttackFinished, Duration, false);
-     		return EBTNodeResult::InProgress;
-     	}
-     	else
-     	{
-     		if (AAnimalMonsterAIController* C = Cast<AAnimalMonsterAIController>(Animal->GetController()))
-     		{
-     			C->SetAnimalState(EAnimalState::Chase);
-     		}
-     		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Failed);
-     		return EBTNodeResult::Failed;
-     	}
+	float DistanceToTarget = FVector::Dist(Monster->GetActorLocation(), Monster->CurrentTarget->GetActorLocation());
+	
+	EAttackType SelectedAttack = SelectAttackType(Monster, DistanceToTarget);
+	
+	if (SelectedAttack == EAttackType::None)
+	{
+		return EBTNodeResult::Failed;
+	}
+	
+	ExecuteAttack(Monster, SelectedAttack);
+	
+	return EBTNodeResult::InProgress;
 }
 
 void UBTTask_AMAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	AAnimalMonsterAIController* Controller = Cast<AAnimalMonsterAIController>(OwnerComp.GetAIOwner());
-	ABaseAnimal* Animal = Controller ? Cast<ABaseAnimal>(Controller->GetPawn()) : nullptr;
-	if (!Animal || !IsValid(Animal->CurrentTarget) || Animal->CurrentState == EAnimalState::Stun)
+	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+
+	AAnimalMonster* Monster = Cast<AAnimalMonster>(OwnerComp.GetAIOwner()->GetPawn());
+	if (!IsValid(Monster))
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
-
-	const float Distance = FVector::Dist(Animal->GetActorLocation(), Animal->CurrentTarget->GetActorLocation());
-	const float LostRange = Animal->GetCurrentStats().TargetLostRange;
-
-	if (!IsValid(Animal->CurrentTarget) || Animal->CurrentState == EAnimalState::Dead || Distance > LostRange)
+	
+	if (!Monster->bIsAttacking)
 	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
 }
 
-void UBTTask_AMAttack::OnAttackFinished()
+EAttackType UBTTask_AMAttack::SelectAttackType(AAnimalMonster* Monster, float DistanceToTarget)
 {
-	if (UBehaviorTreeComponent* OwnerComp = StoredOwnerComp.Get())
+	if (!IsValid(Monster)) return EAttackType::None;
+	
+	TArray<EAttackType> AvailableAttacks = GetAvailableAttacks(Monster, DistanceToTarget);
+	
+	if (AvailableAttacks.Num() == 0)
 	{
-		if (bCanFollowUp)
+		return EAttackType::None;
+	}
+	
+	if (AvailableAttacks.Num() == 1)
+	{
+		return AvailableAttacks[0];
+	}
+	
+	TArray<float> Weights;
+	for (EAttackType AttackType : AvailableAttacks)
+	{
+		switch (AttackType)
 		{
-			if (AAnimalMonsterAIController* C = Cast<AAnimalMonsterAIController>(StoredOwnerComp->GetAIOwner()))
-			{
-				if (ABaseAnimal* Animal = Cast<ABaseAnimal>(C->GetPawn()))
-				{
-					if (IsValid(Animal->CurrentTarget))
-					{
-						C->SetTargetActor(Animal->CurrentTarget);
-						C->SetAnimalState(EAnimalState::Chase);
-					}
-				}
-			}
+		case EAttackType::Melee:
+			Weights.Add(Monster->MeleeProbability);
+			break;
+		case EAttackType::Charge:
+			Weights.Add(Monster->ChargeProbability);
+			break;
+		case EAttackType::Ranged:
+			Weights.Add(Monster->RangedProbability);
+			break;
+		default:
+			Weights.Add(0.0f);
+			break;
 		}
-		FinishLatentTask(*StoredOwnerComp, EBTNodeResult::Succeeded);
+	}
+	
+	float TotalWeight = 0.0f;
+	for (float Weight : Weights)
+	{
+		TotalWeight += Weight;
+	}
+
+	if (TotalWeight <= 0.0f)
+	{
+		return AvailableAttacks[0];
+	}
+	
+	float RandomValue = FMath::FRandRange(0.0f, TotalWeight);
+	float CurrentWeight = 0.0f;
+	
+	for (int32 i = 0; i < AvailableAttacks.Num(); ++i)
+	{
+		CurrentWeight += Weights[i];
+		if (RandomValue <= CurrentWeight)
+		{
+			return AvailableAttacks[i];
+		}
+	}
+	
+	return AvailableAttacks[0];
+}
+
+TArray<EAttackType> UBTTask_AMAttack::GetAvailableAttacks(AAnimalMonster* Monster, float DistanceToTarget)
+{
+	TArray<EAttackType> AvailableAttacks;
+	
+	if (!IsValid(Monster)) return AvailableAttacks;
+	
+	if (CanPerformAttack(Monster, EAttackType::Melee, DistanceToTarget))
+	{
+		AvailableAttacks.Add(EAttackType::Melee);
+	}
+	
+	if (CanPerformAttack(Monster, EAttackType::Charge, DistanceToTarget))
+	{
+		AvailableAttacks.Add(EAttackType::Charge);
+	}
+	
+	if (CanPerformAttack(Monster, EAttackType::Ranged, DistanceToTarget))
+	{
+		AvailableAttacks.Add(EAttackType::Ranged);
+	}
+
+	return AvailableAttacks;
+}
+
+bool UBTTask_AMAttack::CanPerformAttack(AAnimalMonster* Monster, EAttackType AttackType, float DistanceToTarget)
+{
+	if (!IsValid(Monster)) return false;
+
+	switch (AttackType)
+	{
+	case EAttackType::Melee:
+		return Monster->bCanMelee && 
+		       !Monster->bIsMeleeOnCooldown && 
+		       DistanceToTarget <= Monster->MeleeRange;
+		       
+	case EAttackType::Charge:
+		return Monster->bCanCharge && 
+		       !Monster->bIsChargeOnCooldown && 
+		       DistanceToTarget <= Monster->DashRange;
+		       
+	case EAttackType::Ranged:
+		return Monster->bCanRanged && 
+		       !Monster->bIsRangedOnCooldown && 
+		       DistanceToTarget <= Monster->RangedRange;
+		       
+	default:
+		return false;
+	}
+}
+
+void UBTTask_AMAttack::ExecuteAttack(AAnimalMonster* Monster, EAttackType AttackType)
+{
+	switch (AttackType)
+	{
+	case EAttackType::Melee:
+		Monster->PlayAttackMontage();
+		break;
+	case EAttackType::Charge:
+		Monster->PlayChargeAttackMontage();
+		break;
+	case EAttackType::Ranged:
+		Monster->PlayRangedAttackMontage();
+		break;
 	}
 }

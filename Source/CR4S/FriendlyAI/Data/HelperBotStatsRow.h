@@ -22,5 +22,14 @@ struct FHelperBotStatsRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float WoodDamagePerSecond = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RockDamagePerSecond = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RepairingPerSecond = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackPerSecond = 0.f;
 	
 };

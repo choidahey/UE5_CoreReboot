@@ -2,6 +2,7 @@
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "FriendlyAI/BaseHelperBot.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -43,28 +44,49 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
 {
     if (Status != EEnvQueryStatus::Success || !OwnerCompPtr)
     {
-        FinishLatentTask(*OwnerCompPtr, EBTNodeResult::Failed);
+        UBehaviorTreeComponent* TempOwnerComp = OwnerCompPtr;
+        if (QueryInstance)
+        {
+            QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+            QueryInstance = nullptr;
+        }
+        OwnerCompPtr = nullptr;
+        FinishLatentTask(*TempOwnerComp, EBTNodeResult::Failed);
         return;
     }
 
     TArray<FVector> Locations = Wrapper->GetResultsAsLocations();
     if (Locations.Num() == 0)
     {
-        FinishLatentTask(*OwnerCompPtr, EBTNodeResult::Failed);
+        UBehaviorTreeComponent* TempOwnerComp = OwnerCompPtr;
+        if (QueryInstance)
+        {
+            QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+            QueryInstance = nullptr;
+        }
+        OwnerCompPtr = nullptr;
+        FinishLatentTask(*TempOwnerComp, EBTNodeResult::Failed);
         return;
     }
     
     FVector RawTarget = Locations[0];
     FNavLocation Projected;
-    UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+    UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(OwnerCompPtr->GetWorld());
     FVector Target;
-    if (NavSys && NavSys->ProjectPointToNavigation(RawTarget, Projected, FVector(200.f)))
+    if (NavSys && NavSys->ProjectPointToNavigation(RawTarget, Projected, FVector(50.f)))
     {
         Target = Projected.Location;
     }
     else
     {
-        FinishLatentTask(*OwnerCompPtr, EBTNodeResult::Failed);
+        UBehaviorTreeComponent* TempOwnerComp = OwnerCompPtr;
+        if (QueryInstance)
+        {
+            QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+            QueryInstance = nullptr;
+        }
+        OwnerCompPtr = nullptr;
+        FinishLatentTask(*TempOwnerComp, EBTNodeResult::Failed);
         return;
     }
 
@@ -74,12 +96,33 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
     {
         OwnerCompPtr->GetBlackboardComponent()
             ->SetValueAsObject(ResourceTargetKey.SelectedKeyName, ResultActors[0]);
+
+        if (ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(OwnerCompPtr->GetAIOwner()->GetPawn()))
+        {
+            if (HelperBot->WorkTargetParticle)
+            {
+                FVector Origin, BoxExtent;
+                ResultActors[0]->GetActorBounds(false, Origin, BoxExtent);
+                FVector ParticleLocation = FVector(Origin.X, Origin.Y, Origin.Z - BoxExtent.Z);
+
+                HelperBot->WorkTargetParticle->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+                HelperBot->WorkTargetParticle->SetWorldLocation(ParticleLocation);
+                HelperBot->WorkTargetParticle->Activate(true);
+            }
+        }
     }
     
     AAIController* AICon = Cast<AAIController>(OwnerCompPtr->GetAIOwner());
     if (!AICon)
     {
-        FinishLatentTask(*OwnerCompPtr, EBTNodeResult::Failed);
+        UBehaviorTreeComponent* TempOwnerComp = OwnerCompPtr;
+        if (QueryInstance)
+        {
+            QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+            QueryInstance = nullptr;
+        }
+        OwnerCompPtr = nullptr;
+        FinishLatentTask(*TempOwnerComp, EBTNodeResult::Failed);
         return;
     }
     
@@ -91,9 +134,23 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
         }
     }
     
+    if (FVector::Dist(AICon->GetPawn()->GetActorLocation(), Target) <= AcceptanceRadius)
+    {
+        if (QueryInstance)
+        {
+            QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+            QueryInstance = nullptr;
+        }
+        UBehaviorTreeComponent* TempOwnerComp = OwnerCompPtr;
+        OwnerCompPtr = nullptr;
+        FinishLatentTask(*TempOwnerComp, EBTNodeResult::Succeeded);
+        return;
+    }
+
     FAIMoveRequest MoveReq(Target);
     MoveReq.SetAcceptanceRadius(AcceptanceRadius);
     MoveReq.SetAllowPartialPath(true);
+
     FNavPathSharedPtr OutPath;
     EPathFollowingRequestResult::Type Result =
         AICon->MoveTo(MoveReq, &OutPath);
@@ -101,10 +158,22 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
     if (Result == EPathFollowingRequestResult::RequestSuccessful)
     {
         AICon->ReceiveMoveCompleted.AddDynamic(this, &UBTTask_HelperBotBMoveToResource::HandleMoveCompleted);
+        if (QueryInstance)
+        {
+            QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+            QueryInstance = nullptr;
+        }
         return;
     }
 
-    FinishLatentTask(*OwnerCompPtr, EBTNodeResult::Failed);
+    UBehaviorTreeComponent* TempOwnerComp = OwnerCompPtr;
+    if (QueryInstance)
+    {
+        QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+        QueryInstance = nullptr;
+    }
+    OwnerCompPtr = nullptr;
+    FinishLatentTask(*TempOwnerComp, EBTNodeResult::Succeeded);
 }
 
 void UBTTask_HelperBotBMoveToResource::HandleMoveCompleted(
@@ -127,12 +196,13 @@ void UBTTask_HelperBotBMoveToResource::HandleMoveCompleted(
         }
     }
 
-    FinishLatentTask(
-        *OwnerCompPtr,
-        (Result == EPathFollowingResult::Success)
-            ? EBTNodeResult::Succeeded
-            : EBTNodeResult::Failed
-    );
+    EBTNodeResult::Type TaskResult = (Result == EPathFollowingResult::Success) 
+    ? EBTNodeResult::Succeeded 
+    : EBTNodeResult::Failed;
+
+    UBehaviorTreeComponent* TempOwnerComp = OwnerCompPtr;
+    OwnerCompPtr = nullptr;
+    FinishLatentTask(*TempOwnerComp, TaskResult);
 }
 
 EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::AbortTask(
@@ -143,14 +213,24 @@ EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::AbortTask(
     {
         QueryInstance->GetOnQueryFinishedEvent()
             .RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
+        QueryInstance = nullptr;
     }
-    
+
     if (AAIController* AICon = Cast<AAIController>(OwnerComp.GetAIOwner()))
     {
         AICon->StopMovement();
         AICon->ReceiveMoveCompleted
             .RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::HandleMoveCompleted);
+    
+        if (ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(AICon->GetPawn()))
+        {
+            if (HelperBot->WorkTargetParticle)
+            {
+                HelperBot->WorkTargetParticle->Deactivate();
+            }
+        }
     }
 
+    OwnerCompPtr = nullptr;
     return EBTNodeResult::Aborted;
 }

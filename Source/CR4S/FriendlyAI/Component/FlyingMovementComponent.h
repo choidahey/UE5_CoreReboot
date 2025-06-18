@@ -93,11 +93,11 @@ public:
     FVector FlockDir;
 
 public:
-    UFUNCTION()
-    void SetToFlyingMode();
-
-    UFUNCTION()
-    void SetToWalkingMode();
+    // UFUNCTION()
+    // void SetToFlyingMode();
+    //
+    // UFUNCTION()
+    // void SetToWalkingMode();
 
 public:
     virtual void BeginPlay() override;
@@ -192,7 +192,7 @@ public:
     void MoveToGroundTarget(float DeltaTime);
     
     //anim
-    void UpdateAnimaion();
+    //void UpdateAnimaion();
     
     UPROPERTY()
     AActor* GroundTarget = nullptr;
@@ -223,4 +223,15 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation")
     int32 RandomIdleAnim = 0;
+
+    bool DisableCollisionDuringFlight;
+
+    bool PerformAvoidanceTrace(float TraceDistance);
+    FVector GetAvoidanceDirection() const;
+    float ComputeVerticalThrustAdjustment() const;
+    bool ShouldFlapFast() const;
+    
+private:
+    bool bAvoidanceResult = false;
+    FHitResult LastAvoidanceHit;
 };

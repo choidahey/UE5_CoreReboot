@@ -13,6 +13,9 @@
 class UInteractableComponent;
 class UHelperBotInfoWidget;
 class UBaseInventoryComponent;
+class UNavigationInvokerComponent;
+class UNiagaraComponent;
+class UParticleSystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
@@ -39,6 +42,10 @@ public:
 protected:
 	UFUNCTION()
 	void HandleInteract(AActor* InteractableActor);
+
+protected:
+	UPROPERTY()
+	UMaterialInstanceDynamic* HighlightMaterialInstance = nullptr;
 	
 #pragma endregion
 
@@ -50,6 +57,13 @@ protected:
 #pragma endregion
 
 #pragma region Interaction Variables
+
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnTryInteract OnTryInteract;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnDetectionStateChanged OnDetectionStateChanged;
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -60,6 +74,12 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UHelperBotStateManagerWidget> StateUIInstance = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidgetInstance;
 	
 #pragma endregion
 
@@ -77,34 +97,61 @@ protected:
 	
 #pragma endregion
 
-#pragma region Miscellaneous Variables
-protected:
-	UPROPERTY()
-	UMaterialInstanceDynamic* HighlightMaterialInstance = nullptr;
-
-public:
-	UPROPERTY(BlueprintReadOnly)
-	bool bIsChopping = false;
-	
-#pragma endregion
-
-#pragma region Getters
+#pragma region Getters/Setters
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetWoodDamagePerSecond() const { return CurrentStats.WoodDamagePerSecond; }
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
-	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
-#pragma endregion
-
-#pragma region Inventory Component
+	FORCEINLINE float GetRockPerSecond() const { return CurrentStats.RockDamagePerSecond; }
 	
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetRepairingPerSecond() const { return CurrentStats.RepairingPerSecond; }
+
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
+
+	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
+
+	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
 #pragma endregion
 
+#pragma region Component
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	TObjectPtr<USplineComponent> LeftEyeWorkSpline = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	TObjectPtr<USplineComponent> RightEyeWorkSpline = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	UNiagaraComponent* LeftEyeWorkVFXComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	UNiagaraComponent* RightEyeWorkVFXComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	class UPointLightComponent* LeftEyeLight = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	class UPointLightComponent* RightEyeLight = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	class UNavigationInvokerComponent* NavInvokerComponent = nullptr;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	class UParticleSystemComponent* WorkTargetParticle = nullptr;
+
+#pragma endregion
+	
 #pragma region Info Widget
 	
 public:
@@ -120,30 +167,17 @@ protected:
 	
 #pragma endregion
 
+#pragma region Work
 public:
-	UPROPERTY(BlueprintAssignable)
-	FOnTryInteract OnTryInteract;
+	UFUNCTION()
+	void UpdateEyeBeamWorkTarget(AActor* TargetActor);
 
-	UPROPERTY(BlueprintAssignable)
-	FOnDetectionStateChanged OnDetectionStateChanged;
+	UFUNCTION()
+	void StopEyeBeamWork();
 
-public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Chopping")
-	TObjectPtr<USplineComponent> ChopSpline = nullptr;
-
-	UFUNCTION(BlueprintCallable, Category = "Chopping")
-	void UpdateChopSplineTarget(AActor* TargetActor);
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chopping")
-	UNiagaraSystem* ChopVFXSystem = nullptr;
-
-	UPROPERTY()
-	UNiagaraComponent* ActiveChopVFX = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidgetInstance;
+private:
+	bool bIsWorking = false;
+#pragma endregion
+	
 
 };

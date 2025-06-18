@@ -21,7 +21,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HungerDecreaseAmount{0.1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float SpeedDebuffMultiplier{0.5};
+	float HungerConsumptionMultiplier{1};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StarvationDamage{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StarvationDamageInterval{1};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SprintResourceCost{100};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SprintCostConsumptionInterval{0.1};
+
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// float ColdSpeedMultiplier{0.5};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ColdResourceRegenMultiplier{0.8};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ColdHungerConsumptionMultiplier{1.1};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DefaultMontagePlayRate{1.3};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HighHumidityMontagePlayRate{1};
 };
 
 UCLASS(Blueprintable, BlueprintType)

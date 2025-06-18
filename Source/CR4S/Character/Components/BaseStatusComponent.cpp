@@ -3,6 +3,8 @@
 
 #include "BaseStatusComponent.h"
 
+#include "CR4S.h"
+
 
 // Sets default values for this component's properties
 UBaseStatusComponent::UBaseStatusComponent()
@@ -53,15 +55,10 @@ void UBaseStatusComponent::AddCurrentHP(const float InAmount)
 
 void UBaseStatusComponent::AddCurrentResource(const float InAmount)
 {
-	const float Temp=FMath::Clamp(BaseStatus.Resource+InAmount,0,BaseStatus.Resource);
+	const float Temp=FMath::Clamp(BaseStatus.Resource+InAmount,0,BaseStatus.MaxResource);
 	BaseStatus.Resource=Temp;
 	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
 	OnResourceChanged.Broadcast(Percentage);
-}
-
-void UBaseStatusComponent::AddResourceConsumptionRate(const float InAmount)
-{
-	BaseStatus.ResourceConsumptionRate+=InAmount;
 }
 
 void UBaseStatusComponent::AddAttackPower(const float InAmount)
@@ -87,6 +84,149 @@ void UBaseStatusComponent::AddHeatThreshold(const float InAmount)
 void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 {
 	BaseStatus.HumidityThreshold+=InAmount;
+}
+
+bool UBaseStatusComponent::HasEnoughResourceForRoll() const
+{
+	return GetCurrentResource()>=(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier);
+}
+
+//Dash & Roll
+void UBaseStatusComponent::ConsumeResourceForRoll()
+{
+	AddCurrentResource(-(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier));
+	OnResourceConsumed();
+}
+
+void UBaseStatusComponent::StartResourceRegen()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		StaminaRegenTimerHandle,
+		this,
+		&UBaseStatusComponent::RegenResourceForInterval,
+		BaseStatus.ResourceRegenInterval,
+		true,
+		BaseStatus.ResourceRegenDelay
+	);
+}
+
+void UBaseStatusComponent::StopResourceRegen()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+	GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+}
+
+void UBaseStatusComponent::OnResourceConsumed()
+{
+	StopResourceRegen();
+	StartResourceRegen();
+}
+
+void UBaseStatusComponent::RegenResourceForInterval()
+{
+	if (GetCurrentResource()>=GetMaxResource())
+	{
+		StopResourceRegen();
+		return;
+	}
+	AddCurrentResource((BaseStatus.ResourceRegenPerInterval*BaseStatus.ResourceRegenMultiplier));
+}
+
+void UBaseStatusComponent::HandleTemperatureChanged(float NewTemperature)
+{
+	if (NewTemperature>BaseStatus.HeatThreshold)
+	{
+		if (!bIsOverHeated)
+		{
+			bIsOverHeated=true;
+			ApplyHeatDebuff();
+		}
+	}
+	else if (NewTemperature<BaseStatus.ColdThreshold)
+	{
+		if (!bIsFreezing)
+		{
+			bIsFreezing=true;
+			ApplyColdDebuff();
+		}
+	}
+	else
+	{
+		if (bIsOverHeated)
+		{
+			bIsOverHeated=false;
+			RemoveHeatDebuff();
+		}
+		if (bIsFreezing)
+		{
+			bIsFreezing=false;
+			RemoveColdDebuff();
+		}
+	}
+}
+
+void UBaseStatusComponent::ApplyHeatDebuff()
+{
+	if (GetWorld()&&BaseStatus.HeatDamageInterval>KINDA_SMALL_NUMBER)
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			OverHeatDamageTimerHandle,
+			this,
+			&UBaseStatusComponent::ApplyOverHeatDamage,
+			BaseStatus.HeatDamageInterval,
+			true
+		);
+	}
+}
+
+void UBaseStatusComponent::RemoveHeatDebuff()
+{
+	if (CR4S_ENSURE(LogHong1,GetWorld())) return;
+	GetWorld()->GetTimerManager().ClearTimer(OverHeatDamageTimerHandle);
+}
+
+void UBaseStatusComponent::ApplyOverHeatDamage()
+{
+	AddCurrentHP(-(BaseStatus.HeatDamageAmount));
+}
+
+void UBaseStatusComponent::ApplyColdDebuff()
+{
+}
+
+void UBaseStatusComponent::RemoveColdDebuff()
+{
+}
+
+
+void UBaseStatusComponent::HandleHumidityChanged(float NewHumidity)
+{
+	if (NewHumidity>BaseStatus.HumidityThreshold)
+	{
+		if (!bIsHumidityAffected)
+		{
+			bIsHumidityAffected=true;
+			ApplyHighHumidityDebuff();
+		}
+	}
+	else
+	{
+		if (bIsHumidityAffected)
+		{
+			bIsHumidityAffected=false;
+			RemoveHighHumidityDebuff();
+		}
+	}
+}
+
+void UBaseStatusComponent::ApplyHighHumidityDebuff()
+{
+}
+
+void UBaseStatusComponent::RemoveHighHumidityDebuff()
+{
 }
 
 // Called every frame

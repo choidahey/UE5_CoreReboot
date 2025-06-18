@@ -1,16 +1,17 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "IngredientWidget.h"
+#include "IngredientsWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Gimmick/Data/ItemRecipeData.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 
 #include "CraftingWidget.generated.h"
 
 struct FRecipeIngredient;
 class UButton;
 struct FRecipeSelectData;
-class UIngredientWidget;
+class UIngredientsWidget;
 class UCraftingContainerWidget;
 class UTextBlock;
 class UImage;
@@ -20,14 +21,21 @@ class CR4S_API UCraftingWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+#pragma region UUserWidget Override
+
+public:
+	UCraftingWidget(const FObjectInitializer& ObjectInitializer);
+	
+#pragma endregion 
+	
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget);
+	void InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent);
 
 private:
 	UPROPERTY()
-	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
 
 #pragma endregion
 
@@ -54,19 +62,19 @@ private:
 	TObjectPtr<UPanelWidget> IngredientsContainer;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UIngredientWidget>> IngredientWidgets;
+	TArray<TObjectPtr<UIngredientsWidget>> IngredientWidgets;
 
 #pragma endregion
 
 #pragma region Crafting
-	
+
 private:
 	UFUNCTION()
 	void CraftItem();
 	
-	bool bCanCraft = false;
-
-	FItemRecipeData ItemRecipeData = FItemRecipeData();
+	bool bCanCraft;
+	
+	FItemRecipeData ItemRecipeData;
 
 	TArray<FIngredientData> CurrentIngredients;
 	

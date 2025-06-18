@@ -71,6 +71,16 @@ UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWid
 	return nullptr;
 }
 
+URobotInventoryWidget* UPlayerInventoryComponent::GetRobotInventoryWidget() const
+{
+	if (IsValid(InventoryContainerWidgetInstance))
+	{
+		return InventoryContainerWidgetInstance->GetRobotInventoryWidget();
+	}
+
+	return nullptr;
+}
+
 bool UPlayerInventoryComponent::PrepareOpenInventory(UInteractionComponent* InteractionComponent) const
 {
 	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerActor)) ||
@@ -98,7 +108,7 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDi
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
 }
 
-void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType,
+void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EOpenWidgetType InventoryType,
                                                          UBaseInventoryComponent* InventoryComponent) const
 {
 	if (!PrepareOpenInventory())
