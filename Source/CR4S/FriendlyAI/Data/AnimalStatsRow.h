@@ -70,7 +70,7 @@ struct FAnimalStatsRow : public FTableRowBase
     int32 TotalDropItemCount = 0;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TArray<FName> DropItemRowNames;
+    TArray<FName> DropItemRowNames = {};
 
     // UPROPERTY(EditAnywhere, BlueprintReadWrite)
     // uint8 bCanBeTamed = 0;
