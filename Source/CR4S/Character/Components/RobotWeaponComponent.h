@@ -26,11 +26,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Input_OnAttackLeftArm();
 	UFUNCTION(BlueprintCallable)
+	void Input_StopAttackLeftArm();
+	UFUNCTION(BlueprintCallable)
 	void Input_OnAttackRightArm();
+	UFUNCTION(BlueprintCallable)
+	void Input_StopAttackRightArm();
 	UFUNCTION(BlueprintCallable)
 	void Input_OnAttackLeftShoulder();
 	UFUNCTION(BlueprintCallable)
+	void Input_StopAttackLeftShoulder();
+	UFUNCTION(BlueprintCallable)
 	void Input_OnAttackRightShoulder();
+	UFUNCTION(BlueprintCallable)
+	void Input_StopAttackRightShoulder();
 
 	UFUNCTION(BlueprintCallable)
 	void EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx);
@@ -53,8 +61,6 @@ protected:
 	//Left, Right Arm (0,1), Left, Right Shoulder(2,3)	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
 	TArray<TObjectPtr<ABaseWeapon>> Weapons; 
-	
-	int32 ActivatedWeaponIdx {-1};
 #pragma endregion
 
 #pragma region WeaponSettings

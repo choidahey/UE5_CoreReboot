@@ -24,49 +24,84 @@ URobotWeaponComponent::URobotWeaponComponent()
 void URobotWeaponComponent::Input_OnAttackLeftArm()
 {
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	
 	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
-	FGameplayTag TempTag=Weapons[0]->GetGameplayTag();
-	if ((TempTag.MatchesTag(WeaponTags::Melee)&&InputBuffer->CheckInputQueue(EInputType::RobotAttack1))
-		||TempTag.MatchesTag(WeaponTags::Ranged))
+	
+	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack1))
 	{
-		ActivatedWeaponIdx=0;
 		Weapons[0]->OnAttack();
 	}
+}
+
+void URobotWeaponComponent::Input_StopAttackLeftArm()
+{
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
+
+	InputBuffer->ClearInputQueue();
+	Weapons[0]->StopAttack();
 }
 
 void URobotWeaponComponent::Input_OnAttackRightArm()
 {
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	
-	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
-	FGameplayTag TempTag=Weapons[0]->GetGameplayTag();
-	if ((TempTag.MatchesTag(WeaponTags::Melee)&&InputBuffer->CheckInputQueue(EInputType::RobotAttack2))
-		||TempTag.MatchesTag(WeaponTags::Ranged))
+	if (!Weapons.IsValidIndex(1)||!IsValid(Weapons[1])) return;
+	
+	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack2))
 	{
-		ActivatedWeaponIdx=1;
 		Weapons[1]->OnAttack();
 	}
+}
+
+void URobotWeaponComponent::Input_StopAttackRightArm()
+{
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	if (!Weapons.IsValidIndex(1)||!IsValid(Weapons[1])) return;
+
+	InputBuffer->ClearInputQueue();
+	Weapons[1]->StopAttack();
 }
 
 void URobotWeaponComponent::Input_OnAttackLeftShoulder()
 {
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	
-	if (Weapons.IsValidIndex(2)&&IsValid(Weapons[2]))
+	if (!Weapons.IsValidIndex(2)||!IsValid(Weapons[2])) return;
+	
+	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack3))
 	{
 		Weapons[2]->OnAttack();
 	}
+}
+
+void URobotWeaponComponent::Input_StopAttackLeftShoulder()
+{
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	if (!Weapons.IsValidIndex(2)||!IsValid(Weapons[2])) return;
+
+	InputBuffer->ClearInputQueue();
+	Weapons[2]->StopAttack();
 }
 
 void URobotWeaponComponent::Input_OnAttackRightShoulder()
 {
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	
-	if (Weapons.IsValidIndex(3)&&IsValid(Weapons[3]))
+	if (!Weapons.IsValidIndex(3)||!IsValid(Weapons[3])) return;
+	
+	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack4))
 	{
 		Weapons[3]->OnAttack();
 	}
+}
+
+void URobotWeaponComponent::Input_StopAttackRightShoulder()
+{
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	if (!Weapons.IsValidIndex(3)||!IsValid(Weapons[3])) return;
+
+	InputBuffer->ClearInputQueue();
+	Weapons[3]->StopAttack();
 }
 
 void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx)

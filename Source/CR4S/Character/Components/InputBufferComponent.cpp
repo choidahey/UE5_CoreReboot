@@ -18,10 +18,6 @@ UInputBufferComponent::UInputBufferComponent()
 void UInputBufferComponent::SetInputEnable(const bool Enable)
 {
 	bInputEnable=Enable;
-	UE_LOG(LogTemp, Display, TEXT("[%s] Buffer class: %s, name: %s, Enable : %d"),
-		*FString(__FUNCTION__)
-		,*this->GetClass()->GetName(),
-		*this->GetName(), bInputEnable);
 	if (Enable)
 	{
 		ExecuteInputQueue();
@@ -47,10 +43,6 @@ void UInputBufferComponent::SetInputQueue(const EInputType Input)
 
 bool UInputBufferComponent::CheckInputQueue(const EInputType Input)
 {
-	UE_LOG(LogTemp, Display, TEXT("[%s] Buffer class: %s, name: %s, Enable : %d"),
-		*FString(__FUNCTION__)
-		,*this->GetClass()->GetName(),
-		*this->GetName(), bInputEnable);
 	if (bInputEnable) return true;
 
 	SetInputQueue(Input);
