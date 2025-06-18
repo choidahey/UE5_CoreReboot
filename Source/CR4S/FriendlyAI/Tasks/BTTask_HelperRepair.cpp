@@ -1,7 +1,7 @@
 #include "BTTask_HelperRepair.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
-#include "Gimmick/Components/DestructibleComponent.h"
+#include "Gimmick/GimmickObjects/Buildings/BaseBuildingGimmick.h"
 #include "FriendlyAI/BaseHelperBot.h"
 #include "FriendlyAI/Controller/HelperBotAIController.h"
 
@@ -14,24 +14,37 @@ UBTTask_HelperRepair::UBTTask_HelperRepair()
 EBTNodeResult::Type UBTTask_HelperRepair::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    UE_LOG(LogTemp, Warning, TEXT("[Repair] BB is %s"), BB ? TEXT("Valid") : TEXT("Null"));
-    if (!BB) return EBTNodeResult::Failed;
+    if (!BB)
+    {
+        return EBTNodeResult::Failed;
+    }
 
     AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject("ResourceTarget"));
-    UE_LOG(LogTemp, Warning, TEXT("[Repair] TargetActor is %s"), TargetActor ? *TargetActor->GetName() : TEXT("Null"));
-    if (!TargetActor) return EBTNodeResult::Failed;
+    if (!TargetActor)
+    {
+        return EBTNodeResult::Failed;
+    }
 
-    UDestructibleComponent* DestructibleComp = TargetActor->FindComponentByClass<UDestructibleComponent>();
-    UE_LOG(LogTemp, Warning, TEXT("[Repair] DestructibleComp is %s"), DestructibleComp ? TEXT("Valid") : TEXT("Null"));
-    if (!DestructibleComp) return EBTNodeResult::Failed;
+    if (!TargetActor->IsA(ABaseBuildingGimmick::StaticClass()))
+    {
+        return EBTNodeResult::Failed;
+    }
 
     CachedTarget = TargetActor;
+    CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperRepair::OnTargetDestroyed);
+    CachedTarget->OnDestroyed.AddDynamic(this, &UBTTask_HelperRepair::OnTargetDestroyed);
     CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
-    ABaseHelperBot* Helper = CachedHelper ? Cast<ABaseHelperBot>(CachedHelper) : nullptr;
+
+    ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
     if (Helper)
     {
         CachedRepairPerSecond = Helper->GetRepairingPerSecond();
         Helper->SetIsWorking(true);
+    }
+
+    if (Helper && TargetActor)
+    {
+        Helper->UpdateEyeBeamWorkTarget(TargetActor);
     }
 
     return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
@@ -52,19 +65,54 @@ void UBTTask_HelperRepair::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
         return;
     }
 
-    UDestructibleComponent* DestructibleComp = CachedTarget->FindComponentByClass<UDestructibleComponent>();
-    if (!DestructibleComp)
+    if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed())
+    {
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        return;
+    }
+
+    ABaseBuildingGimmick* BuildingGimmick = Cast<ABaseBuildingGimmick>(CachedTarget);
+    if (!BuildingGimmick)
     {
         FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
 
-    const float RepairAmount = CachedRepairPerSecond * DeltaSeconds;
-    DestructibleComp->Repair(RepairAmount);
+    if (BuildingGimmick->GetDurabilityRatio() >= 1.0f)
+    {
+        if (Helper)
+        {
+            Helper->SetIsWorking(false);
+            Helper->StopEyeBeamWork();
+        }
 
-    if (DestructibleComp->GetCurrentHealth() >= DestructibleComp->GetMaxHealth())
+        if (CachedTarget)
+        {
+            CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperRepair::OnTargetDestroyed);
+        }
+
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        return;
+    }
+
+    const float RepairAmount = CachedRepairPerSecond * DeltaSeconds;
+    BuildingGimmick->OnRepairBuilding(RepairAmount);
+}
+
+void UBTTask_HelperRepair::OnTargetDestroyed(AActor*)
+{
+    if (ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper))
     {
         Helper->SetIsWorking(false);
-        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        Helper->StopEyeBeamWork();
+    }
+    if (CachedTarget)
+    {
+        CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperRepair::OnTargetDestroyed);
+        CachedTarget = nullptr;
+    }
+    if (UBehaviorTreeComponent* BTC = Cast<UBehaviorTreeComponent>(GetOuter()))
+    {
+        FinishLatentTask(*BTC, EBTNodeResult::Succeeded);
     }
 }
