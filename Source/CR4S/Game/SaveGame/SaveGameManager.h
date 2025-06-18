@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Game/SaveGame/C4MetaSaveGame.h"
 #include "SaveGameManager.generated.h"
 
 class UC4MetaSaveGame;
@@ -18,6 +19,9 @@ public:
     void SaveAll(const FString& SlotName);
     void LoadAll(const FString& SlotName);
 
+    void CreateSlot(const FString& SlotName);
+    void DeleteSlot(const FString& SlotName);
+
     void SaveMeta();
     void LoadMeta();
 
@@ -25,6 +29,8 @@ public:
 	USettingsSaveGame* LoadSettings();
 
 	void DeleteSaveGame(const FString& SlotName);
+
+	FSaveSlotMetaData GetSaveMetaDataByIndex(int32 Index) const;
 
 private:
 

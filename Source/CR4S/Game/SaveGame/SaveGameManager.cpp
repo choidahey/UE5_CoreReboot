@@ -119,9 +119,31 @@ void USaveGameManager::DeleteSaveGame(const FString& SlotName)
 	}
 }
 
-//USaveGameManager* SaveManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
-//
-//SaveManager->SaveAll("Slot1");
-//SaveManager->LoadAll("Slot1");
-//
-//SaveManager->LoadMeta();
+FSaveSlotMetaData USaveGameManager::GetSaveMetaDataByIndex(int32 Index) const
+{
+    
+    if (MetaSave && MetaSave->SaveSlots.Num() > Index)
+    {
+        TArray<FString> Keys;
+        MetaSave->SaveSlots.GetKeys(Keys);
+        if (Keys.IsValidIndex(Index))
+        {
+            return MetaSave->SaveSlots[Keys[Index]];
+        }
+    }
+
+    return FSaveSlotMetaData();
+}
+
+void USaveGameManager::CreateSlot(const FString& SlotName)
+{
+    if (!MetaSave)
+        MetaSave = NewObject<UC4MetaSaveGame>();
+
+    FDateTime Now = FDateTime::Now();
+    FSaveSlotMetaData Data;
+    Data.SlotName = SlotName;
+    Data.SaveTime = Now;
+    MetaSave->SaveSlots.Add(SlotName, Data);
+    SaveMeta();
+}

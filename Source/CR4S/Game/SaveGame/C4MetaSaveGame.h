@@ -19,6 +19,9 @@ struct FSaveSlotMetaData
 
     UPROPERTY()
     FString ThumbnailPath;
+
+    TWeakObjectPtr<class UCoreSaveGame> CoreSaveGamePtr;
+    TWeakObjectPtr<class UWorldSaveGame> WorldSaveGamePtr;
 };
 
 UCLASS()

@@ -1,9 +1,12 @@
 #include "UI/Common/ConfirmWidget.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 
 void UConfirmWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	SetVisibility(ESlateVisibility::Collapsed);
 
 	if (YesButton)
 	{
@@ -17,10 +20,35 @@ void UConfirmWidget::NativeConstruct()
 
 void UConfirmWidget::OnYesButtonClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("YesButtonClicked"));
+	if (OnYes.IsBound())
+	{
+		OnYes.Execute();
+	}
 }
 
 void UConfirmWidget::OnNoButtonClicked()
 {
-	RemoveFromParent();
+	if (OnNo.IsBound())
+	{
+		OnNo.Execute();
+	}
+}
+
+void UConfirmWidget::Confirm(const FText& Message)
+{
+	MessageText->SetText(Message);
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+void UConfirmWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+	if (YesButton)
+	{
+		YesButton->OnClicked.RemoveAll(this);
+	}
+	if (NoButton)
+	{
+		NoButton->OnClicked.RemoveAll(this);
+	}
 }
