@@ -2,6 +2,7 @@
 #include "UI/MainMenu/SettingsWidget.h"
 #include "UI/MainMenu/CreditsWidget.h"
 #include "UI/MainMenu/DifficultyOptionsWidget.h"
+#include "UI/MainMenu/GameSaveWidget.h"
 #include "UI/Common/ConfirmWidget.h"
 #include "UI/Common/ButtonWidget.h"
 #include "Components/TextBlock.h"
@@ -28,6 +29,7 @@ void UMainMenuWidget::NativeConstruct()
 	{
 		LoadGameButton->OnHovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
 		LoadGameButton->OnUnhovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
+		LoadGameButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnLoadGameButtonClicked);
 	}
 	if (SettingsButton)
 	{
@@ -133,6 +135,10 @@ void UMainMenuWidget::CreateChildWidgets()
 	{
 		DifficultyOptionsWidgetInstance = CreateWidget<UDifficultyOptionsWidget>(GetWorld(), DifficultyOptionsWidgetClass);
 	}
+	if(!GameSaveWidgetInstance && GameSaveWidgetClass)
+	{
+		GameSaveWidgetInstance = CreateWidget<UGameSaveWidget>(GetWorld(), GameSaveWidgetClass);
+	}
 	if (!ConfirmWidgetInstance && ConfirmWidgetClass)
 	{
 		ConfirmWidgetInstance = CreateWidget<UConfirmWidget>(GetWorld(), ConfirmWidgetClass);
@@ -151,6 +157,21 @@ void UMainMenuWidget::OnNewGameButtonClicked()
 		HideMenuButtons();
 		DifficultyOptionsWidgetInstance->MainMenuWidgetRef = this;
 		DifficultyOptionsWidgetInstance->HandleOpenWindow();
+	}
+}
+
+void UMainMenuWidget::OnLoadGameButtonClicked()
+{
+	if (GameSaveWidgetInstance)
+	{
+		if( !GameSaveWidgetInstance->IsInViewport())
+		{
+			GameSaveWidgetInstance->AddToViewport();
+		}
+
+		//HideMenuButtons();
+		GameSaveWidgetInstance->ParentWidgetRef = this;
+		GameSaveWidgetInstance->HandleOpenWindow();
 	}
 }
 

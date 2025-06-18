@@ -9,8 +9,8 @@ class UConfirmWidget;
 class USettingsWidget;
 class UCreditsWidget;
 class UDifficultyOptionsWidget;
+class UGameSaveWidget;
 class USoundBase;
-class UAudioComponent;
 
 UCLASS()
 class CR4S_API UMainMenuWidget : public UUserWidget
@@ -36,6 +36,8 @@ protected:
 	void OnQuitButtonClicked();
 	UFUNCTION()
 	void OnNewGameButtonClicked();
+	UFUNCTION()
+	void OnLoadGameButtonClicked();
 
 
 	void CreateChildWidgets();
@@ -50,26 +52,29 @@ public:
 
 protected:
 	UPROPERTY()
-	UConfirmWidget* ConfirmWidgetInstance;
+	TObjectPtr<UConfirmWidget> ConfirmWidgetInstance;
 	UPROPERTY()
-	UDifficultyOptionsWidget* DifficultyOptionsWidgetInstance;
+	TObjectPtr<UDifficultyOptionsWidget> DifficultyOptionsWidgetInstance;
 	UPROPERTY()
-	USettingsWidget* SettingsWidgetInstance;
+	TObjectPtr<UGameSaveWidget> GameSaveWidgetInstance;
 	UPROPERTY()
-	UCreditsWidget* CreditsWidgetInstance;
+	TObjectPtr<USettingsWidget> SettingsWidgetInstance;
+	UPROPERTY()
+	TObjectPtr<UCreditsWidget> CreditsWidgetInstance;
+
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UConfirmWidget> ConfirmWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UDifficultyOptionsWidget> DifficultyOptionsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UGameSaveWidget> GameSaveWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UCreditsWidget> CreditsWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
 	USoundBase* MainMenuBGM;
-	UPROPERTY()
-	UAudioComponent* BGMComponent;
 
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* PlayGameButton;
