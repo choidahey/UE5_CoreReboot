@@ -52,7 +52,7 @@ private:
 	float CalculateHungerReduction(const float SleepingTime) const;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ModifyStat")
-	float MaxSleepTime = 480;
+	float MaxSleepTime = 1000;
 	
 #pragma endregion 
 
