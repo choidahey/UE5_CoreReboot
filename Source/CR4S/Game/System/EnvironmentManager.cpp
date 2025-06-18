@@ -134,7 +134,6 @@ AEnvironmentalModifierVolume* AEnvironmentManager::SpawnEnvModVol(
     return Volume;
 }
 
-
 void AEnvironmentManager::SetWorldTimeMultiplier_Implementation(int32 Multiplier)
 {
     TimeManager->SetWorldTimeMultiplier(Multiplier);
