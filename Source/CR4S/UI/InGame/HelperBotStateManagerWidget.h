@@ -24,6 +24,7 @@ protected:
 	UFUNCTION() void SetChopWood();
 	UFUNCTION() void CloseStateWidget();
 	UFUNCTION() void SetMining();
+	UFUNCTION() void SetDefending();
 	UFUNCTION() void OpenInventory();
 	UFUNCTION() void SetRepairing();
 	UFUNCTION() void UpdateLookAtPlayer();
@@ -38,11 +39,14 @@ protected:
 	UPROPERTY(meta=(BindWidget)) class UButton* SetMiningButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* OpenInventoryButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* SetRepairingButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetDefendingButton;
 
-	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot;
+	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot = nullptr;
 
 private:
-	class AHelperBotAIController* OwnerAIController;
+	UPROPERTY()
+	class AHelperBotAIController* OwnerAIController = nullptr;
+	
 	FRotator TargetLookRotation;
 	
 	UPROPERTY() float MaxInteractionDistance = 300.0f;

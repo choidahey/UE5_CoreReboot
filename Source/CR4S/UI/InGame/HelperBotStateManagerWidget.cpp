@@ -48,6 +48,7 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (OpenInventoryButton) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
 	if (SetMiningButton) SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
 	if (SetRepairingButton) SetRepairingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetRepairing);
+	if (SetDefendingButton) SetDefendingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetDefending);
 
 	GetWorld()->GetTimerManager().SetTimer(DistanceCheckTimer, this, 
 		&UHelperBotStateManagerWidget::CheckPlayerDistance, 0.5f, true);
@@ -127,6 +128,12 @@ void UHelperBotStateManagerWidget::SetMining()
 void UHelperBotStateManagerWidget::SetRepairing()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Repairing);
+	CloseWidgetAndResetInput();
+}
+
+void UHelperBotStateManagerWidget::SetDefending()
+{
+	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Defending);
 	CloseWidgetAndResetInput();
 }
 

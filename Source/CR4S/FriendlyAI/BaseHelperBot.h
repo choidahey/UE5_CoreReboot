@@ -112,6 +112,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
+
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
 
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
