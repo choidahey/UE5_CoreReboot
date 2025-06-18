@@ -47,7 +47,7 @@ private:
 #pragma region ModifyStat
 
 private:
-	void ModifyStat(const float SleepingTime) const;
+	void ModifyStat(float SleepingTime) const;
 	float CalculateHealthRecovery(const float SleepingTime) const;
 	float CalculateHungerReduction(const float SleepingTime) const;
 

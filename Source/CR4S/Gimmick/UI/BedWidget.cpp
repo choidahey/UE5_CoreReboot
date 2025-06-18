@@ -102,7 +102,9 @@ void UBedWidget::HandleAnimationFinished()
 		if (CR4S_VALIDATE(LogGimmickUI, IsValid(EnvironmentManager)))
 		{
 			const float CurrentTime = EnvironmentManager->GetCurrentTimeOfDay();
+			CR4S_Log(LogGimmickUI, Warning, TEXT("CurrentTime: %.2f"), CurrentTime);
 			const float TargetTime = EnvironmentManager->GetCurrentDawnTime() + AddTime;
+			CR4S_Log(LogGimmickUI, Warning, TEXT("TargetTime: %.2f"), TargetTime);
 			ModifyStat(TargetTime - CurrentTime);
 			EnvironmentManager->AdvanceTimeOfDay(TargetTime);
 		}
@@ -115,11 +117,16 @@ void UBedWidget::HandleAnimationFinished()
 	}
 }
 
-void UBedWidget::ModifyStat(const float SleepingTime) const
+void UBedWidget::ModifyStat(float SleepingTime) const
 {
-	CR4S_Log(LogGimmickUI, Warning, TEXT("SleepingTime: %.2f"), SleepingTime);
+	if (SleepingTime < 0)
+	{
+		SleepingTime += 2400.f;
+	}
 	
-	APawn* Pawn = GetOwningPlayerPawn();
+	CR4S_Log(LogGimmickUI, Warning, TEXT("SleepingTime: %.2f"), SleepingTime);
+
+	const APawn* Pawn = GetOwningPlayerPawn();
 	if (IsValid(Pawn))
 	{
 		UPlayerCharacterStatusComponent* StatusComponent
