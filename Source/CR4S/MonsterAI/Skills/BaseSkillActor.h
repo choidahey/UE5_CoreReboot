@@ -44,6 +44,7 @@ protected:
 
 public:
 	virtual void InitializeSkillData();
+	virtual void ApplyInitialOverlapDamage();
 	virtual void ApplyEffectToActor(AActor* Target);
 
 #pragma endregion
