@@ -138,3 +138,27 @@ void AEnvironmentManager::SetWorldTimeMultiplier_Implementation(int32 Multiplier
 {
     TimeManager->SetWorldTimeMultiplier(Multiplier);
 }
+
+void AEnvironmentManager::AdvanceTimeOfDay(float TimeOfDay)
+{
+    if (!TimeManager) return;
+
+    const float CurrentTimeOfDay = GetCurrentTimeOfDay();
+    const int32 TotalSecondsInDay = TimeManager->GetDayCycleLength() * 60;
+
+    float DeltaTimeOfDay = TimeOfDay - CurrentTimeOfDay;
+    if (DeltaTimeOfDay < 0.0f)
+    {
+        DeltaTimeOfDay += 2400.0f;
+    }
+
+    const float TimeRatio = DeltaTimeOfDay / 2400.0f;
+    const int32 TotalAdvanceSeconds = FMath::RoundToInt(TimeRatio * TotalSecondsInDay);
+
+    const int32 MinuteOffset = TotalAdvanceSeconds / 60;
+    const int32 DayOffset = MinuteOffset / (TimeManager->GetDayCycleLength());
+
+    const int32 RemainingMinutes = MinuteOffset % (TimeManager->GetDayCycleLength());
+
+    TimeManager->ModifyTime(DayOffset, RemainingMinutes);
+}
