@@ -18,15 +18,21 @@ struct FInventoryItemData
 	GENERATED_BODY()
 
 	FInventoryItemData()
+		: SlotIndex(0)
 	{
 	}
 
-	FInventoryItemData(const FName InRowName, const FItemInfoData& InItemInfoData)
-		: RowName(InRowName),
+	FInventoryItemData(const int32 InSlotIndex,
+	                   const FName InRowName,
+	                   const FItemInfoData& InItemInfoData)
+		: SlotIndex(InSlotIndex),
+		  RowName(InRowName),
 		  ItemInfoData(InItemInfoData)
 	{
 	}
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 SlotIndex;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FName RowName;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -54,7 +60,8 @@ public:
 
 public:
 	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-	                               const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0);
+	                               const FInventoryItemData& NewInventoryItemData,
+	                               const int32 StackCount = 0);
 
 	FORCEINLINE void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
 	{
@@ -89,15 +96,17 @@ public:
 protected:
 	UPROPERTY()
 	TObjectPtr<UWorldTimeManager> WorldTimeManager;
-	
+
 	bool bUsePassiveEffect;
-	
+
 #pragma endregion
 
 #pragma region Data
 
 public:
 	void SetCurrentStackCount(const int32 NewStackCount);
+
+	FORCEINLINE void ChangeSlotIndex(const int32 NewSlotIndex) { InventoryItemData.SlotIndex = NewSlotIndex; }
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")

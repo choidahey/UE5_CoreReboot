@@ -6,8 +6,6 @@
 #include "Inventory/Components/BaseInventoryComponent.h"
 
 UConsumableInventoryItem::UConsumableInventoryItem()
-	: Freshness(1.f),
-	  DecayRateMultiplier(1.f)
 {
 	bUsePassiveEffect = true;
 }
@@ -27,6 +25,9 @@ void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInv
 		DataTable->FindRow<FConsumableItemData>(NewInventoryItemData.RowName, TEXT("")))
 	{
 		ConsumableItemData = *FindItemData;
+
+		FreshnessInfo.ShelfLifeSeconds = ConsumableItemData.ShelfLife * 60;
+		FreshnessInfo.RemainingFreshnessTime = FreshnessInfo.ShelfLifeSeconds;
 	}
 }
 
@@ -55,11 +56,52 @@ void UConsumableInventoryItem::HandlePassiveEffect(const int64 NewPlayTime)
 {
 	Super::HandlePassiveEffect(NewPlayTime);
 
-	EndPassiveEffect();
-
-	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(InventoryComponent)))
+	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(InventoryComponent)) ||
+		!FreshnessInfo.ShouldDecay() ||
+		!UpdateFreshnessDecay(NewPlayTime))
 	{
-		return;
+		EndPassiveEffect();
+	}
+}
+
+bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
+{
+	if (PreviousDecayPlayTime < 0)
+	{
+		PreviousDecayPlayTime = NewPlayTime;
+		return true;
+	}
+
+	const int64 DeltaInt = NewPlayTime - PreviousDecayPlayTime;
+	PreviousDecayPlayTime = NewPlayTime;
+
+	if (DeltaInt <= 0)
+	{
+		return false;
+	}
+
+	const float DeltaSeconds = static_cast<float>(DeltaInt);
+	const float ActualDecay = DeltaSeconds * FreshnessInfo.DecayRateMultiplier;
+	FreshnessInfo.RemainingFreshnessTime -= ActualDecay;
+
+	if (FreshnessInfo.RemainingFreshnessTime <= 0.f)
+	{
+		FreshnessInfo.RemainingFreshnessTime = 0.f;
+		OnItemRotten();
+
+		EndPassiveEffect();
+	}
+
+	return true;
+}
+
+void UConsumableInventoryItem::OnItemRotten() const
+{
+	UE_LOG(LogTemp, Warning, TEXT("Item has fully rotted!"));
+
+	if (IsValid(InventoryComponent))
+	{
+		InventoryComponent->RemoveItemByIndex(InventoryItemData.SlotIndex);
 	}
 }
 
