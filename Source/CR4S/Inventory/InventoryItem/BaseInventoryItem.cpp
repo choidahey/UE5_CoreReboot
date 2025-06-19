@@ -68,7 +68,7 @@ void UBaseInventoryItem::StartPassiveEffect()
 
 void UBaseInventoryItem::HandlePassiveEffect(int64 NewPlayTime)
 {
-	CR4S_Log(LogInventory, Warning, TEXT("Begin"));
+	// CR4S_Log(LogInventory, Warning, TEXT("Begin"));
 }
 
 

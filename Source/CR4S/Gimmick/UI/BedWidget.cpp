@@ -159,13 +159,13 @@ void UBedWidget::ModifyStat(float SleepingTime) const
 
 float UBedWidget::CalculateHealthRecovery(const float SleepingTime) const
 {
-	const float Alpha = FMath::Clamp(SleepingTime / MaxSleepTime, 0.0f, 1.0f);
+	const float Alpha = FMath::Clamp(SleepingTime / AllowedMaxSleepTime, 0.0f, 1.0f);
 	return FMath::Lerp(10.0f, 50.0f, Alpha);
 }
 
 float UBedWidget::CalculateHungerReduction(const float SleepingTime) const
 {
-	const float Alpha = FMath::Clamp(SleepingTime / MaxSleepTime, 0.0f, 1.0f);
+	const float Alpha = FMath::Clamp(SleepingTime / AllowedMaxSleepTime, 0.0f, 1.0f);
 	return FMath::Lerp(10.0f, 50.0f, Alpha);
 }
 

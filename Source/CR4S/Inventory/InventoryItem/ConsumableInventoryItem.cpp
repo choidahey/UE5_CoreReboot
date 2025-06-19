@@ -49,8 +49,6 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 		ApplyResistanceEffect();
 
 		InventoryComponent->RemoveItemByIndex(Index, 1);
-
-		EndPassiveEffect();
 	}
 }
 
