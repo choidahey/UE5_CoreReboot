@@ -6,6 +6,7 @@
 
 #include "BaseInventoryItem.generated.h"
 
+class UWorldTimeManager;
 class UPlayerInventoryComponent;
 class UPlayerCharacterStatusComponent;
 class UBaseInventoryComponent;
@@ -17,15 +18,21 @@ struct FInventoryItemData
 	GENERATED_BODY()
 
 	FInventoryItemData()
+		: SlotIndex(0)
 	{
 	}
 
-	FInventoryItemData(const FName InRowName, const FItemInfoData& InItemInfoData)
-		: RowName(InRowName),
+	FInventoryItemData(const int32 InSlotIndex,
+	                   const FName InRowName,
+	                   const FItemInfoData& InItemInfoData)
+		: SlotIndex(InSlotIndex),
+		  RowName(InRowName),
 		  ItemInfoData(InItemInfoData)
 	{
 	}
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 SlotIndex;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FName RowName;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -53,7 +60,8 @@ public:
 
 public:
 	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-	                               const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0);
+	                               const FInventoryItemData& NewInventoryItemData,
+	                               const int32 StackCount = 0);
 
 	FORCEINLINE void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
 	{
@@ -80,7 +88,16 @@ protected:
 public:
 	virtual void UseItem(int32 Index);
 
-	virtual void HandlePassiveEffect();
+	virtual void StartPassiveEffect();
+	UFUNCTION()
+	virtual void HandlePassiveEffect(int64 NewPlayTime);
+	virtual void EndPassiveEffect();
+
+protected:
+	UPROPERTY()
+	TObjectPtr<UWorldTimeManager> WorldTimeManager;
+
+	bool bUsePassiveEffect;
 
 #pragma endregion
 
@@ -88,6 +105,8 @@ public:
 
 public:
 	void SetCurrentStackCount(const int32 NewStackCount);
+
+	FORCEINLINE void ChangeSlotIndex(const int32 NewSlotIndex) { InventoryItemData.SlotIndex = NewSlotIndex; }
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")

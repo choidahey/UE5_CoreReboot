@@ -34,8 +34,8 @@ private:
 	TArray<int32> ShuffledSkills;
 	int32 CurrentShuffleIndex = 0;
 
-	float DistanceAwayIceRoad = 500.f;
-	float DistanceForwordIceRoad = 1100.f;
+	float DistanceAwayIceRoad = 1500.f;
+	float DistanceForwordIceRoad = 4500.f;
 	
 	FString MyHeader = TEXT("Task_SelectSkillHiems");
 };

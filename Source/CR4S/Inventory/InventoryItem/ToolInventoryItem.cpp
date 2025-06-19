@@ -13,7 +13,7 @@ UToolInventoryItem::UToolInventoryItem()
 }
 
 void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-										   const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
+                                           const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
