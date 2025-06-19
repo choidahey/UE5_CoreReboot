@@ -121,15 +121,12 @@ void USaveGameManager::DeleteSaveGame(const FString& SlotName)
 
 FSaveSlotMetaData USaveGameManager::GetSaveMetaDataByIndex(int32 Index) const
 {
-    
-    if (MetaSave && MetaSave->SaveSlots.Num() > Index)
+    if (!MetaSave) return FSaveSlotMetaData();
+
+    FString Key = FString::FromInt(Index);
+    if (const FSaveSlotMetaData* Found = MetaSave->SaveSlots.Find(Key))
     {
-        TArray<FString> Keys;
-        MetaSave->SaveSlots.GetKeys(Keys);
-        if (Keys.IsValidIndex(Index))
-        {
-            return MetaSave->SaveSlots[Keys[Index]];
-        }
+        return *Found;
     }
 
     return FSaveSlotMetaData();
@@ -146,4 +143,13 @@ void USaveGameManager::CreateSlot(const FString& SlotName)
     Data.SaveTime = Now;
     MetaSave->SaveSlots.Add(SlotName, Data);
     SaveMeta();
+}
+
+void USaveGameManager::DeleteSlot(const FString& SlotName)
+{
+    if (MetaSave && MetaSave->SaveSlots.Contains(SlotName))
+    {
+        MetaSave->SaveSlots.Remove(SlotName);
+        SaveMeta();
+	}
 }

@@ -55,7 +55,6 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 		LoadingWidgetInstance = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
 	}	
 
-	
 	if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
 	{
 		AudioManager->StopBGM();

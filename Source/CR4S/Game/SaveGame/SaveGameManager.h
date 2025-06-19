@@ -24,6 +24,7 @@ public:
 
     void SaveMeta();
     void LoadMeta();
+	FORCEINLINE TObjectPtr<UC4MetaSaveGame> GetMetaSave() const { return MetaSave; }
 
     void SaveSettings();
 	USettingsSaveGame* LoadSettings();

@@ -7,7 +7,7 @@ void USaveSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (SlotButton)
+	if(SlotButton)
 	{
 		SlotButton->OnClicked.AddDynamic(this, &USaveSlotWidget::OnSlotButtonClicked);
 	}
@@ -15,7 +15,14 @@ void USaveSlotWidget::NativeConstruct()
 
 void USaveSlotWidget::OnSlotButtonClicked()
 {
+	if (OnSlotClicked.IsBound())
+	{
+		FString SlotNameString = SlotNameText->GetText().ToString();
+		int32 SlotIndex = FCString::Atoi(*SlotNameString);
+		OnSlotClicked.Execute(SlotIndex);
 
+		UE_LOG(LogTemp, Warning, TEXT("Slot %d clicked"), SlotIndex);
+	}
 }
 
 void USaveSlotWidget::UpdateSlotInfo(FSaveSlotMetaData SlotData)

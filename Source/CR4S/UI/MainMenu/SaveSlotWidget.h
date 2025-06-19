@@ -7,6 +7,8 @@
 class UTextBlock;
 class UButton;
 
+DECLARE_DELEGATE_OneParam(FOnSlotClicked, int32);
+
 UCLASS()
 class CR4S_API USaveSlotWidget : public UUserWidget
 {
@@ -36,7 +38,6 @@ protected:
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	TObjectPtr<UWidgetAnimation> OnCreateAnimation;
 
-
 	//UPROPERTY(meta = (BindWidgetOptional))
 	//TObjectPtr<UTextBlock> LocationText;
 	//UPROPERTY(meta = (BindWidgetOptional))
@@ -44,5 +45,8 @@ protected:
 
 	UFUNCTION()
 	void OnSlotButtonClicked();
+public:
+	
+	FOnSlotClicked OnSlotClicked;
 
 };

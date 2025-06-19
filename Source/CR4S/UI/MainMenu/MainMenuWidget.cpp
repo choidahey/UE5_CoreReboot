@@ -74,7 +74,7 @@ void UMainMenuWidget::OnPlayGameButtonClicked()
 
 		//HideMenuButtons();
 		GameSaveWidgetInstance->ParentWidgetRef = this;
-		GameSaveWidgetInstance->HandleOpenWindow();
+		GameSaveWidgetInstance->OpenWindow();
 	}
 }
 

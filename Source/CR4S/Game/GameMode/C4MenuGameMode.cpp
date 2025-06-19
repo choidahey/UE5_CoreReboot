@@ -1,6 +1,8 @@
 #include "Game/GameMode/C4MenuGameMode.h"
 #include "Game/Controller/MenuPlayerController.h"
+#include "Game/System/AudioManager.h"
 #include "UI/MainMenu/MainMenuWidget.h"
+#include "UI/Common/LoadingWidget.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -10,10 +12,10 @@ void AC4MenuGameMode::BeginPlay()
 
     if (MainMenuWidgetClass)
     {
-        MainMenuWidget = CreateWidget<UUserWidget>(GetWorld(), MainMenuWidgetClass);
-        if (MainMenuWidget)
+        MainMenuWidgetInstance = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetClass);
+        if (MainMenuWidgetInstance)
         {
-            MainMenuWidget->AddToViewport();
+            MainMenuWidgetInstance->AddToViewport();
             APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 			AMenuPlayerController* MenuPC = Cast<AMenuPlayerController>(PC);
             if (MenuPC)
@@ -26,6 +28,25 @@ void AC4MenuGameMode::BeginPlay()
 }
 
 void AC4MenuGameMode::OpenSurvivalLevel(int32 SlotIndex)
+{
+    UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>();
+    AudioManager->StopBGM();
+
+    if(LoadingWidgetClass)
+    {
+        ULoadingWidget* LoadingWidget = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
+        if (LoadingWidget)
+        {
+            LoadingWidget->AddToViewport();
+        }
+	}
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4MenuGameMode::LoadSurvivalLevel, 1.0f, false);
+
+}
+
+void AC4MenuGameMode::LoadSurvivalLevel()
 {
     UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
 }

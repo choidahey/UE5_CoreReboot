@@ -22,6 +22,11 @@ struct FSaveSlotMetaData
 
     TWeakObjectPtr<class UCoreSaveGame> CoreSaveGamePtr;
     TWeakObjectPtr<class UWorldSaveGame> WorldSaveGamePtr;
+
+    bool IsValid() const
+    {
+        return !SlotName.IsEmpty();
+    }
 };
 
 UCLASS()

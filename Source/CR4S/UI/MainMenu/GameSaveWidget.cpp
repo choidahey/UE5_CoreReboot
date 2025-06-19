@@ -1,5 +1,6 @@
 #include "UI/MainMenu/GameSaveWidget.h"
 #include "UI/Common/ButtonWidget.h"
+#include "UI/MainMenu/EmptySlotWidget.h"
 #include "UI/Common/ConfirmWidget.h"
 #include "UI/MainMenu/SaveSlotWidget.h"
 #include "Game/SaveGame/C4MetaSaveGame.h"
@@ -11,27 +12,38 @@
 void UGameSaveWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
+
 	if (BackButton)
 	{
 		BackButton->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleCloseWindow);
 	}
+	if (DeleteButton)
+	{
+		DeleteButton->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleDeleteButtonClicked);
+	}
 
+	if (SaveSlot0)
+		SaveSlot0->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot0);
 	if (SaveSlot1)
-		SaveSlot1->OnClicked.AddDynamic(this, &UGameSaveWidget::HandleEmptySlot0);
+		SaveSlot1->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot1);
 	if (SaveSlot2)
-		SaveSlot2->OnClicked.AddDynamic(this, &UGameSaveWidget::HandleEmptySlot1);
+		SaveSlot2->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot2);
 	if (SaveSlot3)
-		SaveSlot3->OnClicked.AddDynamic(this, &UGameSaveWidget::HandleEmptySlot2);
-	if (SaveSlot4)
-		SaveSlot4->OnClicked.AddDynamic(this, &UGameSaveWidget::HandleEmptySlot3);
+		SaveSlot3->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot3);
 
-	SaveSlotButtons = { SaveSlot1, SaveSlot2, SaveSlot3, SaveSlot4 };
+	SaveSlotButtons = { SaveSlot0, SaveSlot1, SaveSlot2, SaveSlot3 };
 
 	SaveGameManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
+	LoadSaveSlots();
 }
 
-void UGameSaveWidget::HandleOpenWindow()
+void UGameSaveWidget::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+}
+
+void UGameSaveWidget::OpenWindow()
 {
 	SetVisibility(ESlateVisibility::Visible);
 }
@@ -55,43 +67,149 @@ void UGameSaveWidget::HandleEmptySlotSelected(int32 SlotIndex)
 	}
 }
 
+void UGameSaveWidget::HandleDeleteButtonClicked()
+{
+	if (SelectedSlotIndex < 0 || SelectedSlotIndex >= SaveSlotButtons.Num()) return;
+
+	if (!SaveSlotsMap.Contains(SelectedSlotIndex))
+	{
+		LogSaveSlotsInfo();
+		return;
+	}
+
+	ConfirmWidget = CreateWidget<UConfirmWidget>(GetWorld(), ConfirmWidgetClass);
+	if (ConfirmWidget)
+	{
+		ConfirmWidget->AddToViewport();
+		ConfirmWidget->Confirm(FText::FromString(FString::Printf(TEXT("Delete slot %d?"), SelectedSlotIndex)));
+		ConfirmWidget->OnYes.BindDynamic(this, &UGameSaveWidget::HandleDeleteSlot);
+		ConfirmWidget->OnNo.BindDynamic(this, &UGameSaveWidget::HandleCloseConfirmWidget);
+	}
+}
+
+void UGameSaveWidget::HandleDeleteSlot()
+{
+	UE_LOG(LogTemp, Log, TEXT("[SaveSlot] Attempting to delete slot at index: %d"), SelectedSlotIndex);
+
+	CreateEmptySlot(SelectedSlotIndex);
+
+	if (SaveGameManager)
+	{
+		SaveGameManager->DeleteSlot(FString::FromInt(SelectedSlotIndex));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SaveSlot] SaveGameManager is nullptr."));
+	}
+
+	HandleCloseConfirmWidget();
+
+	LogSaveSlotsInfo();
+}
+
 void UGameSaveWidget::HandleStartNewGame()
 {
 	HandleCloseConfirmWidget();
 
 	if (!SaveSlotButtons.IsValidIndex(SelectedSlotIndex)) return;
 
-	UButton* TargetButton = SaveSlotButtons[SelectedSlotIndex];
+	UEmptySlotWidget* TargetButton = SaveSlotButtons[SelectedSlotIndex];
 	if (!TargetButton) return;
+	
+	switch (SelectedSlotIndex)
+	{
+	case 0:
+		TargetButton->OnClicked().RemoveDynamic(this, &UGameSaveWidget::HandleEmptySlot0);
+		break;
+	case 1:
+		TargetButton->OnClicked().RemoveDynamic(this, &UGameSaveWidget::HandleEmptySlot1);
+		break;
+	case 2:
+		TargetButton->OnClicked().RemoveDynamic(this, &UGameSaveWidget::HandleEmptySlot2);
+		break;
+	case 3:
+		TargetButton->OnClicked().RemoveDynamic(this, &UGameSaveWidget::HandleEmptySlot3);
+		break;
+	default:
+		break;
+	}
 
 	UBorder* ParentBorder = Cast<UBorder>(TargetButton->GetParent());
+	if (!ParentBorder) return;
+
+	if (SaveSlotsMap.Contains(SelectedSlotIndex))
+	{
+		SaveSlotsMap[SelectedSlotIndex]->RemoveFromParent();
+		SaveSlotsMap.Remove(SelectedSlotIndex);
+	}
 
 	USaveSlotWidget* NewSlotWidget = CreateWidget<USaveSlotWidget>(GetWorld(), SaveSlotWidgetClass);
 	if (!NewSlotWidget) return;
-	
+
 	NewSlotWidget->SetVisibility(ESlateVisibility::Collapsed);
 	ParentBorder->SetContent(NewSlotWidget);
 	NewSlotWidget->PlayCreateAnimation();
 	NewSlotWidget->SetVisibility(ESlateVisibility::Visible);
 
-	SaveSlots.Add(NewSlotWidget);
-
 	SaveGameManager->CreateSlot(FString::FromInt(SelectedSlotIndex));
 	NewSlotWidget->UpdateSlotInfo(SaveGameManager->GetSaveMetaDataByIndex(SelectedSlotIndex));
-
-
+	NewSlotWidget->OnSlotClicked.BindUObject(this, &UGameSaveWidget::HandleSaveSlotClicked);
+	SaveSlotsMap.Add(SelectedSlotIndex, NewSlotWidget);
 
 	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this]()
-		{
-			AC4MenuGameMode* GM = Cast<AC4MenuGameMode>(UGameplayStatics::GetGameMode(this));
-			if (GM)
-			{
-				GM->OpenSurvivalLevel(SelectedSlotIndex);
-			}
-		}), 0.3f, false);
+	FTimerDelegate TimerDel = FTimerDelegate::CreateUFunction(this, FName("RequestEnterGame"), SelectedSlotIndex);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 0.5f, false);
 }
 
+void UGameSaveWidget::LoadSaveSlots()
+{
+	if (!SaveGameManager) return;
+	SaveGameManager->LoadMeta();
+
+	UC4MetaSaveGame* Meta = SaveGameManager->GetMetaSave();
+	if (!Meta) return;
+
+	SaveSlotsMap.Empty();
+
+	for (int32 Index = 0; Index < SaveSlotButtons.Num(); ++Index)
+	{
+		if (!SaveSlotButtons.IsValidIndex(Index)) continue;
+
+		UEmptySlotWidget* TargetButton = SaveSlotButtons[Index];
+		if (!TargetButton) continue;
+
+		UBorder* ParentBorder = Cast<UBorder>(TargetButton->GetParent());
+		if (!ParentBorder) continue;
+
+		FSaveSlotMetaData MetaData = SaveGameManager->GetSaveMetaDataByIndex(Index);
+		if (!MetaData.IsValid())
+		{
+			ParentBorder->SetContent(TargetButton);
+			continue;
+		}
+
+		USaveSlotWidget* SlotWidget = CreateWidget<USaveSlotWidget>(GetWorld(), SaveSlotWidgetClass);
+		if (!SlotWidget) continue;
+
+		ParentBorder->SetContent(SlotWidget);
+		SlotWidget->UpdateSlotInfo(MetaData);
+		SlotWidget->OnSlotClicked.BindUObject(this, &UGameSaveWidget::HandleSaveSlotClicked);
+
+		SaveSlotsMap.Add(Index, SlotWidget);
+	}
+}
+
+void UGameSaveWidget::HandleSaveSlotClicked(int32 SlotIndex)
+{
+	if (SlotIndex == SelectedSlotIndex)
+	{
+		RequestEnterGame(SlotIndex);
+	}
+	else
+	{
+		SelectedSlotIndex = SlotIndex;
+	}
+}
 
 void UGameSaveWidget::HandleCloseConfirmWidget()
 {
@@ -101,3 +219,88 @@ void UGameSaveWidget::HandleCloseConfirmWidget()
 		ConfirmWidget = nullptr;
 	}
 }
+
+void UGameSaveWidget::RequestEnterGame(int32 SlotIndex)
+{
+	AC4MenuGameMode* GM = Cast<AC4MenuGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		GM->OpenSurvivalLevel(SlotIndex);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Game mode is not valid."));
+	}
+}
+
+void UGameSaveWidget::LogSaveSlotsInfo() const
+{
+	UE_LOG(LogTemp, Log, TEXT("[SaveSlot] ===== SaveSlotsMap Debug Info ====="));
+
+	for (const auto& Elem : SaveSlotsMap)
+	{
+		if (Elem.Value)
+		{
+			UE_LOG(LogTemp, Log, TEXT("[SaveSlot] Index %d ¡æ Valid Widget: %s"), Elem.Key, *Elem.Value->GetName());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[SaveSlot] Index %d ¡æ nullptr"), Elem.Key);
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[SaveSlot] Total SaveSlots: %d"), SaveSlotsMap.Num());
+}
+
+void UGameSaveWidget::CreateEmptySlot(int32 SlotIndex)
+{
+	if (!SaveSlotButtons.IsValidIndex(SlotIndex)) return;
+
+	USaveSlotWidget* ExistingSlot = SaveSlotsMap.FindRef(SlotIndex);
+	if (!ExistingSlot)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SaveSlot] No SaveSlotWidget found at index %d"), SlotIndex);
+		return;
+	}
+
+	UBorder* ParentBorder = Cast<UBorder>(ExistingSlot->GetParent());
+	if (!ParentBorder)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SaveSlot] ParentBorder not found for SaveSlot at index %d"), SlotIndex);
+		return;
+	}
+
+	ExistingSlot->OnSlotClicked.Unbind();
+	ExistingSlot->RemoveFromParent();
+	SaveSlotsMap.Remove(SlotIndex);
+
+	UEmptySlotWidget* NewEmptySlot = CreateWidget<UEmptySlotWidget>(GetWorld(), EmptySlotWidgetClass);
+	if (!NewEmptySlot)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[SaveSlot] Failed to create new EmptySlotWidget at index %d"), SlotIndex);
+		return;
+	}
+
+	switch (SlotIndex)
+	{
+	case 0:
+		NewEmptySlot->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot0);
+		break;
+	case 1:
+		NewEmptySlot->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot1);
+		break;
+	case 2:
+		NewEmptySlot->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot2);
+		break;
+	case 3:
+		NewEmptySlot->OnClicked().AddDynamic(this, &UGameSaveWidget::HandleEmptySlot3);
+		break;
+	default:
+		break;
+	}
+
+	ParentBorder->SetContent(NewEmptySlot);
+	SaveSlotButtons[SlotIndex] = NewEmptySlot;
+}
+
+
