@@ -295,7 +295,6 @@ void ABaseAnimal::Die()
         }
         AIController->StopMovement();
         AIController->UnPossess(); 
-        SetAnimalState(EAnimalState::Dead);
     }
     
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -355,6 +354,8 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
     {
+        CurrentHealth = 0.f;
+        SetAnimalState(EAnimalState::Dead);
         Die();
     }
 

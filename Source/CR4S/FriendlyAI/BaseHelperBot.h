@@ -34,7 +34,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	//virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 #pragma endregion
 
 #pragma region Interaction Functions
@@ -208,5 +208,23 @@ private:
 	bool bIsWorking = false;
 #pragma endregion
 	
+#pragma region Damage & Death
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
+	UNiagaraComponent* HitEffectComponent = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
+	class UNiagaraSystem* DeathEffectSystem = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
+	UAnimMontage* DeathMontage = nullptr;
+
+private:
+	void PlayHitEffect(const FVector& HitDirection);
+	void StartDeathSequence();
+	
+	UFUNCTION()
+	void OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted);
+#pragma endregion
 
 };

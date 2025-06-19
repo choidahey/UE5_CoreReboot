@@ -1,5 +1,7 @@
 #include "BaseHelperBot.h"
 #include "BaseHelperBot.h"
+
+#include "BrainComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "../UI/InGame/HelperBotStateManagerWidget.h"
@@ -26,7 +28,6 @@ ABaseHelperBot::ABaseHelperBot()
 	PrimaryActorTick.bCanEverTick = true;
 
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
-	InteractableComp->SetInteractionText(FText::FromString("자동화 로봇"));
 
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
 
@@ -57,6 +58,11 @@ ABaseHelperBot::ABaseHelperBot()
 
 	WorkTargetParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("WorkTargetParticle"));
 	WorkTargetParticle->SetAutoActivate(false);
+
+	HitEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HitEffectComponent"));
+	HitEffectComponent->SetupAttachment(RootComponent);
+	HitEffectComponent->SetAutoActivate(false);
+	HitEffectComponent->SetVisibility(false);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -142,6 +148,18 @@ void ABaseHelperBot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 {
+	AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController());
+	if (BotAI)
+	{
+		EHelperBotState CurrentState = static_cast<EHelperBotState>(
+			BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+		
+		if (CurrentState == EHelperBotState::Dead)
+		{
+			return;
+		}
+	}
+
 	if (StateUIInstance && StateUIInstance->IsInViewport())
 	{
 		StateUIInstance->RemoveFromParent();
@@ -163,7 +181,7 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 		StopEyeBeamWork();
 	}
 
-	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	if (BotAI)
 	{
 		if (StateUIClass)
 		{
@@ -307,4 +325,79 @@ void ABaseHelperBot::UpdateStateVisualEffects()
 	{
 		RightEyeWorkVFXComponent->SetAsset(TargetVFXAsset);
 	}
+}
+
+float ABaseHelperBot::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		EHelperBotState CurrentState = static_cast<EHelperBotState>(
+			BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+		
+		if (CurrentState == EHelperBotState::Dead)
+		{
+			return 0.0f;
+		}
+	}
+
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	CurrentHealth -= ActualDamage;
+
+	if (DamageCauser)
+	{
+		FVector HitDirection = (GetActorLocation() - DamageCauser->GetActorLocation()).GetSafeNormal();
+		PlayHitEffect(HitDirection);
+	}
+
+	if (CurrentHealth <= 0.0f)
+	{
+		CurrentHealth = 0.0f;
+		StartDeathSequence();
+	}
+
+	return ActualDamage;
+}
+
+void ABaseHelperBot::PlayHitEffect(const FVector& HitDirection)
+{
+	if (HitEffectComponent)
+	{
+		FVector HitLocation = GetActorLocation() + HitDirection * 50.0f;
+		HitEffectComponent->SetWorldLocation(HitLocation);
+		HitEffectComponent->Activate(true);
+	}
+}
+
+void ABaseHelperBot::StartDeathSequence()
+{
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		BotAI->SetBotState(EHelperBotState::Dead);
+		BotAI->GetBrainComponent()->StopLogic(TEXT("Dead"));
+	}
+
+	SetActorEnableCollision(false);
+
+	if (DeathMontage)
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(DeathMontage);
+			AnimInstance->OnMontageEnded.AddDynamic(this, &ABaseHelperBot::OnDeathMontageCompleted);
+		}
+	}
+	else
+	{
+		OnDeathMontageCompleted(nullptr, false);
+	}
+}
+
+void ABaseHelperBot::OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (DeathEffectSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DeathEffectSystem, GetActorLocation());
+	}
+
+	Destroy();
 }
