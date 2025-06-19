@@ -275,15 +275,14 @@ void UBaseInventoryComponent::SwapItem(UBaseInventoryComponent* FromInventoryCom
 	if (IsValid(FromItem))
 	{
 		FromItem->UpdateInventoryItem(this);
+		FromInventoryComponent->InventoryItems[FromItemIndex]->ChangeSlotIndex(ToItemIndex);
 	}
 
 	if (IsValid(ToItem))
 	{
 		ToItem->UpdateInventoryItem(FromInventoryComponent);
+		InventoryItems[ToItemIndex]->ChangeSlotIndex(FromItemIndex);
 	}
-
-	FromInventoryComponent->InventoryItems[FromItemIndex]->ChangeSlotIndex(ToItemIndex);
-	InventoryItems[ToItemIndex]->ChangeSlotIndex(FromItemIndex);
 
 	Swap(FromInventoryComponent->InventoryItems[FromItemIndex], InventoryItems[ToItemIndex]);
 

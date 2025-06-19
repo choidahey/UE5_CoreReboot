@@ -49,6 +49,8 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 		ApplyResistanceEffect();
 
 		InventoryComponent->RemoveItemByIndex(Index, 1);
+
+		EndPassiveEffect();
 	}
 }
 
@@ -98,11 +100,6 @@ bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 void UConsumableInventoryItem::OnItemRotten() const
 {
 	UE_LOG(LogTemp, Warning, TEXT("Item has fully rotted!"));
-
-	if (IsValid(InventoryComponent))
-	{
-		InventoryComponent->RemoveItemByIndex(InventoryItemData.SlotIndex);
-	}
 }
 
 void UConsumableInventoryItem::ApplyResistanceEffect()
