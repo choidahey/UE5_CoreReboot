@@ -9,6 +9,7 @@ class CR4S_API AC4MenuGameMode : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	void OpenSurvivalLevel(int32 SlotIndex);
 
 protected:
 	virtual void BeginPlay() override;

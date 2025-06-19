@@ -21,24 +21,13 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
-	void OnPlayGameButtonHovered();
-	UFUNCTION()
-	void OnPlayGameButtonUnhovered();
-	UFUNCTION()
-	void OnGameButtonHovered();
-	UFUNCTION()
-	void OnGameButtonUnhovered();
+	void OnPlayGameButtonClicked();
 	UFUNCTION()
 	void OnSettingsButtonClicked();
 	UFUNCTION()
 	void OnCreditsButtonClicked();
 	UFUNCTION()
 	void OnQuitButtonClicked();
-	UFUNCTION()
-	void OnNewGameButtonClicked();
-	UFUNCTION()
-	void OnLoadGameButtonClicked();
-
 
 	void CreateChildWidgets();
 
@@ -47,8 +36,6 @@ protected:
 public:
 	void HideMenuButtons();
 	void ShowMenuButtons();
-	void ShowGameButtons();
-	void HideGameButtons();
 
 protected:
 	UPROPERTY()
@@ -84,16 +71,6 @@ protected:
 	UButtonWidget* CreditsButton;
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* QuitButton;
-	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* NewGameButton;
-	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* LoadGameButton;
-
-
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* FadeIn;
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* FadeOut;
 
 	FTimerHandle FadeOutTimerHandle;
 };

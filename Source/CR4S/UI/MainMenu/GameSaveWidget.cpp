@@ -4,6 +4,8 @@
 #include "UI/MainMenu/SaveSlotWidget.h"
 #include "Game/SaveGame/C4MetaSaveGame.h"
 #include "Game/SaveGame/SaveGameManager.h"
+#include "Game/GameMode/C4MenuGameMode.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/Border.h"
 
 void UGameSaveWidget::NativeConstruct()
@@ -47,7 +49,7 @@ void UGameSaveWidget::HandleEmptySlotSelected(int32 SlotIndex)
 	if (ConfirmWidget)
 	{
 		ConfirmWidget->AddToViewport();
-		ConfirmWidget->Confirm(FText::FromString(FString::Printf(TEXT("Start New Game On slot %d?"), SlotIndex + 1)));
+		ConfirmWidget->Confirm(FText::FromString(FString::Printf(TEXT("Start New Game On slot %d?"), SlotIndex)));
 		ConfirmWidget->OnYes.BindDynamic(this, &UGameSaveWidget::HandleStartNewGame);
 		ConfirmWidget->OnNo.BindDynamic(this, &UGameSaveWidget::HandleCloseConfirmWidget);
 	}
@@ -66,13 +68,28 @@ void UGameSaveWidget::HandleStartNewGame()
 
 	USaveSlotWidget* NewSlotWidget = CreateWidget<USaveSlotWidget>(GetWorld(), SaveSlotWidgetClass);
 	if (!NewSlotWidget) return;
-
+	
+	NewSlotWidget->SetVisibility(ESlateVisibility::Collapsed);
 	ParentBorder->SetContent(NewSlotWidget);
+	NewSlotWidget->PlayCreateAnimation();
+	NewSlotWidget->SetVisibility(ESlateVisibility::Visible);
 
 	SaveSlots.Add(NewSlotWidget);
 
 	SaveGameManager->CreateSlot(FString::FromInt(SelectedSlotIndex));
 	NewSlotWidget->UpdateSlotInfo(SaveGameManager->GetSaveMetaDataByIndex(SelectedSlotIndex));
+
+
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this]()
+		{
+			AC4MenuGameMode* GM = Cast<AC4MenuGameMode>(UGameplayStatics::GetGameMode(this));
+			if (GM)
+			{
+				GM->OpenSurvivalLevel(SelectedSlotIndex);
+			}
+		}), 0.3f, false);
 }
 
 

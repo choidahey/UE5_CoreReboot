@@ -14,6 +14,7 @@ class CR4S_API USaveSlotWidget : public UUserWidget
 
 public:
 	void UpdateSlotInfo(FSaveSlotMetaData SlotData);
+	void PlayCreateAnimation();
 
 protected:
 	virtual void NativeConstruct() override;
@@ -31,6 +32,10 @@ protected:
 	TObjectPtr<UTextBlock> SeasonText;
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UButton> SlotButton;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> OnCreateAnimation;
+
 
 	//UPROPERTY(meta = (BindWidgetOptional))
 	//TObjectPtr<UTextBlock> LocationText;

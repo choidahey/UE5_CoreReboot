@@ -16,20 +16,7 @@ void UMainMenuWidget::NativeConstruct()
 
 	if (PlayGameButton)
 	{
-		PlayGameButton->OnHovered().AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonHovered);
-		PlayGameButton->OnUnhovered().AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonUnhovered);
-	}
-	if (NewGameButton)
-	{
-		NewGameButton->OnHovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
-		NewGameButton->OnUnhovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
-		NewGameButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnNewGameButtonClicked);
-	}
-	if (LoadGameButton)
-	{
-		LoadGameButton->OnHovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonHovered);
-		LoadGameButton->OnUnhovered().AddDynamic(this, &UMainMenuWidget::OnGameButtonUnhovered);
-		LoadGameButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnLoadGameButtonClicked);
+		PlayGameButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonClicked);
 	}
 	if (SettingsButton)
 	{
@@ -50,75 +37,6 @@ void UMainMenuWidget::NativeConstruct()
 		AudioManager->PlayBGM(MainMenuBGM);
 	}
 
-
-	HideGameButtons();
-}
-
-void UMainMenuWidget::OnPlayGameButtonHovered()
-{
-	if (IsAnimationPlaying(FadeOut))
-	{
-		StopAnimation(FadeOut);
-		GetWorld()->GetTimerManager().ClearTimer(FadeOutTimerHandle);
-	}
-
-	ShowGameButtons();
-	PlayAnimation(FadeIn);
-}
-
-void UMainMenuWidget::OnPlayGameButtonUnhovered()
-{
-	if (IsAnimationPlaying(FadeIn))
-	{
-		StopAnimation(FadeIn);
-	}
-
-	PlayAnimation(FadeOut);
-
-	if (GetWorld()->GetTimerManager().IsTimerActive(FadeOutTimerHandle))
-	{
-		GetWorld()->GetTimerManager().ClearTimer(FadeOutTimerHandle);
-	}
-
-	GetWorld()->GetTimerManager().SetTimer(
-		FadeOutTimerHandle,
-		this,
-		&UMainMenuWidget::HideGameButtons,
-		0.6f,
-		false
-	);
-}
-
-void UMainMenuWidget::OnGameButtonHovered()
-{
-	if (IsAnimationPlaying(FadeOut))
-	{
-		StopAnimation(FadeOut);
-		GetWorld()->GetTimerManager().ClearTimer(FadeOutTimerHandle);
-	}
-
-	ShowGameButtons();
-}
-
-void UMainMenuWidget::OnGameButtonUnhovered()
-{
-	if (IsAnimationPlaying(FadeIn))
-	{
-		StopAnimation(FadeIn);
-	}
-
-	PlayAnimation(FadeOut);
-	if (GetWorld()->GetTimerManager().IsTimerActive(FadeOutTimerHandle))
-	{
-		GetWorld()->GetTimerManager().ClearTimer(FadeOutTimerHandle);
-	}
-	GetWorld()->GetTimerManager().SetTimer(
-		FadeOutTimerHandle,
-		this,
-		&UMainMenuWidget::HideGameButtons,
-		0.6f,
-		false
-	);
 }
 
 void UMainMenuWidget::CreateChildWidgets()
@@ -145,26 +63,11 @@ void UMainMenuWidget::CreateChildWidgets()
 	}
 }
 
-void UMainMenuWidget::OnNewGameButtonClicked()
-{
-	if (DifficultyOptionsWidgetInstance)
-	{
-		if (!DifficultyOptionsWidgetInstance->IsInViewport())
-		{
-			DifficultyOptionsWidgetInstance->AddToViewport();
-		}
-
-		HideMenuButtons();
-		DifficultyOptionsWidgetInstance->MainMenuWidgetRef = this;
-		DifficultyOptionsWidgetInstance->HandleOpenWindow();
-	}
-}
-
-void UMainMenuWidget::OnLoadGameButtonClicked()
+void UMainMenuWidget::OnPlayGameButtonClicked()
 {
 	if (GameSaveWidgetInstance)
 	{
-		if( !GameSaveWidgetInstance->IsInViewport())
+		if (!GameSaveWidgetInstance->IsInViewport())
 		{
 			GameSaveWidgetInstance->AddToViewport();
 		}
@@ -197,18 +100,6 @@ void UMainMenuWidget::OnCreditsButtonClicked()
 		CreditsWidgetInstance->AddToViewport(10);
 		HideMenuButtons();
 	}
-}
-
-void UMainMenuWidget::ShowGameButtons()
-{
-	SetWidgetVisibility(NewGameButton, ESlateVisibility::Visible);
-	SetWidgetVisibility(LoadGameButton, ESlateVisibility::Visible);
-}
-
-void UMainMenuWidget::HideGameButtons()
-{
-	SetWidgetVisibility(NewGameButton, ESlateVisibility::Hidden);
-	SetWidgetVisibility(LoadGameButton, ESlateVisibility::Hidden);
 }
 
 void UMainMenuWidget::ShowMenuButtons()

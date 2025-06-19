@@ -3,6 +3,7 @@
 #include "UI/MainMenu/MainMenuWidget.h"
 #include "Kismet/GameplayStatics.h"
 
+
 void AC4MenuGameMode::BeginPlay()
 {
     Super::BeginPlay();
@@ -22,4 +23,9 @@ void AC4MenuGameMode::BeginPlay()
             }
         }
     }
+}
+
+void AC4MenuGameMode::OpenSurvivalLevel(int32 SlotIndex)
+{
+    UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
 }

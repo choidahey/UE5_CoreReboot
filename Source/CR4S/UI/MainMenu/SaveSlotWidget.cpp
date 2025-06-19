@@ -2,6 +2,7 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 
+
 void USaveSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -19,13 +20,23 @@ void USaveSlotWidget::OnSlotButtonClicked()
 
 void USaveSlotWidget::UpdateSlotInfo(FSaveSlotMetaData SlotData)
 {
+	FDateTime Time = SlotData.SaveTime;
+	FString TimeString = Time.ToString(TEXT("%Y-%m-%d %H:%M"));
+	FText SaveText = FText::FromString(TimeString);
+	SaveTimeText->SetText(SaveText);
 	SlotNameText->SetText(FText::FromString(SlotData.SlotName));
-	SaveTimeText->SetText(FText::AsDateTime(SlotData.SaveTime));
-
 
 	//if (SlotButton)
 	//{
 	//	SlotButton->SetIsEnabled(SlotData.bIsEnabled);
 	//}
+}
+
+void USaveSlotWidget::PlayCreateAnimation()
+{
+	if (OnCreateAnimation)
+	{
+		PlayAnimation(OnCreateAnimation);
+	}
 }
 
