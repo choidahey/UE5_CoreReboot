@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BedWidget.generated.h"
 
+class ABaseBuildingGimmick;
 class ASurvivalHUD;
 class UButton;
 
@@ -11,16 +12,14 @@ UCLASS()
 class CR4S_API UBedWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
+	
 #pragma region Initialize
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Initialize")
-	void InitWidget();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Initialize")
+	void InitWidget(ABaseBuildingGimmick* BedGimmick);
 
 private:
-	bool CanSleep() const;
-	
 	UPROPERTY()
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
 	
@@ -28,14 +27,17 @@ private:
 
 #pragma region Sleep
 
+protected:
+	UFUNCTION(BlueprintNativeEvent, Category = "Sleep")
+	void PlaySleepingAnimation();
+	
 private:
 	UFUNCTION()
-	void PlaySleepingAnimation();
-	UFUNCTION()
 	void PlayAwakingAnimation();
-
 	UFUNCTION()
 	void HandleAnimationFinished();
+
+	bool CanSleep() const;
 	
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* SleepingAnim;
@@ -43,6 +45,17 @@ private:
 	bool bIsSleeping;
 	
 #pragma endregion
+
+#pragma region CanNotSleepNotify
+
+private:
+	UFUNCTION(BlueprintCallable, Category = "CanNotSleepNotify")
+	void PlayCanNotSleepNotifyAnim();
+	
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* CanNotSleepNotifyAnim;
+	
+#pragma endregion 
 
 #pragma region ModifyStat
 
@@ -52,7 +65,7 @@ private:
 	float CalculateHungerReduction(const float SleepingTime) const;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ModifyStat")
-	float MaxSleepTime = 480;
+	float AllowedMaxSleepTime = 1000;
 	
 #pragma endregion 
 
@@ -77,7 +90,6 @@ private:
 	TObjectPtr<UButton> SleepButton;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> CancelButton;
-
 
 	UPROPERTY(EditDefaultsOnly, Category = "Time")
 	float AddTime;

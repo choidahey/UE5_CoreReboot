@@ -377,6 +377,7 @@ void UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int
 
 			if (RemainingCount >= ItemCount)
 			{
+				InventoryItems[Index]->EndPassiveEffect();
 				InventoryItems[Index] = nullptr;
 				RemainingCount -= ItemCount;
 			}
@@ -395,10 +396,10 @@ void UBaseInventoryComponent::RemoveAllItemByRowName(const FName RowName)
 {
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
 	{
-		UBaseInventoryItem* Item = InventoryItems[Index];
-
+		const UBaseInventoryItem* Item = InventoryItems[Index];
 		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
 		{
+			InventoryItems[Index]->EndPassiveEffect();
 			InventoryItems[Index] = nullptr;
 
 			NotifyInventoryItemChanged(Index);
@@ -424,6 +425,7 @@ void UBaseInventoryComponent::RemoveItemByIndex(const int32 Index, const int32 C
 
 			if (Item->IsEmpty())
 			{
+				InventoryItems[Index]->EndPassiveEffect();
 				InventoryItems[Index] = nullptr;
 			}
 
@@ -453,6 +455,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 
 		TotalCounts.FindOrAdd(Item->GetInventoryItemData()->RowName) += Item->GetCurrentStackCount();
 
+		InventoryItems[Index]->EndPassiveEffect();
 		InventoryItems[Index] = nullptr;
 
 		ChangedItemSlots.Add(Index);
