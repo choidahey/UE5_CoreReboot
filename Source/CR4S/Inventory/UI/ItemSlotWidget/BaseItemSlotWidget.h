@@ -75,15 +75,16 @@ protected:
 #pragma region Freshness
 
 private:
+	UFUNCTION()
 	void UpdateFreshness(const float Freshness);
-	void ResetFreshnessImage() const;
+	void ResetFreshnessImage();
+	void BoundFreshnessDelegate();
+	void UnBoundFreshnessDelegate(UBaseInventoryItem* Item);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
 	FLinearColor MaxFreshnessColor = FLinearColor::Green;
 	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
 	FLinearColor MinFreshnessColor = FLinearColor::Red;
-	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
-	float FreshnessOpacity = 0.5f;
 	
 #pragma endregion 
 
