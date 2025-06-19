@@ -123,6 +123,15 @@ public:
 	FORCEINLINE int32 IsEmpty() const { return CurrentStackCount <= 0; }
 	FORCEINLINE const FGameplayTagContainer& GetItemTags() const { return InventoryItemData.ItemInfoData.ItemTags; }
 
+	FORCEINLINE const FText& GetItemName() const { return InventoryItemData.ItemInfoData.Name; }
+	FORCEINLINE const FText& GetItemDescription() const { return InventoryItemData.ItemInfoData.Description; }
+	FORCEINLINE UTexture2D* GetItemIcon() const { return InventoryItemData.ItemInfoData.Icon; }
+
+	FORCEINLINE void UpdateItemDescription(const FText& NewDescription)
+	{
+		InventoryItemData.ItemInfoData.Description = NewDescription;
+	}
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	FInventoryItemData InventoryItemData;

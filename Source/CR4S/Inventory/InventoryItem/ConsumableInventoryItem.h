@@ -92,11 +92,15 @@ private:
 	UFUNCTION()
 	bool UpdateFreshnessDecay(int64 NewPlayTime);
 	void OnItemRotten();
+	FText CreateNewDescription() const;
 
 	FFreshnessInfo FreshnessInfo;
 	int64 PreviousDecayPlayTime;
 
 	bool bIsRotten;
+	FText FreshnessText;
+	FText DefaultDescription;
+	FText RottenDescription;
 
 #pragma endregion
 
