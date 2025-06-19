@@ -25,7 +25,18 @@ public:
 public:
 	virtual void OnAttack() override;
 	virtual void Initialize(AModularRobot* OwnerCharacter) override;
+#pragma endregion
+
+#pragma region Common
 protected:
+	void FireMultiBullet(AActor* HomingTarget=nullptr);
+	bool GetAimHitResult(FHitResult& OutHitResult) const;
+	FVector GetMuzzleLocation(const FName& SocketName) const;
+	void FireBullet(const FVector& MuzzleLocation, const FRotator& SpawnRotation, AActor* HomingTarget = nullptr);
+
+	void ApplyRecoil() const;
+	void StartReload();
+	void FinishReload();
 #pragma endregion
 	
 #pragma region TypeSpecificInfo
@@ -33,5 +44,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FRangedWeaponInfo TypeSpecificInfo; 
 #pragma endregion
+
+#pragma region Cached
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	uint8 bIsReloading:1 {false};
+	FTimerHandle ReloadTimerHandle;
+#pragma endregion
 	
 };
+

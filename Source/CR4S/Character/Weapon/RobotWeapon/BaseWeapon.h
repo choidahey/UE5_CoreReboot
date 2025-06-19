@@ -3,9 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BaseTool.h"
-#include "GameplayTagContainer.h"
 #include "Character/Data/WeaponData.h"
+#include "Character/Weapon/BaseTool.h"
 #include "UObject/Object.h"
 #include "BaseWeapon.generated.h"
 
@@ -21,12 +20,13 @@ class CR4S_API ABaseWeapon : public ABaseTool
 
 public:
 	ABaseWeapon();
-	
+
+	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
 	virtual void Initialize(AModularRobot* OwnerCharacter);
-	
 #pragma region Attack
 public:
 	virtual float ComputeFinalDamage() override;
+	virtual void StopAttack();
 protected:
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
@@ -52,5 +52,7 @@ protected:
 #pragma region Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> SceneComp;
 #pragma endregion
 };

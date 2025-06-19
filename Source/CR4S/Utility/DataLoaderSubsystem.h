@@ -27,6 +27,7 @@ public:
 	void LoadRobotSettingsData(FRobotSettings& OutSettingsInfo) const;
 	void LoadWeaponSettingsData(FWeaponSettings& OutSettingsInfo) const;
 	bool LoadToolInfoByTag(const FGameplayTag& Tag, FPlayerToolInfo& OutSettingsInfo) const;
+	bool LoadWeaponClassDataByTag(const FGameplayTag& Tag, TSubclassOf<ABaseWeapon>& OutWeaponClass) const;
 	
 	template<typename T>
 	bool LoadWeaponInfoByTag(const FGameplayTag& Tag, T& OutInfo, FBaseWeaponInfo& OutBaseInfo)
@@ -65,4 +66,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UPlayerToolInfoDataAsset> PlayerToolInfoDataAsset;
+
+	UPROPERTY()
+	TObjectPtr<UWeaponClassDataAsset> WeaponClassDataAsset;
 };

@@ -7,6 +7,7 @@
 #include "RobotInputBufferComponent.generated.h"
 
 
+class URobotWeaponComponent;
 class ABaseWeapon;
 class AModularRobot;
 
@@ -18,16 +19,17 @@ class CR4S_API URobotInputBufferComponent : public UInputBufferComponent
 public:
 	URobotInputBufferComponent();
 
-	
+#pragma region Override
 public:
-	void RefreshWeaponListByIndex(const int32 Index, ABaseWeapon* InWeapon);
-	
 	virtual void ExecuteInputQueue() const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 protected:
 	virtual void BeginPlay() override;
+#pragma endregion
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	TArray<TObjectPtr<ABaseWeapon>> Weapons;
+#pragma region Cached
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<URobotWeaponComponent> WeaponComponent;
+#pragma endregion
 };

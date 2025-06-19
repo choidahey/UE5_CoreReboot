@@ -4,6 +4,9 @@
 #include "Game/System/WorldTimeManager.h"
 #include "DefaultInGameWidget.generated.h"
 
+class UImage;
+class AHomingWeapon;
+class ULockOnWidget;
 class UBaseStatusComponent;
 class UProgressBarWidget;
 class UCharacterStatusWidget;
@@ -26,6 +29,8 @@ public:
 #pragma region Initialize
 public:
 	void InitializeStatusWidget(UBaseStatusComponent* InComponent, bool bIsRobot);
+	UFUNCTION(BlueprintCallable)
+	void BindWidgetToHomingWeapon(AHomingWeapon* HomingWeapon);
 #pragma endregion
 	
 #pragma region UpdateWidget
@@ -36,6 +41,15 @@ public:
 	void UpdateStunWidget(const float InPercentage);
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateImageVisible();
+	UFUNCTION(BlueprintCallable)
+	void UpdateImageInvisible();
+	UFUNCTION(BlueprintCallable)
+	void SetLockedOnColor();
+	UFUNCTION(BlueprintCallable)
+	void UpdateImagePosition(const FVector2D& NewPosition);
 
 #pragma endregion
 
@@ -49,6 +63,8 @@ protected:
 	TObjectPtr<UTimeDisplayWidget> TimeDisplayWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UCharacterEnvironmentStatusWidget> EnvironmentStatusWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<UImage> LockOnImage;
 #pragma endregion
 	
 };

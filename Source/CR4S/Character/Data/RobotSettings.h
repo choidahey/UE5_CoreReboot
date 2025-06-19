@@ -33,7 +33,7 @@ struct CR4S_API FWeaponSettings
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	FName AttachSocketName{};
+	TArray<FName> AttachSocketNames;
 	
 };
 
