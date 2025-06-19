@@ -67,12 +67,14 @@ void UBTService_FAObstacleAvoid::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 
 		if (BlackboardComp->GetValueAsBool("AreWeFlying"))
 		{
+			TWeakObjectPtr<UBlackboardComponent> WeakBlackboard = BlackboardComp;
+    
 			FTimerHandle TimerHandle;
-			ControlledPawn->GetWorldTimerManager().SetTimer(TimerHandle, [BlackboardComp]()
+			ControlledPawn->GetWorldTimerManager().SetTimer(TimerHandle, [WeakBlackboard]()
 			{
-				if (BlackboardComp)
+				if (WeakBlackboard.IsValid())
 				{
-					BlackboardComp->SetValueAsFloat("Pitch_Adjustment", 0.0f);
+					WeakBlackboard->SetValueAsFloat("Pitch_Adjustment", 0.0f);
 				}
 			}, 2.0f, false);
 		}
