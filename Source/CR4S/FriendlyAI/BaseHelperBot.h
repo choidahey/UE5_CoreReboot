@@ -94,6 +94,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentHealth = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString BotName = TEXT("AutoBot");
 	
 #pragma endregion
 
@@ -118,6 +121,13 @@ public:
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
 
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
+
+	UFUNCTION(BlueprintCallable, Category = "Bot Info")
+	FORCEINLINE FString GetBotName() const { return BotName; }
+
+	UFUNCTION(BlueprintCallable, Category = "Bot Info")
+	void SetBotName(const FString& NewName);
+	
 #pragma endregion
 
 #pragma region Component

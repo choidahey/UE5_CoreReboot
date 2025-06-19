@@ -81,6 +81,7 @@ void ABaseHelperBot::BeginPlay()
 	{
 		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
 		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
+		InteractableComp->SetInteractionText(FText::FromString(BotName));
 	}
 }
 
@@ -400,4 +401,17 @@ void ABaseHelperBot::OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterr
 	}
 
 	Destroy();
+}
+
+void ABaseHelperBot::SetBotName(const FString& NewName)
+{
+	if (NewName.Len() >= 2 && NewName.Len() <= 8)
+	{
+		BotName = NewName;
+		
+		if (InteractableComp)
+		{
+			InteractableComp->SetInteractionText(FText::FromString(BotName));
+		}
+	}
 }
