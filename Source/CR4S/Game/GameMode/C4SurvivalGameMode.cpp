@@ -1,10 +1,14 @@
 #include "Game/GameMode/C4SurvivalGameMode.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Kismet/GameplayStatics.h"
+
 
 void AC4SurvivalGameMode::StartPlay()
 {
     Super::StartPlay();
+
+    HandleStartGame();
 
     if (GameStartSFX)
     {
@@ -26,5 +30,18 @@ void AC4SurvivalGameMode::EndGameSequence()
     if (HUD)
     {
         HUD->PlayEndingSequence();
+    }
+}
+
+void AC4SurvivalGameMode::HandleStartGame()
+{
+    USaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
+    if (SaveGameManager->IsNewGame())
+    {
+        // Add New Game Logic
+    }
+    else
+    {
+        SaveGameManager->ApplyAll();
     }
 }

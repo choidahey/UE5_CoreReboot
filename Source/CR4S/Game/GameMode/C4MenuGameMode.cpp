@@ -1,6 +1,8 @@
 #include "Game/GameMode/C4MenuGameMode.h"
+#include "Game/GameInstance/C4GameInstance.h"
 #include "Game/Controller/MenuPlayerController.h"
 #include "Game/System/AudioManager.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "UI/MainMenu/MainMenuWidget.h"
 #include "UI/Common/LoadingWidget.h"
 #include "Kismet/GameplayStatics.h"
@@ -31,6 +33,12 @@ void AC4MenuGameMode::OpenSurvivalLevel(int32 SlotIndex)
 {
     UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>();
     AudioManager->StopBGM();
+    
+    UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
+    GameInstance->CurrentSlotName = FString::FromInt(SlotIndex);
+
+    USaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
+    SaveGameManager->PreloadSaveData(FString::FromInt(SlotIndex));
 
     if(LoadingWidgetClass)
     {

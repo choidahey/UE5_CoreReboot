@@ -2,21 +2,21 @@
 #include "Game/SaveGame/C4MetaSaveGame.h"
 #include "Game/SaveGame/WorldSaveGame.h"
 #include "Game/SaveGame/SettingsSaveGame.h"
+#include "Game/SaveGame/CoreSaveGame.h"
 #include "Game/System/AudioManager.h"
-//#include "Game/SaveGame/CoreSaveGame.h"
+#include "Game/GameInstance/C4GameInstance.h"
 //#include "Game/SaveGame/BuildingSaveGame.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
 
 void USaveGameManager::SaveAll(const FString& SlotName)
 {
-    //UCoreSaveGame* Core = NewObject<UCoreSaveGame>();
-    //UGameplayStatics::SaveGameToSlot(Core, SlotName + "_Core", 0);
-
     //UBuildingSaveGame* Building = NewObject<UBuildingSaveGame>();
     //UGameplayStatics::SaveGameToSlot(Building, SlotName + "_Building", 0);
 
-    WorldSave = NewObject<UWorldSaveGame>();
-    UGameplayStatics::SaveGameToSlot(WorldSave, SlotName + "_World", 0);
+    SaveCore(SlotName);
+
+    //SaveWorld(SlotName);
 
     if (!MetaSave)
         MetaSave = NewObject<UC4MetaSaveGame>();
@@ -30,13 +30,13 @@ void USaveGameManager::SaveAll(const FString& SlotName)
     SaveMeta();
 }
 
-void USaveGameManager::LoadAll(const FString& SlotName)
+void USaveGameManager::PreloadSaveData(const FString& SlotName)
 {
-    // World
-    if (UGameplayStatics::DoesSaveGameExist(SlotName + "_World", 0))
+    // Core
+    if (UGameplayStatics::DoesSaveGameExist(SlotName + "_Core", 0))
     {
-        WorldSave = Cast<UWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_World", 0));
-        if (WorldSave)
+        CoreSave = Cast<UCoreSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_Core", 0));
+        if (CoreSave)
         {
             //
         }
@@ -112,6 +112,7 @@ void USaveGameManager::DeleteSaveGame(const FString& SlotName)
 {
     UGameplayStatics::DeleteGameInSlot(SlotName + "_World", 0);
     UGameplayStatics::DeleteGameInSlot(SlotName + "_Settings", 0);
+    UGameplayStatics::DeleteGameInSlot(SlotName + "_Core", 0);
     if (MetaSave && MetaSave->SaveSlots.Contains(SlotName))
     {
         MetaSave->SaveSlots.Remove(SlotName);
@@ -150,6 +151,113 @@ void USaveGameManager::DeleteSlot(const FString& SlotName)
     if (MetaSave && MetaSave->SaveSlots.Contains(SlotName))
     {
         MetaSave->SaveSlots.Remove(SlotName);
+
+        UGameplayStatics::DeleteGameInSlot(SlotName + "_World", 0);
+        UGameplayStatics::DeleteGameInSlot(SlotName + "_Settings", 0);
+        UGameplayStatics::DeleteGameInSlot(SlotName + "_Core", 0);
+
         SaveMeta();
 	}
+}
+
+void USaveGameManager::SaveCore(const FString& SlotName)
+{
+    UE_LOG(LogTemp, Log, TEXT("[SaveCore] Called with SlotName: %s"), *SlotName);
+
+    CoreSave = NewObject<UCoreSaveGame>();
+    if (!CoreSave)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SaveCore] Failed to create CoreSave object"));
+        return;
+    }
+
+    if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
+    {
+        CoreSave->PlayerLocation = Player->GetActorLocation();
+        CoreSave->PlayerRotation = Player->GetActorRotation();
+
+        UE_LOG(LogTemp, Log, TEXT("[SaveCore] PlayerLocation: %s"), *CoreSave->PlayerLocation.ToString());
+        UE_LOG(LogTemp, Log, TEXT("[SaveCore] PlayerRotation: %s"), *CoreSave->PlayerRotation.ToString());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[SaveCore] PlayerCharacter not found"));
+    }
+
+    const FString FullSlotName = SlotName + TEXT("_Core");
+    const bool bSuccess = UGameplayStatics::SaveGameToSlot(CoreSave, FullSlotName, 0);
+
+    if (bSuccess)
+    {
+        UE_LOG(LogTemp, Log, TEXT("[SaveCore] Successfully saved to slot: %s"), *FullSlotName);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SaveCore] Failed to save to slot: %s"), *FullSlotName);
+    }
+}
+
+
+void USaveGameManager::SaveWorld(const FString& SlotName)
+{
+    WorldSave = NewObject<UWorldSaveGame>();
+
+    if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
+    {
+        
+    }
+
+    UGameplayStatics::SaveGameToSlot(WorldSave, SlotName + "_World", 0);
+}
+
+bool USaveGameManager::IsNewGame() const
+{
+    const UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
+    if (!GameInstance)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[IsNewGame] GameInstance is null"));
+        return true;
+    }
+
+    const bool bIsExistingSlot = MetaSave && MetaSave->SaveSlots.Contains(GameInstance->CurrentSlotName);
+
+    UE_LOG(LogTemp, Log, TEXT("[IsNewGame] CurrentSlotName: %s, IsNewGame: %s"),
+        *GameInstance->CurrentSlotName, bIsExistingSlot ? TEXT("false") : TEXT("true"));
+
+    return !bIsExistingSlot;
+}
+
+
+void USaveGameManager::ApplyAll()
+{
+    if (!CoreSave )
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[ApplyAll] Save data not loaded. Call PreloadSaveData first."));
+        return;
+    }
+
+    const UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
+
+
+    ApplyCoreData();
+    ApplyWorldData();
+}
+
+void USaveGameManager::ApplyCoreData()
+{
+    if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
+    {
+        Player->SetActorLocation(CoreSave->PlayerLocation);
+        Player->SetActorRotation(CoreSave->PlayerRotation);
+
+        UE_LOG(LogTemp, Log, TEXT("[ApplyCoreData] Player location and rotation applied"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[ApplyCoreData] PlayerCharacter not found"));
+    }
+}
+
+void USaveGameManager::ApplyWorldData()
+{
 }

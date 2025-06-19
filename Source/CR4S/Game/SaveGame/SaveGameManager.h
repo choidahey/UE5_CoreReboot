@@ -7,42 +7,68 @@
 class UC4MetaSaveGame;
 class UWorldSaveGame;
 class USettingsSaveGame;
+class UCoreSaveGame;
 
 UCLASS()
 class CR4S_API USaveGameManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
-#pragma region Getters
+#pragma region Getters and Setters
+public:
+    FORCEINLINE TObjectPtr<UC4MetaSaveGame> GetMetaSave() const { return MetaSave; }
 
+    FSaveSlotMetaData GetSaveMetaDataByIndex(int32 Index) const;
+
+#pragma endregion
+
+
+#pragma region Public API - Save / Load
 public:
     void SaveAll(const FString& SlotName);
-    void LoadAll(const FString& SlotName);
+    void PreloadSaveData(const FString& SlotName);
+    void ApplyAll();
+    void ApplyCoreData();
+    void ApplyWorldData();
+
+    void SaveCore(const FString& SlotName);
+    void SaveWorld(const FString& SlotName);
+
+    void SaveSettings();
+    USettingsSaveGame* LoadSettings();
+
+    void DeleteSaveGame(const FString& SlotName);
+
+#pragma endregion
+
+#pragma region Public API - Slot Management
+public:
 
     void CreateSlot(const FString& SlotName);
     void DeleteSlot(const FString& SlotName);
 
     void SaveMeta();
     void LoadMeta();
-	FORCEINLINE TObjectPtr<UC4MetaSaveGame> GetMetaSave() const { return MetaSave; }
 
-    void SaveSettings();
-	USettingsSaveGame* LoadSettings();
+    bool IsNewGame() const;
+#pragma endregion
 
-	void DeleteSaveGame(const FString& SlotName);
+#pragma region Internal State
 
-	FSaveSlotMetaData GetSaveMetaDataByIndex(int32 Index) const;
-
-private:
-
-    FString MetaSlotName = TEXT("MetaSlot");
+protected:
 
     UPROPERTY()
     TObjectPtr<UC4MetaSaveGame> MetaSave;
     UPROPERTY()
-	TObjectPtr<UWorldSaveGame> WorldSave;
+    TObjectPtr<UWorldSaveGame> WorldSave;
     UPROPERTY()
-	TObjectPtr<USettingsSaveGame> SettingsSave;
+    TObjectPtr<UCoreSaveGame> CoreSave;
+    UPROPERTY()
+    TObjectPtr<USettingsSaveGame> SettingsSave;
 
-	
+private:
+    FString MetaSlotName = TEXT("MetaSlot");
+
+#pragma endregion
+
 };

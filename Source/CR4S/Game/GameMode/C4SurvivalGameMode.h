@@ -21,4 +21,5 @@ protected:
 
 private:
 
+	void HandleStartGame();
 };
