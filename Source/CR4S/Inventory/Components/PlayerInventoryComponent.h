@@ -42,9 +42,9 @@ public:
 	FORCEINLINE int32 GetInventoryContainerWidgetOrder() const { return InventoryContainerWidgetOrder; }
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
+	UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	FORCEINLINE URobotInventoryWidget* GetRobotInventoryWidget() const;
+	URobotInventoryWidget* GetRobotInventoryWidget() const;
 	
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
