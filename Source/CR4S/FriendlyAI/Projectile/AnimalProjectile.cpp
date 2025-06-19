@@ -2,6 +2,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Game/System/ProjectilePoolSubsystem.h"
+#include "../Component/ObjectPoolComponent.h"
 
 AAnimalProjectile::AAnimalProjectile()
 {
@@ -21,6 +22,8 @@ AAnimalProjectile::AAnimalProjectile()
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = false;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
+
+	PoolComponent = CreateDefaultSubobject<UObjectPoolComponent>(TEXT("PoolComponent"));
 	
 	Damage = 10.f;
 }
@@ -45,27 +48,5 @@ void AAnimalProjectile::OnProjectileHit(UPrimitiveComponent* HitComp, AActor* Ot
 				Pool->ReturnToPool(this);
 			}
 		}
-	}
-}
-
-void AAnimalProjectile::OnSpawnFromPool()
-{
-	Super::OnSpawnFromPool();
-	SetActorTickEnabled(true);
-	
-	if (ProjectileMovement)
-	{
-		ProjectileMovement->Velocity = FVector::ZeroVector;
-	}
-}
-
-void AAnimalProjectile::OnReturnToPool()
-{
-	Super::OnReturnToPool();
-	SetActorTickEnabled(false);
-
-	if (ProjectileMovement)
-	{
-		ProjectileMovement->StopMovementImmediately();
 	}
 }

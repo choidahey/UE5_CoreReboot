@@ -117,6 +117,16 @@ protected:
 
 #pragma endregion
 
+#pragma region Jump Notify
+
+public:
+	virtual void Landed(const FHitResult& Hit) override;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bJumpFromNotify = false;
+
+#pragma endregion
+
 private:
 	FString MyHeader;
 

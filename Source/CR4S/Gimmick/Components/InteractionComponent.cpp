@@ -51,7 +51,7 @@ void UInteractionComponent::InitComponent()
 
 void UInteractionComponent::StartDetectProcess()
 {
-	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractionWidgetInstance)))
+	if (IsValid(InteractionWidgetInstance))
 	{
 		if (GetWorld()->GetTimerManager().IsTimerActive(FindProcessTimerHandle))
 		{

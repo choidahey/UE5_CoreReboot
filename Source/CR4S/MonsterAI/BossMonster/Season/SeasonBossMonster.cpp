@@ -76,6 +76,8 @@ void ASeasonBossMonster::SpawnOpeningPattern()
    
    if (UNiagaraSystem* RangeEffect = GetOpeningNiagara())
    {
+      if (!IsValid(RangeEffect)) return;
+      
       SpawnedNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
           RangeEffect,
           GetRootComponent(),

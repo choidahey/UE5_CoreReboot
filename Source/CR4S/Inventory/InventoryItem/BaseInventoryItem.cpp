@@ -2,17 +2,19 @@
 
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 UBaseInventoryItem::UBaseInventoryItem()
-	: CurrentStackCount(0)
+	: bUsePassiveEffect(false),
+	  CurrentStackCount(0)
 {
 }
 
 void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-											   const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
+                                           const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
 {
 	UpdateInventoryItem(NewInventoryComponent);
 
@@ -30,9 +32,20 @@ void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 			PlayerStatusComponent = nullptr;
 		}
 	}
-	
+
 	InventoryItemData = NewInventoryItemData;
 	CurrentStackCount = StackCount;
+
+	const UWorld* World = GetWorld();
+	if (CR4S_VALIDATE(LogInventoryItem, IsValid(World)))
+	{
+		WorldTimeManager = World->GetSubsystem<UWorldTimeManager>();
+	}
+	
+	if (bUsePassiveEffect)
+	{
+		StartPassiveEffect();
+	}
 }
 
 void UBaseInventoryItem::UseItem(const int32 Index)
@@ -44,9 +57,28 @@ void UBaseInventoryItem::UseItem(const int32 Index)
 	}
 }
 
-void UBaseInventoryItem::HandlePassiveEffect()
+void UBaseInventoryItem::StartPassiveEffect()
 {
-	CR4S_Log(LogInventory, Warning, TEXT("Begin"));
+	if (IsValid(WorldTimeManager) &&
+		!WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(this, &ThisClass::HandlePassiveEffect))
+	{
+		WorldTimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::HandlePassiveEffect);
+	}
+}
+
+void UBaseInventoryItem::HandlePassiveEffect(int64 NewPlayTime)
+{
+	// CR4S_Log(LogInventory, Warning, TEXT("Begin"));
+}
+
+
+void UBaseInventoryItem::EndPassiveEffect()
+{
+	if (IsValid(WorldTimeManager) &&
+		WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(this, &ThisClass::HandlePassiveEffect))
+	{
+		WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::HandlePassiveEffect);
+	}
 }
 
 void UBaseInventoryItem::SetCurrentStackCount(const int32 NewStackCount)

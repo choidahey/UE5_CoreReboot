@@ -13,11 +13,11 @@ struct FAnimalProjectileStatsRow : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AAnimalProjectile> ProjectileClass;
+	TSubclassOf<AAnimalProjectile> ProjectileClass = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Speed;
+	float Speed = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Lifetime;
+	float Lifetime = 0.0f;
 };

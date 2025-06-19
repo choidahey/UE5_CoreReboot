@@ -32,7 +32,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
 	void OpenPlayerInventoryWidget(const int32 CraftingDifficulty = 0) const;
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	void OpenOtherInventoryWidget(EInventoryType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
+	void OpenOtherInventoryWidget(EOpenWidgetType InventoryType, UBaseInventoryComponent* InventoryComponent) const;
 
 	void CloseInventoryWidget() const;
 
@@ -42,9 +42,9 @@ public:
 	FORCEINLINE int32 GetInventoryContainerWidgetOrder() const { return InventoryContainerWidgetOrder; }
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
+	UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	FORCEINLINE URobotInventoryWidget* GetRobotInventoryWidget() const;
+	URobotInventoryWidget* GetRobotInventoryWidget() const;
 	
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;

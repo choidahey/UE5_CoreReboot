@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SceneComponent.h"
+#include "Components/ActorComponent.h"
 #include "AnimalRangedAttackComponent.generated.h"
 
 class AAnimalProjectile;

@@ -20,6 +20,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FBlackboardKeySelector ResourceTargetKey;
 
+	UFUNCTION()
+	void OnTargetDestroyed(AActor* DestroyedActor);
+
 private:
 	UPROPERTY()
 	AActor* CachedTarget = nullptr;
