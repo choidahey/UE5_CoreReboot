@@ -6,6 +6,10 @@
 #include "RangedWeapon.h"
 #include "HomingWeapon.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockOnSucceeded);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockOnCanceled);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryingToLockOn, FVector2D, TargetScreenLocation);
+
 UCLASS()
 class CR4S_API AHomingWeapon : public ARangedWeapon
 {
@@ -33,10 +37,21 @@ protected:
 	TWeakObjectPtr<AActor> TrackingTarget;
 
 	UPROPERTY(VisibleAnywhere, Category="LockOn")
+	float LockOnDurationCounter {0};
+	
+	UPROPERTY(VisibleAnywhere, Category="LockOn")
 	uint8 bIsLockedOn :1 {false};
 
 	UPROPERTY(VisibleAnywhere, Category="LockOn")
 	uint8 bIsTryingToLockOn :1 {false};
+#pragma endregion
 
-#pragma endregion 
+#pragma region Delegate
+	UPROPERTY(VisibleAnywhere,BlueprintAssignable,Category="Delegate")
+	FOnTryingToLockOn OnTryingToLockOn;
+	UPROPERTY(VisibleAnywhere,BlueprintAssignable,Category="Delegate")
+	FOnLockOnCanceled OnLockOnCanceled;
+	UPROPERTY(VisibleAnywhere,BlueprintAssignable,Category="Delegate")
+	FOnLockOnSucceeded OnLockOnSucceeded;
+#pragma endregion
 };

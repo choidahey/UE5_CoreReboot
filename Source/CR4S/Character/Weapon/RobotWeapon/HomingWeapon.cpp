@@ -16,9 +16,7 @@ AHomingWeapon::AHomingWeapon()
 
 void AHomingWeapon::OnAttack()
 {
-	if (!bCanAttack||bIsReloading) return;
-
-	if (bIsTryingToLockOn) return;
+	if (!bCanAttack||bIsReloading||bIsTryingToLockOn) return;
 	
 	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
 	{
@@ -35,6 +33,7 @@ void AHomingWeapon::OnAttack()
 	{
 		bIsTryingToLockOn = true;
 		bIsLockedOn = false;
+		LockOnDurationCounter=0.f;
 		TrackingTarget=TargetActor;
 		SetActorTickEnabled(true);
 	}
@@ -46,11 +45,13 @@ void AHomingWeapon::StopAttack()
 
 	bIsTryingToLockOn = false;
 	SetActorTickEnabled(false);
+	OnLockOnCanceled.Broadcast();
 
 	if (bIsLockedOn && TrackingTarget.IsValid())
 	{
 		FireHomingBullet();
 	}
+	
 	bIsLockedOn = false;
 	TrackingTarget=nullptr;
 }
@@ -85,7 +86,11 @@ void AHomingWeapon::Tick(float DeltaTime)
 	}
 
 	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
-	if (!CR4S_ENSURE(LogHong1,PC)) return;
+	if (!CR4S_ENSURE(LogHong1,PC))
+	{
+		StopAttack();
+		return;
+	}
 
 	FVector TargetLocation=TrackingTarget->GetActorLocation();
 	FVector2D TargetScreenLocation;
@@ -100,16 +105,22 @@ void AHomingWeapon::Tick(float DeltaTime)
 		const float DistanceFromCenter=FVector2D::Distance(ScreenCenter,TargetScreenLocation);
 		if (DistanceFromCenter<=ActualPixelRadius)
 		{
-			bIsLockedOn=true;
+			LockOnDurationCounter+=DeltaTime;
+			OnTryingToLockOn.Broadcast(TargetScreenLocation);
+			if (!bIsLockedOn && LockOnDurationCounter>=TypeSpecificInfo.HomingInfo.LockOnTime)
+			{
+				bIsLockedOn=true;
+				OnLockOnSucceeded.Broadcast();
+			}
 		}
 		else
 		{
-			bIsLockedOn=false;
+			StopAttack();
 		}
 	}
 	else
 	{
-		bIsLockedOn=false;
+		StopAttack();
 	}
 }
 
