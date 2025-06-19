@@ -30,12 +30,13 @@ protected:
 
 #pragma region LockOn
 	UPROPERTY(VisibleAnywhere, Category="LockOn")
-	TWeakObjectPtr<AActor> PotentialTarget;
+	TWeakObjectPtr<AActor> TrackingTarget;
 
 	UPROPERTY(VisibleAnywhere, Category="LockOn")
-	uint8 bIsLockingOn :1 {false};
+	uint8 bIsLockedOn :1 {false};
 
 	UPROPERTY(VisibleAnywhere, Category="LockOn")
-	float LockOnStartTime {0};
+	uint8 bIsTryingToLockOn :1 {false};
+
 #pragma endregion 
 };

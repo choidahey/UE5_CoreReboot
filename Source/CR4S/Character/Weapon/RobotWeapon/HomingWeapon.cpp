@@ -3,26 +3,29 @@
 
 #include "HomingWeapon.h"
 
+#include "CR4S.h"
+#include "Character/Characters/ModularRobot.h"
+
 
 // Sets default values
 AHomingWeapon::AHomingWeapon()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AHomingWeapon::OnAttack()
 {
 	if (!bCanAttack||bIsReloading) return;
 
+	if (bIsTryingToLockOn) return;
+	
 	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
 	{
 		StartReload();
 		return;
 	}
 	
-	if (bIsLockingOn) return;
-
 	FHitResult HitResult;
 	if (!GetAimHitResult(HitResult)) return;
 
@@ -30,52 +33,40 @@ void AHomingWeapon::OnAttack()
 
 	if (TargetActor && TargetActor!=GetOwner())
 	{
-		PotentialTarget=TargetActor;
-		bIsLockingOn=true;
-		LockOnStartTime=GetWorld()->GetTimeSeconds();
+		bIsTryingToLockOn = true;
+		bIsLockedOn = false;
+		TrackingTarget=TargetActor;
+		SetActorTickEnabled(true);
 	}
 }
 
 void AHomingWeapon::StopAttack()
 {
-	if (!bIsLockingOn) return;
+	if (!bIsTryingToLockOn) return;
 
-	bIsLockingOn=false;
-	
-	if (!PotentialTarget.IsValid() || TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	bIsTryingToLockOn = false;
+	SetActorTickEnabled(false);
+
+	if (bIsLockedOn && TrackingTarget.IsValid())
 	{
-		StartReload();
-		PotentialTarget=nullptr;
-		return;
+		FireHomingBullet();
 	}
-
-	if (!PotentialTarget.IsValid()) return;
-
-	const float LockOnDuration=GetWorld()->GetTimeSeconds() - LockOnStartTime;
-	if (LockOnDuration>=TypeSpecificInfo.HomingInfo.LockOnTime)
-	{
-		FireMultiBullet(PotentialTarget.Get());
-	}
-	PotentialTarget=nullptr;
+	bIsLockedOn = false;
+	TrackingTarget=nullptr;
 }
 
 // Called when the game starts or when spawned
 void AHomingWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	SetActorTickEnabled(false);
 }
 
 void AHomingWeapon::FireHomingBullet()
 {
-	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
-	{
-		StartReload();
-		return;
-	}
-	if (!PotentialTarget.IsValid()) return;
+	if (!TrackingTarget.IsValid()) return;
 
-	FireMultiBullet(PotentialTarget.Get());
+	FireMultiBullet(TrackingTarget.Get());
 
 	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
 	ApplyRecoil();
@@ -86,5 +77,39 @@ void AHomingWeapon::FireHomingBullet()
 void AHomingWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!bIsTryingToLockOn || !TrackingTarget.IsValid())
+	{
+		StopAttack();
+		return;
+	}
+
+	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	FVector TargetLocation=TrackingTarget->GetActorLocation();
+	FVector2D TargetScreenLocation;
+
+	if (PC->ProjectWorldLocationToScreen(TargetLocation, TargetScreenLocation))
+	{
+		int32 ViewportX, ViewportY;
+		PC->GetViewportSize(ViewportX, ViewportY);
+		const float ActualPixelRadius=ViewportY*TypeSpecificInfo.HomingInfo.LockOnMaintainRadius;
+		const FVector2D ScreenCenter(ViewportX*0.5f,ViewportY*0.5f);
+		
+		const float DistanceFromCenter=FVector2D::Distance(ScreenCenter,TargetScreenLocation);
+		if (DistanceFromCenter<=ActualPixelRadius)
+		{
+			bIsLockedOn=true;
+		}
+		else
+		{
+			bIsLockedOn=false;
+		}
+	}
+	else
+	{
+		bIsLockedOn=false;
+	}
 }
 

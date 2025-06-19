@@ -122,6 +122,8 @@ struct CR4S_API FHomingInfo
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float LockOnTime{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0"))
+	float LockOnMaintainRadius{0.2};
 };
 
 USTRUCT(BlueprintType)
