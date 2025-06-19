@@ -38,7 +38,9 @@ private:
 #pragma region Interaction
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StartDetectProcess();
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopDetectProcess();
 	
 	void ShowInteractionWidget() const;

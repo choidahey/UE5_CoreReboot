@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AlsCharacter.h"
+#include "AnimNodes/AnimNode_RandomPlayer.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/Data/PlayerCharacterSettingsDataAsset.h"
 #include "PlayerCharacter.generated.h"

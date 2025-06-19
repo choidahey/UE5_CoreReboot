@@ -44,6 +44,7 @@ protected:
 
 public:
 	virtual void InitializeSkillData();
+	virtual void ApplyInitialOverlapDamage();
 	virtual void ApplyEffectToActor(AActor* Target);
 
 #pragma endregion
@@ -87,9 +88,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
 	float StunGaugeAmount = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
+	float StunDamageMultiplier = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
 	bool bAllowMultipleHits = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
+	bool bIsStunned = false;
 
 	UPROPERTY()
 	TSet<TWeakObjectPtr<AActor>> AlreadyDamaged;

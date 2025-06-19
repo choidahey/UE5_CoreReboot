@@ -1,6 +1,6 @@
 #include "EnvQueryTest_BuildingNeedsRepair.h"
 #include "EnvironmentQuery/Items/EnvQueryItemType_Actor.h"
-#include "Gimmick/Components/DestructibleComponent.h"
+#include "Gimmick/GimmickObjects/Buildings/BaseBuildingGimmick.h"
 
 UEnvQueryTest_BuildingNeedsRepair::UEnvQueryTest_BuildingNeedsRepair()
 {
@@ -19,17 +19,16 @@ void UEnvQueryTest_BuildingNeedsRepair::RunTest(FEnvQueryInstance& QueryInstance
 			continue;
 		}
 		
-		UDestructibleComponent* DestructibleComp = ItemActor->FindComponentByClass<UDestructibleComponent>();
-		if (!DestructibleComp)
+		ABaseBuildingGimmick* BuildingGimmick = Cast<ABaseBuildingGimmick>(ItemActor);
+		if (!BuildingGimmick)
 		{
 			It.ForceItemState(EEnvItemStatus::Failed);
 			continue;
 		}
 
-		const float Current = DestructibleComp->GetCurrentHealth();
-		const float Max = DestructibleComp->GetMaxHealth();
+		const float DurabilityRatio = BuildingGimmick->GetDurabilityRatio();
 		
-		if (Current >= Max)
+		if (DurabilityRatio >= 1.0f)
 		{
 			It.ForceItemState(EEnvItemStatus::Failed);
 			continue;

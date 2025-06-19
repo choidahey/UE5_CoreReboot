@@ -19,6 +19,10 @@ class CR4S_API UDefaultInGameWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
+#pragma region Get
+	FORCEINLINE UCharacterEnvironmentStatusWidget* GetEnvironmentStatusWidget() { return EnvironmentStatusWidget; }
+#pragma endregion
+	
 #pragma region Initialize
 public:
 	void InitializeStatusWidget(UBaseStatusComponent* InComponent, bool bIsRobot);
@@ -45,7 +49,6 @@ protected:
 	TObjectPtr<UTimeDisplayWidget> TimeDisplayWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UCharacterEnvironmentStatusWidget> EnvironmentStatusWidget;
-
 #pragma endregion
 	
 };

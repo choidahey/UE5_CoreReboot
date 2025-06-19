@@ -3,7 +3,7 @@
 #include "Gimmick/Components/DestructibleComponent.h"
 
 ATreeGimmick::ATreeGimmick()
-	: 
+	: bIsDestroyed(false),
 	  bIsTrunkDestroyed(false),
 	  StumpHealth(50.f),
 	  ImpulseStrength(100.f),
@@ -56,7 +56,7 @@ void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 	const float Strength = TrunkMeshComponent->GetMass() * ImpulseStrength;
 
 	TrunkMeshComponent->AddImpulse(Direction * Strength);
-	
+
 	DestructibleComponent->SetMaxHealth(StumpHealth);
 
 	GetWorldTimerManager().SetTimer(

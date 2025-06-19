@@ -4,7 +4,7 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
-#include "Inventory/InventoryType.h"
+#include "Inventory/OpenWidgetType.h"
 
 AItemPouchGimmick::AItemPouchGimmick()
 	: ForwardImpulseStrength(100.f),
@@ -64,7 +64,7 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 
 		InventoryComponent->SetMaxInventorySize(InventoryComponent->GetUseSlotCount());
 
-		PlayerInventoryComponent->OpenOtherInventoryWidget(EInventoryType::ItemPouch, InventoryComponent);
+		PlayerInventoryComponent->OpenOtherInventoryWidget(EOpenWidgetType::ItemPouch, InventoryComponent);
 	}
 }
 

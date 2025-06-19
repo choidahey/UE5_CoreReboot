@@ -16,7 +16,9 @@ enum class EInputType : uint8
 	None			UMETA(DisplayName = "None"),
 	Attack			UMETA(DisplayName = "Attack"),
 	RobotAttack1	UMETA(DisplayName = "RobotAttack1"),
-	RobotAttack2	UMETA(DisplayName = "RobotAttack2")
+	RobotAttack2	UMETA(DisplayName = "RobotAttack2"),
+	RobotAttack3	UMETA(DisplayName = "RobotAttack3"),
+	RobotAttack4	UMETA(DisplayName = "RobotAttack4")
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))

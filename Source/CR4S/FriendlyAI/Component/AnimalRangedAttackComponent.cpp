@@ -27,19 +27,14 @@ void UAnimalRangedAttackComponent::FireProjectile()
 	UWorld* World = GetWorld();
 	if (!World) return;
 
-	AAnimalProjectile* Projectile = nullptr;
-	if (UProjectilePoolSubsystem* Pool = World->GetSubsystem<UProjectilePoolSubsystem>())
-	{
-		TSubclassOf<AObjectPoolable> BaseClass = ProjectileClass;
-		AObjectPoolable* PooledObj = nullptr;
-		Pool->SpawnFromPool(BaseClass,
-							SpawnTransform.GetLocation(),
-							SpawnTransform.GetRotation().Rotator(),
-							PooledObj);
-		Projectile = Cast<AAnimalProjectile>(PooledObj);
-		if (!Projectile) return;
-	}
+	UProjectilePoolSubsystem* PoolSubsystem = World->GetSubsystem<UProjectilePoolSubsystem>();
+	if (!PoolSubsystem) return;
 
+	AActor* SpawnedActor = PoolSubsystem->SpawnFromPool(ProjectileClass,
+														SpawnTransform.GetLocation(),
+														SpawnTransform.GetRotation().Rotator());
+	
+	AAnimalProjectile* Projectile = Cast<AAnimalProjectile>(SpawnedActor);
 	if (!Projectile) return;
 
 	FTimerHandle ReturnHandle;

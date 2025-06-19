@@ -16,9 +16,12 @@
 #include "Utility/AlsVector.h"
 #include "NavigationInvokerComponent.h"
 #include "Character/Components/PlayerInputBufferComponent.h"
+#include "Character/Components/PlayerInputBufferComponent.h"
 #include "Character/Components/WeaponTraceComponent.h"
 #include "Character/Weapon/BaseTool.h"
 #include "Character/Weapon/PlayerTool.h"
+#include "Tests/AutomationCommon.h"
+#include "UI/InGame/CharacterEnvironmentStatusWidget.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -111,6 +114,15 @@ void APlayerCharacter::InitializeWidgets()
 				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
 
 				InGameWidget->InitializeStatusWidget(Status,false);
+				
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+					EnvironmentWidget->InitializeWidget(this);
+				}
 			}
 		}
 	}
@@ -127,6 +139,15 @@ void APlayerCharacter::DisconnectWidgets()
 				Status->OnHPChanged.RemoveAll(InGameWidget);
 				Status->OnResourceChanged.RemoveAll(InGameWidget);
 				Status->OnHungerChanged.RemoveAll(InGameWidget);
+				InGameWidget->InitializeStatusWidget(Status,false);
+				
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+				}
 			}
 		}
 	}
@@ -185,6 +206,10 @@ void APlayerCharacter::BeginPlay()
 
 	if (!CR4S_ENSURE(LogHong1,Status)) return;
 	Status->OnDeathState.AddUObject(this,&APlayerCharacter::OnDeath);
+
+	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
+	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -237,6 +262,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	Interaction->StartDetectProcess();
 	
 	InitializeWidgets();
+	Status->SetIsUnPossessed(false);
+	
 }
 
 void APlayerCharacter::UnPossessed()
@@ -249,8 +276,10 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
+	
 	SetOverlayMode(OverlayMode::Mounted);
 	DisconnectWidgets();
+	Status->SetIsUnPossessed(true);
 	Super::UnPossessed();
 }
 

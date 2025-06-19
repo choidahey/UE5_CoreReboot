@@ -59,7 +59,7 @@ void APlayerTool::OnAttack()
 {
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter)||!CR4S_ENSURE(LogHong1,PlayerToolInfo.AttackMontage)) return;
 	
-	OwningCharacter->PlayAnimMontage(PlayerToolInfo.AttackMontage);
+	OwningCharacter->PlayAnimMontage(PlayerToolInfo.AttackMontage,MontagePlayRate);
 }
 
 float APlayerTool::ComputeFinalDamage()
