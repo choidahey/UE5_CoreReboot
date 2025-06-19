@@ -8,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
 
-void UBedWidget::InitWidget()
+void UBedWidget::InitWidget_Implementation(ABaseBuildingGimmick* BedGimmick)
 {
 	APlayerController* PlayerController = GetOwningPlayer();
 	if (IsValid(PlayerController))
@@ -55,19 +55,7 @@ void UBedWidget::InitWidget()
 	}
 }
 
-bool UBedWidget::CanSleep() const
-{
-	AActor* TargetActor = UGameplayStatics::GetActorOfClass(GetWorld(), AEnvironmentManager::StaticClass());
-	const AEnvironmentManager* EnvironmentManager = Cast<AEnvironmentManager>(TargetActor);
-	if (CR4S_VALIDATE(LogGimmickUI, IsValid(EnvironmentManager)))
-	{
-		return EnvironmentManager->IsSleepTime();
-	}
-
-	return true;
-}
-
-void UBedWidget::PlaySleepingAnimation()
+void UBedWidget::PlaySleepingAnimation_Implementation()
 {
 	if (IsValid(SleepingAnim))
 	{
@@ -114,6 +102,26 @@ void UBedWidget::HandleAnimationFinished()
 	else
 	{
 		RemoveWidget();
+	}
+}
+
+bool UBedWidget::CanSleep() const
+{
+	AActor* TargetActor = UGameplayStatics::GetActorOfClass(GetWorld(), AEnvironmentManager::StaticClass());
+	const AEnvironmentManager* EnvironmentManager = Cast<AEnvironmentManager>(TargetActor);
+	if (CR4S_VALIDATE(LogGimmickUI, IsValid(EnvironmentManager)))
+	{
+		return EnvironmentManager->IsSleepTime();
+	}
+
+	return true;
+}
+
+void UBedWidget::PlayCanNotSleepNotifyAnim()
+{
+	if (IsValid(CanNotSleepNotifyAnim))
+	{
+		PlayAnimation(CanNotSleepNotifyAnim, 0.f, 1, EUMGSequencePlayMode::Forward);
 	}
 }
 
