@@ -5,6 +5,8 @@
 
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
+#include "GameFramework/HUD.h"
+#include "UI/InGame/SurvivalHUD.h"
 
 
 // Sets default values
@@ -36,7 +38,25 @@ void AHomingWeapon::OnAttack()
 		LockOnDurationCounter=0.f;
 		TrackingTarget=TargetActor;
 		SetActorTickEnabled(true);
+		OnLockOnStarted.Broadcast();
 	}
+}
+
+void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter)
+{
+	Super::Initialize(OwnerCharacter);
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
+	
+	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(PC->GetHUD());
+	if (!CR4S_ENSURE(LogHong1,CurrentHUD)) return;
+
+	UDefaultInGameWidget* InGaemWidget=CurrentHUD->GetInGameWidget();
+	if (!CR4S_ENSURE(LogHong1,InGaemWidget)) return;
+
+	InGaemWidget->BindWidgetToHomingWeapon(this);
 }
 
 void AHomingWeapon::StopAttack()
@@ -101,7 +121,7 @@ void AHomingWeapon::Tick(float DeltaTime)
 		PC->GetViewportSize(ViewportX, ViewportY);
 		const float ActualPixelRadius=ViewportY*TypeSpecificInfo.HomingInfo.LockOnMaintainRadius;
 		const FVector2D ScreenCenter(ViewportX*0.5f,ViewportY*0.5f);
-		
+
 		const float DistanceFromCenter=FVector2D::Distance(ScreenCenter,TargetScreenLocation);
 		if (DistanceFromCenter<=ActualPixelRadius)
 		{
@@ -110,16 +130,18 @@ void AHomingWeapon::Tick(float DeltaTime)
 			if (!bIsLockedOn && LockOnDurationCounter>=TypeSpecificInfo.HomingInfo.LockOnTime)
 			{
 				bIsLockedOn=true;
-				OnLockOnSucceeded.Broadcast();
+				OnLockOnFinished.Broadcast();
 			}
 		}
 		else
 		{
+			bIsLockedOn=false;
 			StopAttack();
 		}
 	}
 	else
 	{
+		bIsLockedOn=false;
 		StopAttack();
 	}
 }

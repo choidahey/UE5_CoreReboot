@@ -6,9 +6,10 @@
 #include "RangedWeapon.h"
 #include "HomingWeapon.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockOnSucceeded);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockOnStarted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockOnCanceled);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryingToLockOn, FVector2D, TargetScreenLocation);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockOnFinished);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryingToLockOn, const FVector2D&, TargetScreenLocation);
 
 UCLASS()
 class CR4S_API AHomingWeapon : public ARangedWeapon
@@ -22,6 +23,7 @@ public:
 #pragma region Override
 public:
 	virtual void OnAttack() override;
+	virtual void Initialize(AModularRobot* OwnerCharacter) override;
 	virtual void StopAttack() override;
 	virtual void Tick(float DeltaTime) override;
 protected:
@@ -47,11 +49,14 @@ protected:
 #pragma endregion
 
 #pragma region Delegate
+public:
 	UPROPERTY(VisibleAnywhere,BlueprintAssignable,Category="Delegate")
 	FOnTryingToLockOn OnTryingToLockOn;
 	UPROPERTY(VisibleAnywhere,BlueprintAssignable,Category="Delegate")
+	FOnLockOnStarted OnLockOnStarted;
+	UPROPERTY(VisibleAnywhere,BlueprintAssignable,Category="Delegate")
 	FOnLockOnCanceled OnLockOnCanceled;
 	UPROPERTY(VisibleAnywhere,BlueprintAssignable,Category="Delegate")
-	FOnLockOnSucceeded OnLockOnSucceeded;
+	FOnLockOnFinished OnLockOnFinished;
 #pragma endregion
 };
