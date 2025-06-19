@@ -4,7 +4,7 @@
 #include "EnvironmentQuery/EnvQueryTest.h"
 #include "EnvQueryTest_BuildingNeedsRepair.generated.h"
 
-class UDestructibleComponent;
+class ABaseBuildingGimmick;
 
 UCLASS()
 class CR4S_API UEnvQueryTest_BuildingNeedsRepair : public UEnvQueryTest

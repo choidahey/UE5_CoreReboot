@@ -7,7 +7,6 @@
 #include "../../Gimmick/GimmickObjects/DestructibleGimmick.h"
 #include "../BaseHelperBot.h"
 #include "../../Inventory/Components/PlayerInventoryComponent.h"
-#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
 #include "Gimmick/GimmickObjects/ResourceGimmick/TreeGimmick.h"
 #include "../Controller/HelperBotAIController.h"
 #include "Engine/Engine.h"
@@ -41,6 +40,7 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 	}
 	
 	CachedTarget = TargetActor;
+	CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperGatherResource::OnTargetDestroyed);
 	CachedTarget->OnDestroyed.AddDynamic(this, &UBTTask_HelperGatherResource::OnTargetDestroyed);
 	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
 
@@ -48,12 +48,12 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 	if (Helper)
 	{
 		CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
-		Helper->bIsChopping = true;
+		Helper->SetIsWorking(true);
 	}
 
 	if (Helper && TargetActor)
 	{
-		Helper->UpdateChopSplineTarget(TargetActor);
+		Helper->UpdateEyeBeamWorkTarget(TargetActor);
 	}
 	
 	return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
@@ -78,20 +78,6 @@ void UBTTask_HelperGatherResource::TickTask(UBehaviorTreeComponent& OwnerComp, u
 	
 	if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed())
 	{
-		if (Helper)
-		{
-			Helper->bIsChopping = false;
-		}
-    
-		if (CachedTarget)
-		{
-			CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperGatherResource::OnTargetDestroyed);
-		}
-		if (Helper && Helper->ActiveChopVFX)
-		{
-			Helper->ActiveChopVFX->Deactivate();
-			Helper->ActiveChopVFX = nullptr;
-		}
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;
 	}
@@ -103,12 +89,8 @@ void UBTTask_HelperGatherResource::OnTargetDestroyed(AActor* /*DestroyedActor*/)
 {
 	if (ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper))
 	{
-		Helper->bIsChopping = false;
-		if (Helper->ActiveChopVFX)
-		{
-			Helper->ActiveChopVFX->Deactivate();
-			Helper->ActiveChopVFX = nullptr;
-		}
+		Helper->SetIsWorking(false);
+		Helper->StopEyeBeamWork();
 	}
 	if (CachedTarget)
 	{

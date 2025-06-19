@@ -34,12 +34,12 @@ EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& 
 	if (Helper)
 	{
 		CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
-		Helper->bIsChopping = true;
+		Helper->SetIsWorking(true);
 	}
 
 	if (Helper && TargetActor)
 	{
-		Helper->UpdateChopSplineTarget(TargetActor);
+		Helper->UpdateEyeBeamWorkTarget(TargetActor);
 	}
 	
 	return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
@@ -67,12 +67,8 @@ void UBTTask_HelperChopWood::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 	{
 		if (Helper)
 		{
-			Helper->bIsChopping = false;
-		}
-		if (Helper && Helper->ActiveChopVFX)
-		{
-			Helper->ActiveChopVFX->Deactivate();
-			Helper->ActiveChopVFX = nullptr;
+			Helper->SetIsWorking(false);
+			Helper->StopEyeBeamWork();
 		}
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
@@ -82,13 +78,8 @@ void UBTTask_HelperChopWood::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 	{
 		if (Helper)
 		{
-			Helper->bIsChopping = false;
-		}
-    
-		if (Helper && Helper->ActiveChopVFX)
-		{
-			Helper->ActiveChopVFX->Deactivate();
-			Helper->ActiveChopVFX = nullptr;
+			Helper->SetIsWorking(false);
+			Helper->StopEyeBeamWork();
 		}
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;

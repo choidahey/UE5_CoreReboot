@@ -38,6 +38,7 @@ void ABaseMonster::BeginPlay()
 
 	if (StateComponent)
 	{
+		StateComponent->InitializeStunData(AttributeComponent->GetMonsterAttribute());
 		StateComponent->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
 	}
 
@@ -78,6 +79,13 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 	return DamageAmount;
 }
+
+void ABaseMonster::TakeStun_Implementation(const float StunAmount)
+{
+	if (StateComponent)
+		StateComponent->AddStun(StunAmount);
+}
+
 
 void ABaseMonster::UseSkill(int32 SkillIndex)
 {

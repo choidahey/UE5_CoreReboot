@@ -173,10 +173,7 @@ void ARotatingProjectile::HandleLanding()
 		false
 	);
 
-	if (!bDestroyOnBossApproach)
-	{
-		SetLifeSpan(AutoDestroyDelay);
-	}
+	SetLifeSpan(AutoDestroyDelay);
 }
 
 void ARotatingProjectile::UpdateLandingCollision()
@@ -192,10 +189,20 @@ void ARotatingProjectile::Destroyed()
 	if (!IsValid(BossActor)) return;
 
 	USkeletalMeshComponent* Mesh = BossActor->FindComponentByClass<USkeletalMeshComponent>();
-	if (Mesh && Mesh->DoesSocketExist(RestoreSocketName))
+	if (Mesh && Mesh->DoesSocketExist(RestoreSocketName) && VisualWeaponClass)
 	{
-		const FName BoneName = Mesh->GetSocketBoneName(RestoreSocketName);
-		Mesh->UnHideBoneByName(BoneName);
+		FVector Location = Mesh->GetSocketLocation(RestoreSocketName);
+		FRotator Rotation = Mesh->GetSocketRotation(RestoreSocketName);
+
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.Owner = BossActor;
+
+		AActor* VisualWeapon = GetWorld()->SpawnActor<AActor>(VisualWeaponClass, Location, Rotation, Params);
+		if (VisualWeapon)
+		{
+			VisualWeapon->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, RestoreSocketName);
+		}
 	}
 
 	Super::Destroyed();

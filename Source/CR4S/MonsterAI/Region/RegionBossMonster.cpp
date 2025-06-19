@@ -146,6 +146,30 @@ UEnvQuery* ARegionBossMonster::GetEQSByApproachType(EApproachType Type) const
 	return nullptr;
 }
 
+void ARegionBossMonster::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	if (bJumpFromNotify)
+	{
+		FHitResult GroundHit;
+		const FVector Start = GetActorLocation();
+		const FVector End = Start - FVector(0.f, 0.f, 2000.f);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		if (GetWorld()->LineTraceSingleByChannel(GroundHit, Start, End, ECC_Visibility, Params))
+		{
+			SetActorLocation(GroundHit.ImpactPoint);
+			UE_LOG(LogTemp, Log, TEXT("[JumpFix] Forced ground snap."));
+		}
+	}
+
+	GetCharacterMovement()->StopMovementImmediately();
+	bJumpFromNotify = false;
+}
+
 void ARegionBossMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)	 
 {
 	Super::OnMonsterStateChanged(Previous, Current);

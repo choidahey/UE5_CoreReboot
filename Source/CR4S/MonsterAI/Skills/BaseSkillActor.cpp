@@ -7,6 +7,9 @@
 #include "NiagaraFunctionLibrary.h"
 #include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/Components/MonsterAttributeComponent.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
+#include "Utility/CombatStatics.h"
 
 ABaseSkillActor::ABaseSkillActor()
 {
@@ -55,19 +58,44 @@ void ABaseSkillActor::InitializeSkillData()
 	}
 }
 
+void ABaseSkillActor::ApplyInitialOverlapDamage()
+{
+	if (!IsValid(CollisionComp)) return;
+
+	TArray<AActor*> OverlappingActors;
+	CollisionComp->GetOverlappingActors(OverlappingActors);
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		ApplyEffectToActor(Actor);
+	}
+}
+
 void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 {
 	if (!IsValid(Target) || Target == GetOwner() || Target == GetInstigator()) return;
 	if (Cast<ABaseMonster>(Target) || Cast<AAnimalMonster>(Target) || Cast<ABaseSkillActor>(Target)) return;
 	if (!bAllowMultipleHits && AlreadyDamaged.Contains(Target)) return;
 
+	if (UMonsterStateComponent* StateComp = Target->FindComponentByClass<UMonsterStateComponent>())
+		bIsStunned = StateComp->IsStunned();
+
+	if (UMonsterAttributeComponent* AttrComp = Target->FindComponentByClass<UMonsterAttributeComponent>())
+	{
+		const FMonsterAttributeRow& AttrData = AttrComp->GetMonsterAttribute();
+		StunDamageMultiplier = AttrData.StunDamageMultiplier;
+	}
+	
 	if (Damage > 0.f)
 	{
+		if (bIsStunned && StunDamageMultiplier > 0.f)
+			Damage *= StunDamageMultiplier;
+
 		UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 	}
 
-	// TODO: 
-	// Target->ApplyStuntGauge(StuntGauge);
+	if (Target->GetClass()->ImplementsInterface(UStunnableInterface::StaticClass()))
+		UCombatStatics::ApplyStun(Target, StunGaugeAmount);
 
 	AlreadyDamaged.Add(Target);
 
