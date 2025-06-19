@@ -5,9 +5,9 @@
 #include "CR4S.h"
 #include "InputBufferComponent.h"
 #include "Character/Characters/ModularRobot.h"
-#include "Character/Weapon/BaseWeapon.h"
-#include "Character/Weapon/MeleeWeapon.h"
-#include "Character/Weapon/RangedWeapon.h"
+#include "Character/Weapon/RobotWeapon/BaseWeapon.h"
+#include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
+#include "Character/Weapon/RobotWeapon/RangedWeapon.h"
 #include "Utility/DataLoaderSubsystem.h"
 
 
@@ -19,6 +19,7 @@ URobotWeaponComponent::URobotWeaponComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	Weapons.Init(nullptr,4);
+	WeaponSettings.AttachSocketNames.Init(FName(),4);
 }
 
 void URobotWeaponComponent::Input_OnAttackLeftArm()
@@ -106,21 +107,51 @@ void URobotWeaponComponent::Input_StopAttackRightShoulder()
 
 void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx)
 {
-	ABaseWeapon* NewWeapon=nullptr;
+	if (!CR4S_ENSURE(LogHong1,Weapons.IsValidIndex(SlotIdx))) return;
+
+	// Can't equip MeleeWeapon on Shouler (Only Arm)
+	if (Tag.MatchesTag(WeaponTags::Melee)&&SlotIdx>1) return;
+	
+	UGameInstance* GI=OwningCharacter->GetGameInstance();
+	if (!CR4S_ENSURE(LogHong1,GI)) return;
+	
+	UDataLoaderSubsystem* Loader=GI->GetSubsystem<UDataLoaderSubsystem>();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+
+	TSubclassOf<ABaseWeapon> WeaponClass = nullptr;
+	Loader->LoadWeaponClassDataByTag(Tag,WeaponClass);
+	if (!CR4S_ENSURE(LogHong1,WeaponClass)) return;
+
+	if (IsValid(Weapons[SlotIdx]))
+	{
+		Weapons[SlotIdx]->Destroy();
+	}
+	
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.Instigator=Cast<ACharacter>(GetOwner());
-	SpawnParams.Owner=Cast<ACharacter>(GetOwner());
-	if (Tag.MatchesTag(WeaponTags::Ranged))
+	SpawnParams.Instigator=OwningCharacter;
+	SpawnParams.Owner=OwningCharacter;
+
+	ABaseWeapon* NewWeapon=GetWorld()->SpawnActor<ABaseWeapon>(WeaponClass,SpawnParams);
+
+	if (NewWeapon)
 	{
-		NewWeapon=GetWorld()->SpawnActor<ARangedWeapon>(SpawnParams);
+		if (!WeaponSettings.AttachSocketNames.IsValidIndex(SlotIdx)||!WeaponSettings.AttachSocketNames[SlotIdx].IsValid())
+		{
+			NewWeapon->Destroy();
+			return;
+		}
+		const FName AttachSocketName=WeaponSettings.AttachSocketNames[SlotIdx];
+
+		NewWeapon->AttachToComponent(
+			OwningCharacter->GetMesh(),
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			AttachSocketName
+		);
+		
+		NewWeapon->SetGameplayTag(Tag);
+		NewWeapon->Initialize(OwningCharacter);
+		Weapons[SlotIdx]=NewWeapon;
 	}
-	else if (Tag.MatchesTag(WeaponTags::Melee))
-	{
-		NewWeapon=GetWorld()->SpawnActor<AMeleeWeapon>(SpawnParams);
-	}
-	NewWeapon->SetGameplayTag(Tag);
-	NewWeapon->Initialize(OwningCharacter);
-	Weapons[SlotIdx]=NewWeapon;
 }
 
 void URobotWeaponComponent::BeginPlay()

@@ -7,6 +7,7 @@
 #include "Utility/Cr4sGameplayTags.h"
 #include "WeaponData.generated.h"
 
+class ABaseWeapon;
 class APlayerTool;
 class ABaseTool;
 class ABaseBullet;
@@ -30,6 +31,8 @@ public:
 	float ExplosionRadius{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HomingStrength{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HomingActivationDelay{0.2f};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxLifeTime{3};
 };
@@ -113,7 +116,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct CR4S_API FLockOnInfo
+struct CR4S_API FHomingInfo
 {
 	GENERATED_BODY()
 public:
@@ -167,8 +170,8 @@ public:
 	FBurstShotInfo BurstShotInfo;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | AutomaticFire")
 	FAutomaticFireInfo AutomaticFireInfo;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | LockOn")
-	FLockOnInfo LockOnInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | Homing")
+	FHomingInfo HomingInfo;
 };
 
 USTRUCT(BlueprintType)
@@ -237,6 +240,34 @@ public:
 	};
 
 	
+};
+
+UCLASS(BlueprintType)
+class CR4S_API UWeaponClassDataAsset : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="RobotWeapon")
+	TMap<FGameplayTag,TSubclassOf<ABaseWeapon>> WeaponClassData
+	{
+			{ WeaponTags::Chainsaw,{} },
+			{ WeaponTags::DemolitionGear,{} },
+			{ WeaponTags::ShockBat,{} },
+			{ WeaponTags::CrystalSword,{} },
+			{ WeaponTags::CrystalShotgun,{} },
+			{ WeaponTags::CrystalRifle,{} },
+			{ WeaponTags::CrystalBurstRifle,{} },
+			{ WeaponTags::CrystalGatling,{} },
+			{ WeaponTags::CrystalSMG,{} },
+			{ WeaponTags::CrystalLauncher2,{} },
+			{ WeaponTags::CrystalHomingLauncher4,{} },
+			{ WeaponTags::CrystalHomingHighSpeed4,{} },
+			{ WeaponTags::Fireball,{} },
+			{ WeaponTags::HomingFireball,{} },
+			{ WeaponTags::IceShotgun,{} },
+			{ WeaponTags::ThunderStrike,{} },
+			{ WeaponTags::Comet,{} }	
+	};
 };
 
 UCLASS(BlueprintType)

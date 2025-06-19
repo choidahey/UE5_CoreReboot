@@ -3,9 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BaseTool.h"
-#include "GameplayTagContainer.h"
 #include "Character/Data/WeaponData.h"
+#include "Character/Weapon/BaseTool.h"
 #include "UObject/Object.h"
 #include "BaseWeapon.generated.h"
 
@@ -53,5 +52,7 @@ protected:
 #pragma region Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USceneComponent> SceneComp;
 #pragma endregion
 };

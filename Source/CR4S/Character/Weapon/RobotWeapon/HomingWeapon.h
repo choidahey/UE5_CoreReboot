@@ -32,7 +32,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="LockOn")
 	TWeakObjectPtr<AActor> PotentialTarget;
 
-	UPROPERTY(VisibleAnywhere)
-	FTimerHandle LockOnTimerHandle;
+	UPROPERTY(VisibleAnywhere, Category="LockOn")
+	uint8 bIsLockingOn :1 {false};
+
+	UPROPERTY(VisibleAnywhere, Category="LockOn")
+	float LockOnStartTime {0};
 #pragma endregion 
 };

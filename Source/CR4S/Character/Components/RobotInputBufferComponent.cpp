@@ -6,7 +6,7 @@
 #include "CR4S.h"
 #include "RobotWeaponComponent.h"
 #include "Character/Characters/ModularRobot.h"
-#include "Character/Weapon/BaseWeapon.h"
+#include "Character/Weapon/RobotWeapon/BaseWeapon.h"
 
 
 // Sets default values for this component's properties

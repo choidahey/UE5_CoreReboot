@@ -6,8 +6,10 @@
 
 ABaseWeapon::ABaseWeapon()
 {
+	SceneComp=CreateDefaultSubobject<USceneComponent>(FName("Root"));
+	RootComponent=SceneComp;
 	SkeletalMeshComp=CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
-	RootComponent=SkeletalMeshComp;
+	SkeletalMeshComp->SetupAttachment(RootComponent);
 }
 
 float ABaseWeapon::ComputeFinalDamage()
@@ -41,7 +43,7 @@ void ABaseWeapon::ResetAttackCooldown()
 void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
 	OwningCharacter=OwnerCharacter;
-	SkeletalMeshComp->SetSkeletalMesh(BaseInfo.SkeletalMesh);
+	//SkeletalMeshComp->SetSkeletalMesh(BaseInfo.SkeletalMesh);
 }
 
 void ABaseWeapon::StopAttack()

@@ -2,11 +2,10 @@
 
 
 #include "RangedWeapon.h"
-#include "BaseBullet.h"
 #include "CR4S.h"
-#include "HomingBullet.h"
 #include "RewindData.h"
 #include "Character/Characters/ModularRobot.h"
+#include "Character/Weapon/Bullet/BaseBullet.h"
 #include "Utility/DataLoaderSubsystem.h"
 
 ARangedWeapon::ARangedWeapon()
@@ -50,7 +49,7 @@ void ARangedWeapon::FireMultiBullet(AActor* HomingTarget)
 	{
 		const FVector MuzzleLocation=GetMuzzleLocation(MuzzleName);
 
-		const FVector TargetLocation=HomingTarget ? HomingTarget->GetActorLocation() : HitResult.ImpactPoint;
+		const FVector TargetLocation = HitResult.ImpactPoint;
 		const FVector ShootDirection=(TargetLocation-MuzzleLocation).GetSafeNormal();
 
 		if (ShootDirection.IsNearlyZero()) continue;
@@ -85,7 +84,7 @@ bool ARangedWeapon::GetAimHitResult(FHitResult& OutHitResult) const
 		OutHitResult,
 		WorldOrigin,
 		TraceEnd,
-		ECC_Visibility,
+		ECC_Camera,
 		Params
 	);
 	if (!bHit)

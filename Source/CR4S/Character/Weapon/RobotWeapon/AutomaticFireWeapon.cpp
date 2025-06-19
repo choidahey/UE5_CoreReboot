@@ -3,8 +3,8 @@
 
 #include "AutomaticFireWeapon.h"
 
-#include "BaseBullet.h"
 #include "CR4S.h"
+#include "Character/Weapon/Bullet/BaseBullet.h"
 
 
 // Sets default values

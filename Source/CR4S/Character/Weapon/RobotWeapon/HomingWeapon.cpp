@@ -15,30 +15,47 @@ void AHomingWeapon::OnAttack()
 {
 	if (!bCanAttack||bIsReloading) return;
 
-	if (GetWorld()->GetTimerManager().IsTimerActive(LockOnTimerHandle)) return;
+	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	{
+		StartReload();
+		return;
+	}
 	
+	if (bIsLockingOn) return;
+
 	FHitResult HitResult;
 	if (!GetAimHitResult(HitResult)) return;
 
 	AActor* TargetActor=HitResult.GetActor();
 
-	if (TargetActor&&TargetActor!=GetOwner())
+	if (TargetActor && TargetActor!=GetOwner())
 	{
 		PotentialTarget=TargetActor;
-
-		GetWorld()->GetTimerManager().SetTimer(
-			LockOnTimerHandle,
-			this,
-			&AHomingWeapon::FireHomingBullet,
-			TypeSpecificInfo.LockOnInfo.LockOnTime,
-			false
-		);
+		bIsLockingOn=true;
+		LockOnStartTime=GetWorld()->GetTimeSeconds();
 	}
 }
 
 void AHomingWeapon::StopAttack()
 {
-	GetWorld()->GetTimerManager().ClearTimer(LockOnTimerHandle);
+	if (!bIsLockingOn) return;
+
+	bIsLockingOn=false;
+	
+	if (!PotentialTarget.IsValid() || TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	{
+		StartReload();
+		PotentialTarget=nullptr;
+		return;
+	}
+
+	if (!PotentialTarget.IsValid()) return;
+
+	const float LockOnDuration=GetWorld()->GetTimeSeconds() - LockOnStartTime;
+	if (LockOnDuration>=TypeSpecificInfo.HomingInfo.LockOnTime)
+	{
+		FireMultiBullet(PotentialTarget.Get());
+	}
 	PotentialTarget=nullptr;
 }
 

@@ -14,6 +14,7 @@ void UDataLoaderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		WeaponDataAsset=Cast<UWeaponInfoDataAsset>(Settings->GetDataAssetByName(TEXT("WeaponInfoDataAsset")));
 		RobotSettingsDataAsset=Cast<URobotSettingsDataAsset>(Settings->GetDataAssetByName(TEXT("RobotSettingsDataAsset")));
 		PlayerToolInfoDataAsset=Cast<UPlayerToolInfoDataAsset>(Settings->GetDataAssetByName(TEXT("PlayerToolInfoDataAsset")));
+		WeaponClassDataAsset=Cast<UWeaponClassDataAsset>(Settings->GetDataAssetByName(TEXT("WeaponClassDataAsset")));
 	}
 }
 
@@ -35,5 +36,16 @@ bool UDataLoaderSubsystem::LoadToolInfoByTag(const FGameplayTag& Tag, FPlayerToo
 	OutSettingsInfo=*Info;
 	return true;
 }
+
+bool UDataLoaderSubsystem::LoadWeaponClassDataByTag(const FGameplayTag& Tag, TSubclassOf<ABaseWeapon>& OutWeaponClass) const
+{
+	const TSubclassOf<ABaseWeapon>* WeaponClass=WeaponClassDataAsset->WeaponClassData.Find(Tag);
+	if (!CR4S_ENSURE(LogHong1,WeaponClass)) return false;
+
+	OutWeaponClass=*WeaponClass;
+	return true;
+}
+
+
 
 

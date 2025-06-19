@@ -1,21 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SingleShotWeapon.h"
+#include "SpreadShotWeapon.h"
 
-#include "BaseBullet.h"
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
+#include "Character/Weapon/Bullet/BaseBullet.h"
 
 
 // Sets default values
-ASingleShotWeapon::ASingleShotWeapon()
+ASpreadShotWeapon::ASpreadShotWeapon()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void ASingleShotWeapon::OnAttack()
+void ASpreadShotWeapon::OnAttack()
 {
 	if (!bCanAttack || bIsReloading) return;
 
@@ -27,7 +27,7 @@ void ASingleShotWeapon::OnAttack()
 	
 	FHitResult HitResult;
 	if (!GetAimHitResult(HitResult)) return;
-	
+
 	const FVector MuzzleLocation=GetMuzzleLocation(TypeSpecificInfo.MuzzleSocketName);
 	const FVector ShootDirection=(HitResult.ImpactPoint-MuzzleLocation).GetSafeNormal();
 	if (!CR4S_ENSURE(LogHong1,!ShootDirection.IsNearlyZero()
@@ -36,24 +36,29 @@ void ASingleShotWeapon::OnAttack()
 		return;
 	}
 	
-	const FRotator SpawnRotation=ShootDirection.Rotation();
-	
-	FireBullet(MuzzleLocation,SpawnRotation);
-	
-	TypeSpecificInfo.AmmoInfo.CurrentAmmo--;
+	const float SpreadHalfAngleRad=FMath::DegreesToRadians(TypeSpecificInfo.SpreadShotInfo.SpreadAngle*0.5f);
+	for (int32 i=0;i<TypeSpecificInfo.SpreadShotInfo.BulletPerShot;++i)
+	{
+		const FVector SpreadDirection=FMath::VRandCone(ShootDirection,SpreadHalfAngleRad);
+
+		const FRotator SpawnRotation=SpreadDirection.Rotation();
+
+		FireBullet(MuzzleLocation,SpawnRotation);
+	}
+	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
 	ApplyRecoil();
 	StartAttackCooldown();
 }
 
 // Called when the game starts or when spawned
-void ASingleShotWeapon::BeginPlay()
+void ASpreadShotWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void ASingleShotWeapon::Tick(float DeltaTime)
+void ASpreadShotWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }

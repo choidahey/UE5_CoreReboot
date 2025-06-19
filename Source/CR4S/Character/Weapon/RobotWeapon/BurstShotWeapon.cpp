@@ -3,9 +3,9 @@
 
 #include "BurstShotWeapon.h"
 
-#include "BaseBullet.h"
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
+#include "Character/Weapon/Bullet/BaseBullet.h"
 
 
 // Sets default values

@@ -23,8 +23,15 @@ protected:
 	virtual void BeginPlay() override;
 #pragma endregion
 
+protected:
+	void ActivateHoming();
+	
 #pragma region Cached
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+private:
+	UPROPERTY(VisibleAnywhere, Category="Cached")
 	TWeakObjectPtr<AActor> HomingTargetActor;
+	
+	UPROPERTY(VisibleAnywhere, Category="Cached")
+	FTimerHandle HomingActivationTimerHandle;
 #pragma endregion
 };
