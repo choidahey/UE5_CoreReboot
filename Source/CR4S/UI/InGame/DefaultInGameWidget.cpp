@@ -5,7 +5,6 @@
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/CharacterStatusWidget.h"
-#include "Character/UI/RoundProgressBar.h"
 #include "Character/Weapon/RobotWeapon/HomingWeapon.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
