@@ -119,7 +119,7 @@ bool UBedWidget::CanSleep() const
 
 void UBedWidget::PlayCanNotSleepNotifyAnim()
 {
-	if (IsValid(CanNotSleepNotifyAnim))
+	if (IsValid(CanNotSleepNotifyAnim) && !IsAnimationPlaying(CanNotSleepNotifyAnim))
 	{
 		PlayAnimation(CanNotSleepNotifyAnim, 0.f, 1, EUMGSequencePlayMode::Forward);
 	}
