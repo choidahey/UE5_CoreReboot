@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UProgressBar;
 class UItemTooltipWidget;
 class UBaseInventoryWidget;
 class UInventoryContainerWidget;
@@ -66,8 +67,25 @@ protected:
 	TObjectPtr<UImage> IconImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> CountTextBlock;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> FreshnessImage;
 
 #pragma endregion
+
+#pragma region Freshness
+
+private:
+	void UpdateFreshness(const float Freshness);
+	void ResetFreshnessImage() const;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
+	FLinearColor MaxFreshnessColor = FLinearColor::Green;
+	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
+	FLinearColor MinFreshnessColor = FLinearColor::Red;
+	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
+	float FreshnessOpacity = 0.5f;
+	
+#pragma endregion 
 
 #pragma region Item
 
@@ -171,5 +189,5 @@ private:
 	UPROPERTY()
 	TObjectPtr<UItemTooltipWidget> ItemTooltipWidget;
 
-#pragma endregion 
+#pragma endregion
 };

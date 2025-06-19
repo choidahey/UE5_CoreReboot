@@ -82,6 +82,19 @@ void UBaseItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryW
 	SetItem(NewItem);
 }
 
+void UBaseItemSlotWidget::UpdateFreshness(const float Freshness)
+{
+	
+}
+
+void UBaseItemSlotWidget::ResetFreshnessImage() const
+{
+	if (IsValid(FreshnessImage))
+	{
+		FreshnessImage->SetColorAndOpacity(MaxFreshnessColor);
+	}
+}
+
 void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 {
 	CurrentItem = InItem;

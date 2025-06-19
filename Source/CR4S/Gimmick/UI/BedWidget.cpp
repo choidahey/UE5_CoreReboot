@@ -131,16 +131,6 @@ void UBedWidget::ModifyStat(float SleepingTime) const
 	{
 		SleepingTime += 2400.f;
 	}
-
-	const UWorldTimeManager* TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
-	if (!IsValid(TimeManager))
-	{
-		return;
-	}
-	
-	const int32 TotalSecondsInDay = TimeManager->GetDayCycleLength() * 60;
-	const float TimeRatio = SleepingTime / 2400.0f;
-	const int32 TotalAdvanceSeconds = FMath::RoundToInt(TimeRatio * TotalSecondsInDay);
 	
 	CR4S_Log(LogGimmickUI, Warning, TEXT("SleepingTime: %.2f"), SleepingTime);
 
@@ -152,12 +142,12 @@ void UBedWidget::ModifyStat(float SleepingTime) const
 		if (IsValid(StatusComponent))
 		{
 			const float MaxHP = StatusComponent->GetMaxHP();
-			const float HealthRecoveryValue = CalculateHealthRecovery(TotalAdvanceSeconds) / 100.f;
+			const float HealthRecoveryValue = CalculateHealthRecovery(SleepingTime) / 100.f;
 			StatusComponent->AddCurrentHP(MaxHP * HealthRecoveryValue);
 
 			CR4S_Log(LogGimmickUI, Warning, TEXT("HealthRecovery: %.2f"), HealthRecoveryValue);
 			
-			const float HungerReductionValue = CalculateHungerReduction(TotalAdvanceSeconds);
+			const float HungerReductionValue = CalculateHungerReduction(SleepingTime);
 			StatusComponent->AddCurrentHunger(-HungerReductionValue);
 
 			CR4S_Log(LogGimmickUI, Warning, TEXT("HungerReduction: %.2f"), HungerReductionValue);

@@ -504,9 +504,9 @@ void UBaseInventoryComponent::NotifyInventoryItemChanged(const int32 ItemIndex) 
 {
 	if (CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(ItemIndex)))
 	{
-		if (OnItemSlotChanged.IsBound())
+		if (OnItemSlotChange.IsBound())
 		{
-			OnItemSlotChanged.Broadcast(ItemIndex, InventoryItems[ItemIndex]);
+			OnItemSlotChange.Broadcast(ItemIndex, InventoryItems[ItemIndex]);
 		}
 	}
 }
