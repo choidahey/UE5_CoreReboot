@@ -28,6 +28,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	PlayerInventoryComponent = InPlayerInventoryComponent;
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(InputGuideContainer)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
@@ -157,9 +158,9 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	ChangeWidgetOrder(0);
 
-	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChanged.IsBound())
+	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChange.IsBound())
 	{
-		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
+		OtherInventoryComponent->OnOccupiedSlotsChange.Clear();
 	}
 
 	if (IsValid(QuickSlotBarWidget) && QuickSlotBarWidget->GetVisibility() == ESlateVisibility::Collapsed)

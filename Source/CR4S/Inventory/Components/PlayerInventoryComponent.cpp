@@ -106,6 +106,11 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDi
 	}
 
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
+
+	if (OnInventoryOpen.IsBound())
+	{
+		OnInventoryOpen.Broadcast();
+	}
 }
 
 void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EOpenWidgetType InventoryType,
@@ -135,9 +140,9 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 		InteractionComponent->StartDetectProcess();
 	}
 
-	if (OnInventoryClosed.IsBound())
+	if (OnInventoryClose.IsBound())
 	{
-		OnInventoryClosed.Broadcast();
+		OnInventoryClose.Broadcast();
 	}
 }
 

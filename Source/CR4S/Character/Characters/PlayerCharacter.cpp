@@ -20,6 +20,7 @@
 #include "Character/Components/WeaponTraceComponent.h"
 #include "Character/Weapon/BaseTool.h"
 #include "Character/Weapon/PlayerTool.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Tests/AutomationCommon.h"
 #include "UI/InGame/CharacterEnvironmentStatusWidget.h"
 
@@ -48,6 +49,8 @@ APlayerCharacter::APlayerCharacter()
 
 	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
+
+	PlayerInventory = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventory"));
 }
 
 void APlayerCharacter::OnDeath()

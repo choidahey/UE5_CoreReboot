@@ -27,7 +27,7 @@ FAddItemResult UPlanterBoxInventoryComponent::AddItem(const FName RowName, const
 
 	Result.bSuccess = true;
 
-	InventoryItems[0] = NewObject<UBaseInventoryItem>();
+	InventoryItems[0] = NewObject<UBaseInventoryItem>(GetWorld());
 	if (IsValid(InventoryItems[0]))
 	{
 		InventoryItems[0]->InitInventoryItem(this, FInventoryItemData(0, RowName, *ItemData), 1);
