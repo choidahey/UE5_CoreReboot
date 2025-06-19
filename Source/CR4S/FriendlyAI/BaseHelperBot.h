@@ -34,7 +34,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+	//virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 #pragma endregion
 
 #pragma region Interaction Functions
@@ -149,6 +149,35 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	class UParticleSystemComponent* WorkTargetParticle = nullptr;
+
+#pragma endregion
+
+#pragma region State Visual
+public:
+	UFUNCTION()
+	void UpdateStateVisualEffects();
+	
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor IdleEyeColor = FLinearColor::Blue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor ResourceEyeColor = FLinearColor::Green;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor DefendingEyeColor = FLinearColor::Red;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor RepairingEyeColor = FLinearColor::Yellow;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	class UNiagaraSystem* ResourceWorkVFX = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	class UNiagaraSystem* DefendingWorkVFX = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	class UNiagaraSystem* RepairingWorkVFX = nullptr;
 
 #pragma endregion
 	

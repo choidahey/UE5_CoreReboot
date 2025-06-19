@@ -26,7 +26,7 @@ ABaseHelperBot::ABaseHelperBot()
 	PrimaryActorTick.bCanEverTick = true;
 
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
-	InteractableComp->SetInteractionText(FText::FromString("MySon"));
+	InteractableComp->SetInteractionText(FText::FromString("자동화 로봇"));
 
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
 
@@ -64,7 +64,8 @@ void ABaseHelperBot::BeginPlay()
 	Super::BeginPlay();
 
 	LoadStats();
-
+	UpdateStateVisualEffects();
+	
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
 		MoveComp->SetAvoidanceEnabled(true);
@@ -250,5 +251,60 @@ void ABaseHelperBot::StopEyeBeamWork()
 	if (RightEyeWorkVFXComponent)
 	{
 		RightEyeWorkVFXComponent->Deactivate();
+	}
+}
+
+void ABaseHelperBot::UpdateStateVisualEffects()
+{
+	FLinearColor TargetEyeColor = IdleEyeColor;
+	UNiagaraSystem* TargetVFXAsset = nullptr;
+	
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		EHelperBotState CurrentState = static_cast<EHelperBotState>(
+			BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+		
+		switch (CurrentState)
+		{
+		case EHelperBotState::ChopWood:
+		case EHelperBotState::Mining:
+		case EHelperBotState::Gathering:
+			TargetEyeColor = ResourceEyeColor;
+			TargetVFXAsset = ResourceWorkVFX;
+			break;
+			
+		case EHelperBotState::Defending:
+			TargetEyeColor = DefendingEyeColor;
+			TargetVFXAsset = DefendingWorkVFX;
+			break;
+			
+		case EHelperBotState::Repairing:
+			TargetEyeColor = RepairingEyeColor;
+			TargetVFXAsset = RepairingWorkVFX;
+			break;
+			
+		default:
+			TargetEyeColor = IdleEyeColor;
+			TargetVFXAsset = nullptr;
+			break;
+		}
+	}
+	
+	if (LeftEyeLight)
+	{
+		LeftEyeLight->SetLightColor(TargetEyeColor);
+	}
+	if (RightEyeLight)
+	{
+		RightEyeLight->SetLightColor(TargetEyeColor);
+	}
+	
+	if (LeftEyeWorkVFXComponent)
+	{
+		LeftEyeWorkVFXComponent->SetAsset(TargetVFXAsset);
+	}
+	if (RightEyeWorkVFXComponent)
+	{
+		RightEyeWorkVFXComponent->SetAsset(TargetVFXAsset);
 	}
 }
