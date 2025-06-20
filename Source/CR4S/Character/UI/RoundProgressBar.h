@@ -29,6 +29,6 @@ protected:
 	TObjectPtr<UImage> RoundImage;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UMaterialInstanceDynamic> DynamicMaterialInstance;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UMaterialInterface> ParentMaterial;
 };
