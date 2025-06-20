@@ -136,14 +136,16 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 			ChangedItemSlots.Add(Index);
 
 			//////////////////// ConsumableInventoryItem
-			const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
-			if (IsValid(OriginConsumableItem))
+			UConsumableInventoryItem* CurrentConsumableItem = Cast<UConsumableInventoryItem>(SameInventoryItem);
+			if (IsValid(CurrentConsumableItem))
 			{
-				UConsumableInventoryItem* CurrentItem = Cast<UConsumableInventoryItem>(SameInventoryItem);
-				if (IsValid(CurrentItem))
+				float OtherFreshnessRemainingTime = CurrentConsumableItem->GetFreshnessInfo().ShelfLifeSeconds;
+				const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
+				if (IsValid(OriginConsumableItem))
 				{
-					CurrentItem->AveragingFreshness(OriginConsumableItem->GetRemainingFreshnessTime());
+					OtherFreshnessRemainingTime = OriginConsumableItem->GetRemainingFreshnessTime();
 				}
+				CurrentConsumableItem->AveragingFreshness(OtherFreshnessRemainingTime);
 			}
 			////////////////////
 		}
@@ -340,12 +342,13 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 		ToItem->SetCurrentStackCount(ToItemCount + ActualAddCount);
 		FromItem->SetCurrentStackCount(FromItem->GetCurrentStackCount() - ActualAddCount);
 
+		AveragingFreshness(FromItem, ToItem);
+		
 		if (FromItem->IsEmpty())
 		{
-			FromItem = nullptr;
+			FromInventoryComponent->InventoryItems[FromItemIndex] = nullptr;
 		}
 
-		AveragingFreshness(FromItem, ToItem);
 	}
 
 	NotifyInventoryItemChanged(ToItemIndex);
@@ -354,15 +357,15 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 
 void UBaseInventoryComponent::AveragingFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem)
 {
-	UConsumableInventoryItem* FromConsumableInventoryItem = Cast<UConsumableInventoryItem>(FromItem);
-	const UConsumableInventoryItem* ToConsumableInventoryItem = Cast<UConsumableInventoryItem>(ToItem);
+	const UConsumableInventoryItem* FromConsumableInventoryItem = Cast<UConsumableInventoryItem>(FromItem);
+	UConsumableInventoryItem* ToConsumableInventoryItem = Cast<UConsumableInventoryItem>(ToItem);
 	if (!IsValid(FromConsumableInventoryItem) ||
 		!IsValid(ToConsumableInventoryItem))
 	{
 		return;
 	}
 
-	FromConsumableInventoryItem->AveragingFreshness(ToConsumableInventoryItem->GetRemainingFreshnessTime());
+	ToConsumableInventoryItem->AveragingFreshness(FromConsumableInventoryItem->GetRemainingFreshnessTime());
 }
 
 void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*>& NewInventoryItems)

@@ -137,7 +137,7 @@ FText UConsumableInventoryItem::CreateNewDescription() const
 	const FText PercentText = FText::AsPercent(FreshnessInfo.GetFreshnessPercent(), &NumberFormat);
 
 	return FText::Format(
-		LOCTEXT("ItemDescriptionFormat", "{0}\n{1}: {2}%"),
+		LOCTEXT("ItemDescriptionFormat", "{0}\n{1}: {2}"),
 		DefaultDescription,
 		FreshnessText,
 		PercentText
