@@ -39,12 +39,15 @@ ABaseBullet::ABaseBullet()
 	
 }
 
-void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage)
+void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AActor* HomingTarget)
 {
 	BulletInfo=InData;
+	Damage=InDamage;
+
+	if (!ProjectileMovementComponent) return; 
 	ProjectileMovementComponent->InitialSpeed=BulletInfo.InitialBulletSpeed;
 	ProjectileMovementComponent->MaxSpeed=BulletInfo.MaxBulletSpeed;
-	Damage=InDamage;
+	ProjectileMovementComponent->Velocity=GetActorForwardVector()*BulletInfo.InitialBulletSpeed;
 	
 	if (BulletInfo.MaxLifeTime>KINDA_SMALL_NUMBER)
 	{

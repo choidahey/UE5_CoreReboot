@@ -96,13 +96,13 @@ public:
 	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex)
 	{
 		OccupiedSlots.Add(SlotIndex);
-		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
+		OnOccupiedSlotsChange.ExecuteIfBound(OccupiedSlots.Num());
 	}
 
 	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex)
 	{
 		OccupiedSlots.Remove(SlotIndex);
-		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
+		OnOccupiedSlotsChange.ExecuteIfBound(OccupiedSlots.Num());
 	}
 
 	int32 GetUseSlotCount();
@@ -159,19 +159,14 @@ private:
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemSlotChanged, const int32, SlotIndex, UBaseInventoryItem*, Item);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemSlotChange, const int32, SlotIndex, UBaseInventoryItem*, Item);
 
-	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegates")
-	FOnItemSlotChanged OnItemSlotChanged;
-
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryClosed);
-
-	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegates")
-	FOnInventoryClosed OnInventoryClosed;
+	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegate")
+	FOnItemSlotChange OnItemSlotChange;
 
 	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnOccupiedSlotsChanged, const int32, NumOccupiedSlots);
 
-	FOnOccupiedSlotsChanged OnOccupiedSlotsChanged;
+	FOnOccupiedSlotsChanged OnOccupiedSlotsChange;
 
 protected:
 	void NotifyInventoryItemChanged(const int32 ItemIndex) const;

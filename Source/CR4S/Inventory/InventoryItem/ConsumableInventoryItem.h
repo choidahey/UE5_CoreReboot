@@ -83,13 +83,20 @@ public:
 		FreshnessInfo.DecayRateMultiplier = NewDecayRateMultiplier;
 	}
 
+	FORCEINLINE float GetFreshnessPercent() const
+	{
+		return FreshnessInfo.GetFreshnessPercent();
+	}
+
 private:
 	UFUNCTION()
 	bool UpdateFreshnessDecay(int64 NewPlayTime);
-	void OnItemRotten() const;
+	void OnItemRotten();
 
 	FFreshnessInfo FreshnessInfo;
-	int64 PreviousDecayPlayTime = -1;
+	int64 PreviousDecayPlayTime;
+
+	bool bIsRotten;
 
 #pragma endregion
 
@@ -120,4 +127,12 @@ private:
 	FConsumableItemData ConsumableItemData;
 
 #pragma endregion
+
+#pragma region Delegate
+
+public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFreshnessChanged, const float, FreshnessPercent);
+	FOnFreshnessChanged OnFreshnessChanged;
+	
+#pragma endregion 
 };

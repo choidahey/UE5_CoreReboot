@@ -23,7 +23,7 @@ public:
 	ABaseBullet();
 
 public:
-	void Initialize(const FBulletInfo& InData, const float InDamage);
+	virtual void Initialize(const FBulletInfo& InData, const float InDamage, AActor* HomingTarget=nullptr);
 public:
 	virtual void Tick(float DeltaTime) override;
 protected:

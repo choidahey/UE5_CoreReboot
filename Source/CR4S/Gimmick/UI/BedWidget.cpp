@@ -8,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
 
-void UBedWidget::InitWidget()
+void UBedWidget::InitWidget_Implementation(ABaseBuildingGimmick* BedGimmick)
 {
 	APlayerController* PlayerController = GetOwningPlayer();
 	if (IsValid(PlayerController))
@@ -55,19 +55,7 @@ void UBedWidget::InitWidget()
 	}
 }
 
-bool UBedWidget::CanSleep() const
-{
-	AActor* TargetActor = UGameplayStatics::GetActorOfClass(GetWorld(), AEnvironmentManager::StaticClass());
-	AEnvironmentManager* EnvironmentManager = Cast<AEnvironmentManager>(TargetActor);
-	if (CR4S_VALIDATE(LogGimmickUI, IsValid(EnvironmentManager)))
-	{
-		return EnvironmentManager->IsSleepTime();
-	}
-
-	return true;
-}
-
-void UBedWidget::PlaySleepingAnimation()
+void UBedWidget::PlaySleepingAnimation_Implementation()
 {
 	if (IsValid(SleepingAnim))
 	{
@@ -117,6 +105,26 @@ void UBedWidget::HandleAnimationFinished()
 	}
 }
 
+bool UBedWidget::CanSleep() const
+{
+	AActor* TargetActor = UGameplayStatics::GetActorOfClass(GetWorld(), AEnvironmentManager::StaticClass());
+	const AEnvironmentManager* EnvironmentManager = Cast<AEnvironmentManager>(TargetActor);
+	if (CR4S_VALIDATE(LogGimmickUI, IsValid(EnvironmentManager)))
+	{
+		return EnvironmentManager->IsSleepTime();
+	}
+
+	return true;
+}
+
+void UBedWidget::PlayCanNotSleepNotifyAnim()
+{
+	if (IsValid(CanNotSleepNotifyAnim) && !IsAnimationPlaying(CanNotSleepNotifyAnim))
+	{
+		PlayAnimation(CanNotSleepNotifyAnim, 0.f, 1, EUMGSequencePlayMode::Forward);
+	}
+}
+
 void UBedWidget::ModifyStat(float SleepingTime) const
 {
 	if (SleepingTime < 0)
@@ -149,13 +157,13 @@ void UBedWidget::ModifyStat(float SleepingTime) const
 
 float UBedWidget::CalculateHealthRecovery(const float SleepingTime) const
 {
-	const float Alpha = FMath::Clamp(SleepingTime / MaxSleepTime, 0.0f, 1.0f);
+	const float Alpha = FMath::Clamp(SleepingTime / AllowedMaxSleepTime, 0.0f, 1.0f);
 	return FMath::Lerp(10.0f, 50.0f, Alpha);
 }
 
 float UBedWidget::CalculateHungerReduction(const float SleepingTime) const
 {
-	const float Alpha = FMath::Clamp(SleepingTime / MaxSleepTime, 0.0f, 1.0f);
+	const float Alpha = FMath::Clamp(SleepingTime / AllowedMaxSleepTime, 0.0f, 1.0f);
 	return FMath::Lerp(10.0f, 50.0f, Alpha);
 }
 

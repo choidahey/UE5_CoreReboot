@@ -42,10 +42,10 @@ public:
 	FORCEINLINE int32 GetInventoryContainerWidgetOrder() const { return InventoryContainerWidgetOrder; }
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	FORCEINLINE UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
+	UPlanterBoxInventoryWidget* GetPlanterBoxInventoryWidget() const;
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
-	FORCEINLINE URobotInventoryWidget* GetRobotInventoryWidget() const;
-	
+	URobotInventoryWidget* GetRobotInventoryWidget() const;
+
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
 
@@ -70,7 +70,8 @@ public:
 	FORCEINLINE UBaseInventoryComponent* GetQuickSlotInventoryComponent() { return QuickSlotInventoryComponent; }
 	FORCEINLINE const FGameplayTag& GetHeldToolTag() const { return HeldToolTag; }
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|QuickSlot")
-	FORCEINLINE void GetHeldToolTag(FGameplayTag& OutHeldToolTag) const { OutHeldToolTag = HeldToolTag; } 
+	FORCEINLINE void GetHeldToolTag(FGameplayTag& OutHeldToolTag) const { OutHeldToolTag = HeldToolTag; }
+
 	FORCEINLINE void SetHeldToolTag(const FGameplayTag& NewHeldToolTags) { HeldToolTag = NewHeldToolTags; }
 
 private:
@@ -78,6 +79,21 @@ private:
 	TObjectPtr<UBaseInventoryComponent> QuickSlotInventoryComponent;
 
 	FGameplayTag HeldToolTag;
+
+#pragma endregion
+
+#pragma region Delegate
+
+public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryOpen);
+
+	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegate")
+	FOnInventoryOpen OnInventoryOpen;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryClose);
+
+	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegate")
+	FOnInventoryClose OnInventoryClose;
 
 #pragma endregion
 };

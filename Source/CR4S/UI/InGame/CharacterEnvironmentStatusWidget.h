@@ -18,6 +18,16 @@ public:
 	void OnTemperatureChanged(float NewTemperature);
 	UFUNCTION()
 	void OnHumidityChanged(float NewHumidity);
+	UFUNCTION()
+	void UpdateColdThreshold(float NewThreshold);
+	UFUNCTION()
+	void UpdateHeatThreshold(float NewThreshold);
+	UFUNCTION()
+	void UpdateHumidityThreshold(float NewThreshold);
+	UFUNCTION()
+	void UpdateTemperatureProgressBar();
+	UFUNCTION()
+	void UpdateHumidityProgressBar();
 	bool InitializeWidget(ACharacter* NewPawn);
 protected:
 	virtual void NativeConstruct() override;

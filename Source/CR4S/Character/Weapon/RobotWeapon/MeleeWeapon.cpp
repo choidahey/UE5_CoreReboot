@@ -18,10 +18,7 @@ void AMeleeWeapon::OnAttack()
 
 void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
-	Super::Initialize(OwnerCharacter);
-	if (!CR4S_ENSURE(LogHong1,OwnerCharacter)) return;
-	
-	UGameInstance* GI=OwningCharacter->GetGameInstance();
+	UGameInstance* GI=GetGameInstance();
 	if (!GI) return;
 
 	UDataLoaderSubsystem* DataLoader=GI->GetSubsystem<UDataLoaderSubsystem>();
@@ -32,4 +29,5 @@ void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
 	{
 		return;
 	}
+	Super::Initialize(OwnerCharacter);
 }

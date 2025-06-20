@@ -6,6 +6,8 @@
 #include "Inventory/Components/BaseInventoryComponent.h"
 
 UConsumableInventoryItem::UConsumableInventoryItem()
+	: PreviousDecayPlayTime(-1),
+	  bIsRotten(false)
 {
 	bUsePassiveEffect = true;
 }
@@ -43,14 +45,15 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 
 	if (IsValid(PlayerStatusComponent))
 	{
-		PlayerStatusComponent->AddCurrentHunger(ConsumableItemData.HungerRestore);
-		PlayerStatusComponent->AddCurrentHP(ConsumableItemData.HealthRestore);
+		if (bIsRotten)
+		{
+			PlayerStatusComponent->AddCurrentHunger(ConsumableItemData.HungerRestore);
+			PlayerStatusComponent->AddCurrentHP(ConsumableItemData.HealthRestore);
 
-		ApplyResistanceEffect();
+			ApplyResistanceEffect();
+		}
 
 		InventoryComponent->RemoveItemByIndex(Index, 1);
-
-		EndPassiveEffect();
 	}
 }
 
@@ -86,6 +89,11 @@ bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 	const float ActualDecay = DeltaSeconds * FreshnessInfo.DecayRateMultiplier;
 	FreshnessInfo.RemainingFreshnessTime -= ActualDecay;
 
+	if (OnFreshnessChanged.IsBound())
+	{
+		OnFreshnessChanged.Broadcast(FreshnessInfo.GetFreshnessPercent());
+	}
+	
 	if (FreshnessInfo.RemainingFreshnessTime <= 0.f)
 	{
 		FreshnessInfo.RemainingFreshnessTime = 0.f;
@@ -97,9 +105,10 @@ bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 	return true;
 }
 
-void UConsumableInventoryItem::OnItemRotten() const
+void UConsumableInventoryItem::OnItemRotten()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Item has fully rotted!"));
+	CR4S_Log(LogTemp, Warning, TEXT("Item has fully rotted!"));
+	bIsRotten = true;
 }
 
 void UConsumableInventoryItem::ApplyResistanceEffect()
