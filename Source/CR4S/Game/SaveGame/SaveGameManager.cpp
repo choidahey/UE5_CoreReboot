@@ -1,13 +1,18 @@
 #include "Game/SaveGame/SaveGameManager.h"
+#include "Game/System/AudioManager.h"
+#include "Game/System/WorldTimeManager.h"
+#include "Game/System/SeasonManager.h"
+
 #include "Game/SaveGame/C4MetaSaveGame.h"
 #include "Game/SaveGame/WorldSaveGame.h"
 #include "Game/SaveGame/SettingsSaveGame.h"
 #include "Game/SaveGame/CoreSaveGame.h"
-#include "Game/System/AudioManager.h"
-#include "Game/GameInstance/C4GameInstance.h"
 //#include "Game/SaveGame/BuildingSaveGame.h"
+
+#include "Game/GameInstance/C4GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "CR4S.h"
 
 void USaveGameManager::SaveAll(const FString& SlotName)
 {
@@ -16,7 +21,7 @@ void USaveGameManager::SaveAll(const FString& SlotName)
 
     SaveCore(SlotName);
 
-    //SaveWorld(SlotName);
+    SaveWorld(SlotName);
 
     if (!MetaSave)
         MetaSave = NewObject<UC4MetaSaveGame>();
@@ -32,14 +37,13 @@ void USaveGameManager::SaveAll(const FString& SlotName)
 
 void USaveGameManager::PreloadSaveData(const FString& SlotName)
 {
-    // Core
     if (UGameplayStatics::DoesSaveGameExist(SlotName + "_Core", 0))
     {
         CoreSave = Cast<UCoreSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_Core", 0));
-        if (CoreSave)
-        {
-            //
-        }
+    }
+    if (UGameplayStatics::DoesSaveGameExist(SlotName + "_World", 0))
+    {
+        WorldSave = Cast<UWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_World", 0));
     }
 }
 
@@ -111,7 +115,6 @@ USettingsSaveGame* USaveGameManager::LoadSettings()
 void USaveGameManager::DeleteSaveGame(const FString& SlotName)
 {
     UGameplayStatics::DeleteGameInSlot(SlotName + "_World", 0);
-    UGameplayStatics::DeleteGameInSlot(SlotName + "_Settings", 0);
     UGameplayStatics::DeleteGameInSlot(SlotName + "_Core", 0);
     if (MetaSave && MetaSave->SaveSlots.Contains(SlotName))
     {
@@ -162,26 +165,20 @@ void USaveGameManager::DeleteSlot(const FString& SlotName)
 
 void USaveGameManager::SaveCore(const FString& SlotName)
 {
-    UE_LOG(LogTemp, Log, TEXT("[SaveCore] Called with SlotName: %s"), *SlotName);
+    CR4S_Log(LogSave, Log, TEXT("Called with SlotName: %s"), *SlotName);
 
     CoreSave = NewObject<UCoreSaveGame>();
-    if (!CoreSave)
-    {
-        UE_LOG(LogTemp, Error, TEXT("[SaveCore] Failed to create CoreSave object"));
-        return;
-    }
+
+    if (!CR4S_VALIDATE(LogSave, CoreSave)) return;
 
     if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
     {
         CoreSave->PlayerLocation = Player->GetActorLocation();
         CoreSave->PlayerRotation = Player->GetActorRotation();
-
-        UE_LOG(LogTemp, Log, TEXT("[SaveCore] PlayerLocation: %s"), *CoreSave->PlayerLocation.ToString());
-        UE_LOG(LogTemp, Log, TEXT("[SaveCore] PlayerRotation: %s"), *CoreSave->PlayerRotation.ToString());
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("[SaveCore] PlayerCharacter not found"));
+        CR4S_Log(LogSave, Warning, TEXT("PlayerCharacter not found"));
     }
 
     const FString FullSlotName = SlotName + TEXT("_Core");
@@ -189,11 +186,11 @@ void USaveGameManager::SaveCore(const FString& SlotName)
 
     if (bSuccess)
     {
-        UE_LOG(LogTemp, Log, TEXT("[SaveCore] Successfully saved to slot: %s"), *FullSlotName);
+        CR4S_Log(LogSave, Log, TEXT("Successfully saved to slot: %s"), *FullSlotName);
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("[SaveCore] Failed to save to slot: %s"), *FullSlotName);
+        CR4S_Log(LogSave, Error, TEXT("Failed to save to slot: %s"), *FullSlotName);
     }
 }
 
@@ -201,27 +198,63 @@ void USaveGameManager::SaveCore(const FString& SlotName)
 void USaveGameManager::SaveWorld(const FString& SlotName)
 {
     WorldSave = NewObject<UWorldSaveGame>();
+    if (!CR4S_VALIDATE(LogSave, WorldSave)) return;
 
-    if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
+    UWorldTimeManager* TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
+    if (!CR4S_VALIDATE(LogSave, TimeManager)) return;
+
+    USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
+    if (!CR4S_VALIDATE(LogSave, SeasonManager)) return;
+
+    WorldSave->Season = SeasonManager->GetCurrentSeason();
+    WorldSave->SeasonDay = SeasonManager->GetCurrentSeasonDay();
+    WorldSave->DawnTime = SeasonManager->GetCurrentDawnTime();
+    WorldSave->DuskTime = SeasonManager->GetCurrentDuskTime();
+    WorldSave->SeasonLength = SeasonManager->GetSeasonLength();
+
+    CR4S_Log(LogSave, Log, TEXT("Season data saved: [%s] Day %d, Dawn %.2f, Dusk %.2f, Length %d"),
+        *UEnum::GetValueAsString(WorldSave->Season),
+        WorldSave->SeasonDay,
+        WorldSave->DawnTime,
+        WorldSave->DuskTime,
+        WorldSave->SeasonLength);
+
+
+    WorldSave->TimeData = TimeManager->GetCurrentTimeData();
+    WorldSave->TotalGameTime = TimeManager->GetTotalPlayTime();
+    WorldSave->DayCycleLength = TimeManager->GetDayCycleLength();
+
+    CR4S_Log(LogSave, Log, TEXT("Time data saved: Current=%s, TotalTime=%lld, CycleLength=%d"),
+        *WorldSave->TimeData.ToString(), 
+        WorldSave->TotalGameTime,
+        WorldSave->DayCycleLength);
+
+    const FString FullSlotName = SlotName + TEXT("_World");
+    const bool bSuccess = UGameplayStatics::SaveGameToSlot(WorldSave, FullSlotName, 0);
+
+    if (bSuccess)
     {
-        
+        CR4S_Log(LogSave, Log, TEXT("WorldSave successfully saved to slot: %s"), *FullSlotName);
     }
-
-    UGameplayStatics::SaveGameToSlot(WorldSave, SlotName + "_World", 0);
+    else
+    {
+        CR4S_Log(LogSave, Error, TEXT("Failed to save WorldSave to slot: %s"), *FullSlotName);
+    }
 }
+
 
 bool USaveGameManager::IsNewGame() const
 {
     const UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
     if (!GameInstance)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[IsNewGame] GameInstance is null"));
+        CR4S_Log(LogSave, Warning, TEXT("GameInstance is null"));
         return true;
     }
 
     const bool bIsExistingSlot = MetaSave && MetaSave->SaveSlots.Contains(GameInstance->CurrentSlotName);
 
-    UE_LOG(LogTemp, Log, TEXT("[IsNewGame] CurrentSlotName: %s, IsNewGame: %s"),
+    CR4S_Log(LogSave, Log, TEXT("CurrentSlotName: %s, IsNewGame: %s"),
         *GameInstance->CurrentSlotName, bIsExistingSlot ? TEXT("false") : TEXT("true"));
 
     return !bIsExistingSlot;
@@ -230,14 +263,8 @@ bool USaveGameManager::IsNewGame() const
 
 void USaveGameManager::ApplyAll()
 {
-    if (!CoreSave )
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[ApplyAll] Save data not loaded. Call PreloadSaveData first."));
-        return;
-    }
-
-    const UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
-
+    if (!CR4S_VALIDATE(LogSave, CoreSave)) return;
+    if (!CR4S_VALIDATE(LogSave, WorldSave)) return;
 
     ApplyCoreData();
     ApplyWorldData();
@@ -245,19 +272,54 @@ void USaveGameManager::ApplyAll()
 
 void USaveGameManager::ApplyCoreData()
 {
-    if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
-    {
-        Player->SetActorLocation(CoreSave->PlayerLocation);
-        Player->SetActorRotation(CoreSave->PlayerRotation);
+    ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0);
 
-        UE_LOG(LogTemp, Log, TEXT("[ApplyCoreData] Player location and rotation applied"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[ApplyCoreData] PlayerCharacter not found"));
-    }
+    if (!CR4S_VALIDATE(LogSave, Player))
+        return;
+
+    Player->SetActorLocation(CoreSave->PlayerLocation);
+    Player->SetActorRotation(CoreSave->PlayerRotation);
+
+    CR4S_Log(LogSave, Log, TEXT("Player Location Applied: %s"), *CoreSave->PlayerLocation.ToString());
 }
 
 void USaveGameManager::ApplyWorldData()
 {
+    UWorldTimeManager* TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
+    if (!CR4S_VALIDATE(LogSave, TimeManager)) return;
+
+    TimeManager->SetDayCycleLength(WorldSave->DayCycleLength);
+    TimeManager->SetWorldTime(WorldSave->TimeData);
+ /*   TimeManager->SetTotalPlayTime(WorldSave->TotalGameTime);*/
+
+    USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
+    if (!CR4S_VALIDATE(LogSave, SeasonManager)) return;
+
+    SeasonManager->SetSeasonLength(WorldSave->SeasonLength);
+    SeasonManager->SetCurrentSeasonDay(WorldSave->SeasonDay);
+    SeasonManager->SetCurrentDawnDuskTime(WorldSave->DawnTime, WorldSave->DuskTime);
+    SeasonManager->SetCurrentSeason(WorldSave->Season);
+
+    TimeManager->UpdateTimeWidget();
+
+    CR4S_Log(LogSave, Log, TEXT(
+        "Applied World Data:\n"
+        "  DayCycleLength: %d\n"
+        "  TimeData: %s\n"
+        "  TotalGameTime: %lld\n"
+        "  SeasonLength: %d\n"
+        "  SeasonDay: %d\n"
+        "  DawnTime: %.2f\n"
+        "  DuskTime: %.2f\n"
+        "  Season: %s"
+    ),
+        WorldSave->DayCycleLength,
+        *WorldSave->TimeData.ToString(),
+        WorldSave->TotalGameTime,
+        WorldSave->SeasonLength,
+        WorldSave->SeasonDay,
+        WorldSave->DawnTime,
+        WorldSave->DuskTime,
+        *UEnum::GetValueAsString(WorldSave->Season)
+    );
 }

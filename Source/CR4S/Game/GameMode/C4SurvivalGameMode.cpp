@@ -8,12 +8,9 @@ void AC4SurvivalGameMode::StartPlay()
 {
     Super::StartPlay();
 
-    HandleStartGame();
+    UE_LOG(LogTemp, Warning, TEXT("StartPlay time: %.6f"), FPlatformTime::Seconds());
 
-    if (GameStartSFX)
-    {
-        UGameplayStatics::PlaySound2D(this, GameStartSFX);
-    }
+    HandleStartGame();
 }
 
 void AC4SurvivalGameMode::ReturnToMenu()
@@ -40,8 +37,14 @@ void AC4SurvivalGameMode::HandleStartGame()
     {
         // Add New Game Logic
     }
+
     else
     {
         SaveGameManager->ApplyAll();
+
+        if (GameStartSFX)
+        {
+            UGameplayStatics::PlaySound2D(this, GameStartSFX);
+        }
     }
 }

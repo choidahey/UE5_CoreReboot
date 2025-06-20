@@ -9,8 +9,8 @@ class CR4S_API UCoreSaveGame : public USaveGame
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(VisibleAnywhere, Category = "Player")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player")
 	FVector PlayerLocation;
-	UPROPERTY(VisibleAnywhere, Category = "Player")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player")
 	FRotator PlayerRotation;
 };
