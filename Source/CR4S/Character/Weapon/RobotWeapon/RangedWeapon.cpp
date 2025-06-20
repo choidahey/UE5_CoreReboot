@@ -71,7 +71,7 @@ bool ARangedWeapon::GetAimHitResult(FHitResult& OutHitResult) const
 	const bool bDeprojected=PC->DeprojectScreenPositionToWorld(ScreenX, ScreenY, WorldOrigin, WorldDirection);
 	if (!bDeprojected) return false;
 	
-	const FVector TraceEnd=WorldOrigin+(WorldDirection*TypeSpecificInfo.Range);
+	const FVector TraceEnd=WorldOrigin+(WorldDirection*TypeSpecificInfo.MaxAimTrackingRange);
 	
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(OwningCharacter);
