@@ -20,9 +20,22 @@ public:
 	void SetWeatherByName(const FString& WeatherName, float TransitionTime = 60.0f);
 	UFUNCTION(BlueprintCallable, Category = "Weather")
 	void SetWeatherBySeason(ESeasonType Season, float TransitionTime = 60.0f);
-	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Time")
 	void SetSkyTime(float Time);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Time")
+	float GetCurrentTimeOfDay() const;
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Time")
+	float GetCurrentDawnTime() const;
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Time")
+	float GetCurrentDuskTime() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Time")
+	void AdvanceTimeOfDay(float TimeOfDay);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Time")
+	bool IsSleepTime() const;
 
 protected:
 

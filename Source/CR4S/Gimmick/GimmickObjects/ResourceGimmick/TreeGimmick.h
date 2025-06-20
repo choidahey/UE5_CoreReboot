@@ -33,10 +33,14 @@ protected:
 public:
 	void HandleDestroyTrunk(const AActor* DamageCauser);
 
+	FORCEINLINE bool IsDestroyed() const { return bIsDestroyed; }
 	FORCEINLINE bool IsTrunkDestroyed() const { return bIsTrunkDestroyed; }
 	
 private:
 	void RemoveTrunk() const;
+
+	UPROPERTY(VisibleAnywhere, Category = "Destroy")
+	bool bIsDestroyed;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UStaticMeshComponent> TrunkMeshComponent;

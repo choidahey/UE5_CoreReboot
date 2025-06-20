@@ -6,6 +6,7 @@
 
 #include "BaseInventoryItem.generated.h"
 
+class UWorldTimeManager;
 class UPlayerInventoryComponent;
 class UPlayerCharacterStatusComponent;
 class UBaseInventoryComponent;
@@ -17,15 +18,21 @@ struct FInventoryItemData
 	GENERATED_BODY()
 
 	FInventoryItemData()
+		: SlotIndex(0)
 	{
 	}
 
-	FInventoryItemData(const FName InRowName, const FItemInfoData& InItemInfoData)
-		: RowName(InRowName),
+	FInventoryItemData(const int32 InSlotIndex,
+	                   const FName InRowName,
+	                   const FItemInfoData& InItemInfoData)
+		: SlotIndex(InSlotIndex),
+		  RowName(InRowName),
 		  ItemInfoData(InItemInfoData)
 	{
 	}
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 SlotIndex;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FName RowName;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -53,12 +60,10 @@ public:
 
 public:
 	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-	                               const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0);
+	                               const FInventoryItemData& NewInventoryItemData,
+	                               const int32 StackCount = 0);
 
-	FORCEINLINE void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
-	{
-		InventoryComponent = NewInventoryComponent;
-	}
+	virtual void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent);
 
 protected:
 	UPROPERTY()
@@ -80,7 +85,16 @@ protected:
 public:
 	virtual void UseItem(int32 Index);
 
-	virtual void HandlePassiveEffect();
+	virtual void StartPassiveEffect();
+	UFUNCTION()
+	virtual void HandlePassiveEffect(int64 NewPlayTime);
+	virtual void EndPassiveEffect();
+
+protected:
+	UPROPERTY()
+	TObjectPtr<UWorldTimeManager> WorldTimeManager;
+
+	bool bUsePassiveEffect;
 
 #pragma endregion
 
@@ -89,7 +103,11 @@ public:
 public:
 	void SetCurrentStackCount(const int32 NewStackCount);
 
+	FORCEINLINE void ChangeSlotIndex(const int32 NewSlotIndex) { InventoryItemData.SlotIndex = NewSlotIndex; }
+
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
+	FORCEINLINE const FName GetItemRowName() const { return InventoryItemData.RowName; }
+	FORCEINLINE const FItemInfoData& GetItemInfoData() const { return InventoryItemData.ItemInfoData; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
 	FORCEINLINE void GetInventoryItemData(FInventoryItemData& OutInventoryItemData) const
 	{
@@ -103,6 +121,15 @@ public:
 
 	FORCEINLINE int32 IsEmpty() const { return CurrentStackCount <= 0; }
 	FORCEINLINE const FGameplayTagContainer& GetItemTags() const { return InventoryItemData.ItemInfoData.ItemTags; }
+
+	FORCEINLINE const FText& GetItemName() const { return InventoryItemData.ItemInfoData.Name; }
+	FORCEINLINE const FText& GetItemDescription() const { return InventoryItemData.ItemInfoData.Description; }
+	FORCEINLINE UTexture2D* GetItemIcon() const { return InventoryItemData.ItemInfoData.Icon; }
+
+	FORCEINLINE void UpdateItemDescription(const FText& NewDescription)
+	{
+		InventoryItemData.ItemInfoData.Description = NewDescription;
+	}
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")

@@ -22,7 +22,7 @@ void UCraftingWidget::InitWidget(UPlayerInventoryComponent* NewPlayerInventoryCo
 	{
 		for (UWidget* Widget : IngredientsContainer->GetAllChildren())
 		{
-			UIngredientWidget* IngredientWidget = Cast<UIngredientWidget>(Widget);
+			UIngredientsWidget* IngredientWidget = Cast<UIngredientsWidget>(Widget);
 			if (IsValid(IngredientWidget))
 			{
 				IngredientWidgets.AddUnique(IngredientWidget);
@@ -61,7 +61,7 @@ void UCraftingWidget::OpenWidget(const FRecipeSelectData& RecipeSelectData)
 	const TArray<FRecipeIngredient>& Ingredients = RecipeSelectData.RecipeData.Ingredients;
 	for (int32 Index = 0; Index < IngredientWidgets.Num(); Index++)
 	{
-		UIngredientWidget* IngredientWidget = IngredientWidgets[Index];
+		UIngredientsWidget* IngredientWidget = IngredientWidgets[Index];
 		if (!IsValid(IngredientWidget))
 		{
 			continue;
@@ -112,7 +112,7 @@ void UCraftingWidget::OpenWidget(const FRecipeSelectData& RecipeSelectData)
 
 void UCraftingWidget::CloseWidget()
 {
-	for (UIngredientWidget* IngredientWidget : IngredientWidgets)
+	for (UIngredientsWidget* IngredientWidget : IngredientWidgets)
 	{
 		IngredientWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
@@ -141,7 +141,7 @@ void UCraftingWidget::CraftItem()
 			return;
 		}
 
-		const UIngredientWidget* IngredientWidget = IngredientWidgets[Index];
+		const UIngredientsWidget* IngredientWidget = IngredientWidgets[Index];
 		if (IsValid(IngredientWidget))
 		{
 			FIngredientData& IngredientData = CurrentIngredients[Index];

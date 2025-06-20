@@ -20,7 +20,10 @@ public:
 	
 public:
 	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable)
 	void OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	
 	void SetMovementToFlying();
 	void SetMovementToWalking();
 

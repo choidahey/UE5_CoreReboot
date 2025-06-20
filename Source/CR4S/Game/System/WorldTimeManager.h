@@ -31,14 +31,14 @@ class CR4S_API UWorldTimeManager : public UWorldSubsystem
 
 
 
-#pragma region Getters & Setters & Subsystem Setup
+#pragma region Getters & Setters
 public:
 	FORCEINLINE FWorldTimeData GetCurrentTimeData() const { return CurrentTimeData; }
 	FORCEINLINE int64 GetTotalPlayTime() const { return TotalPlayTime; }
 	FORCEINLINE int32 GetDayCycleLength() const { return DayCycleLength; }
 
 	FORCEINLINE void SetWorldTimeMultiplier(int32 Multiplier) { WorldTimeMultiplier = Multiplier; }
-
+	void SetWorldTime(FWorldTimeData NewTimeData);
 
 
 #pragma endregion

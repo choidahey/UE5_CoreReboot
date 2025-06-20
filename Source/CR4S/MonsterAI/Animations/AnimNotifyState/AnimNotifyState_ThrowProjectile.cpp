@@ -62,8 +62,6 @@ void UAnimNotifyState_ThrowProjectile::NotifyEnd(USkeletalMeshComponent* MeshCom
 
 				Projectile->SetBossActor(OwnerBoss, AttachSocketName);
 				Projectile->LaunchProjectile(TargetLocation, LaunchSpeed);
-
-				DrawDebugLine(World, Projectile->GetActorLocation(), TargetLocation, FColor::Red, false, 1.f, 0, 3.f);
 			}
 		}
 	}

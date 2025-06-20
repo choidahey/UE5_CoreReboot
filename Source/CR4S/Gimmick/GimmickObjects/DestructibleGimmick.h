@@ -6,6 +6,7 @@
 
 #include "DestructibleGimmick.generated.h"
 
+class ABaseDestructObject;
 class UDestructibleComponent;
 
 UCLASS(BlueprintType)
@@ -27,10 +28,6 @@ public:
 #pragma region UDestructibleComponent
 
 public:
-	UFUNCTION(BlueprintPure, Category = "ADestructibleResourceGimmick|Components")
-	FORCEINLINE UDestructibleComponent* GetDestructibleComponent() const { return DestructibleComponent; }
-
-	FORCEINLINE bool IsDestroyed() const { return bIsDestroyed; }
 	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
 	
 protected:
@@ -42,20 +39,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
-	
 private:
-	bool bIsDestroyed;
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
+	TSubclassOf<ABaseDestructObject> DestructObjectClass;
 	
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
 	float DestroyDelay;
-	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
-	float DestroyImpulseRadius;
-	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
-	float DestroyImpulseStrength;
-	
-	FTimerHandle DestroyTimerHandle;
 	
 #pragma endregion
 

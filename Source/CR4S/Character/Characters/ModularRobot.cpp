@@ -22,6 +22,7 @@
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/InGame/CharacterEnvironmentStatusWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
 
@@ -85,6 +86,8 @@ AModularRobot::AModularRobot()
 	InputBuffer=CreateDefaultSubobject<URobotInputBufferComponent>(TEXT("RobotInputBuffer"));
 	
 	RobotInventoryComponent = CreateDefaultSubobject<URobotInventoryComponent>(TEXT("RobotInventoryComponent"));
+
+	EnvironmentalStatus=CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 }
 
 void AModularRobot::TakeStun_Implementation(const float StunAmount)
@@ -215,6 +218,21 @@ void AModularRobot::InitializeWidgets()
 				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
 				
 				InGameWidget->InitializeStatusWidget(Status,true);
+				
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+
+					if (!CR4S_ENSURE(LogHong1,Status)) return;
+					
+					Status->OnColdThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateColdThreshold);
+					Status->OnHeatThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHeatThreshold);
+					Status->OnHumidityThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold);
+					EnvironmentWidget->InitializeWidget(this);
+				}
 			}
 		}
 	}
@@ -232,6 +250,20 @@ void AModularRobot::DisconnectWidgets()
 				Status->OnResourceChanged.RemoveAll(InGameWidget);
 				Status->OnEnergyChanged.RemoveAll(InGameWidget);
 				Status->OnStunChanged.RemoveAll(InGameWidget);
+
+				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
+				{
+					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+					
+					EnvironmentalStatus->OnTemperatureChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+					EnvironmentalStatus->OnHumidityChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+
+					if (!CR4S_ENSURE(LogHong1,Status)) return;
+					
+					Status->OnColdThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateColdThreshold);
+					Status->OnHeatThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHeatThreshold);
+					Status->OnHumidityThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold);
+				}
 			}
 		}
 	}
@@ -254,6 +286,10 @@ void AModularRobot::BeginPlay()
 	}
 	
 	InitializeWidgets();
+
+	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
+	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
 }
 
 void AModularRobot::NotifyControllerChanged()
@@ -408,10 +444,14 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
 			//Attack
-			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
-			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightArm);
-			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftShoulder);
-			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Triggered,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightShoulder);
+			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
+			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackLeftArm);
+			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightArm);
+			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackRightArm);
+			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftShoulder);
+			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackLeftShoulder);
+			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightShoulder);
+			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackRightShoulder);
 			
 		}
 	}
@@ -420,6 +460,6 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 float AModularRobot::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	Status->AddCurrentHP(DamageAmount);
+	Status->AddCurrentHP(-DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }

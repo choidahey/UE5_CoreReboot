@@ -53,6 +53,9 @@ public:
 	FVector ProjectileScale = FVector(1.0f);
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "VisualWeapon")
+	TSubclassOf<AActor> VisualWeaponClass;
+
 	UPROPERTY(VisibleAnywhere, Category = "Projectile|Collision")
 	TObjectPtr<UCapsuleComponent> LandingTrigger;
 

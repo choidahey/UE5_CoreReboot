@@ -12,16 +12,15 @@ AFieldActor::AFieldActor()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 
-	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>("CollisionComp");
-	CapsuleComp->SetupAttachment(RootComp);
-	CapsuleComp->InitCapsuleSize(InitCapsuleRadius, InitCapsuleHalfHeight);
+	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>("CollisionComp");
+	CollisionComp->SetupAttachment(RootComp);
 	
-	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CapsuleComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
-	CapsuleComp->SetGenerateOverlapEvents(true);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
+	CollisionComp->SetGenerateOverlapEvents(true);
 	
-	CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &AFieldActor::OnOverlap);
-	CapsuleComp->OnComponentEndOverlap.AddDynamic(this, &AFieldActor::OnEndOverlap);
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AFieldActor::OnOverlap);
+	CollisionComp->OnComponentEndOverlap.AddDynamic(this, &AFieldActor::OnEndOverlap);
 	
 	NiagaraComp->SetupAttachment(RootComp);
 	NiagaraComp->bAutoActivate = false;
@@ -30,24 +29,31 @@ AFieldActor::AFieldActor()
 void AFieldActor::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	InitialActorScale = GetActorScale3D();
+	
 	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
 
 void AFieldActor::Initialize(AActor* OwnerMonster, AActor* Target)
 {
 	OwnerActor  = OwnerMonster;
-	TargetActor = Target;
+	EnemyActor = Target;
+	TargetActor = GetTargetActor();
 
-	NiagaraComp->Activate(true);
-
-	if (!bDynamicSize)
-		ApplyInitialScale();
+	if (TargetActor)
+	{
+		InitialOffset = GetActorLocation() - TargetActor->GetActorLocation();
+	}
 	
-	PerformGroundTrace();
+	NiagaraComp->Activate(true);
+	
+	if (bIsAttachGround)
+		AttachGround();
+	
 	StartTimers();
 	
-	const bool bNeedTick = bFollowOwner || bDynamicSize;
+	const bool bNeedTick = bIsFollowTarget || bDynamicSize;
 	PrimaryActorTick.SetTickFunctionEnable(bNeedTick);
 }
 
@@ -57,79 +63,49 @@ void AFieldActor::Tick(float DeltaTime)
 
 	if (bDynamicSize && DynamicScaleDuration > 0.f)
 		UpdateDynamicScale(DeltaTime);
-
-	if (bFollowOwner && OwnerActor)
-		FollowOwner();
+	
+	if (bIsFollowTarget)
+		FollowTarget();
 }
 
-void AFieldActor::ApplyInitialScale()
+void AFieldActor::UpdateDynamicScale(float DeltaTime)
 {
-	SetActorScale3D(InitialNiagaraScale);
-	NiagaraComp->SetWorldScale3D(InitialNiagaraScale);
+	ElapsedTime = FMath::Min(ElapsedTime + DeltaTime, DynamicScaleDuration);
+	const float Alpha = ElapsedTime / DynamicScaleDuration;
 
-	// TODO :: I will fix capsule collision size(why cloudy is bad size?)
-	// CapsuleComp->SetAbsolute(true, true, true);
-	CapsuleComp->SetAbsolute(false, false, false);
-	const FBoxSphereBounds NiagaraBounds = NiagaraComp->CalcBounds(NiagaraComp->GetComponentTransform());
-	const float CapsuleRadius = NiagaraBounds.BoxExtent.X * InitCapsuleRadius;
-	const float CapsuleHalfHeight = NiagaraBounds.BoxExtent.Z * InitCapsuleHalfHeight;
-	CapsuleComp->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
+	FVector CalculateScale;
+	if (DynamicScaleCurve)
+		CalculateScale = DynamicScaleCurve->GetVectorValue(Alpha);
+	else
+		CalculateScale = FMath::Lerp(InitialActorScale, InitialActorScale + DynamicScaleOffset, Alpha);
 
-// #if WITH_EDITOR
-// 	CR4S_Log(LogDa, Warning, TEXT(
-// 		"[%s] NiagaraBounds=(%.2f,%.2f,%.2f)" "→ CapsuleRadius=%.2f, CapsuleHalfHeight=%.2f")
-// 		, *MyHeader
-// 		, NiagaraBounds.BoxExtent.X
-// 		, NiagaraBounds.BoxExtent.Y
-// 		, NiagaraBounds.BoxExtent.Z
-// 		, CapsuleRadius
-// 		, CapsuleHalfHeight
-// 	);
-// 	
-// 	DrawDebugCapsule(
-// 		GetWorld(),
-// 		CapsuleComp->GetComponentLocation(),
-// 		CapsuleComp->GetScaledCapsuleHalfHeight(),
-// 		CapsuleComp->GetScaledCapsuleRadius(),
-// 		CapsuleComp->GetComponentQuat(),
-// 		FColor::Cyan,
-// 		false,
-// 		LifeTime,
-// 		0,
-// 		2.f
-// 	);
-// #endif
+	SetActorScale3D(CalculateScale);
+	
+	if (bDrawLine)
+	{
+		DrawDebugCapsule(
+			GetWorld(),
+			CollisionComp->GetComponentLocation(),
+			Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleHalfHeight(),
+			Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleRadius(),
+			CollisionComp->GetComponentQuat(),
+			FColor::Blue,
+			false,
+			LifeTime,
+			0,
+			2.f
+		);
+	}
 }
 
-void AFieldActor::PerformGroundTrace()
+void AFieldActor::AttachGround()
 {
-	const FVector Base = (SpawnSource == ESpawnSource::Target && TargetActor)
-		? TargetActor->GetActorLocation()
-		: (OwnerActor ? OwnerActor->GetActorLocation() : GetActorLocation());
+	if (!TargetActor) return;
 
-	const FVector Start = Base + FVector(0,0,TraceHeight);
-	const FVector End = Base - FVector(0,0,TraceHeight);
-
-// #if WITH_EDITOR
-// 	DrawDebugLine(
-// 		GetWorld(),
-// 		Start,
-// 		End,
-// 		FColor::Yellow,
-// 		false,
-// 		LifeTime,
-// 		0,
-// 		2.f
-// 	);
-// #endif
-
-	// FHitResult Hit;
-	// FCollisionQueryParams Params(NAME_None, false, OwnerActor);
-	// if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
-	// {
-	// 	SetActorLocation(Hit.Location);
-	// 	NiagaraComp->SetWorldLocation(Hit.Location);
-	// }
+	const FVector BaseLocation = TargetActor->GetActorLocation();
+	const FVector GroundLocation = GetGroundLocation(BaseLocation);
+	
+	SetActorLocation(GroundLocation);
 }
 
 void AFieldActor::StartTimers()
@@ -142,68 +118,38 @@ void AFieldActor::StartTimers()
         DamageTickInterval, true, DamageTickInterval);
 }
 
-void AFieldActor::UpdateDynamicScale(float DeltaTime)
+void AFieldActor::FollowTarget()
 {
-	ElapsedTime = FMath::Min(ElapsedTime + DeltaTime, DynamicScaleDuration);
-	const float Alpha = ElapsedTime / DynamicScaleDuration;
+	if (!TargetActor) return;
 
-	FVector CalculatedNiagaraScale;
-	if (DynamicScaleCurve)
-		CalculatedNiagaraScale = DynamicScaleCurve->GetVectorValue(ElapsedTime);
-	else
-		CalculatedNiagaraScale = FMath::Lerp(InitialNiagaraScale, InitialNiagaraScale + DynamicScaleOffset, Alpha);
+	FVector TargetLocation = TargetActor->GetActorLocation() + InitialOffset;
+
+	if (bIsAttachGround)
+	{
+		FVector GroundLocation = GetGroundLocation(TargetLocation);
+		TargetLocation.Z = GroundLocation.Z;
+	}
 	
-	NiagaraComp->SetWorldScale3D(CalculatedNiagaraScale);
-	SetActorScale3D(CalculatedNiagaraScale);
-	
-	CapsuleComp->SetAbsolute(true, true, true);
-	const FBoxSphereBounds NiagaraBounds = NiagaraComp->CalcBounds(NiagaraComp->GetComponentTransform());
-	const float NewRadius = NiagaraBounds.BoxExtent.X / InitialNiagaraScale.X;
-	const float NewHalfHeight = NiagaraBounds.BoxExtent.Z / InitialNiagaraScale.X;
-	CapsuleComp->SetCapsuleSize(NewRadius, NewHalfHeight);
+	SetActorLocation(TargetLocation);
 
-// #if WITH_EDITOR
-// 	CR4S_Log(LogDa, Log, TEXT(
-// 			"[%s] Dynamic NiagaraBounds=(%.2f,%.2f,%.2f) →  Radius=%f, HalfHeight=%f"
-// 			),
-// 			*MyHeader,
-// 			NiagaraBounds.BoxExtent.X,
-// 			NiagaraBounds.BoxExtent.Y,
-// 			NiagaraBounds.BoxExtent.Z,
-// 			NewRadius,
-// 			NewHalfHeight
-// 		);
-// #endif
-}
-
-void AFieldActor::FollowOwner()
-{
-    const FVector Base = OwnerActor->GetActorLocation();
-    const FVector Start = Base + FVector(0,0,TraceHeight);
-    const FVector End   = Base - FVector(0,0,TraceHeight);
-
-    FHitResult Hit;
-    FCollisionQueryParams Params(NAME_None, false, OwnerActor);
-    if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
-    {
-        SetActorLocation(Hit.Location);
-    	NiagaraComp->SetWorldLocation(Hit.Location);
-
-// #if WITH_EDITOR
-//     	DrawDebugCapsule(
-// 			GetWorld(),
-// 			CapsuleComp->GetComponentLocation(),
-// 			CapsuleComp->GetScaledCapsuleHalfHeight(),
-// 			CapsuleComp->GetScaledCapsuleRadius(),
-// 			CapsuleComp->GetComponentQuat(),
-// 			FColor::Blue,
-// 			false,
-// 			LifeTime,
-// 			0,
-// 			2.f
-// 		);
-// #endif
-    }
+	if (bDrawLine)
+	{
+		if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(CollisionComp))
+		{
+			DrawDebugCapsule(
+				GetWorld(),
+				CollisionComp->GetComponentLocation(),
+				CapsuleComp->GetScaledCapsuleHalfHeight(),
+				CapsuleComp->GetScaledCapsuleRadius(),
+				CollisionComp->GetComponentQuat(),
+				FColor::Red,
+				false,
+				LifeTime,
+				0,
+				2.f
+			);
+		}
+	}
 }
 
 void AFieldActor::OnOverlap(
@@ -251,4 +197,36 @@ void AFieldActor::EndSkill()
 	GetWorld()->GetTimerManager().ClearTimer(DamageTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(LifeTimerHandle);
 	Destroy();
+}
+
+FVector AFieldActor::GetGroundLocation(const FVector& BaseLocation) const
+{
+	const FVector Start = BaseLocation + FVector(0, 0, TraceHeight);
+	const FVector End = BaseLocation - FVector(0, 0, TraceHeight);
+	
+	FCollisionQueryParams Params(NAME_None, false, this);
+	if (TargetActor)
+		Params.AddIgnoredActor(TargetActor);
+
+	FHitResult Hit;
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+		return Hit.Location;
+	
+	return BaseLocation;
+}
+
+AActor* AFieldActor::GetTargetActor() const
+{
+	AActor* InTarget;
+	switch (SpawnTarget)
+	{
+		case ESpawnSource::Owner:
+			InTarget = OwnerActor;
+			return InTarget;
+		case ESpawnSource::Enemy:
+			InTarget = EnemyActor;
+			return InTarget;
+		default:
+			return nullptr;
+	}
 }

@@ -10,7 +10,8 @@
 
 UBaseInventoryComponent::UBaseInventoryComponent()
 	: MaxInventorySize(10),
-	  InventoryTitleText(FText::FromString("INVENTORY"))
+	  InventoryTitleText(FText::FromString("INVENTORY")),
+	  bHasRefrigeration(false)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -63,7 +64,7 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 	}
 }
 
-FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32 Count)
+FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem)
 {
 	FAddItemResult Result;
 	Result.RemainingCount = Count;
@@ -75,7 +76,7 @@ FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32
 	}
 
 	TSet<int32> ChangedItemSlots;
-	StackItemsAndFillEmptySlots(RowName, Count, Result, ChangedItemSlots);
+	StackItemsAndFillEmptySlots(RowName, Count, Result, ChangedItemSlots, OriginItem);
 
 	NotifyInventoryItemsChanged(ChangedItemSlots.Array());
 
@@ -85,7 +86,8 @@ FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32
 void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
                                                           const int32 Count,
                                                           FAddItemResult& Result,
-                                                          TSet<int32>& ChangedItemSlots)
+                                                          TSet<int32>& ChangedItemSlots,
+                                                          UBaseInventoryItem* OriginItem)
 {
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
 	if (!CR4S_VALIDATE(LogInventory, ItemData) ||
@@ -96,12 +98,12 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 	Result.bSuccess = true;
 	int32 RemainingCount = Count;
-	
+
 	TArray<int32> SameItemsIndex;
 	TArray<int32> EmptySlotsIndex;
-	
+
 	GetSameItemSlotsAndEmptySlots(RowName, InventoryItems, SameItemsIndex, EmptySlotsIndex);
-	
+
 	// Try to stack items with existing ones of the same type
 	for (const int32 Index : SameItemsIndex)
 	{
@@ -109,32 +111,44 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 		{
 			break;
 		}
-	
+
 		if (!InventoryItems.IsValidIndex(Index))
 		{
 			continue;
 		}
-	
+
 		UBaseInventoryItem* SameInventoryItem = InventoryItems[Index];
 		if (!CR4S_VALIDATE(LogInventory, IsValid(SameInventoryItem)))
 		{
 			continue;
 		}
-	
+
 		if (SameInventoryItem->GetCurrentStackCount() < ItemData->MaxStackCount)
 		{
 			const int32 SameInventoryItemCount = SameInventoryItem->GetCurrentStackCount();
 			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItemCount;
 			const int32 ActualAddCount = FMath::Min(CanAddCount, RemainingCount);
-	
+
 			SameInventoryItem->SetCurrentStackCount(SameInventoryItemCount + ActualAddCount);
 			RemainingCount -= ActualAddCount;
 			Result.AddedCount += ActualAddCount;
-	
+
 			ChangedItemSlots.Add(Index);
+
+			//////////////////// ConsumableInventoryItem
+			const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
+			if (IsValid(OriginConsumableItem))
+			{
+				UConsumableInventoryItem* CurrentItem = Cast<UConsumableInventoryItem>(SameInventoryItem);
+				if (IsValid(CurrentItem))
+				{
+					CurrentItem->AveragingFreshness(OriginConsumableItem->GetRemainingFreshnessTime());
+				}
+			}
+			////////////////////
 		}
 	}
-	
+
 	// If there are still items remaining, put them in empty slots
 	if (RemainingCount > 0)
 	{
@@ -144,33 +158,45 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 			{
 				break;
 			}
-	
+
 			if (!InventoryItems.IsValidIndex(Index))
 			{
 				continue;
 			}
-	
+
 			UBaseInventoryItem* EmptyInventoryItem = CreateInventoryItem(ItemData->ItemTags);
 			if (!CR4S_VALIDATE(LogInventory, EmptyInventoryItem))
 			{
 				continue;
 			}
-	
+
 			InventoryItems[Index] = EmptyInventoryItem;
-	
+
 			const int32 ActualAddCount = FMath::Min(RemainingCount, ItemData->MaxStackCount);
 			RemainingCount -= ActualAddCount;
 			Result.AddedCount += ActualAddCount;
-	
+
 			EmptyInventoryItem->InitInventoryItem(
 				this,
-				FInventoryItemData(RowName, *ItemData),
+				FInventoryItemData(Index, RowName, *ItemData),
 				ActualAddCount);
-	
+
 			ChangedItemSlots.Add(Index);
+
+			//////////////////// ConsumableInventoryItem
+			const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
+			if (IsValid(OriginConsumableItem))
+			{
+				UConsumableInventoryItem* CurrentItem = Cast<UConsumableInventoryItem>(EmptyInventoryItem);
+				if (IsValid(CurrentItem))
+				{
+					CurrentItem->UpdateFreshnessInfo(OriginConsumableItem->GetFreshnessInfo());
+				}
+			}
+			////////////////////
 		}
 	}
-	
+
 	Result.RemainingCount = RemainingCount;
 }
 
@@ -275,11 +301,13 @@ void UBaseInventoryComponent::SwapItem(UBaseInventoryComponent* FromInventoryCom
 	if (IsValid(FromItem))
 	{
 		FromItem->UpdateInventoryItem(this);
+		FromInventoryComponent->InventoryItems[FromItemIndex]->ChangeSlotIndex(ToItemIndex);
 	}
 
 	if (IsValid(ToItem))
 	{
 		ToItem->UpdateInventoryItem(FromInventoryComponent);
+		InventoryItems[ToItemIndex]->ChangeSlotIndex(FromItemIndex);
 	}
 
 	Swap(FromInventoryComponent->InventoryItems[FromItemIndex], InventoryItems[ToItemIndex]);
@@ -316,10 +344,25 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 		{
 			FromItem = nullptr;
 		}
+
+		AveragingFreshness(FromItem, ToItem);
 	}
 
 	NotifyInventoryItemChanged(ToItemIndex);
 	FromInventoryComponent->NotifyInventoryItemChanged(FromItemIndex);
+}
+
+void UBaseInventoryComponent::AveragingFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem)
+{
+	UConsumableInventoryItem* FromConsumableInventoryItem = Cast<UConsumableInventoryItem>(FromItem);
+	const UConsumableInventoryItem* ToConsumableInventoryItem = Cast<UConsumableInventoryItem>(ToItem);
+	if (!IsValid(FromConsumableInventoryItem) ||
+		!IsValid(ToConsumableInventoryItem))
+	{
+		return;
+	}
+
+	FromConsumableInventoryItem->AveragingFreshness(ToConsumableInventoryItem->GetRemainingFreshnessTime());
 }
 
 void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*>& NewInventoryItems)
@@ -328,7 +371,7 @@ void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*
 	{
 		return;
 	}
-	
+
 	InventoryItems = NewInventoryItems;
 
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
@@ -337,19 +380,19 @@ void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*
 	}
 }
 
-void UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int32 Count)
+int32 UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int32 Count)
 {
 	if (Count <= 0)
 	{
-		return;
+		return 0;
 	}
-	
+
 	int32 RemainingCount = Count;
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
 	{
 		if (RemainingCount <= 0)
 		{
-			return;
+			break;
 		}
 
 		UBaseInventoryItem* Item = InventoryItems[Index];
@@ -360,6 +403,7 @@ void UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int
 
 			if (RemainingCount >= ItemCount)
 			{
+				InventoryItems[Index]->EndPassiveEffect();
 				InventoryItems[Index] = nullptr;
 				RemainingCount -= ItemCount;
 			}
@@ -372,16 +416,18 @@ void UBaseInventoryComponent::RemoveItemByRowName(const FName RowName, const int
 			NotifyInventoryItemChanged(Index);
 		}
 	}
+
+	return RemainingCount;
 }
 
 void UBaseInventoryComponent::RemoveAllItemByRowName(const FName RowName)
 {
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
 	{
-		UBaseInventoryItem* Item = InventoryItems[Index];
-
+		const UBaseInventoryItem* Item = InventoryItems[Index];
 		if (IsValid(Item) && Item->GetInventoryItemData()->RowName == RowName)
 		{
+			InventoryItems[Index]->EndPassiveEffect();
 			InventoryItems[Index] = nullptr;
 
 			NotifyInventoryItemChanged(Index);
@@ -395,7 +441,7 @@ void UBaseInventoryComponent::RemoveItemByIndex(const int32 Index, const int32 C
 	{
 		return;
 	}
-	
+
 	if (InventoryItems.IsValidIndex(Index))
 	{
 		UBaseInventoryItem* Item = InventoryItems[Index];
@@ -407,6 +453,7 @@ void UBaseInventoryComponent::RemoveItemByIndex(const int32 Index, const int32 C
 
 			if (Item->IsEmpty())
 			{
+				InventoryItems[Index]->EndPassiveEffect();
 				InventoryItems[Index] = nullptr;
 			}
 
@@ -424,8 +471,8 @@ void UBaseInventoryComponent::SortInventoryItems()
 
 	TSet<int32> ChangedItemSlots;
 	ChangedItemSlots.Reserve(MaxInventorySize);
-
-	TMap<FName, int32> TotalCounts;
+	
+	TMap<FName, TArray<UBaseInventoryItem*>> BeforeInventoryItems;
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
 	{
 		UBaseInventoryItem* Item = InventoryItems[Index];
@@ -434,46 +481,28 @@ void UBaseInventoryComponent::SortInventoryItems()
 			continue;
 		}
 
-		TotalCounts.FindOrAdd(Item->GetInventoryItemData()->RowName) += Item->GetCurrentStackCount();
+		BeforeInventoryItems.FindOrAdd(Item->GetInventoryItemData()->RowName).AddUnique(Item);
 
+		InventoryItems[Index]->EndPassiveEffect();
 		InventoryItems[Index] = nullptr;
 
 		ChangedItemSlots.Add(Index);
 	}
-
-	int32 SlotIndex = 0;
+	
 	for (const FName& RowName : ItemGimmickSubsystem->GetItemDataRowNames())
 	{
-		const int32* TotalCount = TotalCounts.Find(RowName);
-		if (TotalCount == nullptr || *TotalCount <= 0)
-		{
-			continue;
-		}
-
-		int32 RemainingCount = *TotalCount;
-		const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
-		if (!CR4S_VALIDATE(LogInventory, ItemData))
+		TArray<UBaseInventoryItem*>* Items = BeforeInventoryItems.Find(RowName);
+		if (!Items)
 		{
 			continue;
 		}
 		
-		const int32 ItemMaxCount = ItemData->MaxStackCount;
-
-		while (RemainingCount > 0 && SlotIndex < InventoryItems.Num())
+		for (UBaseInventoryItem* Item : *Items)
 		{
-			UBaseInventoryItem* Item = InventoryItems[SlotIndex];
-			if (!IsValid(Item))
+			if (IsValid(Item))
 			{
-				Item = CreateInventoryItem(ItemData->ItemTags);
-				InventoryItems[SlotIndex] = Item;
+				AddItem(Item->GetItemRowName(), Item->GetCurrentStackCount(), Item);
 			}
-
-			const int32 ActualAddCount = FMath::Min(RemainingCount, ItemMaxCount);
-			Item->InitInventoryItem(this, FInventoryItemData(RowName, *ItemData), ActualAddCount);
-
-			RemainingCount -= ActualAddCount;
-			ChangedItemSlots.Add(SlotIndex);
-			SlotIndex++;
 		}
 	}
 
@@ -484,9 +513,9 @@ void UBaseInventoryComponent::NotifyInventoryItemChanged(const int32 ItemIndex) 
 {
 	if (CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(ItemIndex)))
 	{
-		if (OnItemSlotChanged.IsBound())
+		if (OnItemSlotChange.IsBound())
 		{
-			OnItemSlotChanged.Broadcast(ItemIndex, InventoryItems[ItemIndex]);
+			OnItemSlotChange.Broadcast(ItemIndex, InventoryItems[ItemIndex]);
 		}
 	}
 }

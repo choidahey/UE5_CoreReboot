@@ -10,7 +10,7 @@ class CR4S_API AAlgorVexSnowBoss : public ARegionBossMonster
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skill|Buff")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Buff")
 	bool bIsIceClawBuffActive = false;
 	
 };

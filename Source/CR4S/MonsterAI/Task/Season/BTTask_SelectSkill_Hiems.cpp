@@ -1,6 +1,9 @@
 #include "MonsterAI/Task/Season/BTTask_SelectSkill_Hiems.h"
+
+#include "CR4S.h"
 #include "MonsterAI/Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
@@ -21,15 +24,29 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     UBlackboardComponent* BB = AIC->GetBlackboardComponent();
     if (!IsValid(BB)) return INDEX_NONE;
 
-    const bool bAway = BB->GetValueAsBool(FSeasonBossAIKeys::bIsDashAway);
-    const bool bForward = BB->GetValueAsBool(FSeasonBossAIKeys::bIsDashForward);
+    APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+    if (IsValid(PlayerPawn) && PlayerPawn == BB->GetValueAsObject(FAIKeys::TargetActor))
+    {
+        float DistanceToPlayer = FVector::Dist(CachedMonster->GetActorLocation(), PlayerPawn->GetActorLocation());
 
-    if (bAway || bForward) return 3;
+        CR4S_Log(LogDa, Log, TEXT("[%s] DistanceToPlayer : %f"), *GetClass()->GetName(), DistanceToPlayer);
+        
+        if (DistanceToPlayer <= DistanceAwayIceRoad && AvailableSkills.Contains(static_cast<int32>(EHiemsSkill::IceRoadAway)))
+        {
+            return static_cast<int32>(EHiemsSkill::IceRoadAway);
+        }
+        
+        if (DistanceToPlayer >= DistanceForwordIceRoad && AvailableSkills.Contains(static_cast<int32>(EHiemsSkill::IceRoadForward)))
+        {
+            return static_cast<int32>(EHiemsSkill::IceRoadForward);
+        }
+    }
     
     if (AvailableSkills.Num() == 0) return INDEX_NONE;
     
     TArray<int32> FilteredSkills = AvailableSkills;
-    FilteredSkills.Remove(3);
+    FilteredSkills.Remove(static_cast<int32>(EHiemsSkill::IceRoadAway));
+    FilteredSkills.Remove(static_cast<int32>(EHiemsSkill::IceRoadForward));
 
     if (FilteredSkills.Num() == 0) return INDEX_NONE;
     
@@ -77,7 +94,6 @@ int32 UBTTask_SelectSkill_Hiems::SelectSkillFromAvailable(const TArray<int32>& A
     CurrentShuffleIndex++;
     
     return ChosenSkillID;
-    // return 1;
 }
 
 void UBTTask_SelectSkill_Hiems::ReshuffleSkills(const TArray<int32>& AvailableSkills)
