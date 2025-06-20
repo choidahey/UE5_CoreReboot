@@ -22,6 +22,11 @@ class CR4S_API UPlayerCharacterStatusComponent : public UBaseStatusComponent
 public:
 	// Sets default values for this component's properties
 	UPlayerCharacterStatusComponent();
+	
+#pragma region Refresh
+	virtual void Refresh() override;
+#pragma endregion
+	
 #pragma region Get & Set
 	FORCEINLINE float GetMaxHunger() const { return PlayerStatus.MaxHunger; }
 	FORCEINLINE float GetCurrentHunger() const { return PlayerStatus.Hunger; }

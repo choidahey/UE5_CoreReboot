@@ -21,6 +21,10 @@ class CR4S_API UModularRobotStatusComponent : public UBaseStatusComponent
 
 public:
 	UModularRobotStatusComponent();
+
+#pragma region Refresh
+	virtual void Refresh() override;
+#pragma endregion
 	
 #pragma region Get
 	FORCEINLINE float GetMaxEnergy() const { return RobotStatus.MaxEnergy; }

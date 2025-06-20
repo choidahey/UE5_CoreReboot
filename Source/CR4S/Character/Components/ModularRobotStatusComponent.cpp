@@ -15,6 +15,14 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UModularRobotStatusComponent::Refresh()
+{
+	Super::Refresh();
+	AddEnergy(0);
+	AddStun(0);
+	AddWeight(0);
+}
+
 
 // Called when the game starts
 void UModularRobotStatusComponent::BeginPlay()

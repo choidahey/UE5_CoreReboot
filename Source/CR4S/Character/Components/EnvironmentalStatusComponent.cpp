@@ -14,6 +14,12 @@ UEnvironmentalStatusComponent::UEnvironmentalStatusComponent()
 	PrimaryComponentTick.SetTickFunctionEnable(false);
 }
 
+void UEnvironmentalStatusComponent::Refresh()
+{
+	OnTemperatureChanged.Broadcast(CurrentTemperature);
+	OnHumidityChanged.Broadcast(CurrentHumidity);
+}
+
 void UEnvironmentalStatusComponent::BeginPlay()
 {
 	Super::BeginPlay();

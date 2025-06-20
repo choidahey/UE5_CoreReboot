@@ -1,15 +1,14 @@
 #include "DefaultInGameWidget.h"
 
+#include "CharacterEnvironmentStatusWidget.h"
 #include "CR4S.h"
-#include "AnimNodes/AnimNode_RandomPlayer.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/UI/AmmoWidget.h"
 #include "Character/UI/CharacterStatusWidget.h"
 #include "Character/UI/LockOnWidget.h"
 #include "Character/Weapon/RobotWeapon/HomingWeapon.h"
-#include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
 #include "UI/Common/ProgressBarWidget.h"
 #include "UI/InGame/TimeDisplayWidget.h"
@@ -24,15 +23,15 @@ void UDefaultInGameWidget::NativeConstruct()
 	CurrentAmmoWidgets->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UDefaultInGameWidget::ToggleWidgetMode(UBaseStatusComponent* InComponent, bool bIsRobot)
+void UDefaultInGameWidget::ToggleWidgetMode(const bool bIsRobot)
 {
-	if (UPlayerCharacterStatusComponent* PlayerStatusComp=Cast<UPlayerCharacterStatusComponent>(InComponent))
-	{
-		const float Percentage=FMath::Clamp(PlayerStatusComp->GetCurrentHunger()/PlayerStatusComp->GetMaxHunger(), 0.f, 1.f);
-		UpdateHungerWidget(Percentage);
-	}
+	// if (UPlayerCharacterStatusComponent* PlayerStatusComp=Cast<UPlayerCharacterStatusComponent>(InComponent))
+	// {
+	// 	const float Percentage=FMath::Clamp(PlayerStatusComp->GetCurrentHunger()/PlayerStatusComp->GetMaxHunger(), 0.f, 1.f);
+	// 	UpdateHungerWidget(Percentage);
+	// }
 	
-	StatusWidget->ToggleWidgetMode(InComponent,bIsRobot);
+	StatusWidget->ToggleWidgetMode(bIsRobot);
 	
 	if (!CR4S_ENSURE(LogHong1,CrosshairWidget && AimCircle)) return;
 	
@@ -48,48 +47,59 @@ void UDefaultInGameWidget::ToggleWidgetMode(UBaseStatusComponent* InComponent, b
 		AimCircle->SetVisibility(ESlateVisibility::Hidden);
 		CurrentAmmoWidgets->SetVisibility(ESlateVisibility::Hidden);
 	}
-
-	if (!CR4S_ENSURE(LogHong1,CurrentAmmoWidgets)) return;
 }
 
-void UDefaultInGameWidget::BindWidgetToHomingWeapon(AHomingWeapon* HomingWeapon)
+void UDefaultInGameWidget::BindLockOnWidgetToHomingWeapon(AHomingWeapon* HomingWeapon)
 {
 	if (!CR4S_ENSURE(LogHong1,HomingWeapon && LockOnWidget)) return;
 
 	LockOnWidget->InitializeWidgetForWeapon(HomingWeapon);	
 }
 
-void UDefaultInGameWidget::UpdateHPWidget(const float InPercentage)
+void UDefaultInGameWidget::BindAmmoWidgetToWeapon(ABaseWeapon* InWeapon, const int32 SlotIdx)
 {
-	if (StatusWidget)
+	if (!CR4S_ENSURE(LogHong1,InWeapon && CurrentAmmoWidgets)) return;
+
+	CurrentAmmoWidgets->InitializeWidgetForWeapon(InWeapon,SlotIdx);
+}
+
+void UDefaultInGameWidget::BindWidgetsToStatus(UBaseStatusComponent* InStatus)
+{
+	if (!CR4S_ENSURE(LogHong1,InStatus && StatusWidget)) return;
+	
+	StatusWidget->InitializeWidget(InStatus);
+	EnvironmentStatusWidget->InitializeWidget(InStatus);
+
+	if (!CR4S_ENSURE(LogHong1,HungerWidget)) return;
+	
+	if (UPlayerCharacterStatusComponent* PlayerStatusComp=Cast<UPlayerCharacterStatusComponent>(InStatus))
 	{
-		StatusWidget->UpdateHP(InPercentage);
+		PlayerStatusComp->OnHungerChanged.AddUObject(this,&UDefaultInGameWidget::UpdateHungerWidget);	
 	}
 }
 
-void UDefaultInGameWidget::UpdateResourceWidget(const float InPercentage)
+
+
+void UDefaultInGameWidget::BindEnvStatusWidgetToEnvStatus(UEnvironmentalStatusComponent* InStatus)
 {
-	if (StatusWidget)
-	{
-		StatusWidget->UpdateResource(InPercentage);
-	}
+	if (!CR4S_ENSURE(LogHong1,InStatus && EnvironmentStatusWidget)) return;
+
+	EnvironmentStatusWidget->InitializeWidget(InStatus);
 }
 
-void UDefaultInGameWidget::UpdateEnergyWidget(const float InPercentage)
+void UDefaultInGameWidget::ClearBindingsToStatus()
 {
-	if (StatusWidget)
-	{
-		StatusWidget->UpdateEnergy(InPercentage);
-	}
+	if (!CR4S_ENSURE(LogHong1,StatusWidget)) return;
+	StatusWidget->ClearBindings();
+
+	if (!CR4S_ENSURE(LogHong1,EnvironmentStatusWidget)) return;
+	EnvironmentStatusWidget->ClearBindingsToStatusComp();
 }
 
-
-void UDefaultInGameWidget::UpdateStunWidget(const float InPercentage)
+void UDefaultInGameWidget::ClearBindingsToEnvStatus()
 {
-	if (StatusWidget)
-	{
-		StatusWidget->UpdateStun(InPercentage);
-	}
+	if (!CR4S_ENSURE(LogHong1,EnvironmentStatusWidget)) return;
+	EnvironmentStatusWidget->ClearBindingsToEnvStatusComp();
 }
 
 void UDefaultInGameWidget::UpdateHungerWidget(const float InPercentage)

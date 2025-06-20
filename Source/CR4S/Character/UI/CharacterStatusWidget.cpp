@@ -1,5 +1,6 @@
 #include "CharacterStatusWidget.h"
 
+#include "CR4S.h"
 #include "Character/Components/BaseStatusComponent.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
@@ -30,22 +31,22 @@ void UCharacterStatusWidget::UpdateStun(const float InPercentage)
 	Stun->SetPercent(InPercentage);
 }
 
-void UCharacterStatusWidget::ToggleWidgetMode(UBaseStatusComponent* InComponent, const bool bIsRobot)
+void UCharacterStatusWidget::ToggleWidgetMode(const bool bIsRobot)
 {
-	float Percentage=FMath::Clamp(InComponent->GetCurrentHP()/InComponent->GetMaxHP(), 0.f, 1.f);
-	UpdateHP(Percentage);
-	
-	Percentage=FMath::Clamp(InComponent->GetCurrentResource()/InComponent->GetMaxResource(), 0.f, 1.f);
-	UpdateResource(Percentage);
-	
-	if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(InComponent))
-	{
-		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentEnergy()/RobotStatusComp->GetMaxEnergy(), 0.f, 1.f);
-		UpdateEnergy(Percentage);
-
-		Percentage=FMath::Clamp(RobotStatusComp->GetCurrentStun()/RobotStatusComp->GetMaxStun(), 0.f, 1.f);
-		UpdateStun(Percentage);
-	}
+	// float Percentage=FMath::Clamp(InComponent->GetCurrentHP()/InComponent->GetMaxHP(), 0.f, 1.f);
+	// UpdateHP(Percentage);
+	//
+	// Percentage=FMath::Clamp(InComponent->GetCurrentResource()/InComponent->GetMaxResource(), 0.f, 1.f);
+	// UpdateResource(Percentage);
+	//
+	// if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(InComponent))
+	// {
+	// 	Percentage=FMath::Clamp(RobotStatusComp->GetCurrentEnergy()/RobotStatusComp->GetMaxEnergy(), 0.f, 1.f);
+	// 	UpdateEnergy(Percentage);
+	//
+	// 	Percentage=FMath::Clamp(RobotStatusComp->GetCurrentStun()/RobotStatusComp->GetMaxStun(), 0.f, 1.f);
+	// 	UpdateStun(Percentage);
+	// }
 	
 	if (Energy)
 	{
@@ -64,5 +65,34 @@ void UCharacterStatusWidget::ToggleWidgetMode(UBaseStatusComponent* InComponent,
 		Resource->SetFillColorAndOpacity(bIsRobot
 			? FColor::Red
 			: FColor::Yellow);
+	}
+}
+
+void UCharacterStatusWidget::InitializeWidget(UBaseStatusComponent* InStatus)
+{
+	if (!CR4S_ENSURE(LogHong1,InStatus)) return;
+
+	CachedStatusComponent = InStatus;
+	
+	InStatus->OnHPChanged.AddUObject(this,&UCharacterStatusWidget::UpdateHP);
+	InStatus->OnResourceChanged.AddUObject(this,&UCharacterStatusWidget::UpdateResource);
+	
+	if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(InStatus))
+	{
+		RobotStatusComp->OnEnergyChanged.AddUObject(this,&UCharacterStatusWidget::UpdateEnergy);
+		RobotStatusComp->OnStunChanged.AddUObject(this,&UCharacterStatusWidget::UpdateStun);
+	}
+}
+
+void UCharacterStatusWidget::ClearBindings()
+{
+	if (!CR4S_ENSURE(LogHong1,CachedStatusComponent)) return;
+	CachedStatusComponent->OnHPChanged.RemoveAll(this);
+	CachedStatusComponent->OnResourceChanged.RemoveAll(this);
+	
+	if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(CachedStatusComponent))
+	{
+		RobotStatusComp->OnEnergyChanged.RemoveAll(this);
+		RobotStatusComp->OnStunChanged.RemoveAll(this);
 	}
 }

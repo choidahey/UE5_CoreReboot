@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterStatusWidget.generated.h"
 
+class UBaseStatusComponent;
 class UProgressBarWidget;
 
 UCLASS()
@@ -31,7 +32,11 @@ public:
 	void UpdateStun(const float InPercentage);
 
 	UFUNCTION(BlueprintCallable)
-	void ToggleWidgetMode(UBaseStatusComponent* InComponent, const bool bIsRobot);
+	void ToggleWidgetMode(const bool bIsRobot);
+
+	void InitializeWidget(UBaseStatusComponent* InStatus);
+
+	void ClearBindings();
 #pragma endregion
 	
 #pragma region Widgets
@@ -48,5 +53,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UProgressBarWidget> Stun;
 #pragma endregion
+
+#pragma region Cached
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UBaseStatusComponent> CachedStatusComponent;
+#pragma	endregion
 };
 

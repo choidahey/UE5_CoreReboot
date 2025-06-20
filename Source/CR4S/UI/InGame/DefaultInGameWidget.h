@@ -4,6 +4,8 @@
 #include "Game/System/WorldTimeManager.h"
 #include "DefaultInGameWidget.generated.h"
 
+class UEnvironmentalStatusComponent;
+class ABaseWeapon;
 class UAmmoWidget;
 class URoundProgressBar;
 class UImage;
@@ -28,19 +30,24 @@ public:
 	FORCEINLINE UCharacterEnvironmentStatusWidget* GetEnvironmentStatusWidget() { return EnvironmentStatusWidget; }
 #pragma endregion
 	
-#pragma region Initialize
+#pragma region Bind & Unbind
 public:
-	void ToggleWidgetMode(UBaseStatusComponent* InComponent, bool bIsRobot);
+	void ToggleWidgetMode(const bool bIsRobot);
 	UFUNCTION(BlueprintCallable)
-	void BindWidgetToHomingWeapon(AHomingWeapon* HomingWeapon);
+	void BindLockOnWidgetToHomingWeapon(AHomingWeapon* HomingWeapon);
+	UFUNCTION(BlueprintCallable)
+	void BindAmmoWidgetToWeapon(ABaseWeapon* InWeapon, const int32 SlotIdx);
+
+	void BindWidgetsToStatus(UBaseStatusComponent* InStatus);
+	
+	void BindEnvStatusWidgetToEnvStatus(UEnvironmentalStatusComponent* InStatus);
+
+	void ClearBindingsToStatus();
+	void ClearBindingsToEnvStatus();
 #pragma endregion
 	
 #pragma region UpdateWidget
 public:
-	void UpdateHPWidget(const float InPercentage);
-	void UpdateResourceWidget(const float InPercentage);
-	void UpdateEnergyWidget(const float InPercentage);
-	void UpdateStunWidget(const float InPercentage);
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
 
@@ -74,5 +81,4 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UAmmoWidget> CurrentAmmoWidgets;
 #pragma endregion
-	
 };

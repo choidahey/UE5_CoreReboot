@@ -16,6 +16,15 @@ UBaseStatusComponent::UBaseStatusComponent()
 	// ...
 }
 
+void UBaseStatusComponent::Refresh()
+{
+	AddCurrentHP(0);
+	AddCurrentResource(0);
+	AddHeatThreshold(0);
+	AddColdThreshold(0);
+	AddHumidityThreshold(0);
+}
+
 // Called when the game starts
 void UBaseStatusComponent::BeginPlay()
 {
