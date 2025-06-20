@@ -9,7 +9,10 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float /*InPercentage*/)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnResourceChangedDelegate, float /*InPercentage*/)
-DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnColdThresholdChangedDelegate, float, NewThreshold);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHeatThresholdChangedDelegate, float, NewThreshold);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHumidityThresholdChangedDelegate, float, NewThreshold);
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -46,8 +49,11 @@ public:
 	
 	void AddAttackPower(const float InAmount);
 	void AddArmor(const float InAmount);
+	UFUNCTION(BlueprintCallable)
 	void AddColdThreshold(const float InAmount);
+	UFUNCTION(BlueprintCallable)
 	void AddHeatThreshold(const float InAmount);
+	UFUNCTION(BlueprintCallable)
 	void AddHumidityThreshold(const float InAmount);
 #pragma endregion
 	
@@ -103,6 +109,12 @@ public:
 	FOnHPChangedDelegate OnHPChanged;
 	FOnResourceChangedDelegate OnResourceChanged;
 	FOnDeathDelegate OnDeathState;
+	UPROPERTY(BlueprintAssignable)
+	FOnColdThresholdChangedDelegate OnColdThresholdChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnHeatThresholdChangedDelegate OnHeatThresholdChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnHumidityThresholdChangedDelegate OnHumidityThresholdChanged;
 #pragma endregion
 
 #pragma region Flag

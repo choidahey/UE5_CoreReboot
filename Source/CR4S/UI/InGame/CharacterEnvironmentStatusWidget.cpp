@@ -102,3 +102,41 @@ void UCharacterEnvironmentStatusWidget::OnHumidityChanged(float NewHumidity)
 		CurrentHuText->SetText(FText::AsNumber(RoundedHu));
 	}
 }
+
+void UCharacterEnvironmentStatusWidget::UpdateColdThreshold(float NewThreshold)
+{
+	MinTempText->SetText(FText::AsNumber(NewThreshold));
+	UpdateTemperatureProgressBar();
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateHeatThreshold(float NewThreshold)
+{
+	MaxTempText->SetText(FText::AsNumber(NewThreshold));
+	UpdateTemperatureProgressBar();
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold(float NewThreshold)
+{
+	MaxHuText->SetText(FText::AsNumber(NewThreshold));
+	UpdateHumidityProgressBar();
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateTemperatureProgressBar()
+{
+	if (!CR4S_ENSURE(LogHong1,CurrentCharacter)) return;
+
+	UEnvironmentalStatusComponent* EnvComp = CurrentCharacter->FindComponentByClass<UEnvironmentalStatusComponent>();
+	if (!CR4S_ENSURE(LogHong1,EnvComp)) return;
+
+	OnTemperatureChanged(EnvComp->GetCurrentTemperature());
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateHumidityProgressBar()
+{
+	if (!CR4S_ENSURE(LogHong1,CurrentCharacter)) return;
+    
+    	UEnvironmentalStatusComponent* EnvComp = CurrentCharacter->FindComponentByClass<UEnvironmentalStatusComponent>();
+    	if (!CR4S_ENSURE(LogHong1,EnvComp)) return;
+    
+    	OnTemperatureChanged(EnvComp->GetCurrentHumidity());
+}

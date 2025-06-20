@@ -1,0 +1,55 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "BaseWeapon.h"
+#include "Character/Data/WeaponData.h"
+#include "RangedWeapon.generated.h"
+
+struct FRangedWeaponData;
+class ABaseBullet;
+/**
+ * 
+ */
+UCLASS(BlueprintType, Blueprintable)
+class CR4S_API ARangedWeapon : public ABaseWeapon
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this actor's properties
+	ARangedWeapon();
+	
+#pragma region Override
+public:
+	virtual void OnAttack() override;
+	virtual void Initialize(AModularRobot* OwnerCharacter) override;
+#pragma endregion
+
+#pragma region Common
+protected:
+	void FireMultiBullet(AActor* HomingTarget=nullptr);
+	bool GetAimHitResult(FHitResult& OutHitResult) const;
+	FVector GetMuzzleLocation(const FName& SocketName) const;
+	void FireBullet(const FVector& MuzzleLocation, const FRotator& SpawnRotation, AActor* HomingTarget = nullptr);
+
+	void ApplyRecoil() const;
+	void StartReload();
+	void FinishReload();
+#pragma endregion
+	
+#pragma region TypeSpecificInfo
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FRangedWeaponInfo TypeSpecificInfo; 
+#pragma endregion
+
+#pragma region Cached
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	uint8 bIsReloading:1 {false};
+	FTimerHandle ReloadTimerHandle;
+#pragma endregion
+	
+};
+
