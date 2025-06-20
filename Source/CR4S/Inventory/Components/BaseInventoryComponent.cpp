@@ -6,6 +6,7 @@
 #include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
+#include "Inventory/InventoryItem/HelperBotInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
@@ -214,6 +215,12 @@ UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplay
 	if (ItemTags.HasTag(ItemTag))
 	{
 		return NewObject<UConsumableInventoryItem>(this);
+	}
+
+	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.HelperBot"));
+	if (ItemTags.HasTag(ItemTag))
+	{
+		return NewObject<UHelperBotInventoryItem>(this);
 	}
 
 	return NewObject<UBaseInventoryItem>(this);

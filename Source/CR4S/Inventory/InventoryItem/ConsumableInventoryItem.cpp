@@ -1,6 +1,7 @@
 ﻿#include "ConsumableInventoryItem.h"
 
 #include "CR4S.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
@@ -53,7 +54,7 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 	Super::UseItem(Index);
 
 	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)) ||
-		!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent->GetOwner())))
+		!CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
 	{
 		return;
 	}
