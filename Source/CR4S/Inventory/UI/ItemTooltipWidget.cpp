@@ -2,22 +2,39 @@
 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "Gimmick/Data/ItemData.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 
-void UItemTooltipWidget::InitWidget(const FItemInfoData& ItemInfo) const
+void UItemTooltipWidget::NativeTick(const FGeometry& MyGeometry, const float InDeltaTime)
 {
-	if (IsValid(ItemIcon))
-	{
-		ItemIcon->SetBrushFromTexture(ItemInfo.Icon, true);
-	}
+	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (IsValid(ItemName))
+	if (IsValid(CurrentItem))
 	{
-		ItemName->SetText(ItemInfo.Name);
-	}
+		if (IsValid(ItemIcon))
+		{
+			ItemIcon->SetBrushFromTexture(CurrentItem->GetItemIcon(), true);
+		}
 
-	if (IsValid(ItemDescription))
-	{
-		ItemDescription->SetText(ItemInfo.Description);
+		if (IsValid(ItemName))
+		{
+			ItemName->SetText(CurrentItem->GetItemName());
+		}
+
+		if (IsValid(ItemDescription))
+		{
+			ItemDescription->SetText(CurrentItem->GetItemDescription());
+		}		
 	}
+}
+
+void UItemTooltipWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	CurrentItem = nullptr;
+}
+
+void UItemTooltipWidget::InitWidget(UBaseInventoryItem* NewItem)
+{
+	CurrentItem = NewItem;
 }
