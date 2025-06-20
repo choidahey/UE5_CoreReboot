@@ -89,7 +89,7 @@ void AHomingWeapon::FireHomingBullet()
 
 	FireMultiBullet(TrackingTarget.Get());
 
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
 }

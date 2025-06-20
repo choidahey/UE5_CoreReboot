@@ -25,7 +25,7 @@ void AMultiShotWeapon::OnAttack()
 	
 	FireMultiBullet();
 	
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
 }

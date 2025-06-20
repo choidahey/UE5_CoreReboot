@@ -45,7 +45,7 @@ void ASpreadShotWeapon::OnAttack()
 
 		FireBullet(MuzzleLocation,SpawnRotation);
 	}
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
 }

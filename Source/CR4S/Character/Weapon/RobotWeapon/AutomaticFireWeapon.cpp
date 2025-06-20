@@ -77,7 +77,7 @@ void AAutomaticFireWeapon::FireBulletForInterval()
 	const FRotator SpawnRotation=ShootDirection.Rotation();
 	FireBullet(MuzzleLocation, SpawnRotation);
 
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	ApplyRecoil();
 }
 

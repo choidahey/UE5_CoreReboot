@@ -154,8 +154,24 @@ void ARangedWeapon::StartReload()
 
 void ARangedWeapon::FinishReload()
 {
-	TypeSpecificInfo.AmmoInfo.CurrentAmmo=TypeSpecificInfo.AmmoInfo.MagazineCapacity;
+	SetCurrentAmmo(TypeSpecificInfo.AmmoInfo.MagazineCapacity);
 	bIsReloading=false;
 	bCanAttack=true;
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 }
+
+void ARangedWeapon::AddCurrentAmmo(const int32 Amount)
+{
+	SetCurrentAmmo(TypeSpecificInfo.AmmoInfo.CurrentAmmo+Amount);
+}
+
+void ARangedWeapon::SetCurrentAmmo(const int32 NewAmount)
+{
+	const int32 MaxAmmo=TypeSpecificInfo.AmmoInfo.MagazineCapacity;
+	const int32 NewCurrentAmmo=FMath::Clamp(NewAmount,0,MaxAmmo);
+	TypeSpecificInfo.AmmoInfo.CurrentAmmo=NewCurrentAmmo;
+
+	const float Percent = (MaxAmmo>0) ? static_cast<float>(NewCurrentAmmo)/MaxAmmo : 0;
+	OnCurrentAmmoChanged.Broadcast(Percent);
+}
+

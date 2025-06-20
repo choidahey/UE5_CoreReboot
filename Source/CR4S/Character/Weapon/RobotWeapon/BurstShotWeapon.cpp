@@ -73,7 +73,7 @@ void ABurstShotWeapon::FireBurstShot()
 	
 	FireBullet(MuzzleLocation,SpawnRotation);
 	
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	--BurstShotsRemaining;
 	ApplyRecoil();
 }
