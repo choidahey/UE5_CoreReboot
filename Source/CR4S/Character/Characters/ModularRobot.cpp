@@ -178,6 +178,13 @@ void AModularRobot::MountRobot(AActor* InActor)
 
 void AModularRobot::UnMountRobot()
 {
+	UCharacterMovementComponent* MovementComp=GetCharacterMovement();
+	if (!CR4S_ENSURE(LogHong1,MovementComp)) return;
+
+	const bool bInAir=MovementComp->IsFalling();
+	const bool bIsStopped=MovementComp->Velocity.IsNearlyZero();
+	if (bInAir || !bIsStopped) return;
+	
 	ACharacter* NextCharacter=MountedCharacter.Get();
 	if (IsValid(NextCharacter))
 	{

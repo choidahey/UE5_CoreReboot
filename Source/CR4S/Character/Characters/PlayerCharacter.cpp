@@ -413,6 +413,17 @@ void APlayerCharacter::Input_OnAttack()
 	CurrentTool->OnAttack();
 }
 
+void APlayerCharacter::Input_OnInteraction()
+{
+	if (!CR4S_ENSURE(LogHong1, GetLocomotionMode()==AlsLocomotionModeTags::Grounded
+		&& AlsCharacterMovement->GetGaitAmount()<=KINDA_SMALL_NUMBER))
+	{
+		return;
+	}
+	
+	CR4S_ENSURE(LogHong1,Interaction->TryStartInteraction());
+}
+
 void APlayerCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation)
 {
 	if (Camera->IsActive())
