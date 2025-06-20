@@ -31,7 +31,7 @@ public:
 	void UpdateStun(const float InPercentage);
 
 	UFUNCTION(BlueprintCallable)
-	void ToggleWidgetMode(const bool bIsRobot);
+	void ToggleWidgetMode(UBaseStatusComponent* InComponent, const bool bIsRobot);
 #pragma endregion
 	
 #pragma region Widgets

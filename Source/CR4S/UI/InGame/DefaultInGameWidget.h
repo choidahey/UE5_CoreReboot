@@ -4,6 +4,8 @@
 #include "Game/System/WorldTimeManager.h"
 #include "DefaultInGameWidget.generated.h"
 
+class UAmmoWidget;
+class URoundProgressBar;
 class UImage;
 class AHomingWeapon;
 class ULockOnWidget;
@@ -42,14 +44,6 @@ public:
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateImageVisible();
-	UFUNCTION(BlueprintCallable)
-	void UpdateImageInvisible();
-	UFUNCTION(BlueprintCallable)
-	void SetLockedOnColor();
-	UFUNCTION(BlueprintCallable)
-	void UpdateImagePosition(const FVector2D& NewPosition);
 
 #pragma endregion
 
@@ -66,17 +60,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UCharacterStatusWidget> StatusWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr< UProgressBarWidget> HungerWidget;
+	TObjectPtr<UProgressBarWidget> HungerWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UTimeDisplayWidget> TimeDisplayWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UCharacterEnvironmentStatusWidget> EnvironmentStatusWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
-	TObjectPtr<UImage> LockOnImage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UImage> CrosshairWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UImage> AimCircle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<ULockOnWidget> LockOnWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<UAmmoWidget> CurrentAmmoWidgets;
 #pragma endregion
 	
 };
