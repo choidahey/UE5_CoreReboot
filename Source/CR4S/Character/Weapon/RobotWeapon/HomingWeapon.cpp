@@ -40,6 +40,7 @@ void AHomingWeapon::OnAttack()
 		SetActorTickEnabled(true);
 		OnLockOnStarted.Broadcast();
 	}
+	Super::OnAttack();
 }
 
 void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter)
@@ -74,6 +75,7 @@ void AHomingWeapon::StopAttack()
 	
 	bIsLockedOn = false;
 	TrackingTarget=nullptr;
+	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned

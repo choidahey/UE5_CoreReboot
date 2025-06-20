@@ -24,7 +24,6 @@ public:
 	
 #pragma region Override
 public:
-	virtual void OnAttack() override;
 	virtual void Initialize(AModularRobot* OwnerCharacter) override;
 #pragma endregion
 

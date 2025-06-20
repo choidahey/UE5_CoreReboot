@@ -204,7 +204,7 @@ void AModularRobot::UnMountRobot()
 	Status->StopConsumeEnergy();
 }
 
-void AModularRobot::InitializeWidgets()
+void AModularRobot::InitializeWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -226,7 +226,7 @@ void AModularRobot::InitializeWidgets()
 	}
 }
 
-void AModularRobot::DisconnectWidgets()
+void AModularRobot::DisconnectWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -255,6 +255,11 @@ void AModularRobot::BeginPlay()
 	if (Status)
 	{
 		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
+	}
+
+	if (WeaponManager && InputBuffer)
+	{
+		InputBuffer->SetWeaponComponent(WeaponManager);
 	}
 	
 	InitializeWidgets();

@@ -28,6 +28,7 @@ void AAutomaticFireWeapon::OnAttack()
 		FireInterval,
 		true
 	);
+	Super::OnAttack();
 }
 
 void AAutomaticFireWeapon::StopAttack()
@@ -37,6 +38,7 @@ void AAutomaticFireWeapon::StopAttack()
 	{
 		StartAttackCooldown();
 	}
+	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned

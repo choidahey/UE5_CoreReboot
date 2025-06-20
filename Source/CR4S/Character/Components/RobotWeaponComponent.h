@@ -7,6 +7,7 @@
 #include "RobotWeaponComponent.generated.h"
 
 
+class URobotInputBufferComponent;
 class UInputBufferComponent;
 class ABaseWeapon;
 struct FGameplayTag;
@@ -59,7 +60,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AModularRobot> OwningCharacter;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UInputBufferComponent> InputBuffer;
+	TObjectPtr<URobotInputBufferComponent> InputBuffer;
 	
 	//Left, Right Arm (0,1), Left, Right Shoulder(2,3)	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")

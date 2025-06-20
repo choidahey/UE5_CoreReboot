@@ -48,6 +48,7 @@ void ASpreadShotWeapon::OnAttack()
 	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
+	Super::OnAttack();
 }
 
 // Called when the game starts or when spawned

@@ -12,10 +12,6 @@ ARangedWeapon::ARangedWeapon()
 {
 }
 
-void ARangedWeapon::OnAttack()
-{
-}
-
 void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter)
 {
 	UGameInstance* GI=GetGameInstance();

@@ -36,6 +36,7 @@ void ABurstShotWeapon::OnAttack()
 		TypeSpecificInfo.BurstShotInfo.TimeBetweenShots,
 		true
 	);
+	Super::OnAttack();
 }
 
 // Called when the game starts or when spawned

@@ -4,6 +4,7 @@
 #include "RobotWeaponComponent.h"
 #include "CR4S.h"
 #include "InputBufferComponent.h"
+#include "RobotInputBufferComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
 #include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
@@ -39,7 +40,7 @@ void URobotWeaponComponent::Input_StopAttackLeftArm()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[0]->StopAttack();
 }
 
@@ -60,7 +61,7 @@ void URobotWeaponComponent::Input_StopAttackRightArm()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(1)||!IsValid(Weapons[1])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[1]->StopAttack();
 }
 
@@ -81,7 +82,7 @@ void URobotWeaponComponent::Input_StopAttackLeftShoulder()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(2)||!IsValid(Weapons[2])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[2]->StopAttack();
 }
 
@@ -102,7 +103,7 @@ void URobotWeaponComponent::Input_StopAttackRightShoulder()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(3)||!IsValid(Weapons[3])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[3]->StopAttack();
 }
 
@@ -184,7 +185,7 @@ void URobotWeaponComponent::BeginPlay()
 		}
 	}
 
-	InputBuffer=OwningCharacter->FindComponentByClass<UInputBufferComponent>();
+	InputBuffer=OwningCharacter->FindComponentByClass<URobotInputBufferComponent>();
 	if (!CR4S_ENSURE(LogHong1,InputBuffer)) return;
 
 	UGameInstance* GI=OwningCharacter->GetGameInstance();

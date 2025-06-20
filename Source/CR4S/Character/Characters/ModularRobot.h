@@ -59,8 +59,8 @@ public:
 #pragma endregion
 
 #pragma region Widgets
-	void InitializeWidgets();
-	void DisconnectWidgets();
+	void InitializeWidgets() const;
+	void DisconnectWidgets() const;
 #pragma endregion
 	
 #pragma region OverrideFunctions
