@@ -273,7 +273,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		return;
 	}
 
-	const UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
+	UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
 		return;
@@ -287,7 +287,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		                                                ? PlayerInventoryComponent
 		                                                : OtherInventoryComponent;
 
-	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
+	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount(), Item);
 
 	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }

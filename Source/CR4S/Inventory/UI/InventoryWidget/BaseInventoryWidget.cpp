@@ -26,8 +26,6 @@ void UBaseInventoryWidget::NativeConstruct()
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
 
 	SetIsFocusable(true);
-
-	bCanSort = true;
 }
 
 void UBaseInventoryWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
