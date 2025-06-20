@@ -8,6 +8,7 @@
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
 #include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
 #include "Character/Weapon/RobotWeapon/RangedWeapon.h"
+#include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
 
 
@@ -151,7 +152,24 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 		NewWeapon->SetGameplayTag(Tag);
 		NewWeapon->Initialize(OwningCharacter);
 		Weapons[SlotIdx]=NewWeapon;
+		BindWidgetWeapon(NewWeapon,SlotIdx);
 	}
+}
+
+void URobotWeaponComponent::BindWidgetWeapon(ABaseWeapon* Target, const int32 SlotIdx)
+{
+	if (!CR4S_ENSURE(LogHong1,Target && OwningCharacter)) return;
+
+	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(PC->GetHUD());
+	if (!CR4S_ENSURE(LogHong1,CurrentHUD)) return;
+
+	UDefaultInGameWidget* InGameWidget=Cast<UDefaultInGameWidget>(CurrentHUD->GetInGameWidget());
+	if (!CR4S_ENSURE(LogHong1,InGameWidget)) return;
+
+	InGameWidget->BindAmmoWidgetToWeapon(Target,SlotIdx);
 }
 
 void URobotWeaponComponent::BeginPlay()

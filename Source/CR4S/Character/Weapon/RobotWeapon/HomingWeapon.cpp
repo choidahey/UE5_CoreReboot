@@ -56,7 +56,7 @@ void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter)
 	UDefaultInGameWidget* InGaemWidget=CurrentHUD->GetInGameWidget();
 	if (!CR4S_ENSURE(LogHong1,InGaemWidget)) return;
 
-	InGaemWidget->BindWidgetToHomingWeapon(this);
+	InGaemWidget->BindLockOnWidgetToHomingWeapon(this);
 }
 
 void AHomingWeapon::StopAttack()

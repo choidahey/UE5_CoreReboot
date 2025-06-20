@@ -21,7 +21,7 @@ class CR4S_API URobotWeaponComponent : public UActorComponent
 public:
 	URobotWeaponComponent();
 	
-#pragma region Attack & Weapons
+#pragma region Attack
 public:
 	UFUNCTION(BlueprintCallable)
 	void Input_OnAttackLeftArm();
@@ -39,9 +39,12 @@ public:
 	void Input_OnAttackRightShoulder();
 	UFUNCTION(BlueprintCallable)
 	void Input_StopAttackRightShoulder();
-
+#pragma endregion
+	
+#pragma region EquipWeapon
 	UFUNCTION(BlueprintCallable)
 	void EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx);
+	void BindWidgetWeapon(ABaseWeapon* Target, const int32 SlotIdx);
 #pragma endregion
 
 #pragma region Overrides

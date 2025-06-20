@@ -7,7 +7,7 @@
 #include "Character/Data/WeaponData.h"
 #include "RangedWeapon.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float, InPercent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float InPercent);
 
 struct FRangedWeaponData;
 class ABaseBullet;
@@ -55,6 +55,7 @@ protected:
 #pragma endregion
 
 #pragma region Delegate
+public:
 	FOnCurrentAmmoChanged OnCurrentAmmoChanged;
 #pragma endregion
 };
