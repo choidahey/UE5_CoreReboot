@@ -18,9 +18,10 @@ void UDefaultInGameWidget::NativeConstruct()
 	
 	LockOnImage->SetColorAndOpacity(FLinearColor::White);
 	LockOnImage->SetVisibility(ESlateVisibility::Hidden);
+	AimCircle->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UDefaultInGameWidget::InitializeStatusWidget(UBaseStatusComponent* InComponent, bool bIsRobot)
+void UDefaultInGameWidget::ToggleWidgetMode(UBaseStatusComponent* InComponent, bool bIsRobot)
 {
 	float Percentage=FMath::Clamp(InComponent->GetCurrentHP()/InComponent->GetMaxHP(), 0.f, 1.f);
 	UpdateHPWidget(Percentage);
@@ -42,6 +43,18 @@ void UDefaultInGameWidget::InitializeStatusWidget(UBaseStatusComponent* InCompon
 		UpdateStunWidget(Percentage);
 	}
 	StatusWidget->ToggleWidgetMode(bIsRobot);
+	
+	if (!CR4S_ENSURE(LogHong1,CrosshairWidget && AimCircle)) return;
+	if (bIsRobot)
+	{
+		CrosshairWidget->SetBrushFromTexture(RobotCrosshair);
+		AimCircle->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+	else
+	{
+		CrosshairWidget->SetBrushFromTexture(DefaultCrosshair);
+		AimCircle->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UDefaultInGameWidget::BindWidgetToHomingWeapon(AHomingWeapon* HomingWeapon)

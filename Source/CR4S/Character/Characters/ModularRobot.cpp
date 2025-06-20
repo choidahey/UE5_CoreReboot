@@ -217,7 +217,7 @@ void AModularRobot::InitializeWidgets()
 				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
 				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
 				
-				InGameWidget->InitializeStatusWidget(Status,true);
+				InGameWidget->ToggleWidgetMode(Status,true);
 				
 				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
 				{

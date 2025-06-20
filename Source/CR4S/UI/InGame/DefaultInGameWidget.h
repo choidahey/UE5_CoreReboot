@@ -28,7 +28,7 @@ public:
 	
 #pragma region Initialize
 public:
-	void InitializeStatusWidget(UBaseStatusComponent* InComponent, bool bIsRobot);
+	void ToggleWidgetMode(UBaseStatusComponent* InComponent, bool bIsRobot);
 	UFUNCTION(BlueprintCallable)
 	void BindWidgetToHomingWeapon(AHomingWeapon* HomingWeapon);
 #pragma endregion
@@ -53,6 +53,14 @@ public:
 
 #pragma endregion
 
+#pragma region CrosshairImage
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Crosshair)
+	TObjectPtr<UTexture2D> DefaultCrosshair;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Crosshair)
+	TObjectPtr<UTexture2D> RobotCrosshair;
+#pragma endregion 
+	
 #pragma region Widgets
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
@@ -65,6 +73,10 @@ protected:
 	TObjectPtr<UCharacterEnvironmentStatusWidget> EnvironmentStatusWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UImage> LockOnImage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<UImage> CrosshairWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<UImage> AimCircle;
 #pragma endregion
 	
 };

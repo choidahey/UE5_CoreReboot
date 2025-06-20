@@ -116,7 +116,7 @@ void APlayerCharacter::InitializeWidgets()
 				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
 				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
 
-				InGameWidget->InitializeStatusWidget(Status,false);
+				InGameWidget->ToggleWidgetMode(Status,false);
 				
 				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
 				{
@@ -148,7 +148,7 @@ void APlayerCharacter::DisconnectWidgets()
 				Status->OnHPChanged.RemoveAll(InGameWidget);
 				Status->OnResourceChanged.RemoveAll(InGameWidget);
 				Status->OnHungerChanged.RemoveAll(InGameWidget);
-				InGameWidget->InitializeStatusWidget(Status,false);
+				InGameWidget->ToggleWidgetMode(Status,false);
 				
 				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
 				{
