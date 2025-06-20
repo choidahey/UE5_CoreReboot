@@ -8,8 +8,7 @@
 #define LOCTEXT_NAMESPACE "ConsumableInventoryItem"
 
 UConsumableInventoryItem::UConsumableInventoryItem()
-	: PreviousDecayPlayTime(-1),
-	  bIsRotten(false)
+	: bIsRotten(false)
 {
 	bUsePassiveEffect = true;
 	FreshnessText = LOCTEXT("FreshnessText", "신선도");
@@ -37,6 +36,16 @@ void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInv
 	}
 
 	DefaultDescription = GetItemDescription();
+}
+
+void UConsumableInventoryItem::UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
+{
+	Super::UpdateInventoryItem(NewInventoryComponent);
+
+	if (IsValid(InventoryComponent))
+	{
+		SetDecayRateMultiplier(InventoryComponent->HasRefrigeration() ? 0.5f : 1.0f);
+	}
 }
 
 void UConsumableInventoryItem::UseItem(const int32 Index)
@@ -77,14 +86,14 @@ void UConsumableInventoryItem::HandlePassiveEffect(const int64 NewPlayTime)
 
 bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 {
-	if (PreviousDecayPlayTime < 0)
+	if (FreshnessInfo.PreviousDecayPlayTime < 0)
 	{
-		PreviousDecayPlayTime = NewPlayTime;
+		FreshnessInfo.PreviousDecayPlayTime = NewPlayTime;
 		return true;
 	}
 
-	const int64 DeltaInt = NewPlayTime - PreviousDecayPlayTime;
-	PreviousDecayPlayTime = NewPlayTime;
+	const int64 DeltaInt = NewPlayTime - FreshnessInfo.PreviousDecayPlayTime;
+	FreshnessInfo.PreviousDecayPlayTime = NewPlayTime;
 
 	if (DeltaInt <= 0)
 	{
@@ -99,9 +108,9 @@ bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 	{
 		OnFreshnessChanged.Broadcast(FreshnessInfo.GetFreshnessPercent());
 	}
-	
+
 	UpdateItemDescription(CreateNewDescription());
-	
+
 	if (FreshnessInfo.RemainingFreshnessTime <= 0.f)
 	{
 		FreshnessInfo.RemainingFreshnessTime = 0.f;
@@ -126,7 +135,7 @@ FText UConsumableInventoryItem::CreateNewDescription() const
 	NumberFormat.SetMinimumFractionalDigits(0);
 
 	const FText PercentText = FText::AsPercent(FreshnessInfo.GetFreshnessPercent(), &NumberFormat);
-	
+
 	return FText::Format(
 		LOCTEXT("ItemDescriptionFormat", "{0}\n{1}: {2}%"),
 		DefaultDescription,

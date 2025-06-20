@@ -15,6 +15,7 @@ struct FFreshnessInfo
 	float ShelfLifeSeconds = 100.f;
 	float RemainingFreshnessTime = 100.f;
 	float DecayRateMultiplier = 1.0f;
+	int64 PreviousDecayPlayTime = -1;
 
 	bool ShouldDecay() const
 	{
@@ -59,6 +60,8 @@ public:
 	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
 	                               const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0) override;
 
+	virtual void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent) override;
+
 	virtual void UseItem(int32 Index) override;
 	virtual void HandlePassiveEffect(int64 NewPlayTime) override;
 
@@ -67,11 +70,24 @@ public:
 #pragma region Freshness
 
 public:
+	FORCEINLINE const FFreshnessInfo& GetFreshnessInfo() const { return FreshnessInfo; }
+
 	FORCEINLINE float GetRemainingFreshnessTime() const
 	{
 		return FreshnessInfo.RemainingFreshnessTime;
 	}
-	
+
+	FORCEINLINE float GetFreshnessPercent() const
+	{
+		return FreshnessInfo.GetFreshnessPercent();
+	}
+
+	FORCEINLINE void UpdateFreshnessInfo(const FFreshnessInfo& NewFreshnessInfo)
+	{
+		FreshnessInfo.RemainingFreshnessTime = NewFreshnessInfo.RemainingFreshnessTime;
+		FreshnessInfo.PreviousDecayPlayTime = NewFreshnessInfo.PreviousDecayPlayTime;
+	}
+
 	FORCEINLINE void AveragingFreshness(const float OtherRemainingFreshnessTime)
 	{
 		FreshnessInfo.RemainingFreshnessTime
@@ -83,11 +99,6 @@ public:
 		FreshnessInfo.DecayRateMultiplier = NewDecayRateMultiplier;
 	}
 
-	FORCEINLINE float GetFreshnessPercent() const
-	{
-		return FreshnessInfo.GetFreshnessPercent();
-	}
-
 private:
 	UFUNCTION()
 	bool UpdateFreshnessDecay(int64 NewPlayTime);
@@ -95,7 +106,6 @@ private:
 	FText CreateNewDescription() const;
 
 	FFreshnessInfo FreshnessInfo;
-	int64 PreviousDecayPlayTime;
 
 	bool bIsRotten;
 	FText FreshnessText;
@@ -136,7 +146,8 @@ private:
 
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFreshnessChanged, const float, FreshnessPercent);
+
 	FOnFreshnessChanged OnFreshnessChanged;
-	
-#pragma endregion 
+
+#pragma endregion
 };

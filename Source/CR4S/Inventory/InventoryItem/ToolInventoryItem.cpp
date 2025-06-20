@@ -53,7 +53,8 @@ void UToolInventoryItem::UseItem(const int32 Index)
 
 void UToolInventoryItem::EquipItem() const
 {
-	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
+	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
+		IsValid(PlayerInventoryComponent))
 	{
 		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
@@ -62,7 +63,8 @@ void UToolInventoryItem::EquipItem() const
 
 void UToolInventoryItem::UnEquipItem() const
 {
-	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
+	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
+		IsValid(PlayerInventoryComponent))
 	{
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
