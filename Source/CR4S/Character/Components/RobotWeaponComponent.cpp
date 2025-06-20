@@ -7,7 +7,6 @@
 #include "RobotInputBufferComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
-#include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
 #include "Character/Weapon/RobotWeapon/RangedWeapon.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
