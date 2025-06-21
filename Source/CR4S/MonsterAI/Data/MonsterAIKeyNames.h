@@ -31,7 +31,14 @@ struct FRegionBossAIKeys : public FAIKeys
 struct FSeasonBossAIKeys : public FAIKeys
 {
 	static const FName NearestHouseActor;
-	static const FName bIsIceRoadForward;
-	static const FName bIsDashAway;
-	static const FName bIsDashForward;
+	static const FName HouseAcceptRadius;
+	static const FName PlayerAcceptRadius;
+	static const FName CurrentDistance;
+	static const FName CurrentHP;
+	static const FName AttackType;
+	static const FName CurrentSkillRange;
+	static const FName MeleeOptimalDistance;
+	static const FName RangedOptimalDistance;
+	static const FName bIsInSkillRange;
+	
 };

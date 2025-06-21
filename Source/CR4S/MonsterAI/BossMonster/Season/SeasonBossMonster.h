@@ -10,6 +10,8 @@ class UNiagaraSystem;
 class AEnvironmentalModifierVolume;
 class UNavigationInvokerComponent;
 
+DECLARE_MULTICAST_DELEGATE(FOnTeleportEndSignature);
+
 UCLASS()
 class CR4S_API ASeasonBossMonster : public ABaseMonster
 {
@@ -22,18 +24,11 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void HandleDeath() override;
 
+#pragma region Opening Pattern
+protected:
 	void SpawnOpeningPattern();  // Template Method
 	virtual UNiagaraSystem* GetOpeningNiagara() const PURE_VIRTUAL(ASeasonBossMonster::GetOpeningNiagara, return nullptr;);
 	
-	UPROPERTY(EditAnywhere, Category = "MonsterAI")
-	TObjectPtr<UNavigationInvokerComponent> NavInvoker;
-	
-	UPROPERTY(EditAnywhere, Category = "MonsterAI")
-	float NavInvokerRadius = 5000.0f;
-	
-	UPROPERTY(EditAnywhere, Category = "MonsterAI")
-	float NavInvokerRemovalRadius = 5500.f;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
 	float EnvVolRadius = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
@@ -48,9 +43,21 @@ protected:
 private:
 	UPROPERTY()
 	TObjectPtr<AEnvironmentalModifierVolume> SpawnedEnvVolume = nullptr;
-	
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> SpawnedNiagaraComp = nullptr;
 	
-	FString MyHeader = TEXT("SeasonMonster");
+#pragma endregion
+
+#pragma region NavInvoker
+protected:
+	UPROPERTY(EditAnywhere, Category = "MonsterAI")
+	TObjectPtr<UNavigationInvokerComponent> NavInvoker;
+	
+	UPROPERTY(EditAnywhere, Category = "MonsterAI")
+	float NavInvokerRadius = 5000.0f;
+	UPROPERTY(EditAnywhere, Category = "MonsterAI")
+	float NavInvokerRemovalRadius = 5500.f;
+
+#pragma endregion
+	
 };
