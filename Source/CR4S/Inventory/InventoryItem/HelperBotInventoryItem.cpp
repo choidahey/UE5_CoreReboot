@@ -25,19 +25,32 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 	{
 		return;
 	}
+	const FRotator ControlRot = OwnerPlayer->GetControlRotation();
+	const FVector ForwardVector = FRotator(0.f, ControlRot.Yaw, 0.f).Vector().GetSafeNormal();
+	const FVector OffsetForward = ForwardVector * HelperBotItem->SpawnOffset.X;
+	const FVector OffsetUp = FVector(0.f, 0.f, HelperBotItem->SpawnOffset.Z);
 
-	FVector SpawnLocation = OwnerPlayer->GetActorLocation();
-	SpawnLocation += OwnerPlayer->GetActorForwardVector() * 100.f;
-	const FRotator SpawnRotation = OwnerPlayer->GetActorForwardVector().Rotation();
+	const FVector ActorLocation = OwnerPlayer->GetActorLocation();
+	const FVector SpawnLocation = ActorLocation + OffsetForward + OffsetUp;
+	FRotator SpawnRotation = (ActorLocation - SpawnLocation).Rotation();
+	SpawnRotation.Pitch = 0.f;
+	SpawnRotation.Roll = 0.f;
 
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	GetWorld()->SpawnActor<ABaseHelperBot>(HelperBotItem->HelperBotClass,
-	                       SpawnLocation,
-	                       SpawnRotation,
-	                       SpawnParameters);
-	
+	const ABaseHelperBot* HelperBot = GetWorld()->SpawnActor<ABaseHelperBot>(HelperBotItem->HelperBotClass,
+	                                                                         SpawnLocation,
+	                                                                         SpawnRotation,
+	                                                                         SpawnParameters);
 
-	InventoryComponent->RemoveItemByIndex(Index, 1);
+
+	if (IsValid(HelperBot))
+	{
+		InventoryComponent->RemoveItemByIndex(Index, 1);
+	}
+	else
+	{
+		CR4S_Log(LogInventoryItem, Warning, TEXT("Helper Bot Spawn Failed"));
+	}
 }
