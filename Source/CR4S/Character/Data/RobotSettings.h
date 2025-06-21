@@ -21,10 +21,20 @@ public:
 	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	FName MountSocketName {FName("cockpit")};
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
 	float DashStrength{3000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	float DashZStrength{400};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	float AerialDashStrength{1000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
 	float DashCooldown{1};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float MaxWalkSpeed{600};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float JumpZVelocity{700};
 };
 
 USTRUCT(BlueprintType,Blueprintable)

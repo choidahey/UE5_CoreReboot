@@ -5,6 +5,7 @@
 
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 // Sets default values for this component's properties
@@ -196,6 +197,42 @@ void UModularRobotStatusComponent::AddWeight(const float InAmount)
 	RobotStatus.Weight=Temp;
 	const float Percentage=FMath::Clamp(RobotStatus.Weight/RobotStatus.MaxWeight,0.f,1.f);
 	OnWeightChanged.Broadcast(Percentage);
+}
+
+void UModularRobotStatusComponent::StartHover()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld() && OwningCharacter)) return;
+
+	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=RobotStatus.HoverResourceCost))
+	{
+		OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetWorld()->GetTimerManager().SetTimer(
+			HoverTimerHandle,
+			this,
+			&UModularRobotStatusComponent::ConsumeResourceForHovering,
+			RobotStatus.HoverResourceConsumptionInterval,
+			true
+		);
+	}
+}
+
+void UModularRobotStatusComponent::StopHover()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld()&&OwningCharacter)) return;
+	
+	OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+	GetWorld()->GetTimerManager().ClearTimer(HoverTimerHandle);
+}
+
+void UModularRobotStatusComponent::ConsumeResourceForHovering()
+{
+	if (GetCurrentResource()<RobotStatus.HoverResourceCost)
+	{
+		StopHover();
+		return;
+	}
+	AddCurrentResource(-(RobotStatus.HoverResourceCost));
+	OnResourceConsumed();
 }
 
 
