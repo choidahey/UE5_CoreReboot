@@ -59,6 +59,13 @@ public:
 	void AddWeight(const float InAmount);
 #pragma endregion
 	
+#pragma region Hover
+public:
+	void StartHover();
+	void StopHover();
+	void ConsumeResourceForHovering();
+#pragma endregion
+	
 #pragma region Override
 public:
 	// Called every frame
@@ -68,6 +75,7 @@ protected:
 	virtual void BeginPlay() override;
 #pragma endregion
 
+	
 #pragma region Stun
 public:
 	void RemoveStunDebuff();
@@ -129,6 +137,7 @@ public:
 	FTimerHandle StunTimerHandle;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
 	FTimerHandle EnergyTimerHandle;
-	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
+	FTimerHandle HoverTimerHandle;
 #pragma endregion
 };
