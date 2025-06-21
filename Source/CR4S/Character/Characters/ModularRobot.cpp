@@ -204,7 +204,7 @@ void AModularRobot::UnMountRobot()
 	Status->StopConsumeEnergy();
 }
 
-void AModularRobot::InitializeWidgets()
+void AModularRobot::InitializeWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -212,33 +212,21 @@ void AModularRobot::InitializeWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
-				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
-				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
-				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
-				
-				InGameWidget->InitializeStatusWidget(Status,true);
-				
-				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
-				{
-					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-					
-					EnvironmentalStatus->OnTemperatureChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
-					EnvironmentalStatus->OnHumidityChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+				if (!CR4S_ENSURE(LogHong1,Status)) return;
+				InGameWidget->BindWidgetsToStatus(Status);
+				InGameWidget->ToggleWidgetMode(true);
 
-					if (!CR4S_ENSURE(LogHong1,Status)) return;
-					
-					Status->OnColdThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateColdThreshold);
-					Status->OnHeatThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHeatThreshold);
-					Status->OnHumidityThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold);
-					EnvironmentWidget->InitializeWidget(this);
-				}
+				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
+
+				Status->Refresh();
+				EnvironmentalStatus->Refresh();
 			}
 		}
 	}
 }
 
-void AModularRobot::DisconnectWidgets()
+void AModularRobot::DisconnectWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -246,24 +234,8 @@ void AModularRobot::DisconnectWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.RemoveAll(InGameWidget);
-				Status->OnResourceChanged.RemoveAll(InGameWidget);
-				Status->OnEnergyChanged.RemoveAll(InGameWidget);
-				Status->OnStunChanged.RemoveAll(InGameWidget);
-
-				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
-				{
-					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-					
-					EnvironmentalStatus->OnTemperatureChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
-					EnvironmentalStatus->OnHumidityChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
-
-					if (!CR4S_ENSURE(LogHong1,Status)) return;
-					
-					Status->OnColdThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateColdThreshold);
-					Status->OnHeatThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHeatThreshold);
-					Status->OnHumidityThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold);
-				}
+				InGameWidget->ClearBindingsToStatus();
+				InGameWidget->ClearBindingsToEnvStatus();
 			}
 		}
 	}
@@ -283,6 +255,11 @@ void AModularRobot::BeginPlay()
 	if (Status)
 	{
 		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
+	}
+
+	if (WeaponManager && InputBuffer)
+	{
+		InputBuffer->SetWeaponComponent(WeaponManager);
 	}
 	
 	InitializeWidgets();

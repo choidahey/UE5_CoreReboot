@@ -13,6 +13,12 @@ UPlayerCharacterStatusComponent::UPlayerCharacterStatusComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UPlayerCharacterStatusComponent::Refresh()
+{
+	Super::Refresh();
+	AddCurrentHunger(0);
+}
+
 
 // Called when the game starts
 void UPlayerCharacterStatusComponent::BeginPlay()

@@ -4,6 +4,10 @@
 #include "Game/System/WorldTimeManager.h"
 #include "DefaultInGameWidget.generated.h"
 
+class UEnvironmentalStatusComponent;
+class ABaseWeapon;
+class UAmmoWidget;
+class URoundProgressBar;
 class UImage;
 class AHomingWeapon;
 class ULockOnWidget;
@@ -26,45 +30,55 @@ public:
 	FORCEINLINE UCharacterEnvironmentStatusWidget* GetEnvironmentStatusWidget() { return EnvironmentStatusWidget; }
 #pragma endregion
 	
-#pragma region Initialize
+#pragma region Bind & Unbind
 public:
-	void InitializeStatusWidget(UBaseStatusComponent* InComponent, bool bIsRobot);
+	void ToggleWidgetMode(const bool bIsRobot);
 	UFUNCTION(BlueprintCallable)
-	void BindWidgetToHomingWeapon(AHomingWeapon* HomingWeapon);
+	void BindLockOnWidgetToHomingWeapon(AHomingWeapon* HomingWeapon);
+	UFUNCTION(BlueprintCallable)
+	void BindAmmoWidgetToWeapon(ABaseWeapon* InWeapon, const int32 SlotIdx);
+
+	void BindWidgetsToStatus(UBaseStatusComponent* InStatus);
+	
+	void BindEnvStatusWidgetToEnvStatus(UEnvironmentalStatusComponent* InStatus);
+
+	void ClearBindingsToStatus();
+	void ClearBindingsToEnvStatus();
 #pragma endregion
 	
 #pragma region UpdateWidget
 public:
-	void UpdateHPWidget(const float InPercentage);
-	void UpdateResourceWidget(const float InPercentage);
-	void UpdateEnergyWidget(const float InPercentage);
-	void UpdateStunWidget(const float InPercentage);
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateImageVisible();
-	UFUNCTION(BlueprintCallable)
-	void UpdateImageInvisible();
-	UFUNCTION(BlueprintCallable)
-	void SetLockedOnColor();
-	UFUNCTION(BlueprintCallable)
-	void UpdateImagePosition(const FVector2D& NewPosition);
 
 #pragma endregion
 
+#pragma region CrosshairImage
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Crosshair)
+	TObjectPtr<UTexture2D> DefaultCrosshair;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Crosshair)
+	TObjectPtr<UTexture2D> RobotCrosshair;
+#pragma endregion 
+	
 #pragma region Widgets
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UCharacterStatusWidget> StatusWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr< UProgressBarWidget> HungerWidget;
+	TObjectPtr<UProgressBarWidget> HungerWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UTimeDisplayWidget> TimeDisplayWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UCharacterEnvironmentStatusWidget> EnvironmentStatusWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
-	TObjectPtr<UImage> LockOnImage;
+	TObjectPtr<UImage> CrosshairWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<UImage> AimCircle;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<ULockOnWidget> LockOnWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<UAmmoWidget> CurrentAmmoWidgets;
 #pragma endregion
-	
 };
