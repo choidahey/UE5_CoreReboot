@@ -18,7 +18,7 @@ class CR4S_API URobotInventoryComponent : public UBaseInventoryComponent
 public:
 	URobotInventoryComponent();
 	
-	virtual FAddItemResult AddItem(FName RowName, int32 Count) override;
+	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr) override;
 	
 #pragma endregion
 	

@@ -48,6 +48,11 @@ void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 	}
 }
 
+void UBaseInventoryItem::UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
+{
+	InventoryComponent = NewInventoryComponent;
+}
+
 void UBaseInventoryItem::UseItem(const int32 Index)
 {
 	USoundBase* UseSound = InventoryItemData.ItemInfoData.UseSound;

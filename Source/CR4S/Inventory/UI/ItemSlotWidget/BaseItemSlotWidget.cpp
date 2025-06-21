@@ -66,7 +66,7 @@ void UBaseItemSlotWidget::InitSlotWidget(const int32 NewSlotIndex)
 		RootWidget->ToolTipWidgetDelegate.BindDynamic(this, &ThisClass::ShowToolTip);
 	}
 
-	// ResetFreshnessImage();
+	ResetFreshnessImage();
 }
 
 void UBaseItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget,
@@ -90,7 +90,7 @@ void UBaseItemSlotWidget::UpdateFreshness(const float Freshness)
 {
 	if (IsValid(FreshnessImage))
 	{
-		const FLinearColor CurColor = FLinearColor::LerpUsingHSV(MaxFreshnessColor, MinFreshnessColor, Freshness);
+		const FLinearColor CurColor = FLinearColor::LerpUsingHSV(MinFreshnessColor, MaxFreshnessColor, Freshness);
 		FreshnessImage->SetColorAndOpacity(CurColor);
 	}
 }
@@ -111,6 +111,7 @@ void UBaseItemSlotWidget::BoundFreshnessDelegate()
 	if (IsValid(ConsumableInventoryItem))
 	{
 		ConsumableInventoryItem->OnFreshnessChanged.AddUniqueDynamic(this, &ThisClass::UpdateFreshness);
+		UpdateFreshness(ConsumableInventoryItem->GetFreshnessPercent());
 	}
 }
 
@@ -441,7 +442,7 @@ UWidget* UBaseItemSlotWidget::ShowToolTip()
 		ItemTooltipWidget = CreateWidget<UItemTooltipWidget>(this, ItemTooltipWidgetClass);
 	}
 
-	ItemTooltipWidget->InitWidget(CurrentItem->GetInventoryItemData()->ItemInfoData);
+	ItemTooltipWidget->InitWidget(CurrentItem);
 
 	return ItemTooltipWidget;
 }
