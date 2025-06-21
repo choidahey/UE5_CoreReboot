@@ -51,7 +51,7 @@ public:
 #pragma region Sprint
 	void StartSprint();
 	void StopSprint();
-	void ConsumeResourceForSprint();
+	void ConsumeResourceForSprinting();
 #pragma endregion
 
 #pragma region Temperatur

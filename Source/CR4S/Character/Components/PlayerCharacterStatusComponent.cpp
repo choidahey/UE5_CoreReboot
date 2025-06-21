@@ -125,7 +125,7 @@ void UPlayerCharacterStatusComponent::StartSprint()
 		GetWorld()->GetTimerManager().SetTimer(
 			SprintTimerHandle,
 			this,
-			&UPlayerCharacterStatusComponent::ConsumeResourceForSprint,
+			&UPlayerCharacterStatusComponent::ConsumeResourceForSprinting,
 			PlayerStatus.SprintCostConsumptionInterval,
 			true
 		);
@@ -140,7 +140,7 @@ void UPlayerCharacterStatusComponent::StopSprint()
 	GetWorld()->GetTimerManager().ClearTimer(SprintTimerHandle);
 }
 
-void UPlayerCharacterStatusComponent::ConsumeResourceForSprint()
+void UPlayerCharacterStatusComponent::ConsumeResourceForSprinting()
 {
 	if (GetCurrentResource()<PlayerStatus.SprintResourceCost)
 	{
