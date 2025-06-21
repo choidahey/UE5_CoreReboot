@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "ItemTooltipWidget.generated.h"
 
+class UBaseInventoryItem;
 class UTextBlock;
 class UImage;
 struct FItemInfoData;
@@ -13,11 +14,22 @@ class CR4S_API UItemTooltipWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+#pragma region UUserWidget
+
+public:
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	virtual void NativeDestruct() override;
+	
+#pragma endregion
+	
 #pragma region Initialize
 	
 public:
-	void InitWidget(const FItemInfoData& ItemInfo) const;
-
+	void InitWidget(UBaseInventoryItem* NewItem);
+	
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryItem> CurrentItem;
+	
 #pragma endregion
 
 #pragma region BindWidget

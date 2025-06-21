@@ -6,6 +6,7 @@
 
 #include "BaseInventoryComponent.generated.h"
 
+struct FInventoryItemData;
 class UInventoryFilterData;
 class UBaseInventoryWidget;
 class UQuickSlotBarWidget;
@@ -60,12 +61,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void AddItems(const TMap<FName, int32>& Items);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	virtual FAddItemResult AddItem(FName RowName, int32 Count);
-
+	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr);
+	
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	void RemoveItemByRowName(const FName RowName, const int32 Count);
+	virtual int32 RemoveItemByRowName(const FName RowName, const int32 Count);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	void RemoveAllItemByRowName(const FName RowName);
+	virtual void RemoveAllItemByRowName(const FName RowName);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void RemoveItemByIndex(const int32 Index, const int32 Count = -1);
 
@@ -73,7 +74,7 @@ public:
 	UBaseInventoryItem* GetInventoryItemByIndex(const int32 Index) const;
 
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	int32 GetItemCountByRowName(const FName RowName) const;
+	virtual int32 GetItemCountByRowName(const FName RowName) const;
 
 	void SwapItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
 	void MergeItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
@@ -123,10 +124,10 @@ protected:
 	void StackItemsAndFillEmptySlots(FName RowName,
 	                                 int32 Count,
 	                                 FAddItemResult& Result,
-	                                 TSet<int32>& ChangedItemSlots);
+	                                 TSet<int32>& ChangedItemSlots,
+	                                 UBaseInventoryItem* OriginItem);
 
 	UBaseInventoryItem* CreateInventoryItem(const FGameplayTagContainer& ItemTags);
-
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
 	int32 MaxInventorySize;
 
@@ -142,6 +143,17 @@ protected:
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
 	UPROPERTY()
 	TObjectPtr<AActor> OwnerActor;
+
+#pragma endregion
+
+#pragma region Freshness
+
+public:
+	FORCEINLINE bool HasRefrigeration() const { return bHasRefrigeration; }
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem|Freshness")
+	bool bHasRefrigeration;
 
 #pragma endregion
 

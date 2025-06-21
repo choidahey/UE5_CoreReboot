@@ -7,6 +7,7 @@
 #include "Utility/Cr4sGameplayTags.h"
 #include "WeaponData.generated.h"
 
+class ABaseWeapon;
 class APlayerTool;
 class ABaseTool;
 class ABaseBullet;
@@ -31,6 +32,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HomingStrength{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HomingActivationDelay{0.2f};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxLifeTime{3};
 };
 
@@ -39,7 +42,8 @@ struct CR4S_API FBaseWeaponInfo
 {
 	GENERATED_BODY()
 public:
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMesh> SkeletalMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UAnimMontage> AttackMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -68,32 +72,108 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct CR4S_API FRangedWeaponInfo
+struct CR4S_API FAmmoInfo
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Range{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MagazineCapacity{10};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 CurrentAmmo{10};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ReloadTime{2};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FRecoilInfo
+{
+	GENERATED_BODY()
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Recoil{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float LockOnTime{0};
+	float HorizontalRecoilMultiplier{0.15};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FSpreadShotInfo
+{
+	GENERATED_BODY()
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 BulletPerShot{1};
+	int32 BulletPerShot{16};
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletsPerShot > 1"))
-	float SpreadAngle{5.f};
+	float SpreadAngle{20.f};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FMultiShotInfo
+{
+	GENERATED_BODY()
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName BulletSocketName{};
+	TArray<FName> MuzzleSocketNames;
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FHomingInfo
+{
+	GENERATED_BODY()
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float LockOnTime{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin="0"))
+	float LockOnMaintainRadius{0.2};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FBurstShotInfo
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ShotsPerBurst{3};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TimeBetweenShots{0.05};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FAutomaticFireInfo
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ShotsPerSecond{20};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FRangedWeaponInfo
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
+	float MaxAimTrackingRange{10000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
+	FName MuzzleSocketName{};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
 	TSubclassOf<ABaseBullet> ProjectileClass {nullptr};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
 	FBulletInfo BulletInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | Ammo")
+	FAmmoInfo AmmoInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | Recoil")
+	FRecoilInfo RecoilInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | SpreadShot")
+	FSpreadShotInfo SpreadShotInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | MultiShot")
+	FMultiShotInfo MultiShotInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | BurstShot")
+	FBurstShotInfo BurstShotInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | AutomaticFire")
+	FAutomaticFireInfo AutomaticFireInfo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Feature | Homing")
+	FHomingInfo HomingInfo;
 };
 
 USTRUCT(BlueprintType)
@@ -162,6 +242,34 @@ public:
 	};
 
 	
+};
+
+UCLASS(BlueprintType)
+class CR4S_API UWeaponClassDataAsset : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="RobotWeapon")
+	TMap<FGameplayTag,TSubclassOf<ABaseWeapon>> WeaponClassData
+	{
+			{ WeaponTags::Chainsaw,{} },
+			{ WeaponTags::DemolitionGear,{} },
+			{ WeaponTags::ShockBat,{} },
+			{ WeaponTags::CrystalSword,{} },
+			{ WeaponTags::CrystalShotgun,{} },
+			{ WeaponTags::CrystalRifle,{} },
+			{ WeaponTags::CrystalBurstRifle,{} },
+			{ WeaponTags::CrystalGatling,{} },
+			{ WeaponTags::CrystalSMG,{} },
+			{ WeaponTags::CrystalLauncher2,{} },
+			{ WeaponTags::CrystalHomingLauncher4,{} },
+			{ WeaponTags::CrystalHomingHighSpeed4,{} },
+			{ WeaponTags::Fireball,{} },
+			{ WeaponTags::HomingFireball,{} },
+			{ WeaponTags::IceShotgun,{} },
+			{ WeaponTags::ThunderStrike,{} },
+			{ WeaponTags::Comet,{} }	
+	};
 };
 
 UCLASS(BlueprintType)

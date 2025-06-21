@@ -9,7 +9,10 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float /*InPercentage*/)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnResourceChangedDelegate, float /*InPercentage*/)
-DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnColdThresholdChangedDelegate, float, NewThreshold);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHeatThresholdChangedDelegate, float, NewThreshold);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHumidityThresholdChangedDelegate, float, NewThreshold);
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -20,6 +23,11 @@ class CR4S_API UBaseStatusComponent : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UBaseStatusComponent();
+
+#pragma region Refresh
+	virtual void Refresh();
+#pragma endregion
+	
 #pragma region Get
 	FORCEINLINE float GetMaxHP() const { return BaseStatus.MaxHealth; }
 	FORCEINLINE float GetCurrentHP() const { return BaseStatus.Health; }
@@ -46,8 +54,11 @@ public:
 	
 	void AddAttackPower(const float InAmount);
 	void AddArmor(const float InAmount);
+	UFUNCTION(BlueprintCallable)
 	void AddColdThreshold(const float InAmount);
+	UFUNCTION(BlueprintCallable)
 	void AddHeatThreshold(const float InAmount);
+	UFUNCTION(BlueprintCallable)
 	void AddHumidityThreshold(const float InAmount);
 #pragma endregion
 	
@@ -103,6 +114,12 @@ public:
 	FOnHPChangedDelegate OnHPChanged;
 	FOnResourceChangedDelegate OnResourceChanged;
 	FOnDeathDelegate OnDeathState;
+	UPROPERTY(BlueprintAssignable)
+	FOnColdThresholdChangedDelegate OnColdThresholdChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnHeatThresholdChangedDelegate OnHeatThresholdChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnHumidityThresholdChangedDelegate OnHumidityThresholdChanged;
 #pragma endregion
 
 #pragma region Flag

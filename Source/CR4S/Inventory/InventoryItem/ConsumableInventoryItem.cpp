@@ -1,15 +1,19 @@
 ﻿#include "ConsumableInventoryItem.h"
 
 #include "CR4S.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 
+#define LOCTEXT_NAMESPACE "ConsumableInventoryItem"
+
 UConsumableInventoryItem::UConsumableInventoryItem()
-	: PreviousDecayPlayTime(-1),
-	  bIsRotten(false)
+	: bIsRotten(false)
 {
 	bUsePassiveEffect = true;
+	FreshnessText = LOCTEXT("FreshnessText", "신선도");
+	RottenDescription = LOCTEXT("RottenDescription", "썩은 아이템");
 }
 
 void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
@@ -31,6 +35,18 @@ void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInv
 		FreshnessInfo.ShelfLifeSeconds = ConsumableItemData.ShelfLife * 60;
 		FreshnessInfo.RemainingFreshnessTime = FreshnessInfo.ShelfLifeSeconds;
 	}
+
+	DefaultDescription = GetItemDescription();
+}
+
+void UConsumableInventoryItem::UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
+{
+	Super::UpdateInventoryItem(NewInventoryComponent);
+
+	if (IsValid(InventoryComponent))
+	{
+		SetDecayRateMultiplier(InventoryComponent->HasRefrigeration() ? 0.5f : 1.0f);
+	}
 }
 
 void UConsumableInventoryItem::UseItem(const int32 Index)
@@ -38,14 +54,14 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 	Super::UseItem(Index);
 
 	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)) ||
-		!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent->GetOwner())))
+		!CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
 	{
 		return;
 	}
 
 	if (IsValid(PlayerStatusComponent))
 	{
-		if (bIsRotten)
+		if (!bIsRotten)
 		{
 			PlayerStatusComponent->AddCurrentHunger(ConsumableItemData.HungerRestore);
 			PlayerStatusComponent->AddCurrentHP(ConsumableItemData.HealthRestore);
@@ -71,14 +87,14 @@ void UConsumableInventoryItem::HandlePassiveEffect(const int64 NewPlayTime)
 
 bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 {
-	if (PreviousDecayPlayTime < 0)
+	if (FreshnessInfo.PreviousDecayPlayTime < 0)
 	{
-		PreviousDecayPlayTime = NewPlayTime;
+		FreshnessInfo.PreviousDecayPlayTime = NewPlayTime;
 		return true;
 	}
 
-	const int64 DeltaInt = NewPlayTime - PreviousDecayPlayTime;
-	PreviousDecayPlayTime = NewPlayTime;
+	const int64 DeltaInt = NewPlayTime - FreshnessInfo.PreviousDecayPlayTime;
+	FreshnessInfo.PreviousDecayPlayTime = NewPlayTime;
 
 	if (DeltaInt <= 0)
 	{
@@ -93,13 +109,13 @@ bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 	{
 		OnFreshnessChanged.Broadcast(FreshnessInfo.GetFreshnessPercent());
 	}
-	
+
+	UpdateItemDescription(CreateNewDescription());
+
 	if (FreshnessInfo.RemainingFreshnessTime <= 0.f)
 	{
 		FreshnessInfo.RemainingFreshnessTime = 0.f;
 		OnItemRotten();
-
-		EndPassiveEffect();
 	}
 
 	return true;
@@ -109,6 +125,24 @@ void UConsumableInventoryItem::OnItemRotten()
 {
 	CR4S_Log(LogTemp, Warning, TEXT("Item has fully rotted!"));
 	bIsRotten = true;
+	UpdateItemDescription(RottenDescription);
+	EndPassiveEffect();
+}
+
+FText UConsumableInventoryItem::CreateNewDescription() const
+{
+	FNumberFormattingOptions NumberFormat;
+	NumberFormat.SetMaximumFractionalDigits(2);
+	NumberFormat.SetMinimumFractionalDigits(0);
+
+	const FText PercentText = FText::AsPercent(FreshnessInfo.GetFreshnessPercent(), &NumberFormat);
+
+	return FText::Format(
+		LOCTEXT("ItemDescriptionFormat", "{0}\n{1}: {2}"),
+		DefaultDescription,
+		FreshnessText,
+		PercentText
+	);
 }
 
 void UConsumableInventoryItem::ApplyResistanceEffect()
@@ -249,3 +283,5 @@ void UConsumableInventoryItem::ApplyThreshold(const EResistanceBuffType Type, co
 		break;
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

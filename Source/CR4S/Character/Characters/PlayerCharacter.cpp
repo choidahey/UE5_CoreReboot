@@ -112,20 +112,16 @@ void APlayerCharacter::InitializeWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
-				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
-				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
-
-				InGameWidget->InitializeStatusWidget(Status,false);
+				if (!CR4S_ENSURE(LogHong1,Status)) return;
 				
-				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
-				{
-					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-					
-					EnvironmentalStatus->OnTemperatureChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
-					EnvironmentalStatus->OnHumidityChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
-					EnvironmentWidget->InitializeWidget(this);
-				}
+				InGameWidget->BindWidgetsToStatus(Status);
+				InGameWidget->ToggleWidgetMode(false);
+
+				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
+				
+				Status->Refresh();
+				EnvironmentalStatus->Refresh();
 			}
 		}
 	}
@@ -139,18 +135,8 @@ void APlayerCharacter::DisconnectWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.RemoveAll(InGameWidget);
-				Status->OnResourceChanged.RemoveAll(InGameWidget);
-				Status->OnHungerChanged.RemoveAll(InGameWidget);
-				InGameWidget->InitializeStatusWidget(Status,false);
-				
-				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
-				{
-					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-					
-					EnvironmentalStatus->OnTemperatureChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
-					EnvironmentalStatus->OnHumidityChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
-				}
+				InGameWidget->ClearBindingsToStatus();
+				InGameWidget->ClearBindingsToEnvStatus();
 			}
 		}
 	}
@@ -209,10 +195,6 @@ void APlayerCharacter::BeginPlay()
 
 	if (!CR4S_ENSURE(LogHong1,Status)) return;
 	Status->OnDeathState.AddUObject(this,&APlayerCharacter::OnDeath);
-
-	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
-	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -253,6 +235,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(ViewModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnViewMode);
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnAttack);
+		EnhancedInput->BindAction(InteractionAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInteraction);
 	}
 }
 
@@ -420,7 +403,7 @@ void APlayerCharacter::Input_OnSwitchShoulder()
 	Camera->SetRightShoulder(!Camera->IsRightShoulder());
 }
 
-void APlayerCharacter::Input_OnAttack()
+void APlayerCharacter::Input_OnAttack() 
 {
 	if (!CR4S_ENSURE(LogHong1,CurrentTool)
 		||!CR4S_ENSURE(LogHong1,(PlayerInputBuffer->CheckInputQueue(EInputType::Attack))))
@@ -428,6 +411,17 @@ void APlayerCharacter::Input_OnAttack()
 		return;
 	}
 	CurrentTool->OnAttack();
+}
+
+void APlayerCharacter::Input_OnInteraction()
+{
+	if (!CR4S_ENSURE(LogHong1, GetLocomotionMode()==AlsLocomotionModeTags::Grounded
+		&& AlsCharacterMovement->GetGaitAmount()<=KINDA_SMALL_NUMBER))
+	{
+		return;
+	}
+	
+	CR4S_ENSURE(LogHong1,Interaction->TryStartInteraction());
 }
 
 void APlayerCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation)
