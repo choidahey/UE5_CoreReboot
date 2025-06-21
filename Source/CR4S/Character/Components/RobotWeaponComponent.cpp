@@ -4,10 +4,11 @@
 #include "RobotWeaponComponent.h"
 #include "CR4S.h"
 #include "InputBufferComponent.h"
+#include "RobotInputBufferComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
-#include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
 #include "Character/Weapon/RobotWeapon/RangedWeapon.h"
+#include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
 
 
@@ -38,7 +39,7 @@ void URobotWeaponComponent::Input_StopAttackLeftArm()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[0]->StopAttack();
 }
 
@@ -59,7 +60,7 @@ void URobotWeaponComponent::Input_StopAttackRightArm()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(1)||!IsValid(Weapons[1])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[1]->StopAttack();
 }
 
@@ -80,7 +81,7 @@ void URobotWeaponComponent::Input_StopAttackLeftShoulder()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(2)||!IsValid(Weapons[2])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[2]->StopAttack();
 }
 
@@ -101,7 +102,7 @@ void URobotWeaponComponent::Input_StopAttackRightShoulder()
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(3)||!IsValid(Weapons[3])) return;
 
-	InputBuffer->ClearInputQueue();
+	//InputBuffer->ClearInputQueue();
 	Weapons[3]->StopAttack();
 }
 
@@ -151,7 +152,24 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 		NewWeapon->SetGameplayTag(Tag);
 		NewWeapon->Initialize(OwningCharacter);
 		Weapons[SlotIdx]=NewWeapon;
+		BindWidgetWeapon(NewWeapon,SlotIdx);
 	}
+}
+
+void URobotWeaponComponent::BindWidgetWeapon(ABaseWeapon* Target, const int32 SlotIdx)
+{
+	if (!CR4S_ENSURE(LogHong1,Target && OwningCharacter)) return;
+
+	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(PC->GetHUD());
+	if (!CR4S_ENSURE(LogHong1,CurrentHUD)) return;
+
+	UDefaultInGameWidget* InGameWidget=Cast<UDefaultInGameWidget>(CurrentHUD->GetInGameWidget());
+	if (!CR4S_ENSURE(LogHong1,InGameWidget)) return;
+
+	InGameWidget->BindAmmoWidgetToWeapon(Target,SlotIdx);
 }
 
 void URobotWeaponComponent::BeginPlay()
@@ -166,7 +184,7 @@ void URobotWeaponComponent::BeginPlay()
 		}
 	}
 
-	InputBuffer=OwningCharacter->FindComponentByClass<UInputBufferComponent>();
+	InputBuffer=OwningCharacter->FindComponentByClass<URobotInputBufferComponent>();
 	if (!CR4S_ENSURE(LogHong1,InputBuffer)) return;
 
 	UGameInstance* GI=OwningCharacter->GetGameInstance();

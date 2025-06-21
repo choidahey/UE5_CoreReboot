@@ -36,6 +36,7 @@ void ABurstShotWeapon::OnAttack()
 		TypeSpecificInfo.BurstShotInfo.TimeBetweenShots,
 		true
 	);
+	Super::OnAttack();
 }
 
 // Called when the game starts or when spawned
@@ -73,7 +74,7 @@ void ABurstShotWeapon::FireBurstShot()
 	
 	FireBullet(MuzzleLocation,SpawnRotation);
 	
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	--BurstShotsRemaining;
 	ApplyRecoil();
 }

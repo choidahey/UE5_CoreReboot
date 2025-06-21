@@ -19,21 +19,21 @@ URobotInputBufferComponent::URobotInputBufferComponent()
 
 void URobotInputBufferComponent::ExecuteInputQueue() const
 {
-	if (!CR4S_ENSURE(LogHong1,WeaponComponent)) return;
+	if (!CR4S_ENSURE(LogHong1,CachedWeaponComponent)) return;
 	
 	switch (CurrentInputQueue)
 	{
 	case EInputType::RobotAttack1:
-		WeaponComponent->Input_OnAttackLeftArm();
+		CachedWeaponComponent->Input_OnAttackLeftArm();
 		break;
 	case EInputType::RobotAttack2:
-		WeaponComponent->Input_OnAttackRightArm();
+		CachedWeaponComponent->Input_OnAttackRightArm();
 		break;
 	case EInputType::RobotAttack3:
-		WeaponComponent->Input_OnAttackLeftShoulder();
+		CachedWeaponComponent->Input_OnAttackLeftShoulder();
 		break;
 	case EInputType::RobotAttack4:
-		WeaponComponent->Input_OnAttackRightShoulder();
+		CachedWeaponComponent->Input_OnAttackRightShoulder();
 		break;
 	default:
 		break;
@@ -46,8 +46,8 @@ void URobotInputBufferComponent::BeginPlay()
 	AActor* OnwerActor=GetOwner();
 	if (!OnwerActor) return;
 
-	WeaponComponent=OnwerActor->FindComponentByClass<URobotWeaponComponent>();
-	CR4S_ENSURE(LogHong1,WeaponComponent);
+	CachedWeaponComponent=OnwerActor->FindComponentByClass<URobotWeaponComponent>();
+	CR4S_ENSURE(LogHong1,CachedWeaponComponent);
 }
 
 void URobotInputBufferComponent::TickComponent(float DeltaTime, ELevelTick TickType,
