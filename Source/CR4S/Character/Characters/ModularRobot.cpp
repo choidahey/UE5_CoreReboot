@@ -140,7 +140,6 @@ void AModularRobot::LoadDataFromDataLoader()
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
 	Loader->LoadRobotSettingsData(RobotSettings);
-	
 }
 
 void AModularRobot::MountRobot(AActor* InActor)
@@ -254,6 +253,9 @@ void AModularRobot::BeginPlay()
 	Super::BeginPlay();
 
 	LoadDataFromDataLoader();
+
+	GetCharacterMovement()->JumpZVelocity=RobotSettings.JumpZVelocity;
+	GetCharacterMovement()->MaxWalkSpeed=RobotSettings.MaxWalkSpeed;
 	
 	if (InteractComp)
 	{
@@ -360,8 +362,13 @@ void AModularRobot::Input_Look(const FInputActionValue& Value)
 void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
 	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	// Jump 함수는 Character가 기본 제공
-	if (Value.Get<bool>())
+	
+	if (GetCharacterMovement()->IsFalling() && !bIsHovering)
+	{
+		Status->StartHover();
+		bIsHovering=true;
+	}
+	else
 	{
 		Jump();
 	}
@@ -370,26 +377,52 @@ void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
 	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	// StopJumping 함수도 Character가 기본 제공
-	if (!Value.Get<bool>())
+	
+	StopJumping();
+
+	if (bIsHovering)
 	{
-		StopJumping();
+		Status->StopHover();
+		bIsHovering=false;
 	}
 }
 
-void AModularRobot::Input_Dash(const FInputActionValue& Value)
+void AModularRobot::Input_HorizontalDash(const FInputActionValue& Value)
 {
 	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
-
+	
 	bIsDashing = true;
 	
 	FVector LastInput=GetLastMovementInputVector();
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-	
 	FVector LaunchVelocity=DashDirection*RobotSettings.DashStrength;
+	LaunchVelocity.Z+=RobotSettings.DashZStrength;
+	
 	Status->ConsumeResourceForRoll();
-	LaunchCharacter(LaunchVelocity,true,false);
+	LaunchCharacter(LaunchVelocity,true,true);
+	
+	GetWorldTimerManager().SetTimer(
+		DashCooldownTimerHandle,
+		this,
+		&AModularRobot::ResetDashCooldown,
+		RobotSettings.DashCooldown,
+		false
+	);
+}
+
+void AModularRobot::Input_VerticalDash(const FInputActionValue& Value)
+{
+	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
+	
+	bIsDashing = true;
+	
+	const FVector AerialDashDirection=GetActorUpVector();
+	FVector LaunchVelocity=AerialDashDirection*RobotSettings.AerialDashStrength;
+	
+	Status->ConsumeResourceForRoll();
+	LaunchCharacter(LaunchVelocity,true,true);
+	
 	GetWorldTimerManager().SetTimer(
 		DashCooldownTimerHandle,
 		this,
@@ -419,9 +452,10 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			//Looking
 			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
 			//Dash
-			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Dash);
+			EnhancedInputComponent->BindAction(HorizontalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_HorizontalDash);
+			EnhancedInputComponent->BindAction(VerticalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_VerticalDash);
 			// Jump
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
 			//Attack
 			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
