@@ -17,6 +17,7 @@
 #include "UI/InGame/SurvivalHUD.h"
 #include "NavigationInvokerComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Component/AIJumpComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
@@ -103,6 +104,10 @@ void ABaseHelperBot::LoadStats()
 			{
 				MoveComp->MaxWalkSpeed = CurrentStats.WalkSpeed;
 				MoveComp->JumpZVelocity = CurrentStats.JumpHeight;
+			}
+			if (UAIJumpComponent* JumpComp = FindComponentByClass<UAIJumpComponent>())
+			{
+				JumpComp->UpdateOwnerStats();
 			}
 
 			CurrentHealth = CurrentStats.MaxHealth;
