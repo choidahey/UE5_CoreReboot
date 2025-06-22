@@ -75,13 +75,18 @@ FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32
 	{
 		return Result;
 	}
+	
+	StackItemsAndFillEmptySlots(RowName, Count, Result, Result.ChangedItemSlots, OriginItem);
 
-	TSet<int32> ChangedItemSlots;
-	StackItemsAndFillEmptySlots(RowName, Count, Result, ChangedItemSlots, OriginItem);
-
-	NotifyInventoryItemsChanged(ChangedItemSlots.Array());
-
+	NotifyInventoryItemsChanged(Result.ChangedItemSlots.Array());
+	
 	return Result;
+}
+
+FAddItemResult UBaseInventoryComponent::AddHelperBotItem(const FName RowName, const int32 Count)
+{
+	UHelperBotInventoryItem* HelperBotInventoryItem = NewObject<UHelperBotInventoryItem>(this);
+	return  AddItem(RowName, Count, HelperBotInventoryItem);
 }
 
 void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
@@ -136,19 +141,7 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 			ChangedItemSlots.Add(Index);
 
-			//////////////////// ConsumableInventoryItem
-			UConsumableInventoryItem* CurrentConsumableItem = Cast<UConsumableInventoryItem>(SameInventoryItem);
-			if (IsValid(CurrentConsumableItem))
-			{
-				float OtherFreshnessRemainingTime = CurrentConsumableItem->GetFreshnessInfo().ShelfLifeSeconds;
-				const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
-				if (IsValid(OriginConsumableItem))
-				{
-					OtherFreshnessRemainingTime = OriginConsumableItem->GetRemainingFreshnessTime();
-				}
-				CurrentConsumableItem->AveragingFreshness(OtherFreshnessRemainingTime);
-			}
-			////////////////////
+			PostStackItems(OriginItem, SameInventoryItem);
 		}
 	}
 
@@ -186,21 +179,35 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 			ChangedItemSlots.Add(Index);
 
-			//////////////////// ConsumableInventoryItem
-			const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
-			if (IsValid(OriginConsumableItem))
-			{
-				UConsumableInventoryItem* CurrentItem = Cast<UConsumableInventoryItem>(EmptyInventoryItem);
-				if (IsValid(CurrentItem))
-				{
-					CurrentItem->UpdateFreshnessInfo(OriginConsumableItem->GetFreshnessInfo());
-				}
-			}
-			////////////////////
+			PostFillEmptySlots(OriginItem, EmptyInventoryItem);
 		}
 	}
 
 	Result.RemainingCount = RemainingCount;
+}
+
+void UBaseInventoryComponent::PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+	{
+		AveragingFreshness(OriginItem, TargetItem);
+	}
+	else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
+	{
+		
+	}
+}
+
+void UBaseInventoryComponent::PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+	{
+		UpdateFreshness(OriginItem, TargetItem);
+	}
+	else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
+	{
+		
+	}
 }
 
 UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplayTagContainer& ItemTags)
@@ -373,6 +380,19 @@ void UBaseInventoryComponent::AveragingFreshness(UBaseInventoryItem* FromItem, U
 	}
 
 	ToConsumableInventoryItem->AveragingFreshness(FromConsumableInventoryItem->GetRemainingFreshnessTime());
+}
+
+void UBaseInventoryComponent::UpdateFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem)
+{
+	const UConsumableInventoryItem* FromConsumableInventoryItem = Cast<UConsumableInventoryItem>(FromItem);
+	UConsumableInventoryItem* ToConsumableInventoryItem = Cast<UConsumableInventoryItem>(ToItem);
+	if (!IsValid(FromConsumableInventoryItem) ||
+		!IsValid(ToConsumableInventoryItem))
+	{
+		return;
+	}
+
+	ToConsumableInventoryItem->UpdateFreshnessInfo(FromConsumableInventoryItem->GetFreshnessInfo());
 }
 
 void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*>& NewInventoryItems)

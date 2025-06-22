@@ -19,19 +19,14 @@ struct FAddItemResult
 {
 	GENERATED_BODY()
 
-	FAddItemResult()
-		: bSuccess(false),
-		  AddedCount(0),
-		  RemainingCount(0)
-	{
-	}
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bSuccess;
+	bool bSuccess = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 AddedCount;
+	int32 AddedCount = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 RemainingCount;
+	int32 RemainingCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSet<int32> ChangedItemSlots;
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -62,6 +57,7 @@ public:
 	void AddItems(const TMap<FName, int32>& Items);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr);
+	virtual FAddItemResult AddHelperBotItem(FName RowName, int32 Count);
 	
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	virtual int32 RemoveItemByRowName(const FName RowName, const int32 Count);
@@ -79,6 +75,7 @@ public:
 	void SwapItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
 	void MergeItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
 	static void AveragingFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem);
+	static void UpdateFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem);
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
 
@@ -126,6 +123,9 @@ protected:
 	                                 FAddItemResult& Result,
 	                                 TSet<int32>& ChangedItemSlots,
 	                                 UBaseInventoryItem* OriginItem);
+
+	void PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	void PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 
 	UBaseInventoryItem* CreateInventoryItem(const FGameplayTagContainer& ItemTags);
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
