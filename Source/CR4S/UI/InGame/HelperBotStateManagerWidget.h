@@ -31,6 +31,7 @@ protected:
 	UFUNCTION() void CheckPlayerDistance();
 	UFUNCTION() void ChangeNameButtonClicked();
 	UFUNCTION() void OnNameEditCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+	UFUNCTION() void PickUp();
 	
 protected:
 	UPROPERTY(meta=(BindWidget)) class UCanvasPanel* RootCanvas;
@@ -45,6 +46,7 @@ protected:
 	UPROPERTY(meta=(BindWidget)) class UTextBlock* BotNameText;
 	UPROPERTY(meta=(BindWidget)) class UEditableTextBox* BotNameEditBox;
 	UPROPERTY(meta=(BindWidget)) class UButton* ChangeNameButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* PickUpButton; 
 
 	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot = nullptr;
 

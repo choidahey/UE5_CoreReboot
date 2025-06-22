@@ -7,6 +7,7 @@
 #include "../UI/InGame/HelperBotStateManagerWidget.h"
 #include "Components/SplineComponent.h"
 #include "NiagaraComponent.h"
+#include "Data/HelperBotSaveData.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "BaseHelperBot.generated.h"
 
@@ -97,6 +98,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString BotName = TEXT("AutoBot");
+
+private:
+	FHelperPickUpData PickUpData;
+	
+	uint8 bIsFromInventory : 1 = 0;
 	
 #pragma endregion
 
@@ -119,14 +125,19 @@ public:
 	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
 
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
-
+	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
 
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
 	FORCEINLINE FString GetBotName() const { return BotName; }
 
+	
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
 	void SetBotName(const FString& NewName);
+	
+	FORCEINLINE void SetIsFromInventory(bool bFromInventory) { bIsFromInventory = bFromInventory; }
+
+	void SetPickUpData(const FHelperPickUpData& InPickUpData) { PickUpData = InPickUpData; }
 	
 #pragma endregion
 

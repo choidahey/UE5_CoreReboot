@@ -65,6 +65,7 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (SetDefendingButton) SetDefendingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetDefending);
 	if (ChangeNameButton) ChangeNameButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::ChangeNameButtonClicked);
 	if (BotNameEditBox) BotNameEditBox->OnTextCommitted.AddDynamic(this, &UHelperBotStateManagerWidget::OnNameEditCommitted);
+	if (PickUpButton) PickUpButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::PickUp);
 		
 	GetWorld()->GetTimerManager().SetTimer(DistanceCheckTimer, this, 
 		&UHelperBotStateManagerWidget::CheckPlayerDistance, 0.5f, true);
@@ -261,4 +262,17 @@ void UHelperBotStateManagerWidget::OnNameEditCommitted(const FText& Text, ETextC
 	{
 		ChangeNameButtonClicked();
 	}
+}
+
+
+void UHelperBotStateManagerWidget::PickUp()
+{
+	if (OwnerAIController)
+	{
+		if (APawn* BotPawn = OwnerAIController->GetPawn())
+		{
+			BotPawn->Destroy();
+		}
+	}
+	CloseWidgetAndResetInput();
 }
