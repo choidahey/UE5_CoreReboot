@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/Data/ItemData.h"
+#include "Inventory/InventorySaveData.h"
+#include "Inventory/Data/InventoryItemData.h"
 #include "UObject/Object.h"
 
 #include "BaseInventoryItem.generated.h"
@@ -11,38 +13,6 @@ class UPlayerInventoryComponent;
 class UPlayerCharacterStatusComponent;
 class UBaseInventoryComponent;
 class APlayerCharacter;
-
-USTRUCT(BlueprintType)
-struct FInventoryItemData
-{
-	GENERATED_BODY()
-
-	FInventoryItemData()
-		: SlotIndex(0)
-	{
-	}
-
-	FInventoryItemData(const int32 InSlotIndex,
-	                   const FName InRowName,
-	                   const FItemInfoData& InItemInfoData)
-		: SlotIndex(InSlotIndex),
-		  RowName(InRowName),
-		  ItemInfoData(InItemInfoData)
-	{
-	}
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 SlotIndex;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName RowName;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FItemInfoData ItemInfoData;
-
-	bool IsStackableItem() const
-	{
-		return ItemInfoData.MaxStackCount > 1;
-	}
-};
 
 UCLASS(BlueprintType)
 class CR4S_API UBaseInventoryItem : public UObject
@@ -137,6 +107,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	int32 CurrentStackCount;
 
+#pragma endregion
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "InventoryItem|SaveData")
+	virtual FInventoryItemSaveData GetInventoryItemSaveData();
+	UFUNCTION(BlueprintCallable, Category = "InventoryItem|LoadData")
+	virtual void LoadInventoryItemSaveData(const FInventoryItemSaveData& SaveData);
+	
 #pragma endregion
 
 #pragma region Delegate

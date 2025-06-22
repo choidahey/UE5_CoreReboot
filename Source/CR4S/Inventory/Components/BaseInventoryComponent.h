@@ -6,6 +6,7 @@
 
 #include "BaseInventoryComponent.generated.h"
 
+struct FInventorySaveData;
 struct FHelperPickUpData;
 struct FInventoryItemData;
 class UInventoryFilterData;
@@ -171,6 +172,16 @@ private:
 	TObjectPtr<UInventoryFilterData> FilterData;
 
 #pragma endregion
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "InventorySystem|SaveData")
+	virtual FInventorySaveData GetInventorySaveData();
+	UFUNCTION(BlueprintCallable, Category = "InventorySystem|LoadData")
+	virtual void LoadInventorySaveData(const FInventorySaveData& SaveData);
+	
+#pragma endregion 
 
 #pragma region Delegate
 

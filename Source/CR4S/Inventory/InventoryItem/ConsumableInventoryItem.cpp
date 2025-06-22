@@ -283,4 +283,16 @@ void UConsumableInventoryItem::ApplyThreshold(const EResistanceBuffType Type, co
 	}
 }
 
+FInventoryItemSaveData UConsumableInventoryItem::GetInventoryItemSaveData()
+{
+	FInventoryItemSaveData SaveData = Super::GetInventoryItemSaveData();
+	
+	return SaveData;
+}
+
+void UConsumableInventoryItem::LoadInventoryItemSaveData(const FInventoryItemSaveData& SaveData)
+{
+	Super::LoadInventoryItemSaveData(SaveData);
+}
+
 #undef LOCTEXT_NAMESPACE

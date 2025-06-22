@@ -275,6 +275,32 @@ bool UBaseInventoryComponent::IsItemAllowedByFilter(const FGameplayTagContainer&
 	return FilterData->IsAllowedItem(ItemTags);
 }
 
+FInventorySaveData UBaseInventoryComponent::GetInventorySaveData()
+{
+	FInventorySaveData SaveData = FInventorySaveData();
+	for (UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (IsValid(Item))
+		{
+			FInventoryItemSaveData ItemData = ItemData = Item->GetInventoryItemSaveData();
+			SaveData.ItemSaveData.Add(ItemData);
+		}
+	}
+
+	return SaveData;
+}
+
+void UBaseInventoryComponent::LoadInventorySaveData(const FInventorySaveData& SaveData)
+{
+	TArray<FInventoryItemSaveData> ItemSaveData = SaveData.ItemSaveData;
+	for (const FInventoryItemSaveData& SaveItemData : ItemSaveData)
+	{
+		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
+		Item->LoadInventoryItemSaveData(SaveItemData);
+		InventoryItems[SaveItemData.InventoryItemData.SlotIndex] = Item;
+	}
+}
+
 int32 UBaseInventoryComponent::GetUseSlotCount()
 {
 	int32 Result = 0;
