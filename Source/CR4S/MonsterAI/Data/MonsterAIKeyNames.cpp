@@ -25,6 +25,13 @@ const FName FRegionBossAIKeys::PatternStepIndex = TEXT("PatternStepIndex");
 
 // Season Boss AI Key
 const FName FSeasonBossAIKeys::NearestHouseActor = TEXT("NearestHouseActor");
-const FName FSeasonBossAIKeys::bIsIceRoadForward = TEXT("bIsIceRoadForward");
-const FName FSeasonBossAIKeys::bIsDashAway = TEXT("bIsDashAway");
-const FName FSeasonBossAIKeys::bIsDashForward = TEXT("bIsDashForward");
+const FName FSeasonBossAIKeys::HouseAcceptRadius = TEXT("HouseAcceptRadius");
+const FName FSeasonBossAIKeys::PlayerAcceptRadius = TEXT("PlayerAcceptRadius");
+const FName FSeasonBossAIKeys::CurrentDistance = TEXT("CurrentDistance");
+const FName FSeasonBossAIKeys::CurrentHP = TEXT("CurrentHP");
+const FName FSeasonBossAIKeys::AttackType = TEXT("AttackType");
+const FName FSeasonBossAIKeys::CurrentSkillRange = TEXT("CurrentSkillRange");
+const FName FSeasonBossAIKeys::MeleeOptimalDistance = TEXT("MeleeOptimalDistance");
+const FName FSeasonBossAIKeys::RangedOptimalDistance = TEXT("RangedOptimalDistance");
+const FName FSeasonBossAIKeys::bIsInSkillRange = TEXT("bIsInSkillRange");
+const FName FSeasonBossAIKeys::AggroTarget = TEXT("AggroTarget");

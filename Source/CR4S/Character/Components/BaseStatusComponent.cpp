@@ -16,6 +16,15 @@ UBaseStatusComponent::UBaseStatusComponent()
 	// ...
 }
 
+void UBaseStatusComponent::Refresh()
+{
+	AddCurrentHP(0);
+	AddCurrentResource(0);
+	AddHeatThreshold(0);
+	AddColdThreshold(0);
+	AddHumidityThreshold(0);
+}
+
 // Called when the game starts
 void UBaseStatusComponent::BeginPlay()
 {
@@ -74,16 +83,19 @@ void UBaseStatusComponent::AddArmor(const float InAmount)
 void UBaseStatusComponent::AddColdThreshold(const float InAmount)
 {
 	BaseStatus.ColdThreshold+=InAmount;
+	OnColdThresholdChanged.Broadcast(BaseStatus.ColdThreshold);
 }
 
 void UBaseStatusComponent::AddHeatThreshold(const float InAmount)
 {
 	BaseStatus.HeatThreshold+=InAmount;
+	OnHeatThresholdChanged.Broadcast(BaseStatus.HeatThreshold);
 }
 
 void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 {
 	BaseStatus.HumidityThreshold+=InAmount;
+	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
 }
 
 bool UBaseStatusComponent::HasEnoughResourceForRoll() const

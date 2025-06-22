@@ -12,9 +12,16 @@ UBTService_FACollisionToggle::UBTService_FACollisionToggle()
 	NodeName = TEXT("Toggle Collision Based On Perch Distance");
 }
 
+uint16 UBTService_FACollisionToggle::GetInstanceMemorySize() const
+{
+	return sizeof(FBTService_FACollisionToggleMemory);
+}
+
 void UBTService_FACollisionToggle::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+
+	FBTService_FACollisionToggleMemory* Memory = reinterpret_cast<FBTService_FACollisionToggleMemory*>(NodeMemory);
 
 	AFAAIController* AICon = Cast<AFAAIController>(OwnerComp.GetAIOwner());
 	if (!AICon || AICon->FilteredPerchTargets.Num() == 0) return;
@@ -44,20 +51,20 @@ void UBTService_FACollisionToggle::TickNode(UBehaviorTreeComponent& OwnerComp, u
 
 	if (Distance < 1000.f)
 	{
-		if (!bDoOnceClose)
+		if (!Memory->bDoOnceClose)
 		{
 			//Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			bDoOnceClose = true;
+			Memory->bDoOnceClose = true;
 		}
-		bDoOnceFar = false;
+		Memory->bDoOnceFar = false;
 	}
 	else
 	{
-		if (AnimalFlying->GetDisableCollisionDuringFlight() && !bDoOnceFar)
+		if (AnimalFlying->GetDisableCollisionDuringFlight() && !Memory->bDoOnceFar)
 		{
 			//Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			bDoOnceFar = true;
+			Memory->bDoOnceFar = true;
 		}
-		bDoOnceClose = false;
+		Memory->bDoOnceClose = false;
 	}
 }

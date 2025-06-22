@@ -27,7 +27,7 @@ void UHelperBotWorkshopWidget::InitWidget(UPlayerInventoryComponent* PlayerInven
 
 	if (IsValid(PlayerInventoryComponent))
 	{
-		PlayerInventoryComponent->OnInventoryClosed.AddUniqueDynamic(this, &ThisClass::CloseOtherWidget);
+		PlayerInventoryComponent->OnInventoryClose.AddUniqueDynamic(this, &ThisClass::CloseOtherWidget);
 	}
 
 	if (!CR4S_VALIDATE(LogGimmickUI, IsValid(CraftingButton)) ||

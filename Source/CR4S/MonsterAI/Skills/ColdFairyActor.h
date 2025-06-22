@@ -13,30 +13,35 @@ class CR4S_API AColdFairyActor : public ABaseSkillActor
 {
 	GENERATED_BODY()
 	
-public:	
+public:
 	AColdFairyActor();
 
-	UFUNCTION(BlueprintCallable, Category = "Boss|Attack")
+	UFUNCTION(BlueprintCallable, Category = "Boss|Skill")
 	void InitialLaunch(AActor* InTarget, int32 InIndex, int32 TotalCount);
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	UFUNCTION()
+	void OnProjectileStop(const FHitResult& ImpactResult);
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	UProjectileMovementComponent* ProjectileMovementComp;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	bool bSequentialLaunch = true;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack", meta=(ClampMin="0.0"))
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(ClampMin="0.0"))
 	float Interval = 0.05f;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	float Speed = 1500.f;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	float MaxSpeed = 1500.f;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	float LifeTime = 2.f;
 	
 	UPROPERTY()
 	TObjectPtr<AActor> TargetActor = nullptr;
@@ -44,17 +49,18 @@ protected:
 	FVector LaunchDirection;
 
 private:
-	virtual void OnHit(
-		UPrimitiveComponent* HitComp,
+	virtual void OnOverlap(
+		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
-		FVector NormalImpulse,
-		const FHitResult& Hit
-	) override;
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult) override;
 
 	void Launch();
 	void HandleSequenceLaunch();
 	void HandleImmediateLaunch() const;
+	void StopAndStick(const FHitResult& HitResult, AActor* HitActor = nullptr, UPrimitiveComponent* HitComp = nullptr);
 	
 	bool bHasLaunched = false;
 	int32 SpawnOrder = 0;

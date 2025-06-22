@@ -88,7 +88,7 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
-	bool bIsDead = false;
+ 	bool bIsDead = false;
 
 #pragma endregion
 

@@ -9,6 +9,7 @@
 #include "Character/Data/PlayerCharacterSettingsDataAsset.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerInventoryComponent;
 struct FPlayerCharacterSettings;
 class UInputBufferComponent;
 class UPlayerInputBufferComponent;
@@ -91,6 +92,8 @@ private:
 	virtual void Input_OnSwitchShoulder();
 
 	void Input_OnAttack();
+
+	void Input_OnInteraction();
 #pragma endregion
 
 #pragma region Components
@@ -111,6 +114,8 @@ protected:
 	TObjectPtr<UGridDetectionComponent> GridDetection;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventory;
 #pragma endregion
 
 #pragma region InputActions
@@ -159,6 +164,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> AttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> InteractionAction;
 #pragma endregion
 	
 #pragma region LookSettings

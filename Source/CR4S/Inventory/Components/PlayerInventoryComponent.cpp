@@ -48,9 +48,9 @@ void UPlayerInventoryComponent::BeginPlay()
 	AddItem(FName("StoneAxe"), 1);
 }
 
-FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count)
+FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem)
 {
-	const FAddItemResult Result = Super::AddItem(RowName, Count);
+	const FAddItemResult Result = Super::AddItem(RowName, Count, OriginItem);
 
 	if (!Result.bSuccess ||
 		Result.RemainingCount <= 0)
@@ -58,7 +58,41 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 		return Result;
 	}
 
-	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount);
+	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount, OriginItem);
+}
+
+int32 UPlayerInventoryComponent::RemoveItemByRowName(const FName RowName, const int32 Count)
+{
+	int32 RemainingCount = Super::RemoveItemByRowName(RowName, Count);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		RemainingCount = QuickSlotInventoryComponent->RemoveItemByRowName(RowName, RemainingCount);
+	}
+
+	return RemainingCount; 
+}
+
+void UPlayerInventoryComponent::RemoveAllItemByRowName(const FName RowName)
+{
+	Super::RemoveAllItemByRowName(RowName);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		QuickSlotInventoryComponent->RemoveAllItemByRowName(RowName);
+	}
+}
+
+int32 UPlayerInventoryComponent::GetItemCountByRowName(const FName RowName) const
+{
+	int32 Count = Super::GetItemCountByRowName(RowName);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		Count += QuickSlotInventoryComponent->GetItemCountByRowName(RowName);
+	}
+	
+	return Count;
 }
 
 UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWidget() const
@@ -106,6 +140,11 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDi
 	}
 
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
+
+	if (OnInventoryOpen.IsBound())
+	{
+		OnInventoryOpen.Broadcast();
+	}
 }
 
 void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EOpenWidgetType InventoryType,
@@ -135,9 +174,9 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 		InteractionComponent->StartDetectProcess();
 	}
 
-	if (OnInventoryClosed.IsBound())
+	if (OnInventoryClose.IsBound())
 	{
-		OnInventoryClosed.Broadcast();
+		OnInventoryClose.Broadcast();
 	}
 }
 

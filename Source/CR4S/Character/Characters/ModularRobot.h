@@ -59,8 +59,8 @@ public:
 #pragma endregion
 
 #pragma region Widgets
-	void InitializeWidgets();
-	void DisconnectWidgets();
+	void InitializeWidgets() const;
+	void DisconnectWidgets() const;
 #pragma endregion
 	
 #pragma region OverrideFunctions
@@ -86,7 +86,9 @@ protected:
 	UFUNCTION()
 	void Input_StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void Input_Dash(const FInputActionValue& Value);
+	void Input_HorizontalDash(const FInputActionValue& Value);
+	UFUNCTION()
+	void Input_VerticalDash(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void ResetDashCooldown();
@@ -107,7 +109,12 @@ protected:
 	TObjectPtr<UInputAction> JumpAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> DashAction;
+	TObjectPtr<UInputAction> HorizontalDashAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> VerticalDashAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> InteractionAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> Attack1Action;
@@ -157,6 +164,8 @@ protected:
 	FTimerHandle DashCooldownTimerHandle;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsDashing:1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsHovering:1 {false};
 #pragma endregion
 };
 

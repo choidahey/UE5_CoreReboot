@@ -60,7 +60,7 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 
 	if (IsValid(PlayerInventoryComponent))
 	{
-		InventoryComponent->OnOccupiedSlotsChanged.BindDynamic(this, &ThisClass::DestroyItemPouch);
+		InventoryComponent->OnOccupiedSlotsChange.BindDynamic(this, &ThisClass::DestroyItemPouch);
 
 		InventoryComponent->SetMaxInventorySize(InventoryComponent->GetUseSlotCount());
 

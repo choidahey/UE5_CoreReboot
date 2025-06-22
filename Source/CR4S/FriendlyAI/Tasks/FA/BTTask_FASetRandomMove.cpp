@@ -11,8 +11,15 @@ UBTTask_FASetRandomMove::UBTTask_FASetRandomMove()
 	bNotifyTick = true;
 }
 
+uint16 UBTTask_FASetRandomMove::GetInstanceMemorySize() const
+{
+	return sizeof(FBTTask_FASetRandomMoveMemory);
+}
+
 EBTNodeResult::Type UBTTask_FASetRandomMove::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	FBTTask_FASetRandomMoveMemory* Memory = reinterpret_cast<FBTTask_FASetRandomMoveMemory*>(NodeMemory);
+
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	if (!AICon) return EBTNodeResult::Failed;
 
@@ -52,12 +59,14 @@ EBTNodeResult::Type UBTTask_FASetRandomMove::ExecuteTask(UBehaviorTreeComponent&
 	const float RandomSpeed = FMath::FRandRange(MinSpeed, MaxSpeed);
 	MoveComp->MaxWalkSpeed = RandomSpeed;
 	
-	TargetRotation = Direction.Rotation();
+	Memory->TargetRotation = Direction.Rotation();
 	return EBTNodeResult::InProgress;
 }
 
 void UBTTask_FASetRandomMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	FBTTask_FASetRandomMoveMemory* Memory = reinterpret_cast<FBTTask_FASetRandomMoveMemory*>(NodeMemory);
+
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	if (!AICon) return;
 
@@ -65,10 +74,10 @@ void UBTTask_FASetRandomMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 	if (!ControlledPawn) return;
 
 	FRotator CurrentRotation = ControlledPawn->GetActorRotation();
-	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, RotationInterpSpeed);
+	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, Memory->TargetRotation, DeltaSeconds, Memory->RotationInterpSpeed);
 	ControlledPawn->SetActorRotation(NewRotation);
 
-	const float AngleDiff = FMath::Abs((NewRotation - TargetRotation).Yaw);
+	const float AngleDiff = FMath::Abs((NewRotation - Memory->TargetRotation).Yaw);
 	if (AngleDiff < 1.f)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);

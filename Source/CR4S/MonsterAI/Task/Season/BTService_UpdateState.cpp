@@ -1,12 +1,11 @@
 #include "MonsterAI/Task/Season/BTService_UpdateState.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
-#include "MonsterAI/Components/MonsterSkillComponent.h"
-#include "MonsterAI/Components/MonsterPerceptionComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "CR4S.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
+#include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 UBTService_UpdateState::UBTService_UpdateState()
@@ -16,6 +15,10 @@ UBTService_UpdateState::UBTService_UpdateState()
 	bNotifyBecomeRelevant = true;
 	bNotifyTick = true;  
 	bCreateNodeInstance = true;
+
+	TargetActorKey.SelectedKeyName = FAIKeys::TargetActor;
+	NearestHouseActorKey.SelectedKeyName = FSeasonBossAIKeys::NearestHouseActor;
+	CurrentHP.SelectedKeyName = FSeasonBossAIKeys::CurrentHP;
 }
 
 void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -36,24 +39,29 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 
 	UMonsterStateComponent* StateComp = OwnerPawn->FindComponentByClass<UMonsterStateComponent>();
 	if (!IsValid(StateComp)) return;
+
+	UMonsterAttributeComponent* AttrComp = OwnerPawn->FindComponentByClass<UMonsterAttributeComponent>();
+	if (!IsValid(AttrComp)) return;
+
+	CurrentHPValue = AttrComp->GetCurrentHP();
+	BB->SetValueAsFloat(CurrentHP.SelectedKeyName, CurrentHPValue);
 	
 	if (AnimComp->IsAnyMontagePlaying()) return;
 
-	AActor* TargetPlayer = Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName));
-	AActor* TargetHouse  = Cast<AActor>(BB->GetValueAsObject(HouseActorKey.SelectedKeyName));
-	
-	float PlayerRadius = BB->GetValueAsFloat(PlayerAttackRadiusKey.SelectedKeyName);
-	float HouseRadius  = BB->GetValueAsFloat(HouseAttackRadiusKey.SelectedKeyName);
+	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName));
+	AActor* TargetHouse  = Cast<AActor>(BB->GetValueAsObject(NearestHouseActorKey.SelectedKeyName));
 
 	const FVector PawnLoc = OwnerPawn->GetActorLocation();
 	
-	if (IsValid(TargetPlayer))
+	if (IsValid(TargetActor))
 	{
 		StateComp->SetState(EMonsterState::Attack);
+		CR4S_Log(LogDa, Warning, TEXT("TargetActor is Valid ! State = Attack"));
 	}
 	else if (IsValid(TargetHouse))
 	{
 		StateComp->SetState(EMonsterState::AttackHouse);
+		CR4S_Log(LogDa, Warning, TEXT("TargetHouse is Valid ! State = AttackHouse"));
 	}
 	else
 	{
@@ -61,9 +69,9 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 			BB->SetValueAsObject(FAIKeys::TargetActor, PlayerPawn);
 		
 		StateComp->SetState(EMonsterState::Attack);
-		CR4S_Log(LogDa, Log, TEXT("[UpdateState] TargetHouse is invalid or nullptr"));
+		CR4S_Log(LogDa, Log, TEXT("[UpdateState] TargetHouse, TargetActor is invalid or nullptr State = Attack"));
 	}
-
+	
 	CR4S_Log(LogDa, Log, TEXT("[UpdateState] %s Current State : %d"),
 			*OwnerPawn->GetName(),
 			BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));

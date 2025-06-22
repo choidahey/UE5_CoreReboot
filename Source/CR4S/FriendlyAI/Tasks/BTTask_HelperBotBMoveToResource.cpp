@@ -73,7 +73,7 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
     FNavLocation Projected;
     UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(OwnerCompPtr->GetWorld());
     FVector Target;
-    if (NavSys && NavSys->ProjectPointToNavigation(RawTarget, Projected, FVector(50.f)))
+    if (NavSys && NavSys->ProjectPointToNavigation(RawTarget, Projected, FVector(200.f)))
     {
         Target = Projected.Location;
     }
@@ -90,12 +90,11 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
         return;
     }
 
-    OwnerCompPtr->GetBlackboardComponent()->SetValueAsVector(ResourceLocationKey.SelectedKeyName, Target);
+    OwnerCompPtr->GetBlackboardComponent()->SetValueAsVector("ResourceLocation", Target);
     TArray<AActor*> ResultActors = Wrapper->GetResultsAsActors();
     if (ResultActors.Num() > 0)
     {
-        OwnerCompPtr->GetBlackboardComponent()
-            ->SetValueAsObject(ResourceTargetKey.SelectedKeyName, ResultActors[0]);
+        OwnerCompPtr->GetBlackboardComponent()->SetValueAsObject("ResourceTarget", ResultActors[0]);
 
         if (ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(OwnerCompPtr->GetAIOwner()->GetPawn()))
         {
@@ -184,8 +183,7 @@ void UBTTask_HelperBotBMoveToResource::HandleMoveCompleted(
     {
         AICon->ReceiveMoveCompleted.RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::HandleMoveCompleted);
         
-        FVector Target = OwnerCompPtr->GetBlackboardComponent()
-            ->GetValueAsVector(ResourceLocationKey.SelectedKeyName);
+        FVector Target = OwnerCompPtr->GetBlackboardComponent()->GetValueAsVector("ResourceLocation");
 
         if (APawn* Pawn = AICon->GetPawn())
         {
