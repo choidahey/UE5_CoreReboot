@@ -14,8 +14,10 @@
 #include "Component/GroundMovementComponent.h"
 #include "AnimalFlying.h"
 #include "AnimalGround.h"
+#include "AnimalMonster.h"
 #include "../Character/Characters/PlayerCharacter.h"
 #include "NavigationInvokerComponent.h"
+#include "Controller/AnimalMonsterAIController.h"
 
 ABaseAnimal::ABaseAnimal()
 {
@@ -284,6 +286,10 @@ void ABaseAnimal::Die()
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
         C->OnDied();
+    }
+    else if (AAnimalMonsterAIController* MC = Cast<AAnimalMonsterAIController>(GetController()))
+    {
+        MC->OnDied();
     }
 
     if (IsValid(ActiveInteractWidget))
