@@ -1,4 +1,6 @@
 #include "AIJumpComponent.h"
+
+#include "NavigationPath.h"
 #include "Kismet/GameplayStatics.h"
 
 #pragma region Core System Management
@@ -75,7 +77,7 @@ void UAIJumpComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
         return;
     }
     
-    if (CurrentTargetActor)
+    if (bEnableRotation && CurrentTargetActor)
     {
         FVector TargetDirection = (CurrentTargetActor->GetActorLocation() - OwnerCharacter->GetActorLocation()).GetSafeNormal();
         FRotator TargetRotation = TargetDirection.Rotation();
@@ -109,7 +111,9 @@ void UAIJumpComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 void UAIJumpComponent::ExecuteMovement()
 {
     if (!OwnerCharacter || CurrentPath.Num() == 0)
+    {
         return;
+    }
         
     if (CurrentPathIndex >= CurrentPath.Num())
     {
@@ -118,7 +122,7 @@ void UAIJumpComponent::ExecuteMovement()
     
     FJumpPoint CurrentTarget = CurrentPath[CurrentPathIndex];
     FVector CharacterLocation = OwnerCharacter->GetActorLocation();
-    
+        
     if (FVector::Dist(CharacterLocation, CurrentTarget.Location) <= TargetReachDistance)
     {
         CurrentPathIndex++;
@@ -405,14 +409,18 @@ bool UAIJumpComponent::ValidateTrajectoryWithCapsule(const FVector& StartPos, co
 void UAIJumpComponent::UpdatePathToTarget()
 {
     if (!CurrentTargetActor || !OwnerCharacter)
+    {
         return;
-        
+    }
+       
     FVector StartLocation = OwnerCharacter->GetActorLocation();
     FVector TargetLocation = CurrentTargetActor->GetActorLocation();
-    
+   
     TArray<FJumpPoint> NewPath;
-    
-    if (CalculateOptimalPath(StartLocation, TargetLocation, NewPath))
+   
+    bool bPathFound = CalculateOptimalPath(StartLocation, TargetLocation, NewPath);
+   
+    if (bPathFound)
     {
         CurrentPath = NewPath;
         CurrentPathIndex = 0;
@@ -480,30 +488,18 @@ bool UAIJumpComponent::CalculateOptimalPath(const FVector& StartLocation, const 
 
 bool UAIJumpComponent::IsDirectPathPossible(const FVector& StartPos, const FVector& EndPos, float JumpPower)
 {
-    float Distance = FVector::Dist(StartPos, EndPos);
-    if (Distance > OwnerJumpDistance)
-    {
-        return false;
-    }
-    
-    float HeightDiff = FMath::Abs(EndPos.Z - StartPos.Z);
-    if (HeightDiff > OwnerJumpPower)
-    {
-        return false;
-    }
-
-    FVector WallLocation; 
+    FVector WallLocation;
     float WallHeight;
     bool bHasObstacles = AnalyzePathObstacles(StartPos, EndPos, WallLocation, WallHeight);
-    
+
     if (bHasObstacles)
     {
-        if (WallHeight > OwnerJumpPower)
+        if (CanJumpOverObstacle(StartPos, WallLocation, JumpPower))
         {
-            return false;
+            return true;
         }
+        return false;
     }
-
     return true;
 }
 
@@ -538,37 +534,88 @@ float UAIJumpComponent::CalculateObstacleHeight(const FVector& StartPos, const F
 
 bool UAIJumpComponent::FindNavigationPath(const FVector& StartLocation, const FVector& TargetLocation, TArray<FJumpPoint>& OutPath)
 {
-    OutPath.Empty();
+   OutPath.Empty();
     
-    FVector WallLocation;
-    float WallHeight; 
-    bool bHasObstacles = AnalyzePathObstacles(StartLocation, TargetLocation, WallLocation, WallHeight);
-        
-    FJumpPoint StartPoint;
-    StartPoint.Location = StartLocation;
-    StartPoint.bRequiresJump = false;
+   UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+   if (!NavSystem)
+   {
+       return false;
+   }
+   
+   if (!OwnerCharacter)
+   {
+       return false;
+   }
+   
+   UNavigationPath* NavPath = NavSystem->FindPathToLocationSynchronously(GetWorld(), StartLocation, TargetLocation, OwnerCharacter);
+   
+   if (!NavPath)
+   {
+       return false;
+   }
+   
+   if (!NavPath->IsValid())
+   {
+       return false;
+   }
     
-    FJumpPoint EndPoint;
-    EndPoint.Location = TargetLocation;
-    
-    bool bCanJump = false;
-    if (bHasObstacles)
+   const TArray<FNavPathPoint>& PathPoints = NavPath->GetPath()->GetPathPoints();
+   
+    for (int32 i = 0; i < PathPoints.Num(); i++)
     {
-        if (WallHeight <= OwnerJumpPower)
+        FJumpPoint Point;
+        Point.Location = PathPoints[i].Location;
+        
+        if (i == 0)
         {
-            bCanJump = true;
+            Point.Location = StartLocation;
         }
-    }
+        else
+        {
+            FHitResult GroundHit;
+            FVector RayStart = Point.Location + FVector(0, 0, 1000.0f);
+            FVector RayEnd = Point.Location - FVector(0, 0, 1000.0f);
         
-    bool bCanJumpOverObstacleResult = CanJumpOverObstacle(StartLocation, TargetLocation, OwnerJumpPower);
-    
-    EndPoint.bRequiresJump = bHasObstacles && bCanJump && bCanJumpOverObstacleResult;
-    EndPoint.RequiredJumpPower = EndPoint.bRequiresJump ? OwnerJumpPower : 0.0f;
+            FCollisionQueryParams TraceParams;
+            TraceParams.AddIgnoredActor(OwnerCharacter);
+            if (CurrentTargetActor)
+                TraceParams.AddIgnoredActor(CurrentTargetActor);
         
-    OutPath.Add(StartPoint);
-    OutPath.Add(EndPoint);
+            if (GetWorld()->LineTraceSingleByChannel(GroundHit, RayStart, RayEnd, ECC_WorldStatic, TraceParams))
+            {
+                Point.Location.Z = GroundHit.Location.Z;
+            }
+            else
+            {
+                Point.Location.Z = StartLocation.Z;
+            }
+        }
     
-    return true;
+        Point.bRequiresJump = false;
+        
+       if (i < PathPoints.Num() - 1)
+       {
+           FVector WallLocation;
+           float WallHeight;
+           if (AnalyzePathObstacles(Point.Location, PathPoints[i + 1].Location, WallLocation, WallHeight))
+           {
+               if (WallHeight <= OwnerJumpPower && CanJumpOverObstacle(Point.Location, PathPoints[i + 1].Location, OwnerJumpPower))
+               {
+                   Point.bRequiresJump = true;
+                   Point.RequiredJumpPower = OwnerJumpPower;
+                   
+                   float CapsuleRadius = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+                   float SafeDistance = CalculateSafeStartDistance(CapsuleRadius, WallHeight, OwnerJumpPower);
+                   Point.JumpStartPos = CalculateOptimalStartPosition(Point.Location, WallLocation, SafeDistance);
+                   Point.JumpVelocity = CalculateOptimalJumpVelocity(Point.JumpStartPos, PathPoints[i + 1].Location, OwnerJumpPower, WallLocation, WallHeight);
+               }
+           }
+       }
+       
+       OutPath.Add(Point);
+   }
+   
+   return OutPath.Num() > 0;
 }
 
 bool UAIJumpComponent::CreateComplexJumpPath(const FVector& StartLocation, const FVector& TargetLocation, TArray<FJumpPoint>& OutPath)

@@ -215,6 +215,7 @@ public:
 	FTimerHandle ChargeAttackTimerHandle;
 	FTimerHandle RangedAttackTimerHandle;
 	
+	
 	uint8 bIsAttacking : 1 = 0;
 	
 	// Has Attack
@@ -246,10 +247,23 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float RangedProbability = 0.0f;
-
 	
 #pragma endregion
 
+#pragma region Pade Out Effect
+
+public:
+	void StartFadeOut();
+	void UpdateFade(UMaterialInstanceDynamic* DynMat);
+	
+private:
+	// Fade Out
+	FTimerHandle FadeDelayTimerHandle;
+	FTimerHandle FadeTimerHandle;
+	float ElapsedFadeTime = 0.f;
+	
+#pragma endregion
+	
 #pragma region Debug
 public:
 	void DrawDebugVisuals();

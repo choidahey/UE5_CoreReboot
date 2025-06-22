@@ -55,7 +55,6 @@ void ABaseAnimal::BeginPlay()
     LoadStats();
     
     bUseControllerRotationYaw = false;
-
 }
 
 void ABaseAnimal::Tick(float DeltaTime)
@@ -280,7 +279,7 @@ void ABaseAnimal::RecoverFromStun()
 
 void ABaseAnimal::Die()
 {
-    if (CurrentState == EAnimalState::Dead) return;
+    if (CurrentState != EAnimalState::Dead) return;
     
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
@@ -307,7 +306,7 @@ void ABaseAnimal::Die()
         AIController->StopMovement();
         AIController->UnPossess(); 
     }
-    
+        
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
 
@@ -316,8 +315,11 @@ void ABaseAnimal::Die()
 
     GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);    
+    GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
     SetLifeSpan(30.f);
+
+    ElapsedFadeTime = 0.f;
+    GetWorldTimerManager().SetTimer(FadeDelayTimerHandle, this, &ABaseAnimal::StartFadeOut, 28.f, false);
 }
 
 void ABaseAnimal::SetAnimalState(EAnimalState NewState)
@@ -627,5 +629,28 @@ void ABaseAnimal::PerformRangedAttack()
         RangedAttackCooldown,
         false
     );
+}
+#pragma endregion
+
+#pragma region Pade Out Effect
+void ABaseAnimal::StartFadeOut()
+{
+    if (UMaterialInstanceDynamic* DynMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0))
+    {
+        DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+        FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade, DynMat);
+        GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+    }
+}
+
+void ABaseAnimal::UpdateFade(UMaterialInstanceDynamic* DynMat)
+{
+    ElapsedFadeTime += 0.02f;
+    float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
+    DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+    if (ElapsedFadeTime >= 2.0f)
+    {
+        GetWorldTimerManager().ClearTimer(FadeTimerHandle);
+    }
 }
 #pragma endregion
