@@ -20,12 +20,13 @@ struct FRegionBossAIKeys : public FAIKeys
 {
 	static const FName CombatStartLocation;
 	static const FName PatrolTargetLocation;
-	static const FName SkillTargetLocation;
-	static const FName MoveSpeedScale;
-	static const FName ApproachType;
 	static const FName CurrentPhase;
 	static const FName ShouldReturn;
 	static const FName LastIdleBoredTime;
+	static const FName SkillTargetLocation;
+	static const FName CurrentPatternID;
+	static const FName PreviousPatternID;
+	static const FName PatternStepIndex;
 };
 
 struct FSeasonBossAIKeys : public FAIKeys
