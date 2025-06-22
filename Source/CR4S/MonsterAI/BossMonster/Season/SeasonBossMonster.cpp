@@ -7,12 +7,17 @@
 #include "Game/System/EnvironmentalModifierVolume.h"
 #include "Game/System/EnvironmentManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/Components/MonsterAggroComponent.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 ASeasonBossMonster::ASeasonBossMonster()
 {
    NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
    NavInvoker->SetGenerationRadii(NavInvokerRadius, NavInvokerRemovalRadius);
+   
+   AggroComp = CreateDefaultSubobject<UMonsterAggroComponent>(TEXT("AggroComp"));
+   AggroTargetKey.SelectedKeyName = FAIKeys::TargetActor;
 }
 
 void ASeasonBossMonster::BeginPlay()
@@ -20,6 +25,22 @@ void ASeasonBossMonster::BeginPlay()
    Super::BeginPlay();
 
    SpawnOpeningPattern();
+}
+
+
+float ASeasonBossMonster::TakeDamage(
+   float DamageAmount,
+   FDamageEvent const& DamageEvent,
+   AController* EventInstigator,
+   AActor* DamageCauser)
+{
+   float Actual = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+   if (AggroComp && DamageCauser)
+   {
+      AggroComp->AddDamageAggro(DamageCauser, Actual);
+   }
+   return Actual;
 }
 
 void ASeasonBossMonster::HandleDeath()

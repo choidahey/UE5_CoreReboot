@@ -21,5 +21,7 @@ public:
 	float SpawnDelayTime = 0.5f;
 
 private:
+	UPROPERTY()
+	AActor* TargetActor = nullptr;
 	FTimerHandle SpawnTimerHandle;
 };
