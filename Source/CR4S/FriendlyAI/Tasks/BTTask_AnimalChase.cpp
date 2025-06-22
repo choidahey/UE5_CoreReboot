@@ -77,7 +77,7 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 	{
 		if (GroundAnimal->AIJumpComponent)
 		{
-			GroundAnimal->AIJumpComponent->Activate();
+			GroundAnimal->AIJumpComponent->ActivateJumpComponent();
 		}
 	}
 
@@ -122,7 +122,7 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		{
 			if (GroundAnimal->AIJumpComponent && !GroundAnimal->AIJumpComponent->IsActive())
 			{
-				GroundAnimal->AIJumpComponent->Activate();
+				GroundAnimal->AIJumpComponent->ActivateJumpComponent();
 			}
 		}
 	}

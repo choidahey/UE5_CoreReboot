@@ -110,7 +110,16 @@ void ABaseHelperBot::LoadStats()
 				JumpComp->UpdateOwnerStats();
 			}
 
-			CurrentHealth = CurrentStats.MaxHealth;
+			if (bIsFromInventory)
+			{
+				CurrentHealth = PickUpData.CurrentHealth;
+				InteractableComp->SetInteractionText(FText::FromString(PickUpData.BotName));
+			}
+			else
+			{
+				CurrentHealth = CurrentStats.MaxHealth;
+				InteractableComp->SetInteractionText(FText::FromString(BotName));
+			}
 		});
 	}
 }
