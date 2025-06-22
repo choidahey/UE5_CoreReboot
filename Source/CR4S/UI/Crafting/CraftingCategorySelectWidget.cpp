@@ -5,7 +5,7 @@
 #include "DeveloperSettings/CR4SDataTableSettings.h"
 #include "Gimmick/Data/RecipeCategoryData.h"
 
-void UCraftingCategorySelectWidget::InitWidget(UCraftingContainerWidget* CraftingContainerWidget) const
+void UCraftingCategorySelectWidget::InitWidget(UCraftingContainerWidget* CraftingContainerWidget)
 {
 	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(RecipeCategoryDataTable)) ||
 		!CR4S_VALIDATE(LogCraftingUI, IsValid(ButtonContainer)))
@@ -19,21 +19,51 @@ void UCraftingCategorySelectWidget::InitWidget(UCraftingContainerWidget* Craftin
 
 	for (const FName RowName : RowNames)
 	{
-		UCraftingCategoryButtonWidget* CraftingCategoryButtonWidget
-			= CreateWidget<UCraftingCategoryButtonWidget>(GetWorld(), CategoryButtonWidgetClass);
-		if (IsValid(CraftingCategoryButtonWidget))
+		if (IsValid(CategoryButtonWidgetClass))
 		{
-			ButtonContainer->AddChild(CraftingCategoryButtonWidget);
-			const FRecipeCategoryData* RecipeCategoryData
-				= RecipeCategoryDataTable->FindRow<FRecipeCategoryData>(RowName,TEXT("RecipeCategoryData"));
+			UCraftingCategoryButtonWidget* CraftingCategoryButtonWidget
+				= CreateWidget<UCraftingCategoryButtonWidget>(GetWorld(), CategoryButtonWidgetClass);
+			if (IsValid(CraftingCategoryButtonWidget))
+			{
+				ButtonContainer->AddChild(CraftingCategoryButtonWidget);
+				const FRecipeCategoryData* RecipeCategoryData
+					= RecipeCategoryDataTable->FindRow<FRecipeCategoryData>(RowName,TEXT("RecipeCategoryData"));
 
-			CraftingCategoryButtonWidget->InitWidget(CraftingContainerWidget, *RecipeCategoryData);
+				if (RecipeCategoryData)
+				{
+					CraftingCategoryButtonWidget->InitWidget(CraftingContainerWidget, *RecipeCategoryData);
+
+					if (RecipeCategoryData->RecipeTag.MatchesTag(CookingRecipeTag))
+					{
+						CookingCategoryWidgets.Add(CraftingCategoryButtonWidget);
+					}
+					else
+					{
+						CraftingCategoryWidgets.Add(CraftingCategoryButtonWidget);
+					}
+				}
+			}
 		}
 	}
 }
 
 void UCraftingCategorySelectWidget::UpdateCategories(const int32 NewCraftingDifficulty)
 {
-	const bool IsCookingRecipe = NewCraftingDifficulty >= 10; 
-	
+	const bool IsCookingRecipe = NewCraftingDifficulty == 10;
+	UpdateWidget(CraftingCategoryWidgets, !IsCookingRecipe);
+	UpdateWidget(CookingCategoryWidgets, IsCookingRecipe);
+}
+
+void UCraftingCategorySelectWidget::UpdateWidget(TArray<TObjectPtr<UCraftingCategoryButtonWidget>>& CategoryWidgets,
+                                                 const bool IsCookingRecipe)
+{
+	for (UCraftingCategoryButtonWidget* CraftingCategoryButtonWidget : CategoryWidgets)
+	{
+		if (IsValid(CraftingCategoryButtonWidget))
+		{
+			CraftingCategoryButtonWidget->SetVisibility(IsCookingRecipe
+				                                            ? ESlateVisibility::Visible
+				                                            : ESlateVisibility::Collapsed);
+		}
+	}
 }

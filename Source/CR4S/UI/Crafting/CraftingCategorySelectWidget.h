@@ -16,7 +16,7 @@ class CR4S_API UCraftingCategorySelectWidget : public UUserWidget
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* CraftingContainerWidget) const;
+	void InitWidget(UCraftingContainerWidget* CraftingContainerWidget);
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Initialize")
@@ -27,24 +27,25 @@ private:
 	FGameplayTag CookingRecipeTag;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UCraftingCategoryButtonWidget>> CraftingCategories;
+	TArray<TObjectPtr<UCraftingCategoryButtonWidget>> CraftingCategoryWidgets;
 	UPROPERTY()
-	TArray<TObjectPtr<UCraftingCategoryButtonWidget>> CookingCategories;
-	
+	TArray<TObjectPtr<UCraftingCategoryButtonWidget>> CookingCategoryWidgets;
+
 #pragma endregion
 
 #pragma region Update
 
 public:
+	static void UpdateWidget(TArray<TObjectPtr<UCraftingCategoryButtonWidget>>& CategoryWidgets, bool IsCookingRecipe);
 	void UpdateCategories(const int32 NewCraftingDifficulty);
-	
-#pragma endregion 
+
+#pragma endregion
 
 #pragma region BindWidget
 
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPanelWidget> ButtonContainer;
-	
-#pragma endregion 
+
+#pragma endregion
 };

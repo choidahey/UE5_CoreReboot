@@ -227,7 +227,7 @@ UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplay
 		return NewObject<UToolInventoryItem>(this);
 	}
 
-	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.Crops"));
+	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.Consumable"));
 	if (ItemTags.HasTag(ItemTag))
 	{
 		return NewObject<UConsumableInventoryItem>(this);
