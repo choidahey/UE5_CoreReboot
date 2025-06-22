@@ -39,14 +39,16 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	const ABaseHelperBot* HelperBot = GetWorld()->SpawnActor<ABaseHelperBot>(HelperBotItem->HelperBotClass,
+	ABaseHelperBot* HelperBot = GetWorld()->SpawnActor<ABaseHelperBot>(HelperBotItem->HelperBotClass,
 	                                                                         SpawnLocation,
 	                                                                         SpawnRotation,
 	                                                                         SpawnParameters);
 
-
 	if (IsValid(HelperBot))
 	{
+		HelperBot->SetIsFromInventory(true);
+		HelperBot->SetPickUpData(HelperBotData);
+		
 		InventoryComponent->RemoveItemByIndex(Index, 1);
 	}
 	else

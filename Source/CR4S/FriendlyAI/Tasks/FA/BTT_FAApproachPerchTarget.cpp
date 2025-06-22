@@ -2,6 +2,7 @@
 #include "AIController.h"
 #include "GameFramework/Actor.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "FriendlyAI/Controller/FAAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
 
@@ -12,36 +13,45 @@ UBTT_FAApproachPerchTarget::UBTT_FAApproachPerchTarget()
 	bNotifyTaskFinished = true;
 }
 
+uint16 UBTT_FAApproachPerchTarget::GetInstanceMemorySize() const
+{
+	return sizeof(FBTT_FAApproachPerchTargetMemory);
+}
+
+
 EBTNodeResult::Type UBTT_FAApproachPerchTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	FBTT_FAApproachPerchTargetMemory* Memory = reinterpret_cast<FBTT_FAApproachPerchTargetMemory*>(NodeMemory);
+
 	APawn* ControlledPawn = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
 	if (!ControlledPawn) return EBTNodeResult::Failed;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!BB) return EBTNodeResult::Failed;
 
-	StartLocation = ControlledPawn->GetActorLocation();
-	StartRotation = ControlledPawn->GetActorRotation();
+	Memory->StartLocation = ControlledPawn->GetActorLocation();
+	Memory->StartRotation = ControlledPawn->GetActorRotation();
 
-	TArray<AActor*> PerchTargets;
-	UGameplayStatics::GetAllActorsWithTag(ControlledPawn->GetWorld(), FName("PerchTarget"), PerchTargets);
-	if (PerchTargets.Num() == 0) return EBTNodeResult::Failed;
+	AFAAIController* FAAICon = Cast<AFAAIController>(OwnerComp.GetAIOwner());
+	if (!FAAICon || FAAICon->FilteredPerchTargets.Num() == 0) return EBTNodeResult::Failed;
 
-	AActor* Perch = PerchTargets[0];
+	AActor* Perch = FAAICon->FilteredPerchTargets[0];
 	if (!Perch) return EBTNodeResult::Failed;
 
 	FVector BaseLocation = Perch->GetActorLocation();
 	float PerchOffset = BB->GetValueAsFloat("Perch_Offset");
-	TargetLocation = FVector(BaseLocation.X, BaseLocation.Y, BaseLocation.Z + PerchOffset);
+	Memory->TargetLocation = FVector(BaseLocation.X, BaseLocation.Y, BaseLocation.Z + PerchOffset);
 
-	TargetRotation = Perch->GetActorRotation();
-	CurrentAlpha = 0.0f;
+	Memory->TargetRotation = Perch->GetActorRotation();
+	Memory->CurrentAlpha = 0.0f;
 
 	return EBTNodeResult::InProgress;
 }
 
 void UBTT_FAApproachPerchTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	FBTT_FAApproachPerchTargetMemory* Memory = reinterpret_cast<FBTT_FAApproachPerchTargetMemory*>(NodeMemory);
+
 	APawn* ControlledPawn = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
 	if (!ControlledPawn) return;
 
@@ -49,21 +59,22 @@ void UBTT_FAApproachPerchTarget::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 	if (!BB) return;
 
 	float Speed = BB->GetValueAsFloat("FlyToPerchSpeed");
-	CurrentAlpha = FMath::FInterpConstantTo(CurrentAlpha, 1.1f, DeltaSeconds, Speed);
+	Memory->CurrentAlpha = FMath::FInterpConstantTo(Memory->CurrentAlpha, 1.1f, DeltaSeconds, Speed);
 
-	FVector NewLocation = FMath::Lerp(StartLocation, TargetLocation, CurrentAlpha);
+	FVector NewLocation = FMath::Lerp(Memory->StartLocation, Memory->TargetLocation, Memory->CurrentAlpha);
 	ControlledPawn->SetActorLocation(NewLocation);
 
 	if (BB->GetValueAsBool("UsePerchArrow"))
 	{
-		FRotator NewRotation = FMath::Lerp(StartRotation, TargetRotation, CurrentAlpha);
+		FRotator LerpedRotation = FMath::Lerp(Memory->StartRotation, Memory->TargetRotation, Memory->CurrentAlpha);
+		FRotator NewRotation = FRotator(LerpedRotation.Pitch, Memory->StartRotation.Yaw, LerpedRotation.Roll);
 		ControlledPawn->SetActorRotation(NewRotation);
 	}
 
-	if (CurrentAlpha >= 1.0f)
+	if (Memory->CurrentAlpha >= 1.0f)
 	{
 		BB->SetValueAsBool("PlayPerchIdle", true);
-		CurrentAlpha = 0.0f;
+		Memory->CurrentAlpha = 0.0f;
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
 }

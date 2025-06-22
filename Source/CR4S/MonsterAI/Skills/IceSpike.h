@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "IceSpike.generated.h"
 
+// NOTICE :: I will delete this class
 class UCapsuleComponent;
 
 UCLASS()
@@ -21,15 +22,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
-	UStaticMeshComponent* StaticMeshComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boas|Skill")
-	float BoxSize  = 50.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
-	float LifeTime = 5.f;
+	float LifeTime = 3.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boas|Skill")
 	float RiseDuration = 0.5f;
@@ -53,7 +48,7 @@ private:
 		const FHitResult& SweepResult
 	) override;
 
-	bool  bRising = true;
+	bool bRising = true;
 	float ElapsedRise = 0.f;
 	FVector InitialOffset;
 	FVector TargetOffset;
