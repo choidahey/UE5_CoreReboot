@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Data/ConsumableInventoryItemData.h"
-#include "Data/InventoryItemData.h"
+#include "ConsumableInventoryItemData.h"
+#include "InventoryItemData.h"
 #include "FriendlyAI/Data/HelperBotSaveData.h"
 
 #include "InventorySaveData.generated.h"
@@ -42,11 +42,9 @@ USTRUCT(BlueprintType)
 struct FHelperBotItemSaveData
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 SlotIndex = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FHelperPickUpData HelperBotPickUpData = FHelperPickUpData();
+	FHelperPickUpData HelperBotPickUpData;
 };
 
 USTRUCT(BlueprintType)
@@ -54,7 +52,8 @@ struct FInventorySaveData
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FInventoryItemSaveData> ItemSaveData;
-	TArray<FConsumableInventoryItemData> ConsumableItemSaveData;
-	TArray<FHelperBotItemSaveData> HelperBotItemSaveData;
+	TMap<int32, FConsumableInventoryItemData> ConsumableItemSaveData;
+	TMap<int32, FHelperBotItemSaveData> HelperBotItemSaveData;
 };

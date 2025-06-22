@@ -2,8 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/Data/ItemData.h"
-#include "Inventory/InventorySaveData.h"
-#include "Inventory/Data/InventoryItemData.h"
+#include "Inventory/Data/InventorySaveData.h"
 #include "UObject/Object.h"
 
 #include "BaseInventoryItem.generated.h"

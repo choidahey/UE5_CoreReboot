@@ -49,9 +49,7 @@ USTRUCT(BlueprintType)
 struct FConsumableInventoryItemData
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 SlotIndex = 0;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FFreshnessInfo FreshnessInfo = FFreshnessInfo();
 	UPROPERTY()

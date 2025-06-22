@@ -1,8 +1,11 @@
-﻿#include "BaseInventoryComponent.h"
+﻿PRAGMA_DISABLE_OPTIMIZATION
+
+#include "BaseInventoryComponent.h"
 
 #include "CR4S.h"
 #include "GameplayTagsManager.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/Data/InventorySaveData.h"
 #include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
@@ -282,7 +285,7 @@ FInventorySaveData UBaseInventoryComponent::GetInventorySaveData()
 	{
 		if (IsValid(Item))
 		{
-			FInventoryItemSaveData ItemData = ItemData = Item->GetInventoryItemSaveData();
+			FInventoryItemSaveData ItemData = Item->GetInventoryItemSaveData();
 			SaveData.ItemSaveData.Add(ItemData);
 		}
 	}
@@ -292,13 +295,31 @@ FInventorySaveData UBaseInventoryComponent::GetInventorySaveData()
 
 void UBaseInventoryComponent::LoadInventorySaveData(const FInventorySaveData& SaveData)
 {
+	ClearInventoryItems();
+	
 	TArray<FInventoryItemSaveData> ItemSaveData = SaveData.ItemSaveData;
 	for (const FInventoryItemSaveData& SaveItemData : ItemSaveData)
 	{
 		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
 		Item->LoadInventoryItemSaveData(SaveItemData);
-		InventoryItems[SaveItemData.InventoryItemData.SlotIndex] = Item;
+		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
+		InventoryItems[Index] = Item;
+
+		NotifyInventoryItemChanged(Index);
 	}
+}
+
+void UBaseInventoryComponent::ClearInventoryItems()
+{
+	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
+	{
+		if (IsValid(InventoryItems[Index]))
+		{
+			NotifyInventoryItemChanged(Index);
+		}
+	}
+
+	InventoryItems.Init(nullptr, MaxInventorySize);
 }
 
 int32 UBaseInventoryComponent::GetUseSlotCount()

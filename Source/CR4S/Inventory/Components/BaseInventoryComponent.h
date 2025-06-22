@@ -180,6 +180,9 @@ public:
 	virtual FInventorySaveData GetInventorySaveData();
 	UFUNCTION(BlueprintCallable, Category = "InventorySystem|LoadData")
 	virtual void LoadInventorySaveData(const FInventorySaveData& SaveData);
+
+private:
+	void ClearInventoryItems();
 	
 #pragma endregion 
 
