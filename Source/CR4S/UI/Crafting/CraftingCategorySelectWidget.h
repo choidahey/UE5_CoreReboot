@@ -1,9 +1,11 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Blueprint/UserWidget.h"
 #include "CraftingCategorySelectWidget.generated.h"
 
+class UCraftingCategoryButtonWidget;
 class UCraftingContainerWidget;
 
 UCLASS()
@@ -14,7 +16,28 @@ class CR4S_API UCraftingCategorySelectWidget : public UUserWidget
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* CraftingContainerWidget) const;
+	void InitWidget(UCraftingContainerWidget* CraftingContainerWidget);
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Initialize")
+	TSubclassOf<UCraftingCategoryButtonWidget> CategoryButtonWidgetClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Initialize")
+	TObjectPtr<UDataTable> RecipeCategoryDataTable;
+	UPROPERTY(EditDefaultsOnly, Category = "Initialize")
+	FGameplayTag CookingRecipeTag;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UCraftingCategoryButtonWidget>> CraftingCategoryWidgets;
+	UPROPERTY()
+	TArray<TObjectPtr<UCraftingCategoryButtonWidget>> CookingCategoryWidgets;
+
+#pragma endregion
+
+#pragma region Update
+
+public:
+	static void UpdateWidget(TArray<TObjectPtr<UCraftingCategoryButtonWidget>>& CategoryWidgets, bool IsCookingRecipe);
+	void UpdateCategories(const int32 NewCraftingDifficulty);
 
 #pragma endregion
 
@@ -24,8 +47,5 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPanelWidget> ButtonContainer;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UDataTable> RecipeCategoryDataTable;
-	
-#pragma endregion 
+#pragma endregion
 };
