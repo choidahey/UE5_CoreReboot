@@ -1,9 +1,11 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "CropsGimmick.generated.h"
 
+class UEnvironmentalStatusComponent;
 class UInteractableComponent;
 
 UCLASS(BlueprintType)
@@ -67,6 +69,8 @@ public:
 	FORCEINLINE float GetCurrentGrowthPercent() const { return CurrentGrowthPercent; }
 
 private:
+	void InitGrowthState();
+	
 	UFUNCTION()
 	void Grow(int64 NewPlayTime);
 	void UpdateGrowthStage();
@@ -94,6 +98,8 @@ private:
 
 	int64 PrevPlayTime;
 
+	FCropsGimmickData CropsGimmickData;
+
 #pragma endregion
 
 #pragma region Delegate
@@ -115,4 +121,12 @@ public:
 	FOnCropComposted OnCropComposted;
 
 #pragma endregion
+
+#pragma region EnvironmentalStatus
+
+private:
+	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+
+#pragma endregion 
 };
