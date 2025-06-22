@@ -75,18 +75,21 @@ FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32
 	{
 		return Result;
 	}
-	
+
 	StackItemsAndFillEmptySlots(RowName, Count, Result, Result.ChangedItemSlots, OriginItem);
 
 	NotifyInventoryItemsChanged(Result.ChangedItemSlots.Array());
-	
+
 	return Result;
 }
 
-FAddItemResult UBaseInventoryComponent::AddHelperBotItem(const FName RowName, const int32 Count)
+FAddItemResult UBaseInventoryComponent::AddHelperBotItem(const FName RowName, const int32 Count,
+                                                         const FHelperPickUpData& HelperBotData)
 {
 	UHelperBotInventoryItem* HelperBotInventoryItem = NewObject<UHelperBotInventoryItem>(this);
-	return  AddItem(RowName, Count, HelperBotInventoryItem);
+	HelperBotInventoryItem->SetHelperBotData(HelperBotData);
+
+	return AddItem(RowName, Count, HelperBotInventoryItem);
 }
 
 void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
@@ -188,25 +191,31 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 void UBaseInventoryComponent::PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
 {
-	if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+	if (IsValid(OriginItem))
 	{
-		AveragingFreshness(OriginItem, TargetItem);
-	}
-	else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
-	{
-		
+		if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+		{
+			AveragingFreshness(OriginItem, TargetItem);
+		}
+		else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
+		{
+			SetHelperBotPickUpDate(OriginItem, TargetItem);
+		}
 	}
 }
 
 void UBaseInventoryComponent::PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
 {
-	if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+	if (IsValid(OriginItem))
 	{
-		UpdateFreshness(OriginItem, TargetItem);
-	}
-	else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
-	{
-		
+		if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+		{
+			UpdateFreshness(OriginItem, TargetItem);
+		}
+		else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
+		{
+			SetHelperBotPickUpDate(OriginItem, TargetItem);
+		}
 	}
 }
 
@@ -357,42 +366,54 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 		FromItem->SetCurrentStackCount(FromItem->GetCurrentStackCount() - ActualAddCount);
 
 		AveragingFreshness(FromItem, ToItem);
-		
+
 		if (FromItem->IsEmpty())
 		{
 			FromInventoryComponent->InventoryItems[FromItemIndex] = nullptr;
 		}
-
 	}
 
 	NotifyInventoryItemChanged(ToItemIndex);
 	FromInventoryComponent->NotifyInventoryItemChanged(FromItemIndex);
 }
 
-void UBaseInventoryComponent::AveragingFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem)
+void UBaseInventoryComponent::AveragingFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
 {
-	const UConsumableInventoryItem* FromConsumableInventoryItem = Cast<UConsumableInventoryItem>(FromItem);
-	UConsumableInventoryItem* ToConsumableInventoryItem = Cast<UConsumableInventoryItem>(ToItem);
-	if (!IsValid(FromConsumableInventoryItem) ||
-		!IsValid(ToConsumableInventoryItem))
+	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
+	if (!IsValid(OriginConsumableInventoryItem) ||
+		!IsValid(TargetConsumableInventoryItem))
 	{
 		return;
 	}
 
-	ToConsumableInventoryItem->AveragingFreshness(FromConsumableInventoryItem->GetRemainingFreshnessTime());
+	TargetConsumableInventoryItem->AveragingFreshness(OriginConsumableInventoryItem->GetRemainingFreshnessTime());
 }
 
-void UBaseInventoryComponent::UpdateFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem)
+void UBaseInventoryComponent::UpdateFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
 {
-	const UConsumableInventoryItem* FromConsumableInventoryItem = Cast<UConsumableInventoryItem>(FromItem);
-	UConsumableInventoryItem* ToConsumableInventoryItem = Cast<UConsumableInventoryItem>(ToItem);
-	if (!IsValid(FromConsumableInventoryItem) ||
-		!IsValid(ToConsumableInventoryItem))
+	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
+	if (!IsValid(OriginConsumableInventoryItem) ||
+		!IsValid(TargetConsumableInventoryItem))
 	{
 		return;
 	}
 
-	ToConsumableInventoryItem->UpdateFreshnessInfo(FromConsumableInventoryItem->GetFreshnessInfo());
+	TargetConsumableInventoryItem->UpdateFreshnessInfo(OriginConsumableInventoryItem->GetFreshnessInfo());
+}
+
+void UBaseInventoryComponent::SetHelperBotPickUpDate(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	UHelperBotInventoryItem* OriginHelperBotInventoryItem = Cast<UHelperBotInventoryItem>(OriginItem);
+	UHelperBotInventoryItem* TargetHelperBotInventoryItem = Cast<UHelperBotInventoryItem>(TargetItem);
+	if (!IsValid(OriginHelperBotInventoryItem) ||
+		!IsValid(TargetHelperBotInventoryItem))
+	{
+		return;
+	}
+
+	TargetHelperBotInventoryItem->SetHelperBotData(OriginHelperBotInventoryItem->GetHelperBotData());
 }
 
 void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*>& NewInventoryItems)
@@ -501,7 +522,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 
 	TSet<int32> ChangedItemSlots;
 	ChangedItemSlots.Reserve(MaxInventorySize);
-	
+
 	TMap<FName, TArray<UBaseInventoryItem*>> BeforeInventoryItems;
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
 	{
@@ -518,7 +539,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 
 		ChangedItemSlots.Add(Index);
 	}
-	
+
 	for (const FName& RowName : ItemGimmickSubsystem->GetItemDataRowNames())
 	{
 		TArray<UBaseInventoryItem*>* Items = BeforeInventoryItems.Find(RowName);
@@ -526,7 +547,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 		{
 			continue;
 		}
-		
+
 		for (UBaseInventoryItem* Item : *Items)
 		{
 			if (IsValid(Item))
