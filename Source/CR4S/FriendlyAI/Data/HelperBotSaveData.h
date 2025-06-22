@@ -28,3 +28,21 @@ struct CR4S_API FHelperBotSaveData
 		CurrentRotation = FRotator::ZeroRotator;
 	}
 };
+
+USTRUCT(BlueprintType)
+struct CR4S_API FHelperPickUpData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString BotName = TEXT("");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float CurrentHealth = 0.0f;
+
+	FHelperPickUpData()
+	{
+		BotName = TEXT("");
+		CurrentHealth = 0.0f;
+	}
+};
