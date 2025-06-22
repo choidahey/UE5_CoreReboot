@@ -68,7 +68,7 @@ public:
 
 private:
 	UFUNCTION()
-	void Grow(int64 PlayTime);
+	void Grow(int64 NewPlayTime);
 	void UpdateGrowthStage();
 
 	void BindDelegate();
@@ -91,6 +91,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Grow")
 	TArray<TObjectPtr<UStaticMesh>> CropsMeshes;
+
+	int64 PrevPlayTime;
 
 #pragma endregion
 

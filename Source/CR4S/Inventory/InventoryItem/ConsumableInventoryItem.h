@@ -10,13 +10,13 @@ USTRUCT(BlueprintType)
 struct FFreshnessInfo
 {
 	GENERATED_BODY()
-	;
 
+	bool bIsRotten = false;
 	float ShelfLifeSeconds = 100.f;
 	float RemainingFreshnessTime = 100.f;
 	float DecayRateMultiplier = 1.0f;
 	int64 PreviousDecayPlayTime = -1;
-
+	
 	bool ShouldDecay() const
 	{
 		return ShelfLifeSeconds > 0.f;
@@ -70,6 +70,7 @@ public:
 #pragma region Freshness
 
 public:
+	FORCEINLINE bool IsRotten() const { return FreshnessInfo.bIsRotten; }
 	FORCEINLINE const FFreshnessInfo& GetFreshnessInfo() const { return FreshnessInfo; }
 
 	FORCEINLINE float GetRemainingFreshnessTime() const
@@ -84,6 +85,7 @@ public:
 
 	FORCEINLINE void UpdateFreshnessInfo(const FFreshnessInfo& NewFreshnessInfo)
 	{
+		FreshnessInfo.bIsRotten = NewFreshnessInfo.bIsRotten;
 		FreshnessInfo.RemainingFreshnessTime = NewFreshnessInfo.RemainingFreshnessTime;
 		FreshnessInfo.PreviousDecayPlayTime = NewFreshnessInfo.PreviousDecayPlayTime;
 	}
@@ -107,7 +109,7 @@ private:
 
 	FFreshnessInfo FreshnessInfo;
 
-	bool bIsRotten;
+	
 	FText FreshnessText;
 	FText DefaultDescription;
 	FText RottenDescription;

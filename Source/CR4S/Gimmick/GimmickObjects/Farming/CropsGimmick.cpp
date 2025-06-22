@@ -16,7 +16,8 @@ ACropsGimmick::ACropsGimmick()
 	  TotalGrowthSeconds(0),
 	  MaxStageCount(0),
 	  CurrentStage(0),
-	  CurrentGrowthPercent(0.f)
+	  CurrentGrowthPercent(0.f),
+	  PrevPlayTime(-1)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -139,41 +140,58 @@ void ACropsGimmick::Harvest(const AActor* Interactor)
 	GimmickDestroy();
 }
 
-void ACropsGimmick::Grow(int64 PlayTime)
+void ACropsGimmick::Grow(const int64 NewPlayTime)
 {
 	if (CropsMeshes.Num() < 2 || TotalGrowthSeconds <= 0.f)
 	{
 		return;
 	}
 
-	if (FMath::RandRange(1, 100) <= 70)
+	if (PrevPlayTime < 0)
 	{
-		ElapsedSeconds += 1;
+		PrevPlayTime = NewPlayTime;
+		return;
 	}
 
-	CurrentGrowthPercent = FMath::Clamp(ElapsedSeconds * 100.0f / TotalGrowthSeconds, 0.0f, 200.0f);
+	const int64 DeltaInt = NewPlayTime - PrevPlayTime;
+	PrevPlayTime = NewPlayTime;
 
-	if (OnGrow.IsBound())
+	if (DeltaInt <= 0)
 	{
-		OnGrow.Broadcast(CurrentGrowthPercent);
+		return;
 	}
 
-	if (CurrentGrowthPercent == 200.f)
+	for (int64 Time = 0; Time < DeltaInt; Time++)
 	{
-		if (OnCropComposted.IsBound())
+		if (FMath::RandRange(1, 100) <= 70)
 		{
-			OnCropComposted.Broadcast();
+			ElapsedSeconds += 1;
 		}
-		Destroy();
-		return;
-	}
 
-	if (CurrentGrowthPercent > 100.f)
-	{
-		return;
-	}
+		CurrentGrowthPercent = FMath::Clamp(ElapsedSeconds * 100.0f / TotalGrowthSeconds, 0.0f, 200.0f);
 
-	UpdateGrowthStage();
+		if (OnGrow.IsBound())
+		{
+			OnGrow.Broadcast(CurrentGrowthPercent);
+		}
+
+		if (CurrentGrowthPercent == 200.f)
+		{
+			if (OnCropComposted.IsBound())
+			{
+				OnCropComposted.Broadcast();
+			}
+			Destroy();
+			continue;
+		}
+
+		if (CurrentGrowthPercent > 100.f)
+		{
+			continue;
+		}
+
+		UpdateGrowthStage();
+	}
 }
 
 void ACropsGimmick::UpdateGrowthStage()

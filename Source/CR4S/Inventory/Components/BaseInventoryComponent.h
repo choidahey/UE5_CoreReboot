@@ -78,7 +78,8 @@ public:
 
 	static void PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
-	
+
+	static bool CheckRottenItem(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void AveragingFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void UpdateFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void SetHelperBotPickUpDate(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);

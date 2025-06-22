@@ -134,6 +134,11 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 		if (SameInventoryItem->GetCurrentStackCount() < ItemData->MaxStackCount)
 		{
+			if (CheckRottenItem(OriginItem, SameInventoryItem))
+			{
+				continue;
+			}
+			
 			const int32 SameInventoryItemCount = SameInventoryItem->GetCurrentStackCount();
 			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItemCount;
 			const int32 ActualAddCount = FMath::Min(CanAddCount, RemainingCount);
@@ -217,6 +222,24 @@ void UBaseInventoryComponent::PostFillEmptySlots(UBaseInventoryItem* OriginItem,
 			SetHelperBotPickUpDate(OriginItem, TargetItem);
 		}
 	}
+}
+
+bool UBaseInventoryComponent::CheckRottenItem(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	if (TargetItem && !TargetItem->IsA(UConsumableInventoryItem::StaticClass()))
+	{
+		return false;
+	}
+	
+	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	const UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
+	
+	if (IsValid(OriginConsumableInventoryItem) && OriginConsumableInventoryItem->IsRotten())
+	{
+		return !TargetConsumableInventoryItem->IsRotten();
+	}
+
+	return TargetConsumableInventoryItem->IsRotten();
 }
 
 UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplayTagContainer& ItemTags)
@@ -355,6 +378,12 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 	UBaseInventoryItem* ToItem = InventoryItems[ToItemIndex];
 	UBaseInventoryItem* FromItem = FromInventoryComponent->InventoryItems[FromItemIndex];
 
+	if (CheckRottenItem(FromItem, ToItem))
+	{
+		SwapItem(FromInventoryComponent, FromItemIndex, ToItemIndex);
+		return;
+	}
+	
 	const int32 ToItemCount = ToItem->GetCurrentStackCount();
 	const int32 MaxStackCount = ToItem->GetMaxStackCount();
 	if (ToItemCount < MaxStackCount)

@@ -9,7 +9,6 @@
 #define LOCTEXT_NAMESPACE "ConsumableInventoryItem"
 
 UConsumableInventoryItem::UConsumableInventoryItem()
-	: bIsRotten(false)
 {
 	bUsePassiveEffect = true;
 	FreshnessText = LOCTEXT("FreshnessText", "신선도");
@@ -61,7 +60,7 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 
 	if (IsValid(PlayerStatusComponent))
 	{
-		if (!bIsRotten)
+		if (!IsRotten())
 		{
 			PlayerStatusComponent->AddCurrentHunger(ConsumableItemData.HungerRestore);
 			PlayerStatusComponent->AddCurrentHP(ConsumableItemData.HealthRestore);
@@ -124,7 +123,7 @@ bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 void UConsumableInventoryItem::OnItemRotten()
 {
 	CR4S_Log(LogTemp, Warning, TEXT("Item has fully rotted!"));
-	bIsRotten = true;
+	FreshnessInfo.bIsRotten = true;
 	UpdateItemDescription(RottenDescription);
 	EndPassiveEffect();
 }
