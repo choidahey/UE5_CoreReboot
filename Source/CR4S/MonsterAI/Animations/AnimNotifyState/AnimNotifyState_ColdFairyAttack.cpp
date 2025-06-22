@@ -30,7 +30,6 @@ void UAnimNotifyState_ColdFairyAttack::NotifyBegin(USkeletalMeshComponent* MeshC
     if (!CR4S_VALIDATE(LogDa, IsValid(BBComp))) return;
     
     CurrentSpawnIndex = 0;
-    SpawnedFairies.Empty();
 
     MeshComp->GetWorld()->GetTimerManager().SetTimer(
         SpawnTimerHandle,
@@ -95,6 +94,7 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
             Params
         );
 
+        TArray<AColdFairyActor*> SpawnedFairies;
         if (AColdFairyActor* FairyActor = Cast<AColdFairyActor>(SpawnActor))
         {
             SpawnedFairies.Add(FairyActor);
@@ -113,8 +113,7 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
     }
 }
 
-void UAnimNotifyState_ColdFairyAttack::NotifyEnd(
-    USkeletalMeshComponent* MeshComp,
-    UAnimSequenceBase* Animation)
+void UAnimNotifyState_ColdFairyAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+    
 }

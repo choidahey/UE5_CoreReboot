@@ -31,6 +31,7 @@ void AFieldActor::BeginPlay()
 	Super::BeginPlay();
 	
 	InitialActorScale = GetActorScale3D();
+	StartTimers();
 	
 	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
 }
@@ -50,8 +51,6 @@ void AFieldActor::Initialize(AActor* OwnerMonster, AActor* Target)
 	
 	if (bIsAttachGround)
 		AttachGround();
-	
-	StartTimers();
 	
 	const bool bNeedTick = bIsFollowTarget || bDynamicSize;
 	PrimaryActorTick.SetTickFunctionEnable(bNeedTick);

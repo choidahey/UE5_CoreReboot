@@ -138,12 +138,12 @@ void AColdFairyActor::StopAndStick(const FHitResult& HitResult, AActor* HitActor
 		CollisionComp->SetGenerateOverlapEvents(false);
 	}
 	
-	if (IsValid(HitComp))
+	if (IsValid(HitComp) && HitComp != CollisionComp)
 	{
 		CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		CollisionComp->AttachToComponent(HitComp,FAttachmentTransformRules::KeepWorldTransform);
 	}
-	else if (IsValid(HitActor))
+	else if (IsValid(HitActor) && HitComp != CollisionComp)
 	{
 		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
@@ -203,6 +203,8 @@ void AColdFairyActor::OnOverlap(
 	const FHitResult& SweepResult)
 {
 	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+
+	if (OtherActor && OtherActor->IsA<AColdFairyActor>()) return;
 	
 	StopAndStick(SweepResult, OtherActor, OtherComp);
 }

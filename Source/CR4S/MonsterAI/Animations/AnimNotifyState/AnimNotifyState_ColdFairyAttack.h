@@ -35,8 +35,8 @@ public:
 private:
 	void SpawnOne(USkeletalMeshComponent* MeshComp, AAIController* AIC, UBlackboardComponent* BB);
 
-	UPROPERTY()
-	TArray<AColdFairyActor*> SpawnedFairies;
+	// UPROPERTY()
+	// TArray<AColdFairyActor*> SpawnedFairies;  // 가비지 컬렉터에서 걸러지지 않음 -> 컨테이너로 하나 빼야할듯
 	FTimerHandle SpawnTimerHandle;
 	int32 CurrentSpawnIndex = 0;
 
