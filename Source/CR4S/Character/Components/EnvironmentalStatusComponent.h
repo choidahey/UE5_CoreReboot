@@ -15,7 +15,9 @@ UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class CR4S_API UEnvironmentalStatusComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
+	
+public:
+	void Refresh();
 protected:
 	UEnvironmentalStatusComponent();
 

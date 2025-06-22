@@ -63,10 +63,7 @@ public:
 	                               const FInventoryItemData& NewInventoryItemData,
 	                               const int32 StackCount = 0);
 
-	FORCEINLINE void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
-	{
-		InventoryComponent = NewInventoryComponent;
-	}
+	virtual void UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent);
 
 protected:
 	UPROPERTY()
@@ -109,6 +106,8 @@ public:
 	FORCEINLINE void ChangeSlotIndex(const int32 NewSlotIndex) { InventoryItemData.SlotIndex = NewSlotIndex; }
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
+	FORCEINLINE const FName& GetItemRowName() const { return InventoryItemData.RowName; }
+	FORCEINLINE const FItemInfoData& GetItemInfoData() const { return InventoryItemData.ItemInfoData; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
 	FORCEINLINE void GetInventoryItemData(FInventoryItemData& OutInventoryItemData) const
 	{
@@ -122,6 +121,15 @@ public:
 
 	FORCEINLINE int32 IsEmpty() const { return CurrentStackCount <= 0; }
 	FORCEINLINE const FGameplayTagContainer& GetItemTags() const { return InventoryItemData.ItemInfoData.ItemTags; }
+
+	FORCEINLINE const FText& GetItemName() const { return InventoryItemData.ItemInfoData.Name; }
+	FORCEINLINE const FText& GetItemDescription() const { return InventoryItemData.ItemInfoData.Description; }
+	FORCEINLINE UTexture2D* GetItemIcon() const { return InventoryItemData.ItemInfoData.Icon; }
+
+	FORCEINLINE void UpdateItemDescription(const FText& NewDescription)
+	{
+		InventoryItemData.ItemInfoData.Description = NewDescription;
+	}
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")

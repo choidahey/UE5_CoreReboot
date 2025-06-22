@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/InventoryItem/ConsumableInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemTooltipWidget.h"
@@ -64,6 +65,8 @@ void UBaseItemSlotWidget::InitSlotWidget(const int32 NewSlotIndex)
 	{
 		RootWidget->ToolTipWidgetDelegate.BindDynamic(this, &ThisClass::ShowToolTip);
 	}
+
+	ResetFreshnessImage();
 }
 
 void UBaseItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget,
@@ -82,8 +85,50 @@ void UBaseItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryW
 	SetItem(NewItem);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UBaseItemSlotWidget::UpdateFreshness(const float Freshness)
+{
+	if (IsValid(FreshnessImage))
+	{
+		const FLinearColor CurColor = FLinearColor::LerpUsingHSV(MinFreshnessColor, MaxFreshnessColor, Freshness);
+		FreshnessImage->SetColorAndOpacity(CurColor);
+	}
+}
+
+void UBaseItemSlotWidget::ResetFreshnessImage()
+{
+	if (IsValid(FreshnessImage))
+	{
+		FreshnessImage->SetColorAndOpacity(MaxFreshnessColor);
+	}
+
+	UnBoundFreshnessDelegate(CurrentItem);
+}
+
+void UBaseItemSlotWidget::BoundFreshnessDelegate()
+{
+	UConsumableInventoryItem* ConsumableInventoryItem = Cast<UConsumableInventoryItem>(CurrentItem);
+	if (IsValid(ConsumableInventoryItem))
+	{
+		ConsumableInventoryItem->OnFreshnessChanged.AddUniqueDynamic(this, &ThisClass::UpdateFreshness);
+		UpdateFreshness(ConsumableInventoryItem->GetFreshnessPercent());
+	}
+}
+
+void UBaseItemSlotWidget::UnBoundFreshnessDelegate(UBaseInventoryItem* Item)
+{
+	UConsumableInventoryItem* ConsumableInventoryItem = Cast<UConsumableInventoryItem>(Item);
+	if (IsValid(ConsumableInventoryItem) &&
+		ConsumableInventoryItem->OnFreshnessChanged.IsAlreadyBound(this, &ThisClass::UpdateFreshness))
+	{
+		ConsumableInventoryItem->OnFreshnessChanged.RemoveDynamic(this, &ThisClass::UpdateFreshness);
+	}
+}
+
 void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 {
+	ResetFreshnessImage();
+	
 	CurrentItem = InItem;
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(IconImage)) ||
@@ -111,6 +156,8 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 		{
 			InventoryComponent->AddOccupiedSlot(SlotIndex);
 		}
+
+		BoundFreshnessDelegate();
 	}
 	else
 	{
@@ -395,7 +442,7 @@ UWidget* UBaseItemSlotWidget::ShowToolTip()
 		ItemTooltipWidget = CreateWidget<UItemTooltipWidget>(this, ItemTooltipWidgetClass);
 	}
 
-	ItemTooltipWidget->InitWidget(CurrentItem->GetInventoryItemData()->ItemInfoData);
+	ItemTooltipWidget->InitWidget(CurrentItem);
 
 	return ItemTooltipWidget;
 }

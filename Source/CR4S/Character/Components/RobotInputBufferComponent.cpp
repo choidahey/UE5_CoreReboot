@@ -4,8 +4,9 @@
 #include "RobotInputBufferComponent.h"
 
 #include "CR4S.h"
+#include "RobotWeaponComponent.h"
 #include "Character/Characters/ModularRobot.h"
-#include "Character/Weapon/BaseWeapon.h"
+#include "Character/Weapon/RobotWeapon/BaseWeapon.h"
 
 
 // Sets default values for this component's properties
@@ -14,51 +15,41 @@ URobotInputBufferComponent::URobotInputBufferComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-
-	Weapons.SetNum(4);
-}
-
-void URobotInputBufferComponent::RefreshWeaponListByIndex(const int32 Index, ABaseWeapon* InWeapon)
-{
-	if (!CR4S_ENSURE(LogHong1,Weapons.IsValidIndex(Index))) return;
-
-	Weapons[Index]=InWeapon;
 }
 
 void URobotInputBufferComponent::ExecuteInputQueue() const
 {
+	if (!CR4S_ENSURE(LogHong1,CachedWeaponComponent)) return;
+	
 	switch (CurrentInputQueue)
 	{
-	case EInputType::None:
-		break;
 	case EInputType::RobotAttack1:
-		if (!CR4S_ENSURE(LogHong1,(Weapons.IsValidIndex(0)||IsValid(Weapons[0])))) return;
-		Weapons[0]->OnAttack();
+		CachedWeaponComponent->Input_OnAttackLeftArm();
 		break;
 	case EInputType::RobotAttack2:
-		if (!CR4S_ENSURE(LogHong1,(Weapons.IsValidIndex(1)||IsValid(Weapons[1])))) return;
-		Weapons[1]->OnAttack();
+		CachedWeaponComponent->Input_OnAttackRightArm();
 		break;
 	case EInputType::RobotAttack3:
-		if (!CR4S_ENSURE(LogHong1,(Weapons.IsValidIndex(2)||IsValid(Weapons[2])))) return;
-		Weapons[2]->OnAttack();
+		CachedWeaponComponent->Input_OnAttackLeftShoulder();
+		break;
 	case EInputType::RobotAttack4:
-		if (!CR4S_ENSURE(LogHong1,(Weapons.IsValidIndex(3)||IsValid(Weapons[3])))) return;
-		Weapons[3]->OnAttack();
+		CachedWeaponComponent->Input_OnAttackRightShoulder();
+		break;
 	default:
 		break;
 	}
 }
 
-
-// Called when the game starts
 void URobotInputBufferComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	AActor* OnwerActor=GetOwner();
+	if (!OnwerActor) return;
+
+	CachedWeaponComponent=OnwerActor->FindComponentByClass<URobotWeaponComponent>();
+	CR4S_ENSURE(LogHong1,CachedWeaponComponent);
 }
 
-
-// Called every frame
 void URobotInputBufferComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                                FActorComponentTickFunction* ThisTickFunction)
 {
