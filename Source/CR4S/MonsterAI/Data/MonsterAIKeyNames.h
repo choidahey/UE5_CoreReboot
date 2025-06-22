@@ -27,6 +27,7 @@ struct FRegionBossAIKeys : public FAIKeys
 	static const FName CurrentPatternID;
 	static const FName PreviousPatternID;
 	static const FName PatternStepIndex;
+	static const FName AttackType;
 };
 
 struct FSeasonBossAIKeys : public FAIKeys

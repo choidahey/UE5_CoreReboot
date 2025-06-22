@@ -22,6 +22,7 @@ const FName FRegionBossAIKeys::SkillTargetLocation = TEXT("SkillTargetLocation")
 const FName FRegionBossAIKeys::CurrentPatternID = TEXT("CurrentPatternID");
 const FName FRegionBossAIKeys::PreviousPatternID = TEXT("PreviousPatternID");
 const FName FRegionBossAIKeys::PatternStepIndex = TEXT("PatternStepIndex");
+const FName FRegionBossAIKeys::AttackType = TEXT("AttackType");
 
 // Season Boss AI Key
 const FName FSeasonBossAIKeys::NearestHouseActor = TEXT("NearestHouseActor");
