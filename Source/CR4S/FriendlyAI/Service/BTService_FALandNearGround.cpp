@@ -67,7 +67,7 @@ void UBTService_FALandNearGround::TickNode(UBehaviorTreeComponent& OwnerComp, ui
     if (MoveComp)
     {
         MoveComp->SetMovementMode(MOVE_NavWalking);
-        MoveComp->GravityScale = 0.6f;
+        MoveComp->GravityScale = 0.1f;
         MoveComp->Velocity = FinalVelocity;
     }
     
