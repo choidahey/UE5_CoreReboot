@@ -1,4 +1,6 @@
 #include "AnimalRangedAttackComponent.h"
+
+#include "ObjectPoolComponent.h"
 #include "Game/System/ProjectilePoolSubsystem.h"
 #include "FriendlyAI/Projectile/AnimalProjectile.h"
 #include "GameFramework/Actor.h"
@@ -37,14 +39,10 @@ void UAnimalRangedAttackComponent::FireProjectile()
 	AAnimalProjectile* Projectile = Cast<AAnimalProjectile>(SpawnedActor);
 	if (!Projectile) return;
 
-	FTimerHandle ReturnHandle;
-	World->GetTimerManager().SetTimer(ReturnHandle, FTimerDelegate::CreateWeakLambda(Projectile, [=]()
+	if (auto PoolComp = Projectile->FindComponentByClass<UObjectPoolComponent>())
 	{
-		if (UProjectilePoolSubsystem* Pool = World->GetSubsystem<UProjectilePoolSubsystem>())
-		{
-			Pool->ReturnToPool(Projectile);
-		}
-	}), ProjectileLifetime, false);
+		PoolComp->ReturnToPoolAfter(ProjectileLifetime);
+	}
 
 	if (Projectile->ProjectileMovement)
 	{
