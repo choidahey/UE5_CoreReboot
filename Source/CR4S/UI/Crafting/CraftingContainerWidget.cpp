@@ -35,6 +35,11 @@ void UCraftingContainerWidget::UpdateWidget(const int32 NewCraftingDifficulty)
 
 	CR4S_Log(LogCraftingUI, Warning, TEXT("Crafting Difficulty: %d"), NewCraftingDifficulty);
 
+	if (IsValid(CraftingCategorySelectWidget))
+	{
+		CraftingCategorySelectWidget->UpdateCategories(CraftingDifficulty);
+	}
+	
 	CloseCraftingWidget();
 
 	CloseRecipeSelectWidget();

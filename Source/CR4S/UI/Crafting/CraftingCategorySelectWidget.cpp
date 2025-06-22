@@ -15,19 +15,25 @@ void UCraftingCategorySelectWidget::InitWidget(UCraftingContainerWidget* Craftin
 
 	TArray<FName> RowNames = RecipeCategoryDataTable->GetRowNames();
 
-	int32 Index = 0;
-	for (UWidget* Widget : ButtonContainer->GetAllChildren())
+	ButtonContainer->ClearChildren();
+
+	for (const FName RowName : RowNames)
 	{
-		UCraftingCategoryButtonWidget* CraftingCategoryButtonWidget = Cast<UCraftingCategoryButtonWidget>(Widget);
-		if (IsValid(CraftingCategoryButtonWidget) && RowNames.IsValidIndex(Index))
+		UCraftingCategoryButtonWidget* CraftingCategoryButtonWidget
+			= CreateWidget<UCraftingCategoryButtonWidget>(GetWorld(), CategoryButtonWidgetClass);
+		if (IsValid(CraftingCategoryButtonWidget))
 		{
+			ButtonContainer->AddChild(CraftingCategoryButtonWidget);
 			const FRecipeCategoryData* RecipeCategoryData
-				= RecipeCategoryDataTable->FindRow<FRecipeCategoryData>(RowNames[Index],
-				                                                         TEXT("RecipeCategoryData"));
+				= RecipeCategoryDataTable->FindRow<FRecipeCategoryData>(RowName,TEXT("RecipeCategoryData"));
 
 			CraftingCategoryButtonWidget->InitWidget(CraftingContainerWidget, *RecipeCategoryData);
-
-			Index++;
 		}
 	}
+}
+
+void UCraftingCategorySelectWidget::UpdateCategories(const int32 NewCraftingDifficulty)
+{
+	const bool IsCookingRecipe = NewCraftingDifficulty >= 10; 
+	
 }
