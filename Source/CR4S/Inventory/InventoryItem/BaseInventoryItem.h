@@ -106,7 +106,7 @@ public:
 	FORCEINLINE void ChangeSlotIndex(const int32 NewSlotIndex) { InventoryItemData.SlotIndex = NewSlotIndex; }
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
-	FORCEINLINE const FName GetItemRowName() const { return InventoryItemData.RowName; }
+	FORCEINLINE const FName& GetItemRowName() const { return InventoryItemData.RowName; }
 	FORCEINLINE const FItemInfoData& GetItemInfoData() const { return InventoryItemData.ItemInfoData; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
 	FORCEINLINE void GetInventoryItemData(FInventoryItemData& OutInventoryItemData) const

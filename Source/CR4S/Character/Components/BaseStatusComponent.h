@@ -23,6 +23,11 @@ class CR4S_API UBaseStatusComponent : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UBaseStatusComponent();
+
+#pragma region Refresh
+	virtual void Refresh();
+#pragma endregion
+	
 #pragma region Get
 	FORCEINLINE float GetMaxHP() const { return BaseStatus.MaxHealth; }
 	FORCEINLINE float GetCurrentHP() const { return BaseStatus.Health; }

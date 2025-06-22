@@ -40,6 +40,7 @@ void AHomingWeapon::OnAttack()
 		SetActorTickEnabled(true);
 		OnLockOnStarted.Broadcast();
 	}
+	Super::OnAttack();
 }
 
 void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter)
@@ -56,7 +57,7 @@ void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter)
 	UDefaultInGameWidget* InGaemWidget=CurrentHUD->GetInGameWidget();
 	if (!CR4S_ENSURE(LogHong1,InGaemWidget)) return;
 
-	InGaemWidget->BindWidgetToHomingWeapon(this);
+	InGaemWidget->BindLockOnWidgetToHomingWeapon(this);
 }
 
 void AHomingWeapon::StopAttack()
@@ -74,6 +75,7 @@ void AHomingWeapon::StopAttack()
 	
 	bIsLockedOn = false;
 	TrackingTarget=nullptr;
+	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned
@@ -89,7 +91,7 @@ void AHomingWeapon::FireHomingBullet()
 
 	FireMultiBullet(TrackingTarget.Get());
 
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
 }

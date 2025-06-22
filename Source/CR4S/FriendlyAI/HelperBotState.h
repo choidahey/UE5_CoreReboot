@@ -13,5 +13,6 @@ enum class EHelperBotState : uint8
 	Defending,
 	Repairing,
 	Disabled,
-	Fleeing
+	Fleeing,
+	Dead
 };

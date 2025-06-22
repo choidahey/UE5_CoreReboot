@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 #include "BaseWeapon.generated.h"
 
+class URobotInputBufferComponent;
 struct FBaseWeaponInfo;
 class AModularRobot;
 /**
@@ -22,14 +23,18 @@ public:
 	ABaseWeapon();
 
 	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
+	
 	virtual void Initialize(AModularRobot* OwnerCharacter);
 #pragma region Attack
 public:
 	virtual float ComputeFinalDamage() override;
+	virtual void OnAttack() override;
 	virtual void StopAttack();
 protected:
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
+	void ApplySelfStun() const;
+	void RemoveSelfStun() const;
 #pragma endregion
 
 	
@@ -43,6 +48,9 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
+	TObjectPtr<URobotInputBufferComponent> InputBuffer;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
 	uint8 bCanAttack:1 {true};
 

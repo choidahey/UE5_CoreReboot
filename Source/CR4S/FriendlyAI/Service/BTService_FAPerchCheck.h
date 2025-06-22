@@ -4,6 +4,11 @@
 #include "BehaviorTree/Services/BTService_BlackboardBase.h"
 #include "BTService_FAPerchCheck.generated.h"
 
+struct FBTService_FAPerchCheckMemory
+{
+	bool bDidSetFlyToPerch = false;
+};
+
 UCLASS()
 class CR4S_API UBTService_FAPerchCheck : public UBTService_BlackboardBase
 {
@@ -14,7 +19,5 @@ public:
 
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-
-private:
-	bool bDidSetFlyToPerch = false;
+	virtual uint16 GetInstanceMemorySize() const override;
 };

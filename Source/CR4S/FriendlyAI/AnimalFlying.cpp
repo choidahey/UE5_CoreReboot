@@ -233,6 +233,10 @@ void AAnimalFlying::UpdateAnimationParametersFromBlackboard()
 	bPlayPerchedIdle = BlackboardComponent->GetValueAsBool("PlayPerchIdle");
 	bLandOnPerch = BlackboardComponent->GetValueAsBool("PlayPerchIdle");
 	bFlyToPerch = BlackboardComponent->GetValueAsBool("FlyToPerch");
+	bAreWeWalking = BlackboardComponent->GetValueAsBool("AreWeWalking");
+	bAreWeFlying = BlackboardComponent->GetValueAsBool("AreWeFlying");
+	bFlapFast = BlackboardComponent->GetValueAsBool("FlapFast");
+	bAreWePerched = BlackboardComponent->GetValueAsBool("AreWePerched");
 
 	if (bAreWeWalking && !bAreWeFlying)
 	{

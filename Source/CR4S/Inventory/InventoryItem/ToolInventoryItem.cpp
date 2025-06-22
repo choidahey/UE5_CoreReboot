@@ -39,7 +39,7 @@ void UToolInventoryItem::UseItem(const int32 Index)
 		return;
 	}
 
-	CR4S_Log(LogInventory, Warning, TEXT("%s"), *OwnerPlayer->GetOverlayMode().ToString());
+	CR4S_Log(LogInventory, Warning, TEXT("Before: %s"), *OwnerPlayer->GetOverlayMode().ToString());
 
 	if (OwnerPlayer->GetOverlayMode() == ToolItemData.ToolTag)
 	{
@@ -49,6 +49,8 @@ void UToolInventoryItem::UseItem(const int32 Index)
 	{
 		EquipItem();
 	}
+
+	CR4S_Log(LogInventory, Warning, TEXT("After: %s"), *OwnerPlayer->GetOverlayMode().ToString());
 }
 
 void UToolInventoryItem::EquipItem() const
@@ -56,8 +58,8 @@ void UToolInventoryItem::EquipItem() const
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
 		IsValid(PlayerInventoryComponent))
 	{
-		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
+		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
 	}
 }
 
@@ -66,7 +68,7 @@ void UToolInventoryItem::UnEquipItem() const
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
 		IsValid(PlayerInventoryComponent))
 	{
-		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
+		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
 	}
 }

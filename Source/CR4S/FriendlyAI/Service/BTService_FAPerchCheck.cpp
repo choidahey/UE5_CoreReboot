@@ -10,9 +10,16 @@ UBTService_FAPerchCheck::UBTService_FAPerchCheck()
 	bNotifyBecomeRelevant = true;
 }
 
+uint16 UBTService_FAPerchCheck::GetInstanceMemorySize() const
+{
+	return sizeof(FBTService_FAPerchCheckMemory);
+}
+
 void UBTService_FAPerchCheck::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+
+	FBTService_FAPerchCheckMemory* Memory = reinterpret_cast<FBTService_FAPerchCheckMemory*>(NodeMemory);
 
 	AAIController* AICon = Cast<AAIController>(OwnerComp.GetAIOwner());
 	if (!AICon) return;
@@ -33,15 +40,15 @@ void UBTService_FAPerchCheck::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 
 	if (Distance < 600.f)
 	{
-		if (!bDidSetFlyToPerch)
+		if (!Memory->bDidSetFlyToPerch)
 		{
 			BB->SetValueAsBool("FlyToPerch", true);
-			bDidSetFlyToPerch = true;
+			Memory->bDidSetFlyToPerch = true;
 		}
 	}
 	else
 	{
 		BB->SetValueAsBool("FlyToPerch", false);
-		bDidSetFlyToPerch = false;
+		Memory->bDidSetFlyToPerch = false;
 	}
 }

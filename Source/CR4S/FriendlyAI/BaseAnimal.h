@@ -39,7 +39,8 @@ enum class EAnimalBehavior : uint8
 	Aggressive,
 	Coward,
 	Passive_AggroOnHit,
-	Passive_FleeOnHit
+	Passive_FleeOnHit,
+	Monster
 };
 
 //DECLARE_MULTICAST_DELEGATE(FOnDied); 
@@ -88,6 +89,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
 	class USphereComponent* AttackRange;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	class USphereComponent* EnemyCollision;
 
 	UPROPERTY(VisibleAnywhere)
 	UGroundMovementComponent* GroundComp;

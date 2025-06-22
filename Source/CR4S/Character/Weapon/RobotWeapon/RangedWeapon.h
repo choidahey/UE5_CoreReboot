@@ -7,11 +7,12 @@
 #include "Character/Data/WeaponData.h"
 #include "RangedWeapon.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float InPercent);
+
 struct FRangedWeaponData;
 class ABaseBullet;
-/**
- * 
- */
+
+
 UCLASS(BlueprintType, Blueprintable)
 class CR4S_API ARangedWeapon : public ABaseWeapon
 {
@@ -23,7 +24,6 @@ public:
 	
 #pragma region Override
 public:
-	virtual void OnAttack() override;
 	virtual void Initialize(AModularRobot* OwnerCharacter) override;
 #pragma endregion
 
@@ -37,6 +37,8 @@ protected:
 	void ApplyRecoil() const;
 	void StartReload();
 	void FinishReload();
+	void AddCurrentAmmo(const int32 Amount);
+	void SetCurrentAmmo(const int32 NewAmount);
 #pragma endregion
 	
 #pragma region TypeSpecificInfo
@@ -50,6 +52,10 @@ protected:
 	uint8 bIsReloading:1 {false};
 	FTimerHandle ReloadTimerHandle;
 #pragma endregion
-	
+
+#pragma region Delegate
+public:
+	FOnCurrentAmmoChanged OnCurrentAmmoChanged;
+#pragma endregion
 };
 
