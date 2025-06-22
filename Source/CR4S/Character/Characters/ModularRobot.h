@@ -51,11 +51,13 @@ public:
 	void LoadDataFromDataLoader();
 #pragma endregion
 	
-#pragma region ChangePossess
+#pragma region Mount
 	UFUNCTION(BlueprintCallable)
 	void MountRobot(AActor* InActor);
 	UFUNCTION(BlueprintCallable)
 	void UnMountRobot();
+
+	bool FindPossibleUnmountLocation(ACharacter* CharacterToDrop, FVector& OutLocation) const;
 #pragma endregion
 
 #pragma region Widgets
@@ -166,6 +168,11 @@ protected:
 	uint8 bIsDashing:1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsHovering:1 {false};
+#pragma endregion
+
+#pragma region DebugOption
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	uint8 bIsDebugMode:1 {false};
 #pragma endregion
 };
 

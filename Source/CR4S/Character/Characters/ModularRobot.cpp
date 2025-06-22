@@ -69,6 +69,7 @@ AModularRobot::AModularRobot()
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 1200.0f; // The camera follows at this distance behind the character
 	CameraBoom->SetWorldRotation((FRotator(-15, 0, 0)));
+	CameraBoom->SocketOffset=FVector({500,300,250});
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
@@ -182,16 +183,23 @@ void AModularRobot::UnMountRobot()
 
 	const bool bInAir=MovementComp->IsFalling();
 	const bool bIsStopped=MovementComp->Velocity.IsNearlyZero();
+	
 	if (bInAir || !bIsStopped) return;
 	
 	ACharacter* NextCharacter=MountedCharacter.Get();
 	if (IsValid(NextCharacter))
 	{
-		NextCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		FVector PossibleLocation;
+		FRotator CharRot=NextCharacter->GetActorRotation();
+		const bool bCanExit=FindPossibleUnmountLocation(NextCharacter,PossibleLocation);
+		if (!bCanExit)
+		{
+			UE_LOG(LogHong1,Error,TEXT("Can't find unmounted location"));
+			return;
+		}
 		
-		FVector UnMountOffset=GetActorForwardVector()*RobotSettings.UnMountLocation;
-		FVector DropLocation=GetActorLocation()+UnMountOffset;
-		NextCharacter->TeleportTo(DropLocation,NextCharacter->GetActorRotation(),false,true);
+		NextCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);	
+		NextCharacter->TeleportTo(PossibleLocation,CharRot,false,true);
 		
 		NextCharacter->SetActorEnableCollision(true);
 		NextCharacter->SetActorTickEnabled(true);
@@ -208,6 +216,52 @@ void AModularRobot::UnMountRobot()
 	MountedCharacter=nullptr;
 	RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 	Status->StopConsumeEnergy();
+}
+
+bool AModularRobot::FindPossibleUnmountLocation(ACharacter* CharacterToDrop, FVector& OutLocation) const
+{
+	UCapsuleComponent* Capsule=CharacterToDrop->GetCapsuleComponent();
+	
+	if (!Capsule)
+	{
+		return false;
+	}
+
+	const float Radius=Capsule->GetScaledCapsuleRadius();
+	const float HalfHeight=Capsule->GetScaledCapsuleHalfHeight();
+	const float ZOffset=HalfHeight;
+
+	const int32 CheckCount=RobotSettings.CollisionCheckCount;
+	for (int32 i=0;i<CheckCount;i++)
+	{
+		const float AngleRad=2*PI*i/CheckCount;
+		const FVector Dir=FVector(FMath::Cos(AngleRad),FMath::Sin(AngleRad),0);
+
+		const FVector CapsuleCenter=GetActorLocation()+Dir*RobotSettings.UnMountOffset+FVector(0,0,ZOffset);
+
+		FCollisionQueryParams CollisionParams(NAME_None,false);
+		const bool bBlocked=GetWorld()->OverlapBlockingTestByChannel(
+			CapsuleCenter,
+			FQuat::Identity,
+			ECC_Pawn,
+			FCollisionShape::MakeCapsule(Radius,HalfHeight),
+			CollisionParams
+		);
+		
+		if (bIsDebugMode)
+		{
+			FColor CapsuleColor=bBlocked ? FColor::Red : FColor::Green;
+			DrawDebugCapsule(GetWorld(),CapsuleCenter,HalfHeight,Radius,FQuat::Identity,CapsuleColor,false,3.0f);
+		}
+
+		if (!bBlocked)
+		{
+			OutLocation=CapsuleCenter-FVector(0,0,ZOffset);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void AModularRobot::InitializeWidgets() const

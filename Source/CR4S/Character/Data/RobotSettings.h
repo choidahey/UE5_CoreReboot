@@ -17,10 +17,13 @@ struct CR4S_API FRobotSettings
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	int32 MappingContextPriority{2};
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
-	FVector UnMountLocation {FVector(-200.f,0.f,0.f)};
+	float UnMountOffset {-200};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	FName MountSocketName {FName("cockpit")};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	int32 CollisionCheckCount{8};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
 	float DashStrength{3000};
