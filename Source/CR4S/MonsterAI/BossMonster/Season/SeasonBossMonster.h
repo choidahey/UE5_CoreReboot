@@ -2,15 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "MonsterAI/BaseMonster.h"
+#include "MonsterAI/Task/BTTask_SelectSkill.h"
 #include "SeasonBossMonster.generated.h"
 
-
+class UMonsterAggroComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class AEnvironmentalModifierVolume;
 class UNavigationInvokerComponent;
-
-DECLARE_MULTICAST_DELEGATE(FOnTeleportEndSignature);
 
 UCLASS()
 class CR4S_API ASeasonBossMonster : public ABaseMonster
@@ -59,5 +58,19 @@ protected:
 	float NavInvokerRemovalRadius = 5500.f;
 
 #pragma endregion
-	
+
+#pragma region Aggro
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	TObjectPtr<UMonsterAggroComponent> AggroComp;
+
+	UPROPERTY(EditAnywhere, Category="AI")
+	FBlackboardKeySelector AggroTargetKey;
+
+	virtual float TakeDamage(float DamageAmount,
+							 struct FDamageEvent const& DamageEvent,
+							 AController* EventInstigator,
+							 AActor* DamageCauser) override;
+
+#pragma endregion
 };

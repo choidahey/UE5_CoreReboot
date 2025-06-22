@@ -33,3 +33,4 @@ const FName FSeasonBossAIKeys::CurrentSkillRange = TEXT("CurrentSkillRange");
 const FName FSeasonBossAIKeys::MeleeOptimalDistance = TEXT("MeleeOptimalDistance");
 const FName FSeasonBossAIKeys::RangedOptimalDistance = TEXT("RangedOptimalDistance");
 const FName FSeasonBossAIKeys::bIsInSkillRange = TEXT("bIsInSkillRange");
+const FName FSeasonBossAIKeys::AggroTarget = TEXT("AggroTarget");

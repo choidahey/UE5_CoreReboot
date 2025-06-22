@@ -48,6 +48,8 @@ private:
 	TObjectPtr<UBehaviorTreeComponent> CachedOwnerComp;
 	UPROPERTY()
 	TObjectPtr<APawn> CachedPawn = nullptr;
+	UPROPERTY()
+	TObjectPtr<USkeletalMeshComponent> CachedMeshComp = nullptr;
 	
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> TrailEffectComp = nullptr;
@@ -55,6 +57,8 @@ private:
 	TObjectPtr<UNiagaraComponent> BodyEffectComp  = nullptr;
 	
 	EMovementMode OriginalMovementMode = EMovementMode::MOVE_Walking;
+	FAIRequestID TeleportRequestID;
+	
 	float OriginalMaxSpeed = 600.f;
 	float OriginalAcceleration = 1000.f;
 };

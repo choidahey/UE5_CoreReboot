@@ -40,5 +40,7 @@ struct FSeasonBossAIKeys : public FAIKeys
 	static const FName MeleeOptimalDistance;
 	static const FName RangedOptimalDistance;
 	static const FName bIsInSkillRange;
+	static const FName AggroTarget;
+	
 	
 };

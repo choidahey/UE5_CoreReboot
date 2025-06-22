@@ -48,18 +48,20 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	
 	if (AnimComp->IsAnyMontagePlaying()) return;
 
-	AActor* TargetPlayer = Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName));
+	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName));
 	AActor* TargetHouse  = Cast<AActor>(BB->GetValueAsObject(NearestHouseActorKey.SelectedKeyName));
 
 	const FVector PawnLoc = OwnerPawn->GetActorLocation();
 	
-	if (IsValid(TargetPlayer))
+	if (IsValid(TargetActor))
 	{
 		StateComp->SetState(EMonsterState::Attack);
+		CR4S_Log(LogDa, Warning, TEXT("TargetActor is Valid ! State = Attack"));
 	}
 	else if (IsValid(TargetHouse))
 	{
 		StateComp->SetState(EMonsterState::AttackHouse);
+		CR4S_Log(LogDa, Warning, TEXT("TargetHouse is Valid ! State = AttackHouse"));
 	}
 	else
 	{
@@ -67,7 +69,7 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 			BB->SetValueAsObject(FAIKeys::TargetActor, PlayerPawn);
 		
 		StateComp->SetState(EMonsterState::Attack);
-		CR4S_Log(LogDa, Log, TEXT("[UpdateState] TargetHouse is invalid or nullptr"));
+		CR4S_Log(LogDa, Log, TEXT("[UpdateState] TargetHouse, TargetActor is invalid or nullptr State = Attack"));
 	}
 	
 	CR4S_Log(LogDa, Log, TEXT("[UpdateState] %s Current State : %d"),
