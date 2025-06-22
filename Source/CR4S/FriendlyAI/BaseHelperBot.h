@@ -131,13 +131,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
 	FORCEINLINE FString GetBotName() const { return BotName; }
 
+	FHelperPickUpData GetHelperBotData() const { return PickUpData; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
 	void SetBotName(const FString& NewName);
 	
 	FORCEINLINE void SetIsFromInventory(bool bFromInventory) { bIsFromInventory = bFromInventory; }
 
-	void SetPickUpData(const FHelperPickUpData& InPickUpData) { PickUpData = InPickUpData; }
+	void SetPickUpData(const FHelperPickUpData& InPickUpData);
 	
 #pragma endregion
 

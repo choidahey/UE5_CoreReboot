@@ -269,9 +269,19 @@ void UHelperBotStateManagerWidget::PickUp()
 {
 	if (OwnerAIController)
 	{
-		if (APawn* BotPawn = OwnerAIController->GetPawn())
+		if (ABaseHelperBot* Bot = Cast<ABaseHelperBot>(OwnerAIController->GetPawn()))
 		{
-			BotPawn->Destroy();
+			if (APlayerCharacter* PC = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
+			{
+				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
+				{
+					FHelperPickUpData PickUpData;
+					PickUpData.BotName = Bot->GetBotName();
+					PickUpData.CurrentHealth = Bot->GetCurrentHealth();
+					InvComp->AddHelperBotItem(TEXT("HelperBot"), 1, PickUpData);
+				}
+			}
+			Bot->Destroy();
 		}
 	}
 	CloseWidgetAndResetInput();
