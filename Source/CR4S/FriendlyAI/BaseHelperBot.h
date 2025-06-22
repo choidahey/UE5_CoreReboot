@@ -124,6 +124,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
 
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
+	
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
 	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
