@@ -291,7 +291,7 @@ void UBaseInventoryComponent::GetSameItemSlotsAndEmptySlots(const FName& InRowNa
 
 UBaseInventoryItem* UBaseInventoryComponent::GetInventoryItemByIndex(const int32 Index) const
 {
-	return CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(Index)) ? InventoryItems[Index] : nullptr;
+	return InventoryItems.IsValidIndex(Index)? InventoryItems[Index] : nullptr;
 }
 
 int32 UBaseInventoryComponent::GetItemCountByRowName(const FName RowName) const

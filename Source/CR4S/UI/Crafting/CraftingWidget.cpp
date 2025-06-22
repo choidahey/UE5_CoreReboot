@@ -134,6 +134,11 @@ void UCraftingWidget::CraftItem()
 
 	PlayerInventoryComponent->AddItem(ItemRecipeData.ItemInfoDataHandle.RowName, ItemRecipeData.ResultCount);
 
+	if (OnCraftingComplete.IsBound())
+	{
+		OnCraftingComplete.Broadcast();
+	}
+
 	for (int32 Index = 0; Index < CurrentIngredients.Num(); Index++)
 	{
 		if (!IngredientWidgets.IsValidIndex(Index))
