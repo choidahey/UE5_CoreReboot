@@ -29,6 +29,8 @@ protected:
 	UFUNCTION() void SetRepairing();
 	UFUNCTION() void UpdateLookAtPlayer();
 	UFUNCTION() void CheckPlayerDistance();
+	UFUNCTION() void ChangeNameButtonClicked();
+	UFUNCTION() void OnNameEditCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 	
 protected:
 	UPROPERTY(meta=(BindWidget)) class UCanvasPanel* RootCanvas;
@@ -40,6 +42,9 @@ protected:
 	UPROPERTY(meta=(BindWidget)) class UButton* OpenInventoryButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* SetRepairingButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* SetDefendingButton;
+	UPROPERTY(meta=(BindWidget)) class UTextBlock* BotNameText;
+	UPROPERTY(meta=(BindWidget)) class UEditableTextBox* BotNameEditBox;
+	UPROPERTY(meta=(BindWidget)) class UButton* ChangeNameButton;
 
 	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot = nullptr;
 
@@ -48,7 +53,7 @@ private:
 	class AHelperBotAIController* OwnerAIController = nullptr;
 	
 	FRotator TargetLookRotation;
-	
+	bool bIsEditingName = false;
 	UPROPERTY() float MaxInteractionDistance = 300.0f;
 	UPROPERTY() EHelperBotState PreviousState;
 	UPROPERTY() FTimerHandle DistanceCheckTimer;

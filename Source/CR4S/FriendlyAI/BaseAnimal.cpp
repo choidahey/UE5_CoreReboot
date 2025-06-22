@@ -28,6 +28,12 @@ ABaseAnimal::ABaseAnimal()
     AttackRange->SetSphereRadius(150.f);
     AttackRange->SetCollisionProfileName(TEXT("Trigger"));
 
+    EnemyCollision = CreateDefaultSubobject<USphereComponent>(TEXT("EnemyCollision"));
+    EnemyCollision->SetupAttachment(RootComponent);
+    EnemyCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+    EnemyCollision->SetCollisionObjectType(ECC_GameTraceChannel2);
+    EnemyCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    
     RangedAttackComponent = CreateDefaultSubobject<UAnimalRangedAttackComponent>(TEXT("RangedAttackComponent"));
     
     MuzzleArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleArrow"));
@@ -84,6 +90,11 @@ void ABaseAnimal::LoadStats()
                 BehaviorTypeEnum = static_cast<EAnimalBehavior>(
                     EnumPtr->GetValueByName(FName(*Row->BehaviorType))
                 );
+            }
+
+            if (BehaviorTypeEnum == EAnimalBehavior::Monster || BehaviorTypeEnum == EAnimalBehavior::Aggressive)
+            {
+                EnemyCollision->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Overlap);
             }
             
             if (GetCharacterMovement())
@@ -295,7 +306,6 @@ void ABaseAnimal::Die()
         }
         AIController->StopMovement();
         AIController->UnPossess(); 
-        SetAnimalState(EAnimalState::Dead);
     }
     
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -355,6 +365,8 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
     {
+        CurrentHealth = 0.f;
+        SetAnimalState(EAnimalState::Dead);
         Die();
     }
 

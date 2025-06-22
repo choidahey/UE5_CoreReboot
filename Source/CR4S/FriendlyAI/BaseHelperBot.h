@@ -34,7 +34,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 #pragma endregion
 
 #pragma region Interaction Functions
@@ -94,6 +94,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentHealth = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString BotName = TEXT("AutoBot");
 	
 #pragma endregion
 
@@ -118,6 +121,13 @@ public:
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
 
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
+
+	UFUNCTION(BlueprintCallable, Category = "Bot Info")
+	FORCEINLINE FString GetBotName() const { return BotName; }
+
+	UFUNCTION(BlueprintCallable, Category = "Bot Info")
+	void SetBotName(const FString& NewName);
+	
 #pragma endregion
 
 #pragma region Component
@@ -151,6 +161,35 @@ public:
 	class UParticleSystemComponent* WorkTargetParticle = nullptr;
 
 #pragma endregion
+
+#pragma region State Visual
+public:
+	UFUNCTION()
+	void UpdateStateVisualEffects();
+	
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor IdleEyeColor = FLinearColor::Blue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor ResourceEyeColor = FLinearColor::Green;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor DefendingEyeColor = FLinearColor::Red;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	FLinearColor RepairingEyeColor = FLinearColor::Yellow;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	class UNiagaraSystem* ResourceWorkVFX = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	class UNiagaraSystem* DefendingWorkVFX = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "State Visual Settings")
+	class UNiagaraSystem* RepairingWorkVFX = nullptr;
+
+#pragma endregion
 	
 #pragma region Info Widget
 	
@@ -179,5 +218,23 @@ private:
 	bool bIsWorking = false;
 #pragma endregion
 	
+#pragma region Damage & Death
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
+	UNiagaraComponent* HitEffectComponent = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
+	class UNiagaraSystem* DeathEffectSystem = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
+	UAnimMontage* DeathMontage = nullptr;
+
+private:
+	void PlayHitEffect(const FVector& HitDirection);
+	void StartDeathSequence();
+	
+	UFUNCTION()
+	void OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted);
+#pragma endregion
 
 };

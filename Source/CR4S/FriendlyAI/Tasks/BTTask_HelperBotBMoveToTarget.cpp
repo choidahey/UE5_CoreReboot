@@ -15,13 +15,13 @@ UBTTask_HelperBotBMoveToTarget::UBTTask_HelperBotBMoveToTarget()
 
 EBTNodeResult::Type UBTTask_HelperBotBMoveToTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    // if (APawn* Pawn = OwnerComp.GetAIOwner()->GetPawn())
-    // {
-    //     if (UAIJumpComponent* JumpComp = Pawn->FindComponentByClass<UAIJumpComponent>())
-    //     {
-    //         JumpComp->Activate(true);
-    //     }
-    // }
+    if (APawn* Pawn = OwnerComp.GetAIOwner()->GetPawn())
+    {
+        if (UAIJumpComponent* JumpComp = Pawn->FindComponentByClass<UAIJumpComponent>())
+        {
+            JumpComp->ActivateJumpComponent();
+        }
+    }
     return EBTNodeResult::InProgress;
 }
 
