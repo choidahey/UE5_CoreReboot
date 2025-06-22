@@ -6,6 +6,7 @@
 
 #include "BaseInventoryComponent.generated.h"
 
+struct FHelperPickUpData;
 struct FInventoryItemData;
 class UInventoryFilterData;
 class UBaseInventoryWidget;
@@ -57,7 +58,7 @@ public:
 	void AddItems(const TMap<FName, int32>& Items);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr);
-	virtual FAddItemResult AddHelperBotItem(FName RowName, int32 Count);
+	virtual FAddItemResult AddHelperBotItem(FName RowName, int32 Count, const FHelperPickUpData& HelperBotData);
 	
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	virtual int32 RemoveItemByRowName(const FName RowName, const int32 Count);
@@ -74,8 +75,13 @@ public:
 
 	void SwapItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
 	void MergeItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
-	static void AveragingFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem);
-	static void UpdateFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem);
+
+	static void PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	static void PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	
+	static void AveragingFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	static void UpdateFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	static void SetHelperBotPickUpDate(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
 
@@ -123,9 +129,6 @@ protected:
 	                                 FAddItemResult& Result,
 	                                 TSet<int32>& ChangedItemSlots,
 	                                 UBaseInventoryItem* OriginItem);
-
-	void PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
-	void PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 
 	UBaseInventoryItem* CreateInventoryItem(const FGameplayTagContainer& ItemTags);
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")

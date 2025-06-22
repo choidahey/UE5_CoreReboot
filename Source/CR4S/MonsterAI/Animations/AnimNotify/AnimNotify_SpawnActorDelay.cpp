@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/Skills/FieldActor.h"
 #include "MonsterAI/Skills/IceSpike.h"
 
 void UAnimNotify_SpawnActorDelay::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
@@ -25,13 +26,13 @@ void UAnimNotify_SpawnActorDelay::Notify(USkeletalMeshComponent* MeshComp, UAnim
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
 	if (!AIC || !BB) return;
 
-	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
-	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+	TargetActor = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+	TargetActor = TargetActor ? TargetActor : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+	TargetActor = TargetActor ? TargetActor : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
 
-	FVector CenterLoc = Target->GetActorLocation();
+	FVector CenterLoc = TargetActor->GetActorLocation();
 	float HalfHeight = 0.f;
-	if (ACharacter* Char = Cast<ACharacter>(Target))
+	if (ACharacter* Char = Cast<ACharacter>(TargetActor))
 	{
 		if (UCapsuleComponent* Cap = Char->GetCapsuleComponent())
 		{
@@ -75,8 +76,10 @@ void UAnimNotify_SpawnActorDelay::Notify(USkeletalMeshComponent* MeshComp, UAnim
 			FRotator::ZeroRotator,
 			Params);
 		
-		if (AIceSpike* Spike = Cast<AIceSpike>(NewActor))
-			Spike->Launch();
+		// if (AIceSpike* Spike = Cast<AIceSpike>(NewActor))
+		// 	Spike->Launch();
+		if (AFieldActor* FieldActor = Cast<AFieldActor>(NewActor))
+			FieldActor->Initialize(OwnerPawn, TargetActor);
 	});
 
 
