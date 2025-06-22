@@ -4,6 +4,16 @@
 #include "Engine/DataTable.h"
 #include "MonsterSkillData.generated.h"
 
+
+UENUM(BlueprintType)
+enum class ESkillAttackType : uint8
+{
+	None = 0 UMETA(DisplayName="None"),
+	Melee = 1 UMETA(DisplayName="Melee"),
+	Ranged = 2 UMETA(DisplayName="Ranged"),
+	Moving = 3 UMETA(DisplayName="Moving"),
+};
+
 // Probability structure based on Distance and Phase
 USTRUCT(BlueprintType)
 struct FSkillProbabilityEntry
@@ -30,6 +40,7 @@ struct FMonsterSkillData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FName SkillName = NAME_None;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) ESkillAttackType AttackType = ESkillAttackType::None;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) TObjectPtr<UAnimMontage> SkillMontage = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Damage = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float Cooldown = 0.f;
