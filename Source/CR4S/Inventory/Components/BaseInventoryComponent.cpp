@@ -1,6 +1,4 @@
-﻿PRAGMA_DISABLE_OPTIMIZATION
-
-#include "BaseInventoryComponent.h"
+﻿#include "BaseInventoryComponent.h"
 
 #include "CR4S.h"
 #include "GameplayTagsManager.h"
