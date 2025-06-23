@@ -20,6 +20,8 @@ public:
 	float EnergyConsumptionAmount{100};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float EnergyConsumptionInterval{0.1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float EnergyEfficiency{1};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HoverResourceCost{100};
@@ -50,6 +52,14 @@ public:
 	float MaxWeight{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Weight{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxArmLoad{0};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float RecoilModifier{1};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MeleeDamageModifier{1};
 };
 
 UCLASS()
