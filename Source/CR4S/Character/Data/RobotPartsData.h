@@ -38,6 +38,8 @@ struct CR4S_API FBodyPartsInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMesh> SkeletalMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxHealth{2400};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Armor{330};
@@ -50,7 +52,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceRegenModifier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float ResourceRegenDelayModifier{1};
+	float ResourceRegenDelay{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceConsumptionModifier{1};
 };
@@ -60,6 +62,8 @@ struct CR4S_API FArmPartsInfo
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMesh> SkeletalMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxHealth{1500};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -79,6 +83,10 @@ struct CR4S_API FLegPartsInfo
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USkeletalMesh> SkeletalMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UAnimInstance> AnimInstance;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxHealth{3500};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
