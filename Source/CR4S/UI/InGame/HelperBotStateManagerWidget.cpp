@@ -280,6 +280,7 @@ void UHelperBotStateManagerWidget::PickUp()
 		{
 			if (APlayerCharacter* PC = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
 			{
+				Bot->StartFadeOut();
 				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
 				{
 					FHelperPickUpData PickUpData;
@@ -288,7 +289,6 @@ void UHelperBotStateManagerWidget::PickUp()
 					InvComp->AddHelperBotItem(TEXT("HelperBot"), 1, PickUpData);
 				}
 			}
-			Bot->Destroy();
 		}
 	}
 	CloseWidgetAndResetInput();

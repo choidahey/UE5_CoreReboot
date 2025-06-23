@@ -237,19 +237,31 @@ private:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
 	UNiagaraComponent* HitEffectComponent = nullptr;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
-	class UNiagaraSystem* DeathEffectSystem = nullptr;
-	
+		
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
 	UAnimMontage* DeathMontage = nullptr;
 
 private:
 	void PlayHitEffect(const FVector& HitDirection);
 	void StartDeathSequence();
-	
-	UFUNCTION()
-	void OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted);
+
 #pragma endregion
 
+#pragma region FadeEffect
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	FLinearColor PickUpColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	FLinearColor DeadColor;
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	void StartFadeOut();
+
+private:
+	float ElapsedFadeTime = 0.f;
+	FTimerHandle FadeTimerHandle;
+	void UpdateFadeOut();
+#pragma endregion
 };

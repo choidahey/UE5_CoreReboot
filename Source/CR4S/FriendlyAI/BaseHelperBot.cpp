@@ -388,29 +388,15 @@ void ABaseHelperBot::StartDeathSequence()
 	}
 
 	SetActorEnableCollision(false);
+	StartFadeOut();
 
 	if (DeathMontage)
 	{
 		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 		{
 			AnimInstance->Montage_Play(DeathMontage);
-			AnimInstance->OnMontageEnded.AddDynamic(this, &ABaseHelperBot::OnDeathMontageCompleted);
 		}
 	}
-	else
-	{
-		OnDeathMontageCompleted(nullptr, false);
-	}
-}
-
-void ABaseHelperBot::OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (DeathEffectSystem)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DeathEffectSystem, GetActorLocation());
-	}
-
-	Destroy();
 }
 
 void ABaseHelperBot::SetBotName(const FString& NewName)
@@ -440,3 +426,67 @@ void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
 		}
 	}
 }
+
+#pragma region FadeEffect
+void ABaseHelperBot::StartFadeOut()
+{
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp) return;
+    
+	for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+	{
+		UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i);
+		if (DynMat)
+		{
+			if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+			{
+				EHelperBotState CurrentState = static_cast<EHelperBotState>(
+					BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+				
+				if (CurrentState == EHelperBotState::Dead)
+				{
+					DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+					DynMat->SetVectorParameterValue(TEXT("Param"), DeadColor);
+				}
+				else
+				{
+					DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+					DynMat->SetVectorParameterValue(TEXT("Param"), PickUpColor);
+				}
+			}
+		}
+	}
+	
+	MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+	if (UCapsuleComponent* CapsuleComp = GetCapsuleComponent())
+	{
+		CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+		
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseHelperBot::UpdateFadeOut);
+	GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+	SetLifeSpan(2.f);
+}
+
+void ABaseHelperBot::UpdateFadeOut()
+{
+	ElapsedFadeTime += 0.02f;
+	float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
+
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+		{
+			if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(MeshComp->GetMaterial(i)))
+			{
+				DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+			}
+		}
+	}
+
+	if (ElapsedFadeTime >= 2.0f)
+	{
+		GetWorldTimerManager().ClearTimer(FadeTimerHandle);
+	}
+}
+#pragma endregion
