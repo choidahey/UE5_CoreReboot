@@ -86,6 +86,16 @@ private:
 
 #pragma endregion
 
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|SaveGame")
+	void GetPlayerInventorySaveGame(FInventorySaveGame& OutPlayerInventorySaveGame, FInventorySaveGame& OutQuickSlotSaveGame);
+	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|LoadGame")
+	void LoadPlayerInventorySaveGame(const FInventorySaveGame& PlayerInventorySaveGame, const FInventorySaveGame& QuickSlotSaveGame);
+	
+#pragma endregion
+	
 #pragma region Delegate
 
 public:

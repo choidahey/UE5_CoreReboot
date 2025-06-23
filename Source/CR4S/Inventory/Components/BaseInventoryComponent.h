@@ -6,7 +6,7 @@
 
 #include "BaseInventoryComponent.generated.h"
 
-struct FInventorySaveData;
+struct FInventorySaveGame;
 struct FHelperPickUpData;
 struct FInventoryItemData;
 class UInventoryFilterData;
@@ -177,9 +177,9 @@ private:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "InventorySystem|SaveData")
-	virtual FInventorySaveData GetInventorySaveData();
+	virtual FInventorySaveGame GetInventorySaveGame();
 	UFUNCTION(BlueprintCallable, Category = "InventorySystem|LoadData")
-	virtual void LoadInventorySaveData(const FInventorySaveData& SaveData);
+	virtual void LoadInventorySaveGame(const FInventorySaveGame& SaveGameData);
 
 private:
 	void ClearInventoryItems();

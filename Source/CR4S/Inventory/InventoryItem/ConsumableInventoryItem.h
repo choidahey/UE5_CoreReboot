@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseInventoryItem.h"
-#include "Inventory/Data/ConsumableInventoryItemData.h"
+#include "Inventory/Data/ConsumableItemSaveGame.h"
 #include "ConsumableInventoryItem.generated.h"
 
 class UWorldTimeManager;
@@ -107,8 +107,8 @@ private:
 #pragma region Save & Load
 
 public:
-	virtual FInventoryItemSaveData GetInventoryItemSaveData() override;
-	virtual void LoadInventoryItemSaveData(const FInventoryItemSaveData& SaveData) override;
+	virtual FInventoryItemSaveGame GetInventoryItemSaveData() override;
+	virtual void LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemSaveGame& ItemSaveGame) override;
 	
 #pragma endregion
 

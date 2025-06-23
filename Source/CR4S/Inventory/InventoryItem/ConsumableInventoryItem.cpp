@@ -20,6 +20,8 @@ void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInv
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
+	InventoryItemData.ItemType = EInventoryItemType::Consumable;
+
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;
 	if (!CR4S_VALIDATE(LogInventory, IsValid(DataTable)))
 	{
@@ -283,16 +285,25 @@ void UConsumableInventoryItem::ApplyThreshold(const EResistanceBuffType Type, co
 	}
 }
 
-FInventoryItemSaveData UConsumableInventoryItem::GetInventoryItemSaveData()
+FInventoryItemSaveGame UConsumableInventoryItem::GetInventoryItemSaveData()
 {
-	FInventoryItemSaveData SaveData = Super::GetInventoryItemSaveData();
-	
-	return SaveData;
+	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
+
+	ItemSaveGame.InventoryItemData.ItemInfoData.Description = DefaultDescription;
+
+	ItemSaveGame.InventoryItemData.ItemType = EInventoryItemType::Consumable;
+	ItemSaveGame.FreshnessInfo = FreshnessInfo;
+
+	return ItemSaveGame;
 }
 
-void UConsumableInventoryItem::LoadInventoryItemSaveData(const FInventoryItemSaveData& SaveData)
+void UConsumableInventoryItem::LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+                                                         const FInventoryItemSaveGame& ItemSaveGame)
 {
-	Super::LoadInventoryItemSaveData(SaveData);
+	Super::LoadInventoryItemSaveData(NewInventoryComponent, ItemSaveGame);
+	
+	FreshnessInfo = ItemSaveGame.FreshnessInfo;
+	FreshnessInfo.PreviousDecayPlayTime = -1;
 }
 
 #undef LOCTEXT_NAMESPACE
