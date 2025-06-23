@@ -4,6 +4,7 @@
 #include "PlayerInventoryComponent.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/InventoryItem/ConsumableInventoryItem.h"
 
 UPlanterBoxInventoryComponent::UPlanterBoxInventoryComponent()
 {
@@ -20,6 +21,7 @@ FAddItemResult UPlanterBoxInventoryComponent::AddItem(const FName RowName, const
 	const FItemInfoData* ItemData = ItemGimmickSubsystem->FindItemInfoData(RowName);
 	if (!CR4S_VALIDATE(LogInventory, ItemData) ||
 		!CR4S_VALIDATE(LogInventory, IsItemAllowedByFilter(ItemData->ItemTags)) ||
+		IsRotten(OriginItem) ||
 		HasCrops())
 	{
 		return Result;
@@ -48,4 +50,15 @@ bool UPlanterBoxInventoryComponent::HasCrops() const
 	}
 
 	return IsValid(InventoryItems[0]);
+}
+
+bool UPlanterBoxInventoryComponent::IsRotten(UBaseInventoryItem* OriginItem)
+{
+	const UConsumableInventoryItem* ConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	if (IsValid(ConsumableInventoryItem))
+	{
+		return ConsumableInventoryItem->IsRotten();
+	}
+
+	return true;
 }

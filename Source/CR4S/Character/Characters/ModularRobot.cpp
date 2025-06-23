@@ -140,7 +140,6 @@ void AModularRobot::LoadDataFromDataLoader()
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
 	Loader->LoadRobotSettingsData(RobotSettings);
-	
 }
 
 void AModularRobot::MountRobot(AActor* InActor)
@@ -178,6 +177,13 @@ void AModularRobot::MountRobot(AActor* InActor)
 
 void AModularRobot::UnMountRobot()
 {
+	UCharacterMovementComponent* MovementComp=GetCharacterMovement();
+	if (!CR4S_ENSURE(LogHong1,MovementComp)) return;
+
+	const bool bInAir=MovementComp->IsFalling();
+	const bool bIsStopped=MovementComp->Velocity.IsNearlyZero();
+	if (bInAir || !bIsStopped) return;
+	
 	ACharacter* NextCharacter=MountedCharacter.Get();
 	if (IsValid(NextCharacter))
 	{
@@ -204,7 +210,7 @@ void AModularRobot::UnMountRobot()
 	Status->StopConsumeEnergy();
 }
 
-void AModularRobot::InitializeWidgets()
+void AModularRobot::InitializeWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -212,33 +218,21 @@ void AModularRobot::InitializeWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
-				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
-				Status->OnEnergyChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateEnergyWidget);
-				Status->OnStunChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateStunWidget);
-				
-				InGameWidget->InitializeStatusWidget(Status,true);
-				
-				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
-				{
-					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-					
-					EnvironmentalStatus->OnTemperatureChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
-					EnvironmentalStatus->OnHumidityChanged.AddDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+				if (!CR4S_ENSURE(LogHong1,Status)) return;
+				InGameWidget->BindWidgetsToStatus(Status);
+				InGameWidget->ToggleWidgetMode(true);
 
-					if (!CR4S_ENSURE(LogHong1,Status)) return;
-					
-					Status->OnColdThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateColdThreshold);
-					Status->OnHeatThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHeatThreshold);
-					Status->OnHumidityThresholdChanged.AddDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold);
-					EnvironmentWidget->InitializeWidget(this);
-				}
+				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
+
+				Status->Refresh();
+				EnvironmentalStatus->Refresh();
 			}
 		}
 	}
 }
 
-void AModularRobot::DisconnectWidgets()
+void AModularRobot::DisconnectWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -246,24 +240,8 @@ void AModularRobot::DisconnectWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.RemoveAll(InGameWidget);
-				Status->OnResourceChanged.RemoveAll(InGameWidget);
-				Status->OnEnergyChanged.RemoveAll(InGameWidget);
-				Status->OnStunChanged.RemoveAll(InGameWidget);
-
-				if (UCharacterEnvironmentStatusWidget* EnvironmentWidget=InGameWidget->GetEnvironmentStatusWidget())
-				{
-					if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-					
-					EnvironmentalStatus->OnTemperatureChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
-					EnvironmentalStatus->OnHumidityChanged.RemoveDynamic(EnvironmentWidget, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
-
-					if (!CR4S_ENSURE(LogHong1,Status)) return;
-					
-					Status->OnColdThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateColdThreshold);
-					Status->OnHeatThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHeatThreshold);
-					Status->OnHumidityThresholdChanged.RemoveDynamic(EnvironmentWidget,&UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold);
-				}
+				InGameWidget->ClearBindingsToStatus();
+				InGameWidget->ClearBindingsToEnvStatus();
 			}
 		}
 	}
@@ -275,6 +253,9 @@ void AModularRobot::BeginPlay()
 	Super::BeginPlay();
 
 	LoadDataFromDataLoader();
+
+	GetCharacterMovement()->JumpZVelocity=RobotSettings.JumpZVelocity;
+	GetCharacterMovement()->MaxWalkSpeed=RobotSettings.MaxWalkSpeed;
 	
 	if (InteractComp)
 	{
@@ -284,12 +265,13 @@ void AModularRobot::BeginPlay()
 	{
 		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
 	}
+
+	if (WeaponManager && InputBuffer)
+	{
+		InputBuffer->SetWeaponComponent(WeaponManager);
+	}
 	
 	InitializeWidgets();
-
-	if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
-	EnvironmentalStatus->OnTemperatureChanged.AddDynamic(Status,&UBaseStatusComponent::HandleTemperatureChanged);
-	EnvironmentalStatus->OnHumidityChanged.AddDynamic(Status,&UBaseStatusComponent::HandleHumidityChanged);
 }
 
 void AModularRobot::NotifyControllerChanged()
@@ -380,8 +362,13 @@ void AModularRobot::Input_Look(const FInputActionValue& Value)
 void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
 	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	// Jump 함수는 Character가 기본 제공
-	if (Value.Get<bool>())
+	
+	if (GetCharacterMovement()->IsFalling() && !bIsHovering)
+	{
+		Status->StartHover();
+		bIsHovering=true;
+	}
+	else
 	{
 		Jump();
 	}
@@ -390,26 +377,52 @@ void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
 	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	// StopJumping 함수도 Character가 기본 제공
-	if (!Value.Get<bool>())
+	
+	StopJumping();
+
+	if (bIsHovering)
 	{
-		StopJumping();
+		Status->StopHover();
+		bIsHovering=false;
 	}
 }
 
-void AModularRobot::Input_Dash(const FInputActionValue& Value)
+void AModularRobot::Input_HorizontalDash(const FInputActionValue& Value)
 {
 	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
-
+	
 	bIsDashing = true;
 	
 	FVector LastInput=GetLastMovementInputVector();
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-	
 	FVector LaunchVelocity=DashDirection*RobotSettings.DashStrength;
+	LaunchVelocity.Z+=RobotSettings.DashZStrength;
+	
 	Status->ConsumeResourceForRoll();
-	LaunchCharacter(LaunchVelocity,true,false);
+	LaunchCharacter(LaunchVelocity,true,true);
+	
+	GetWorldTimerManager().SetTimer(
+		DashCooldownTimerHandle,
+		this,
+		&AModularRobot::ResetDashCooldown,
+		RobotSettings.DashCooldown,
+		false
+	);
+}
+
+void AModularRobot::Input_VerticalDash(const FInputActionValue& Value)
+{
+	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
+	
+	bIsDashing = true;
+	
+	const FVector AerialDashDirection=GetActorUpVector();
+	FVector LaunchVelocity=AerialDashDirection*RobotSettings.AerialDashStrength;
+	
+	Status->ConsumeResourceForRoll();
+	LaunchCharacter(LaunchVelocity,true,true);
+	
 	GetWorldTimerManager().SetTimer(
 		DashCooldownTimerHandle,
 		this,
@@ -439,9 +452,10 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			//Looking
 			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
 			//Dash
-			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Dash);
+			EnhancedInputComponent->BindAction(HorizontalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_HorizontalDash);
+			EnhancedInputComponent->BindAction(VerticalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_VerticalDash);
 			// Jump
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_StartJump);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
 			//Attack
 			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
@@ -453,6 +467,7 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightShoulder);
 			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackRightShoulder);
 			
+			EnhancedInputComponent->BindAction(InteractionAction,ETriggerEvent::Started, this, &AModularRobot::UnMountRobot);
 		}
 	}
 }

@@ -152,7 +152,7 @@ struct CR4S_API FRangedWeaponInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
-	float Range{10000};
+	float MaxAimTrackingRange{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
 	FName MuzzleSocketName{};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")

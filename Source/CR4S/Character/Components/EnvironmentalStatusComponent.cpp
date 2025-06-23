@@ -14,6 +14,12 @@ UEnvironmentalStatusComponent::UEnvironmentalStatusComponent()
 	PrimaryComponentTick.SetTickFunctionEnable(false);
 }
 
+void UEnvironmentalStatusComponent::Refresh()
+{
+	OnTemperatureChanged.Broadcast(CurrentTemperature);
+	OnHumidityChanged.Broadcast(CurrentHumidity);
+}
+
 void UEnvironmentalStatusComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -134,6 +140,32 @@ void UEnvironmentalStatusComponent::UpdateTemperature(float DeltaTime, float Spe
 
 	OnTemperatureChanged.Broadcast(CurrentTemperature);
 
+	if (CurrentTemperature < MinTemperature)
+	{
+		if (bWasTemperatureInRange)
+		{
+			OnTemperatureBreach.Broadcast(-1);
+			bWasTemperatureInRange = false;
+		}
+	}
+	else if (CurrentTemperature > MaxTemperature)
+	{
+		if (bWasTemperatureInRange)
+		{
+			OnTemperatureBreach.Broadcast(1);
+			bWasTemperatureInRange = false;
+		}
+	}
+	else
+	{
+		if (!bWasTemperatureInRange)
+		{
+			OnTemperatureNormalized.Broadcast();
+			bWasTemperatureInRange = true;
+		}
+	}
+
+
 	if (ShouldDisableTick())
 	{
 		CurrentTemperature = TargetTemperature;
@@ -157,6 +189,31 @@ void UEnvironmentalStatusComponent::UpdateHumidity(float DeltaTime, float Speed)
 	}
 
 	OnHumidityChanged.Broadcast(CurrentHumidity);
+
+	if (CurrentHumidity < MinHumidity)
+	{
+		if (bWasHumidityInRange)
+		{
+			OnHumidityBreach.Broadcast(-1);
+			bWasHumidityInRange = false;
+		}
+	}
+	else if (CurrentHumidity > MaxHumidity)
+	{
+		if (bWasHumidityInRange)
+		{
+			OnHumidityBreach.Broadcast(1);
+			bWasHumidityInRange = false;
+		}
+	}
+	else
+	{
+		if (!bWasHumidityInRange)
+		{
+			OnHumidityNormalized.Broadcast();
+			bWasHumidityInRange = true;
+		}
+	}
 
 	if (ShouldDisableTick())
 	{
@@ -202,20 +259,3 @@ float UEnvironmentalStatusComponent::GetBaseHumidityBySeason(ESeasonType Season)
 	default: return 70.0f;
 	}
 }
-
-
-void UEnvironmentalStatusComponent::SetMaxTemperature(float Max)
-{
-	// TODO:
-}
-
-void UEnvironmentalStatusComponent::SetMinTemperature(float Min)
-{
-	// TODO:
-}
-
-void UEnvironmentalStatusComponent::SetMaxHumidity(float Max)
-{
-	// TODO:
-}
-

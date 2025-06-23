@@ -153,6 +153,8 @@ float AAnimalMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
     {
+        CurrentHealth = 0.f;
+        SetAnimalState(EAnimalState::Dead);
         Die();
     }
     return ActualDamage;

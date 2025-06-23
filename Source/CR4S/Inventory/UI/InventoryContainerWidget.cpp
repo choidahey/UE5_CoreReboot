@@ -237,14 +237,8 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 	case EOpenWidgetType::PlantBox:
 		TargetWidget = PlanterBoxInventoryWidget;
 		break;
-	case EOpenWidgetType::CompostBin:
-		TargetWidget = CompostBinWidget;
-		break;
 	case EOpenWidgetType::RobotWorkshop:
 		TargetWidget = RobotWorkshopWidget;
-		break;
-	case EOpenWidgetType::HelperBotWorkshop:
-		TargetWidget = HelperBotWorkshopWidget;
 		break;
 	}
 

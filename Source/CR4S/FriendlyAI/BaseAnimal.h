@@ -39,7 +39,8 @@ enum class EAnimalBehavior : uint8
 	Aggressive,
 	Coward,
 	Passive_AggroOnHit,
-	Passive_FleeOnHit
+	Passive_FleeOnHit,
+	Monster
 };
 
 //DECLARE_MULTICAST_DELEGATE(FOnDied); 
@@ -88,6 +89,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
 	class USphereComponent* AttackRange;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	class USphereComponent* EnemyCollision;
 
 	UPROPERTY(VisibleAnywhere)
 	UGroundMovementComponent* GroundComp;
@@ -175,11 +179,11 @@ public:
 	virtual void PerformChargeAttack();
 	virtual void PerformRangedAttack();
 	
-	float PlayAttackMontage();
-	float PlayChargeAttackMontage();
-	float PlayRangedAttackMontage();
+	virtual float PlayAttackMontage();
+	virtual float PlayChargeAttackMontage();
+	virtual float PlayRangedAttackMontage();
 
-	void ResetAttackFlag() { bIsAttacking = false; }
+	virtual void ResetAttackFlag() { bIsAttacking = false; }
 	void ResetMeleeAttack() { bIsMeleeOnCooldown = false; }
 	void ResetChargeAttack() { bIsChargeOnCooldown = false; }
 	void ResetRangedAttack() { bIsRangedOnCooldown = false; }
@@ -210,6 +214,7 @@ public:
 	FTimerHandle MeleeAttackTimerHandle;
 	FTimerHandle ChargeAttackTimerHandle;
 	FTimerHandle RangedAttackTimerHandle;
+	
 	
 	uint8 bIsAttacking : 1 = 0;
 	
@@ -242,10 +247,23 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float RangedProbability = 0.0f;
-
 	
 #pragma endregion
 
+#pragma region Pade Out Effect
+
+public:
+	void StartFadeOut();
+	void UpdateFade(UMaterialInstanceDynamic* DynMat);
+	
+private:
+	// Fade Out
+	FTimerHandle FadeDelayTimerHandle;
+	FTimerHandle FadeTimerHandle;
+	float ElapsedFadeTime = 0.f;
+	
+#pragma endregion
+	
 #pragma region Debug
 public:
 	void DrawDebugVisuals();

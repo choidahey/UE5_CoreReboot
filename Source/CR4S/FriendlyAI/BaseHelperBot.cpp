@@ -1,5 +1,7 @@
 #include "BaseHelperBot.h"
 #include "BaseHelperBot.h"
+
+#include "BrainComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "../UI/InGame/HelperBotStateManagerWidget.h"
@@ -15,6 +17,7 @@
 #include "UI/InGame/SurvivalHUD.h"
 #include "NavigationInvokerComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Component/AIJumpComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
@@ -26,7 +29,6 @@ ABaseHelperBot::ABaseHelperBot()
 	PrimaryActorTick.bCanEverTick = true;
 
 	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
-	InteractableComp->SetInteractionText(FText::FromString("MySon"));
 
 	InventoryComponent = CreateDefaultSubobject<UBaseInventoryComponent>(TEXT("InventoryComponent"));
 
@@ -57,6 +59,11 @@ ABaseHelperBot::ABaseHelperBot()
 
 	WorkTargetParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("WorkTargetParticle"));
 	WorkTargetParticle->SetAutoActivate(false);
+
+	HitEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HitEffectComponent"));
+	HitEffectComponent->SetupAttachment(RootComponent);
+	HitEffectComponent->SetAutoActivate(false);
+	HitEffectComponent->SetVisibility(false);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -64,7 +71,8 @@ void ABaseHelperBot::BeginPlay()
 	Super::BeginPlay();
 
 	LoadStats();
-
+	UpdateStateVisualEffects();
+	
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
 		MoveComp->SetAvoidanceEnabled(true);
@@ -74,6 +82,7 @@ void ABaseHelperBot::BeginPlay()
 	{
 		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
 		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
+		InteractableComp->SetInteractionText(FText::FromString(BotName));
 	}
 }
 
@@ -96,8 +105,17 @@ void ABaseHelperBot::LoadStats()
 				MoveComp->MaxWalkSpeed = CurrentStats.WalkSpeed;
 				MoveComp->JumpZVelocity = CurrentStats.JumpHeight;
 			}
+			if (UAIJumpComponent* JumpComp = FindComponentByClass<UAIJumpComponent>())
+			{
+				JumpComp->UpdateOwnerStats();
+			}
 
-			CurrentHealth = CurrentStats.MaxHealth;
+			if (!bIsFromInventory)
+			{
+				CurrentHealth = CurrentStats.MaxHealth;
+				InteractableComp->SetInteractionText(FText::FromString(BotName));
+			}
+
 		});
 	}
 }
@@ -141,6 +159,18 @@ void ABaseHelperBot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 {
+	AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController());
+	if (BotAI)
+	{
+		EHelperBotState CurrentState = static_cast<EHelperBotState>(
+			BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+		
+		if (CurrentState == EHelperBotState::Dead)
+		{
+			return;
+		}
+	}
+
 	if (StateUIInstance && StateUIInstance->IsInViewport())
 	{
 		StateUIInstance->RemoveFromParent();
@@ -162,7 +192,7 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 		StopEyeBeamWork();
 	}
 
-	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	if (BotAI)
 	{
 		if (StateUIClass)
 		{
@@ -250,5 +280,163 @@ void ABaseHelperBot::StopEyeBeamWork()
 	if (RightEyeWorkVFXComponent)
 	{
 		RightEyeWorkVFXComponent->Deactivate();
+	}
+}
+
+void ABaseHelperBot::UpdateStateVisualEffects()
+{
+	FLinearColor TargetEyeColor = IdleEyeColor;
+	UNiagaraSystem* TargetVFXAsset = nullptr;
+	
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		EHelperBotState CurrentState = static_cast<EHelperBotState>(
+			BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+		
+		switch (CurrentState)
+		{
+		case EHelperBotState::ChopWood:
+		case EHelperBotState::Mining:
+		case EHelperBotState::Gathering:
+			TargetEyeColor = ResourceEyeColor;
+			TargetVFXAsset = ResourceWorkVFX;
+			break;
+			
+		case EHelperBotState::Defending:
+			TargetEyeColor = DefendingEyeColor;
+			TargetVFXAsset = DefendingWorkVFX;
+			break;
+			
+		case EHelperBotState::Repairing:
+			TargetEyeColor = RepairingEyeColor;
+			TargetVFXAsset = RepairingWorkVFX;
+			break;
+			
+		default:
+			TargetEyeColor = IdleEyeColor;
+			TargetVFXAsset = nullptr;
+			break;
+		}
+	}
+	
+	if (LeftEyeLight)
+	{
+		LeftEyeLight->SetLightColor(TargetEyeColor);
+	}
+	if (RightEyeLight)
+	{
+		RightEyeLight->SetLightColor(TargetEyeColor);
+	}
+	
+	if (LeftEyeWorkVFXComponent)
+	{
+		LeftEyeWorkVFXComponent->SetAsset(TargetVFXAsset);
+	}
+	if (RightEyeWorkVFXComponent)
+	{
+		RightEyeWorkVFXComponent->SetAsset(TargetVFXAsset);
+	}
+}
+
+float ABaseHelperBot::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		EHelperBotState CurrentState = static_cast<EHelperBotState>(
+			BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+		
+		if (CurrentState == EHelperBotState::Dead)
+		{
+			return 0.0f;
+		}
+	}
+
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	CurrentHealth -= ActualDamage;
+
+	if (DamageCauser)
+	{
+		FVector HitDirection = (GetActorLocation() - DamageCauser->GetActorLocation()).GetSafeNormal();
+		PlayHitEffect(HitDirection);
+	}
+
+	if (CurrentHealth <= 0.0f)
+	{
+		CurrentHealth = 0.0f;
+		StartDeathSequence();
+	}
+
+	return ActualDamage;
+}
+
+void ABaseHelperBot::PlayHitEffect(const FVector& HitDirection)
+{
+	if (HitEffectComponent)
+	{
+		FVector HitLocation = GetActorLocation() + HitDirection * 50.0f;
+		HitEffectComponent->SetWorldLocation(HitLocation);
+		HitEffectComponent->Activate(true);
+	}
+}
+
+void ABaseHelperBot::StartDeathSequence()
+{
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		BotAI->SetBotState(EHelperBotState::Dead);
+		BotAI->GetBrainComponent()->StopLogic(TEXT("Dead"));
+	}
+
+	SetActorEnableCollision(false);
+
+	if (DeathMontage)
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(DeathMontage);
+			AnimInstance->OnMontageEnded.AddDynamic(this, &ABaseHelperBot::OnDeathMontageCompleted);
+		}
+	}
+	else
+	{
+		OnDeathMontageCompleted(nullptr, false);
+	}
+}
+
+void ABaseHelperBot::OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (DeathEffectSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DeathEffectSystem, GetActorLocation());
+	}
+
+	Destroy();
+}
+
+void ABaseHelperBot::SetBotName(const FString& NewName)
+{
+	if (NewName.Len() >= 2 && NewName.Len() <= 8)
+	{
+		BotName = NewName;
+		
+		if (InteractableComp)
+		{
+			InteractableComp->SetInteractionText(FText::FromString(BotName));
+		}
+	}
+}
+
+void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
+{ 
+	PickUpData = InPickUpData;
+	
+	if (bIsFromInventory)
+	{
+		CurrentHealth = PickUpData.CurrentHealth;
+		BotName = PickUpData.BotName;
+		if (InteractableComp)
+		{
+			InteractableComp->SetInteractionText(FText::FromString(BotName));
+		}
 	}
 }

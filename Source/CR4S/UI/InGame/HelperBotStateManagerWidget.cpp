@@ -9,6 +9,8 @@
 #include "Inventory/OpenWidgetType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
 
 void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIController* InController, EHelperBotState InPreviousState)
 {
@@ -17,6 +19,18 @@ void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIControll
 	{
 		HelperBot = Cast<ABaseHelperBot>(InController->GetPawn());
 		PreviousState = InPreviousState;
+		
+		if (HelperBot)
+		{
+			if (BotNameText) BotNameText->SetText(FText::FromString(HelperBot->GetBotName()));
+			if (BotNameEditBox) 
+			{
+				BotNameEditBox->SetText(FText::FromString(HelperBot->GetBotName()));
+				BotNameEditBox->SetIsReadOnly(true);
+				BotNameEditBox->SetVisibility(ESlateVisibility::Collapsed);
+			}
+			if (BotNameText) BotNameText->SetVisibility(ESlateVisibility::Visible);
+		}
 		
 		InController->SetBotState(EHelperBotState::Idle);
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
@@ -44,12 +58,16 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (SetIdleButton) SetIdleButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetIdle);
 	if (SetFollowingButton) SetFollowingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetFollowing);
 	if (SetChopWoodButton) SetChopWoodButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetChopWood);
+	if (SetGatheringButton) SetGatheringButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetGathering);
 	if (CloseButton) CloseButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::CloseStateWidget);
 	if (OpenInventoryButton) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
 	if (SetMiningButton) SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
 	if (SetRepairingButton) SetRepairingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetRepairing);
 	if (SetDefendingButton) SetDefendingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetDefending);
-
+	if (ChangeNameButton) ChangeNameButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::ChangeNameButtonClicked);
+	if (BotNameEditBox) BotNameEditBox->OnTextCommitted.AddDynamic(this, &UHelperBotStateManagerWidget::OnNameEditCommitted);
+	if (PickUpButton) PickUpButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::PickUp);
+		
 	GetWorld()->GetTimerManager().SetTimer(DistanceCheckTimer, this, 
 		&UHelperBotStateManagerWidget::CheckPlayerDistance, 0.5f, true);
 
@@ -131,6 +149,12 @@ void UHelperBotStateManagerWidget::SetRepairing()
 	CloseWidgetAndResetInput();
 }
 
+void UHelperBotStateManagerWidget::SetGathering()
+{
+	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Gathering);
+	CloseWidgetAndResetInput();
+}
+
 void UHelperBotStateManagerWidget::SetDefending()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Defending);
@@ -204,4 +228,68 @@ void UHelperBotStateManagerWidget::UpdateLookAtPlayer()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(LookAtPlayerTimer);
 	}
+}
+
+void UHelperBotStateManagerWidget::ChangeNameButtonClicked()
+{
+	if (!HelperBot || !BotNameText || !BotNameEditBox || !ChangeNameButton) return;
+
+	if (!bIsEditingName)
+	{
+		bIsEditingName = true;
+		BotNameText->SetVisibility(ESlateVisibility::Collapsed);
+		BotNameEditBox->SetVisibility(ESlateVisibility::Visible);
+		BotNameEditBox->SetIsReadOnly(false);
+		BotNameEditBox->SetKeyboardFocus();
+	}
+	else
+	{
+		FString NewName = BotNameEditBox->GetText().ToString();
+		
+		if (NewName.Len() >= 2 && NewName.Len() <= 8)
+		{
+			HelperBot->SetBotName(NewName);
+			BotNameText->SetText(FText::FromString(NewName));
+			
+			bIsEditingName = false;
+			BotNameText->SetVisibility(ESlateVisibility::Visible);
+			BotNameEditBox->SetVisibility(ESlateVisibility::Collapsed);
+			BotNameEditBox->SetIsReadOnly(true);
+		}
+		else
+		{
+			BotNameEditBox->SetText(FText::FromString(HelperBot->GetBotName()));
+		}
+	}
+}
+
+void UHelperBotStateManagerWidget::OnNameEditCommitted(const FText& Text, ETextCommit::Type CommitMethod)
+{
+	if (CommitMethod == ETextCommit::OnEnter && bIsEditingName)
+	{
+		ChangeNameButtonClicked();
+	}
+}
+
+
+void UHelperBotStateManagerWidget::PickUp()
+{
+	if (OwnerAIController)
+	{
+		if (ABaseHelperBot* Bot = Cast<ABaseHelperBot>(OwnerAIController->GetPawn()))
+		{
+			if (APlayerCharacter* PC = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
+			{
+				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
+				{
+					FHelperPickUpData PickUpData;
+					PickUpData.BotName = Bot->GetBotName();
+					PickUpData.CurrentHealth = Bot->GetCurrentHealth();
+					InvComp->AddHelperBotItem(TEXT("HelperBot"), 1, PickUpData);
+				}
+			}
+			Bot->Destroy();
+		}
+	}
+	CloseWidgetAndResetInput();
 }

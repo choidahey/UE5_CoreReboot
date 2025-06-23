@@ -3,9 +3,11 @@
 #include "CR4S.h"
 #include "GameplayTagsManager.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/Data/InventorySaveData.h"
 #include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
+#include "Inventory/InventoryItem/HelperBotInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
@@ -75,12 +77,20 @@ FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32
 		return Result;
 	}
 
-	TSet<int32> ChangedItemSlots;
-	StackItemsAndFillEmptySlots(RowName, Count, Result, ChangedItemSlots, OriginItem);
+	StackItemsAndFillEmptySlots(RowName, Count, Result, Result.ChangedItemSlots, OriginItem);
 
-	NotifyInventoryItemsChanged(ChangedItemSlots.Array());
+	NotifyInventoryItemsChanged(Result.ChangedItemSlots.Array());
 
 	return Result;
+}
+
+FAddItemResult UBaseInventoryComponent::AddHelperBotItem(const FName RowName, const int32 Count,
+                                                         const FHelperPickUpData& HelperBotData)
+{
+	UHelperBotInventoryItem* HelperBotInventoryItem = NewObject<UHelperBotInventoryItem>(this);
+	HelperBotInventoryItem->SetHelperBotData(HelperBotData);
+
+	return AddItem(RowName, Count, HelperBotInventoryItem);
 }
 
 void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
@@ -125,6 +135,11 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 		if (SameInventoryItem->GetCurrentStackCount() < ItemData->MaxStackCount)
 		{
+			if (CheckRottenItem(OriginItem, SameInventoryItem))
+			{
+				continue;
+			}
+			
 			const int32 SameInventoryItemCount = SameInventoryItem->GetCurrentStackCount();
 			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItemCount;
 			const int32 ActualAddCount = FMath::Min(CanAddCount, RemainingCount);
@@ -135,17 +150,7 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 			ChangedItemSlots.Add(Index);
 
-			//////////////////// ConsumableInventoryItem
-			const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
-			if (IsValid(OriginConsumableItem))
-			{
-				UConsumableInventoryItem* CurrentItem = Cast<UConsumableInventoryItem>(SameInventoryItem);
-				if (IsValid(CurrentItem))
-				{
-					CurrentItem->AveragingFreshness(OriginConsumableItem->GetRemainingFreshnessTime());
-				}
-			}
-			////////////////////
+			PostStackItems(OriginItem, SameInventoryItem);
 		}
 	}
 
@@ -183,21 +188,59 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 			ChangedItemSlots.Add(Index);
 
-			//////////////////// ConsumableInventoryItem
-			const UConsumableInventoryItem* OriginConsumableItem = Cast<UConsumableInventoryItem>(OriginItem);
-			if (IsValid(OriginConsumableItem))
-			{
-				UConsumableInventoryItem* CurrentItem = Cast<UConsumableInventoryItem>(EmptyInventoryItem);
-				if (IsValid(CurrentItem))
-				{
-					CurrentItem->UpdateFreshnessInfo(OriginConsumableItem->GetFreshnessInfo());
-				}
-			}
-			////////////////////
+			PostFillEmptySlots(OriginItem, EmptyInventoryItem);
 		}
 	}
 
 	Result.RemainingCount = RemainingCount;
+}
+
+void UBaseInventoryComponent::PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	if (IsValid(OriginItem))
+	{
+		if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+		{
+			AveragingFreshness(OriginItem, TargetItem);
+		}
+		else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
+		{
+			SetHelperBotPickUpDate(OriginItem, TargetItem);
+		}
+	}
+}
+
+void UBaseInventoryComponent::PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	if (IsValid(OriginItem))
+	{
+		if (OriginItem->IsA(UConsumableInventoryItem::StaticClass()))
+		{
+			UpdateFreshness(OriginItem, TargetItem);
+		}
+		else if (OriginItem->IsA(UHelperBotInventoryItem::StaticClass()))
+		{
+			SetHelperBotPickUpDate(OriginItem, TargetItem);
+		}
+	}
+}
+
+bool UBaseInventoryComponent::CheckRottenItem(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	if (TargetItem && !TargetItem->IsA(UConsumableInventoryItem::StaticClass()))
+	{
+		return false;
+	}
+	
+	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	const UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
+	
+	if (IsValid(OriginConsumableInventoryItem) && OriginConsumableInventoryItem->IsRotten())
+	{
+		return !TargetConsumableInventoryItem->IsRotten();
+	}
+
+	return TargetConsumableInventoryItem->IsRotten();
 }
 
 UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplayTagContainer& ItemTags)
@@ -208,10 +251,16 @@ UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplay
 		return NewObject<UToolInventoryItem>(this);
 	}
 
-	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.Crops"));
+	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.Consumable"));
 	if (ItemTags.HasTag(ItemTag))
 	{
 		return NewObject<UConsumableInventoryItem>(this);
+	}
+
+	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.HelperBot"));
+	if (ItemTags.HasTag(ItemTag))
+	{
+		return NewObject<UHelperBotInventoryItem>(this);
 	}
 
 	return NewObject<UBaseInventoryItem>(this);
@@ -225,6 +274,50 @@ bool UBaseInventoryComponent::IsItemAllowedByFilter(const FGameplayTagContainer&
 	}
 
 	return FilterData->IsAllowedItem(ItemTags);
+}
+
+FInventorySaveData UBaseInventoryComponent::GetInventorySaveData()
+{
+	FInventorySaveData SaveData = FInventorySaveData();
+	for (UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (IsValid(Item))
+		{
+			FInventoryItemSaveData ItemData = Item->GetInventoryItemSaveData();
+			SaveData.ItemSaveData.Add(ItemData);
+		}
+	}
+
+	return SaveData;
+}
+
+void UBaseInventoryComponent::LoadInventorySaveData(const FInventorySaveData& SaveData)
+{
+	ClearInventoryItems();
+	
+	TArray<FInventoryItemSaveData> ItemSaveData = SaveData.ItemSaveData;
+	for (const FInventoryItemSaveData& SaveItemData : ItemSaveData)
+	{
+		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
+		Item->LoadInventoryItemSaveData(SaveItemData);
+		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
+		InventoryItems[Index] = Item;
+
+		NotifyInventoryItemChanged(Index);
+	}
+}
+
+void UBaseInventoryComponent::ClearInventoryItems()
+{
+	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
+	{
+		if (IsValid(InventoryItems[Index]))
+		{
+			NotifyInventoryItemChanged(Index);
+		}
+	}
+
+	InventoryItems.Init(nullptr, MaxInventorySize);
 }
 
 int32 UBaseInventoryComponent::GetUseSlotCount()
@@ -266,7 +359,7 @@ void UBaseInventoryComponent::GetSameItemSlotsAndEmptySlots(const FName& InRowNa
 
 UBaseInventoryItem* UBaseInventoryComponent::GetInventoryItemByIndex(const int32 Index) const
 {
-	return CR4S_VALIDATE(LogInventory, InventoryItems.IsValidIndex(Index)) ? InventoryItems[Index] : nullptr;
+	return InventoryItems.IsValidIndex(Index)? InventoryItems[Index] : nullptr;
 }
 
 int32 UBaseInventoryComponent::GetItemCountByRowName(const FName RowName) const
@@ -330,6 +423,12 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 	UBaseInventoryItem* ToItem = InventoryItems[ToItemIndex];
 	UBaseInventoryItem* FromItem = FromInventoryComponent->InventoryItems[FromItemIndex];
 
+	if (CheckRottenItem(FromItem, ToItem))
+	{
+		SwapItem(FromInventoryComponent, FromItemIndex, ToItemIndex);
+		return;
+	}
+	
 	const int32 ToItemCount = ToItem->GetCurrentStackCount();
 	const int32 MaxStackCount = ToItem->GetMaxStackCount();
 	if (ToItemCount < MaxStackCount)
@@ -340,29 +439,55 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 		ToItem->SetCurrentStackCount(ToItemCount + ActualAddCount);
 		FromItem->SetCurrentStackCount(FromItem->GetCurrentStackCount() - ActualAddCount);
 
+		AveragingFreshness(FromItem, ToItem);
+
 		if (FromItem->IsEmpty())
 		{
-			FromItem = nullptr;
+			FromInventoryComponent->InventoryItems[FromItemIndex] = nullptr;
 		}
-
-		AveragingFreshness(FromItem, ToItem);
 	}
 
 	NotifyInventoryItemChanged(ToItemIndex);
 	FromInventoryComponent->NotifyInventoryItemChanged(FromItemIndex);
 }
 
-void UBaseInventoryComponent::AveragingFreshness(UBaseInventoryItem* FromItem, UBaseInventoryItem* ToItem)
+void UBaseInventoryComponent::AveragingFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
 {
-	UConsumableInventoryItem* FromConsumableInventoryItem = Cast<UConsumableInventoryItem>(FromItem);
-	const UConsumableInventoryItem* ToConsumableInventoryItem = Cast<UConsumableInventoryItem>(ToItem);
-	if (!IsValid(FromConsumableInventoryItem) ||
-		!IsValid(ToConsumableInventoryItem))
+	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
+	if (!IsValid(OriginConsumableInventoryItem) ||
+		!IsValid(TargetConsumableInventoryItem))
 	{
 		return;
 	}
 
-	FromConsumableInventoryItem->AveragingFreshness(ToConsumableInventoryItem->GetRemainingFreshnessTime());
+	TargetConsumableInventoryItem->AveragingFreshness(OriginConsumableInventoryItem->GetRemainingFreshnessTime());
+}
+
+void UBaseInventoryComponent::UpdateFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
+	if (!IsValid(OriginConsumableInventoryItem) ||
+		!IsValid(TargetConsumableInventoryItem))
+	{
+		return;
+	}
+
+	TargetConsumableInventoryItem->UpdateFreshnessInfo(OriginConsumableInventoryItem->GetFreshnessInfo());
+}
+
+void UBaseInventoryComponent::SetHelperBotPickUpDate(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	UHelperBotInventoryItem* OriginHelperBotInventoryItem = Cast<UHelperBotInventoryItem>(OriginItem);
+	UHelperBotInventoryItem* TargetHelperBotInventoryItem = Cast<UHelperBotInventoryItem>(TargetItem);
+	if (!IsValid(OriginHelperBotInventoryItem) ||
+		!IsValid(TargetHelperBotInventoryItem))
+	{
+		return;
+	}
+
+	TargetHelperBotInventoryItem->SetHelperBotData(OriginHelperBotInventoryItem->GetHelperBotData());
 }
 
 void UBaseInventoryComponent::SetInventoryItems(const TArray<UBaseInventoryItem*>& NewInventoryItems)
@@ -471,7 +596,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 
 	TSet<int32> ChangedItemSlots;
 	ChangedItemSlots.Reserve(MaxInventorySize);
-	
+
 	TMap<FName, TArray<UBaseInventoryItem*>> BeforeInventoryItems;
 	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
 	{
@@ -488,7 +613,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 
 		ChangedItemSlots.Add(Index);
 	}
-	
+
 	for (const FName& RowName : ItemGimmickSubsystem->GetItemDataRowNames())
 	{
 		TArray<UBaseInventoryItem*>* Items = BeforeInventoryItems.Find(RowName);
@@ -496,7 +621,7 @@ void UBaseInventoryComponent::SortInventoryItems()
 		{
 			continue;
 		}
-		
+
 		for (UBaseInventoryItem* Item : *Items)
 		{
 			if (IsValid(Item))

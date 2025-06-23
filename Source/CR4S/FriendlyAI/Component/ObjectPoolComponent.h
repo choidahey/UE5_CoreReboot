@@ -8,7 +8,10 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UObjectPoolComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
+	
+protected:
+	virtual void BeginPlay() override;
+	
 public:
 	UObjectPoolComponent();
 
@@ -24,11 +27,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void OnReturnToPool();
 
+	UFUNCTION(BlueprintCallable)
+	void ReturnToPoolAfter(float DelaySeconds);
+
 	void SetIsBeingInitialized(bool bInitializing) { bIsBeingInitialized = bInitializing; }
 
-protected:
-	virtual void BeginPlay() override;
+	void HandleReturnToPool();
 
 private:
 	bool bIsBeingInitialized = false;
+	
+	FTimerHandle ReturnTimerHandle;
 };
