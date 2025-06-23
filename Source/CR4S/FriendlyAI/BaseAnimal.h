@@ -179,11 +179,11 @@ public:
 	virtual void PerformChargeAttack();
 	virtual void PerformRangedAttack();
 	
-	float PlayAttackMontage();
-	float PlayChargeAttackMontage();
-	float PlayRangedAttackMontage();
+	virtual float PlayAttackMontage();
+	virtual float PlayChargeAttackMontage();
+	virtual float PlayRangedAttackMontage();
 
-	void ResetAttackFlag() { bIsAttacking = false; }
+	virtual void ResetAttackFlag() { bIsAttacking = false; }
 	void ResetMeleeAttack() { bIsMeleeOnCooldown = false; }
 	void ResetChargeAttack() { bIsChargeOnCooldown = false; }
 	void ResetRangedAttack() { bIsRangedOnCooldown = false; }

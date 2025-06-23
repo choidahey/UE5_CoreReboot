@@ -18,6 +18,7 @@
 #include "../Character/Characters/PlayerCharacter.h"
 #include "NavigationInvokerComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
+#include "Gimmick/Components/InteractableComponent.h"
 
 ABaseAnimal::ABaseAnimal()
 {
@@ -640,7 +641,7 @@ void ABaseAnimal::PerformRangedAttack()
 
 #pragma region Pade Out Effect
 void ABaseAnimal::StartFadeOut()
-{
+{    
     if (UMaterialInstanceDynamic* DynMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0))
     {
         DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
@@ -654,8 +655,13 @@ void ABaseAnimal::UpdateFade(UMaterialInstanceDynamic* DynMat)
     ElapsedFadeTime += 0.02f;
     float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
     DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+    
     if (ElapsedFadeTime >= 2.0f)
     {
+        if (USkeletalMeshComponent* MeshComp = GetMesh())
+        {
+            MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+        }
         GetWorldTimerManager().ClearTimer(FadeTimerHandle);
     }
 }
