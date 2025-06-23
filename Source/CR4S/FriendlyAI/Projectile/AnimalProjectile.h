@@ -24,6 +24,9 @@ protected:
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* MeshComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* RootSceneComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovement;

@@ -33,16 +33,6 @@ void AItemPouchGimmick::BeginPlay()
 	{
 		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
-
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (IsValid(PlayerController))
-	{
-		APawn* PlayerPawn = PlayerController->GetPawn();
-		if (IsValid(PlayerController->GetPawn()))
-		{
-			PlayerInventoryComponent = PlayerPawn->FindComponentByClass<UPlayerInventoryComponent>();
-		}
-	}
 }
 
 void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
@@ -51,6 +41,11 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 		!CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)))
 	{
 		return;
+	}
+
+	if (IsValid(Interactor))
+	{
+		PlayerInventoryComponent = Interactor->FindComponentByClass<UPlayerInventoryComponent>();
 	}
 
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(PlayerInventoryComponent)))

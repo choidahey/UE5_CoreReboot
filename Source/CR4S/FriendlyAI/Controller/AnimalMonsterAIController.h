@@ -109,4 +109,6 @@ public:
 	bool CheckPathToTarget(AActor* Target) { return CanReachTarget(Target);	}
 
 	void CheckDistanceAndUpdateState();
+
+	void OnDied();
 };

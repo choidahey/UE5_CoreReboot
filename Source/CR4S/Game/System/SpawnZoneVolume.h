@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Game/System/SeasonManager.h"
 #include "SpawnZoneVolume.generated.h"
 
 class USceneComponent;
@@ -34,6 +35,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 #pragma endregion
 
@@ -48,8 +50,14 @@ public:
     UPROPERTY(VisibleAnywhere)
     USplineComponent* SplineComponent;
 
-    UPROPERTY(EditAnywhere, Category = "Spawn")
-    TArray<FSpawnClassInfo> ActorClasses;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> BountifulSeasonSpawns;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> FrostSeasonSpawns;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> RainySeasonSpawns;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> DrySeasonSpawns;
 
     UPROPERTY(EditAnywhere) //Used in Fallback
     float SpawnHeight = 100.f;
@@ -64,6 +72,8 @@ public:
 
     TArray<FVector2D> GetPolygonFromSpline() const;
 
+
+
 #if WITH_EDITOR
     void DrawDebugLines();
 #endif
@@ -73,6 +83,8 @@ public:
 #pragma region Spawn, Despawn and Respawn
 
 public:
+    void SetZoneActive(bool bNewActive);
+
     void SpawnActorsInZone();
     void DespawnActorsInZone();
 
@@ -81,6 +93,10 @@ protected:
     void HandleActorDeath(AActor* Actor);
     UFUNCTION()
     void RespawnActor(TSubclassOf<AActor> ActorClass);
+    UFUNCTION()
+    void OnSeasonChanged(ESeasonType Season);
+
+    void UpdateSeasonSpawns(ESeasonType Season);
 
     AActor* SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass, const FVector& Location);
     bool TryGetGroundSpawnLocation(const FVector2D& Point2D, FVector& OutLocation) const;
@@ -89,6 +105,7 @@ protected:
     TArray<TWeakObjectPtr<AActor>> SpawnedActors;
 
 	USpawnZoneManager* SpawnZoneManager = nullptr;
+    const TArray<FSpawnClassInfo>* SeasonSpawns = nullptr;
 
 private:
     bool bIsZoneActive = false;

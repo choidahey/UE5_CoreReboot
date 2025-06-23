@@ -2,50 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "BaseInventoryItem.h"
+#include "Inventory/Data/ConsumableInventoryItemData.h"
 #include "ConsumableInventoryItem.generated.h"
 
 class UWorldTimeManager;
-
-USTRUCT(BlueprintType)
-struct FFreshnessInfo
-{
-	GENERATED_BODY()
-	;
-
-	float ShelfLifeSeconds = 100.f;
-	float RemainingFreshnessTime = 100.f;
-	float DecayRateMultiplier = 1.0f;
-	int64 PreviousDecayPlayTime = -1;
-
-	bool ShouldDecay() const
-	{
-		return ShelfLifeSeconds > 0.f;
-	}
-
-	float GetFreshnessPercent() const
-	{
-		return ShelfLifeSeconds > 0.f ? FMath::Clamp(RemainingFreshnessTime / ShelfLifeSeconds, 0.f, 1.f) : 1.f;
-	}
-};
-
-UENUM()
-enum class EResistanceBuffType : uint8
-{
-	Heat UMETA(DisplayName = "더위"),
-	Humidity UMETA(DisplayName = "습기"),
-	Cold UMETA(DisplayName = "추위")
-};
-
-USTRUCT()
-struct FResistanceEffect
-{
-	GENERATED_BODY()
-
-	float Duration = 0.f;
-	float Elapsed = 0.f;
-	int32 ResistanceValue = 0;
-	int64 PrevPlayTime = -1;
-};
 
 UCLASS()
 class CR4S_API UConsumableInventoryItem : public UBaseInventoryItem
@@ -70,6 +30,7 @@ public:
 #pragma region Freshness
 
 public:
+	FORCEINLINE bool IsRotten() const { return FreshnessInfo.bIsRotten; }
 	FORCEINLINE const FFreshnessInfo& GetFreshnessInfo() const { return FreshnessInfo; }
 
 	FORCEINLINE float GetRemainingFreshnessTime() const
@@ -84,6 +45,7 @@ public:
 
 	FORCEINLINE void UpdateFreshnessInfo(const FFreshnessInfo& NewFreshnessInfo)
 	{
+		FreshnessInfo.bIsRotten = NewFreshnessInfo.bIsRotten;
 		FreshnessInfo.RemainingFreshnessTime = NewFreshnessInfo.RemainingFreshnessTime;
 		FreshnessInfo.PreviousDecayPlayTime = NewFreshnessInfo.PreviousDecayPlayTime;
 	}
@@ -107,7 +69,7 @@ private:
 
 	FFreshnessInfo FreshnessInfo;
 
-	bool bIsRotten;
+	
 	FText FreshnessText;
 	FText DefaultDescription;
 	FText RottenDescription;
@@ -140,6 +102,14 @@ public:
 private:
 	FConsumableItemData ConsumableItemData;
 
+#pragma endregion
+
+#pragma region Save & Load
+
+public:
+	virtual FInventoryItemSaveData GetInventoryItemSaveData() override;
+	virtual void LoadInventoryItemSaveData(const FInventoryItemSaveData& SaveData) override;
+	
 #pragma endregion
 
 #pragma region Delegate

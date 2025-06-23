@@ -18,6 +18,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UFUNCTION(BlueprintCallable)
+	void FireProjectile();
+	
+public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AAnimalProjectile> ProjectileClass;
 
@@ -27,6 +31,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float ProjectileLifetime = 0.f;
 
-	UFUNCTION(BlueprintCallable)
-	void FireProjectile();
+	UPROPERTY(EditAnywhere)
+	float MaxYawAngle = 60.f;
+	
+	UPROPERTY(EditAnywhere)
+	float MaxPitchAngle = 60.f;
 };
