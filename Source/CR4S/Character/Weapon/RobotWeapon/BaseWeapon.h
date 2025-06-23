@@ -24,7 +24,7 @@ public:
 
 	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
 	
-	virtual void Initialize(AModularRobot* OwnerCharacter);
+	virtual void Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx);
 #pragma region Attack
 public:
 	virtual float ComputeFinalDamage() override;
@@ -59,7 +59,7 @@ protected:
 
 #pragma region Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComp;
+	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> SceneComp;
 #pragma endregion
