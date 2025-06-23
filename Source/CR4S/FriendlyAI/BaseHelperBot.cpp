@@ -110,16 +110,12 @@ void ABaseHelperBot::LoadStats()
 				JumpComp->UpdateOwnerStats();
 			}
 
-			if (bIsFromInventory)
-			{
-				CurrentHealth = PickUpData.CurrentHealth;
-				InteractableComp->SetInteractionText(FText::FromString(PickUpData.BotName));
-			}
-			else
+			if (!bIsFromInventory)
 			{
 				CurrentHealth = CurrentStats.MaxHealth;
 				InteractableComp->SetInteractionText(FText::FromString(BotName));
 			}
+
 		});
 	}
 }
@@ -423,6 +419,21 @@ void ABaseHelperBot::SetBotName(const FString& NewName)
 	{
 		BotName = NewName;
 		
+		if (InteractableComp)
+		{
+			InteractableComp->SetInteractionText(FText::FromString(BotName));
+		}
+	}
+}
+
+void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
+{ 
+	PickUpData = InPickUpData;
+	
+	if (bIsFromInventory)
+	{
+		CurrentHealth = PickUpData.CurrentHealth;
+		BotName = PickUpData.BotName;
 		if (InteractableComp)
 		{
 			InteractableComp->SetInteractionText(FText::FromString(BotName));

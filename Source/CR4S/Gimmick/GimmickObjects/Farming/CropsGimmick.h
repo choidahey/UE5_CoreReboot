@@ -65,7 +65,7 @@ private:
 
 public:
 	FORCEINLINE float GetCurrentGrowthPercent() const { return CurrentGrowthPercent; }
-
+	FORCEINLINE bool GetIsHarvestable() const { return bIsHarvestable; }
 private:
 	UFUNCTION()
 	void Grow(int64 PlayTime);

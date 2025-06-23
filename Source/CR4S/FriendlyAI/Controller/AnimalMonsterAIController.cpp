@@ -333,7 +333,8 @@ void AAnimalMonsterAIController::SwitchToTarget(AActor* NewTarget)
 
 void AAnimalMonsterAIController::CheckDistanceAndUpdateState()
 {
-    if (!IsValid(ControlledMonster) || !IsValid(ControlledMonster->CurrentTarget)) return;
+    if (!IsValid(ControlledMonster) || !IsValid(ControlledMonster->CurrentTarget) || 
+        ControlledMonster->CurrentState == EAnimalState::Dead) return;
 
     float DistanceToTarget = FVector::Dist(ControlledMonster->GetActorLocation(), 
                                           ControlledMonster->CurrentTarget->GetActorLocation());
@@ -350,4 +351,9 @@ void AAnimalMonsterAIController::CheckDistanceAndUpdateState()
     {
         SetMonsterState(EAnimalState::Chase);
     }
+}
+
+void AAnimalMonsterAIController::OnDied()
+{
+    SetMonsterState(EAnimalState::Dead);
 }
