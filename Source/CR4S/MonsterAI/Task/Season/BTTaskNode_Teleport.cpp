@@ -1,5 +1,6 @@
 #include "BTTaskNode_Teleport.h"
 #include "AIController.h"
+#include "CR4S.h"
 #include "NiagaraComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -60,7 +61,7 @@ EBTNodeResult::Type UBTTaskNode_Teleport::ExecuteTask(
     {
         CachedMeshComp->SetVisibility(false, true);
     }
-    
+
     if (UCapsuleComponent* CapsuleComp = CachedPawn->FindComponentByClass<UCapsuleComponent>())
         CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
     
@@ -98,11 +99,16 @@ EBTNodeResult::Type UBTTaskNode_Teleport::ExecuteTask(
     {
         PathFollowComp->OnRequestFinished.RemoveAll(this);
         
-        // MoveToLocation 결과 확인
         EPathFollowingRequestResult::Type MoveResult = AIC->MoveToLocation(Dest, AcceptanceRadius, false);
+        
         if (MoveResult == EPathFollowingRequestResult::Failed)
         {
             return EBTNodeResult::Failed;
+        }
+        else if (MoveResult == EPathFollowingRequestResult::AlreadyAtGoal)
+        {
+            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+            return EBTNodeResult::Succeeded;
         }
         
         TeleportRequestID = PathFollowComp->GetCurrentRequestId();
@@ -165,7 +171,7 @@ EBTNodeResult::Type UBTTaskNode_Teleport::AbortTask(
 
 void UBTTaskNode_Teleport::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
-    if (RequestID != TeleportRequestID) return;
+    if (!IsValid(CachedOwnerComp)) return;
     
     if (IsValid(CachedPawn))
     {
@@ -178,7 +184,8 @@ void UBTTaskNode_Teleport::OnMoveCompleted(FAIRequestID RequestID, const FPathFo
         if (UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(CachedPawn->GetMovementComponent()))
         {
             MoveComp->StopMovementImmediately();
-            MoveComp->SetMovementMode(OriginalMovementMode);
+            MoveComp->SetMovementMode(MOVE_Walking);
+            
             if (OriginalMovementMode == MOVE_Walking)
                 MoveComp->MaxWalkSpeed = OriginalMaxSpeed;
             else
@@ -205,8 +212,5 @@ void UBTTaskNode_Teleport::OnMoveCompleted(FAIRequestID RequestID, const FPathFo
         BodyEffectComp = nullptr;
     }
     
-    if (IsValid(CachedOwnerComp))
-    {
-        FinishLatentTask(*CachedOwnerComp.Get(), EBTNodeResult::Succeeded);
-    }
+    FinishLatentTask(*CachedOwnerComp.Get(), EBTNodeResult::Succeeded);
 }
