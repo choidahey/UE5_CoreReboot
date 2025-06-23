@@ -85,6 +85,8 @@ namespace CoreTags
 
 namespace LegTags
 {
+	UE_DEFINE_GAMEPLAY_TAG(Quadrupedal, FName(TEXT("RobotParts.Leg.Quadrupedal")));
+	
 	UE_DEFINE_GAMEPLAY_TAG(BipedalLight, FName(TEXT("RobotParts.Leg.Bipedal.Light")));
 	UE_DEFINE_GAMEPLAY_TAG(QuadrupedalLight, FName(TEXT("RobotParts.Leg.Quadrupedal.Light")));
 	UE_DEFINE_GAMEPLAY_TAG(ReverseBipedalLight, FName(TEXT("RobotParts.Leg.ReverseBipedal.Light")));

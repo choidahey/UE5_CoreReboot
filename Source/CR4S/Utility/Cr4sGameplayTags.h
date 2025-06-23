@@ -85,6 +85,8 @@ namespace CoreTags
 
 namespace LegTags
 {
+	CR4S_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Quadrupedal);
+	
 	CR4S_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(BipedalLight);
 	CR4S_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(QuadrupedalLight);
 	CR4S_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ReverseBipedalLight);
