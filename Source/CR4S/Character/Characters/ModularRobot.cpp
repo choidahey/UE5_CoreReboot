@@ -17,6 +17,7 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Character/Components/RobotInputBufferComponent.h"
+#include "Character/Data/RobotPartsData.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -95,6 +96,107 @@ AModularRobot::AModularRobot()
 	EnvironmentalStatus=CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 }
 
+void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
+{
+	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+
+	const bool bSucceed = Loader->LoadCorePartsDataByTag(Tag, CoreInfo);
+	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
+
+	Status->AddAttackPower(CoreInfo.AttackPower);
+	Status->AddArmorMultiplier(CoreInfo.ArmorMultiplier);
+	Status->AddHeatThreshold(CoreInfo.AdditiveTemperatureThreshold);
+	Status->AddColdThreshold(-(CoreInfo.AdditiveTemperatureThreshold));
+	Status->AddHumidityThreshold(CoreInfo.AdditiveHumidityThreshold);
+	Status->AddMaxResource(CoreInfo.MaxResource);
+	Status->AddCurrentResource(CoreInfo.MaxResource);
+	Status->SetEnergyConsumption(CoreInfo.EnergyConsumptionAmount);
+	Status->AddMaxStun(CoreInfo.MaxStun);
+}
+
+void AModularRobot::EquipBodyParts(const FGameplayTag& Tag)
+{
+	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+	
+	const bool bSucceed = Loader->LoadBodyPartsDataByTag(Tag, BodyInfo);
+	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
+
+	if (!CR4S_ENSURE(LogHong1,BodyInfo.SkeletalMesh)) return;
+	GetMesh()->SetSkeletalMesh(BodyInfo.SkeletalMesh);
+
+	Status->AddMaxHP(BodyInfo.MaxHealth);
+	Status->AddCurrentHP(BodyInfo.MaxHealth);
+	Status->AddArmor(BodyInfo.Armor);
+	Status->AddMaxStun(BodyInfo.MaxStun);
+	Status->AddWeight(BodyInfo.Weight);
+	Status->ApplyEnergyEfficiency(BodyInfo.EnergyEfficiency);
+	Status->ApplyResourceRegenModifier(BodyInfo.ResourceRegenModifier);
+	Status->SetResourceRegenDelay(BodyInfo.ResourceRegenDelay);
+	Status->ApplyResourceConsumptionModifier(BodyInfo.ResourceConsumptionModifier);
+}
+
+void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
+{
+	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+
+	const bool bSucceed = Loader->LoadArmPartsDataByTag(Tag, ArmInfo);
+	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
+
+	if (!CR4S_ENSURE(LogHong1,ArmInfo.SkeletalMesh)) return;
+	ArmMesh->SetSkeletalMesh(ArmInfo.SkeletalMesh);
+
+	Status->AddMaxHP(ArmInfo.MaxHealth);
+	Status->AddCurrentHP(ArmInfo.MaxHealth);
+	Status->AddArmor(ArmInfo.Armor);
+	Status->AddWeight(ArmInfo.Weight);
+	Status->ApplyRecoilModifier(ArmInfo.RecoilModifier);
+	Status->ApplyMeleeDamamgeModifier(ArmInfo.MeleeDamageModifier);
+}
+
+void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
+{
+	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+
+	const bool bSucceed = Loader->LoadLegPartsDataByTag(Tag, LegInfo);
+	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
+
+	if (!CR4S_ENSURE(LogHong1,LegInfo.SkeletalMesh)) return;
+	LegMesh->SetSkeletalMesh(LegInfo.SkeletalMesh);
+
+	if (!CR4S_ENSURE(LogHong1,LegInfo.AnimInstance)) return;
+	LegMesh->SetAnimInstanceClass(LegInfo.AnimInstance);
+
+	const bool bIsQuadrupedal=Tag.MatchesTag(LegTags::Quadrupedal);
+	SetLegManagerEnabled(bIsQuadrupedal);
+
+	Status->AddMaxHP(LegInfo.MaxHealth);
+	Status->AddCurrentHP(LegInfo.MaxHealth);
+	Status->AddArmor(LegInfo.Armor);
+	Status->AddMaxStun(LegInfo.MaxStun);
+	Status->AddMaxWeight(LegInfo.MaxTotalWeight);
+	Status->AddWeight(LegInfo.Weight);
+	RobotSettings.MaxWalkSpeed=LegInfo.MaxWalkSpeed;
+	RobotSettings.DashStrength=LegInfo.DashStrength;
+	GetCharacterMovement()->SetWalkableFloorAngle(LegInfo.MaxSlopeAngle);
+	Status->ApplyEnergyEfficiency(LegInfo.EnergyEfficiency);
+}
+
+void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
+{
+	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return;
+
+	const bool bSuccessed = Loader->LoadBoosterPartsDataByTag(Tag, BoosterInfo);
+	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
+	
+	RobotSettings.DashCooldown=BoosterInfo.DashCooldown;
+	Status->SetRollStaminaCost(BoosterInfo.DashResourceCost);
+}
+
 void AModularRobot::TakeStun_Implementation(const float StunAmount)
 {
 	 Status->AddStun(StunAmount);
@@ -136,12 +238,20 @@ void AModularRobot::OnDeath()
 	);
 }
 
-void AModularRobot::LoadDataFromDataLoader()
+UDataLoaderSubsystem* AModularRobot::GetDataLoaderSubsystem() const
 {
 	UGameInstance* GI=GetGameInstance();
-	if (!CR4S_ENSURE(LogHong1,GI)) return;
+	if (!CR4S_ENSURE(LogHong1,GI)) return nullptr;
 	
 	UDataLoaderSubsystem* Loader=GI->GetSubsystem<UDataLoaderSubsystem>();
+	if (!CR4S_ENSURE(LogHong1,Loader)) return nullptr;
+
+	return Loader;
+}
+
+void AModularRobot::LoadDataFromDataLoader()
+{
+	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
 	Loader->LoadRobotSettingsData(RobotSettings);

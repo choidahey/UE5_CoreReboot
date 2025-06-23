@@ -32,6 +32,18 @@ void UBaseStatusComponent::BeginPlay()
 }
 
 
+void UBaseStatusComponent::SetRollStaminaCost(const float NewCost)
+{
+	OriginalRollStaminaCost = BaseStatus.RollStaminaCost;
+	BaseStatus.RollStaminaCost=NewCost;
+}
+
+void UBaseStatusComponent::SetResourceRegenDelay(const float NewDelay)
+{
+	OriginalResourceRegenDelay = BaseStatus.ResourceRegenDelay;
+	BaseStatus.ResourceRegenDelay=NewDelay;
+}
+
 void UBaseStatusComponent::AddMaxHP(const float InAmount)
 {
 	BaseStatus.MaxHealth+=InAmount;
@@ -96,6 +108,26 @@ void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 {
 	BaseStatus.HumidityThreshold+=InAmount;
 	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
+}
+
+void UBaseStatusComponent::ApplyResourceRegenModifier(const float Modifier)
+{
+	BaseStatus.ResourceRegenMultiplier*=Modifier;
+}
+
+void UBaseStatusComponent::RevertRegenModifier(const float Modifier)
+{
+	BaseStatus.ResourceRegenMultiplier/=Modifier;
+}
+
+void UBaseStatusComponent::ApplyResourceConsumptionModifier(const float Modifier)
+{
+	BaseStatus.ResourceConsumptionMultiplier*=Modifier;
+}
+
+void UBaseStatusComponent::RevertResourceConsumptionModifier(const float Modifier)
+{
+	BaseStatus.ResourceConsumptionMultiplier/=Modifier;
 }
 
 bool UBaseStatusComponent::HasEnoughResourceForRoll() const

@@ -26,7 +26,7 @@ public:
 	virtual void Refresh() override;
 #pragma endregion
 	
-#pragma region Get
+#pragma region Get & Set
 	FORCEINLINE float GetMaxEnergy() const { return RobotStatus.MaxEnergy; }
 	FORCEINLINE float GetCurrentEnergy() const { return RobotStatus.Energy; }
 	FORCEINLINE float GetEnergyConsumptionRate() const { return RobotStatus.EnergyConsumptionAmount; }
@@ -40,6 +40,8 @@ public:
 
 	FORCEINLINE float GetMaxWeight() const { return RobotStatus.MaxWeight; }
 	FORCEINLINE float GetCurrentWeight() const { return RobotStatus.Weight; }
+
+	FORCEINLINE void SetEnergyConsumption(const float NewAmount) { RobotStatus.EnergyConsumptionAmount = NewAmount; }
 #pragma endregion
 
 #pragma region Add
@@ -57,6 +59,17 @@ public:
 
 	void AddMaxWeight(const float InAmount);
 	void AddWeight(const float InAmount);
+#pragma endregion
+
+#pragma region Modifier
+	void ApplyEnergyEfficiency(const float Modifier);
+	void RevertEnergyEfficiency(const float Modifier);
+
+	void ApplyRecoilModifier(const float Modifier);
+	void RevertRecoilModifier(const float Modifier);
+
+	void ApplyMeleeDamamgeModifier(const float Modifier);
+	void RevertMeleeDamamgeModifier(const float Modifier);
 #pragma endregion
 	
 #pragma region Hover
@@ -89,7 +102,7 @@ public:
 	void ConsumeEnergyForInterval();
 #pragma endregion
 
-#pragma region Temperatur
+#pragma region Temperature
 	virtual void ApplyHeatDebuff() override;
 	virtual void RemoveHeatDebuff() override;
 

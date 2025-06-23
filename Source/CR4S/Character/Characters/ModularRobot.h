@@ -4,11 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
+#include "Character/Data/RobotPartsData.h"
 #include "Character/Data/RobotSettings.h"
 #include "GameFramework/Character.h"
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class UDataLoaderSubsystem;
+struct FGameplayTag;
 class URobotInventoryComponent;
 class URobotInputBufferComponent;
 class UInputBufferComponent;
@@ -33,6 +36,17 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
+#pragma region PartsEquip
+	void EquipCoreParts(const FGameplayTag& Tag);
+	void EquipBodyParts(const FGameplayTag& Tag);
+	void EquipArmParts(const FGameplayTag& Tag);
+	void EquipLegParts(const FGameplayTag& Tag);
+	void EquipBoosterParts(const FGameplayTag& Tag);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetLegManagerEnabled(const bool bIsEnabled);
+#pragma endregion
+	
 #pragma region Stun
 	virtual void TakeStun_Implementation(const float StunAmount) override;
 	void SetInputEnable(const bool bEnableInput);
@@ -48,6 +62,7 @@ public:
 #pragma endregion
 	
 #pragma region Load Data
+	UDataLoaderSubsystem* GetDataLoaderSubsystem() const;
 	void LoadDataFromDataLoader();
 #pragma endregion
 	
@@ -168,6 +183,18 @@ protected:
 	TObjectPtr<APlayerCharacter> MountedCharacter;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FTimerHandle DashCooldownTimerHandle;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FCorePartsInfo CoreInfo;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FBodyPartsInfo BodyInfo;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FArmPartsInfo ArmInfo;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FLegPartsInfo LegInfo;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FBoosterPartsInfo BoosterInfo;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsDashing:1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

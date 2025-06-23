@@ -71,7 +71,7 @@ void UModularRobotStatusComponent::StopConsumeEnergy()
 
 void UModularRobotStatusComponent::ConsumeEnergyForInterval()
 {
-	AddEnergy(-RobotStatus.EnergyConsumptionAmount);
+	AddEnergy(-(RobotStatus.EnergyConsumptionAmount*RobotStatus.EnergyEfficiency));
 
 	if (RobotStatus.Energy<=KINDA_SMALL_NUMBER&&bIsRobotActive)
 	{
@@ -197,6 +197,36 @@ void UModularRobotStatusComponent::AddWeight(const float InAmount)
 	RobotStatus.Weight=Temp;
 	const float Percentage=FMath::Clamp(RobotStatus.Weight/RobotStatus.MaxWeight,0.f,1.f);
 	OnWeightChanged.Broadcast(Percentage);
+}
+
+void UModularRobotStatusComponent::ApplyEnergyEfficiency(const float Modifier)
+{
+	RobotStatus.EnergyEfficiency*=Modifier;
+}
+
+void UModularRobotStatusComponent::RevertEnergyEfficiency(const float Modifier)
+{
+	RobotStatus.EnergyEfficiency/=Modifier;
+}
+
+void UModularRobotStatusComponent::ApplyRecoilModifier(const float Modifier)
+{
+	RobotStatus.RecoilModifier*=Modifier;
+}
+
+void UModularRobotStatusComponent::RevertRecoilModifier(const float Modifier)
+{
+	RobotStatus.RecoilModifier/=Modifier;
+}
+
+void UModularRobotStatusComponent::ApplyMeleeDamamgeModifier(const float Modifier)
+{
+	RobotStatus.MeleeDamageModifier*=Modifier;
+}
+
+void UModularRobotStatusComponent::RevertMeleeDamamgeModifier(const float Modifier)
+{
+	RobotStatus.MeleeDamageModifier/=Modifier;
 }
 
 void UModularRobotStatusComponent::StartHover()
