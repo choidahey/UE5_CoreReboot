@@ -23,7 +23,8 @@ public class CR4S : ModuleRules
 			"NavigationSystem",
 			"DeveloperSettings",
 			"Niagara",
-			"GameplayTags"
+			"GameplayTags",
+			"AIModule"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });
