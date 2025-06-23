@@ -32,6 +32,9 @@ AModularRobot::AModularRobot()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
+	LegMesh=CreateDefaultSubobject<USkeletalMeshComponent>("LegMesh");
+	ArmMesh=CreateDefaultSubobject<USkeletalMeshComponent>("ArmMesh");
+	
 	//Set Mesh option
 	if (IsValid(GetMesh()))
 	{
@@ -40,6 +43,11 @@ AModularRobot::AModularRobot()
 
 		GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickMontagesWhenNotRendered;
 		GetMesh()->bEnableUpdateRateOptimizations = false;
+
+		LegMesh->SetupAttachment(GetMesh());
+		ArmMesh->SetupAttachment(GetMesh());
+
+		ArmMesh->SetLeaderPoseComponent(GetMesh());
 	}
 	
 	// Don't rotate when the controller rotates.
