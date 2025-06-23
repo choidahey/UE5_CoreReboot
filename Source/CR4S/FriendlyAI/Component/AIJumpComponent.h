@@ -162,7 +162,10 @@ private:
 #pragma endregion
 
 #pragma region Member Variables
-
+public:
+    UPROPERTY(EditAnywhere)
+    uint8 bEnableRotation : 1 = 0;
+    
 private:
     // UPROPERTY Variables
     UPROPERTY()

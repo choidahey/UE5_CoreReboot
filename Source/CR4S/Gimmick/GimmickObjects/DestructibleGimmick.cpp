@@ -83,16 +83,20 @@ void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 	GetResources(DamageCauser);
 
 	Destroy();
-	
+
 	if (CR4S_VALIDATE(LogGimmick, DestructObjectClass))
 	{
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.SpawnCollisionHandlingOverride
 			= ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
+		FTransform SpawnTransform;
+		SpawnTransform.SetLocation(GetActorLocation());
+		SpawnTransform.SetRotation(GetActorRotation().Quaternion());
+		SpawnTransform.SetScale3D(GetActorScale());
+
 		GetWorld()->SpawnActor<ABaseDestructObject>(DestructObjectClass,
-		                                            GetActorLocation(),
-		                                            GetActorRotation(),
+		                                            SpawnTransform,
 		                                            SpawnParameters);
 	}
 }
