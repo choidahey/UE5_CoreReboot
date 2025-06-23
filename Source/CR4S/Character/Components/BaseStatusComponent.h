@@ -70,7 +70,7 @@ public:
 
 #pragma region Modifier
 	void ApplyResourceRegenModifier(const float Modifier);
-	void RevertRegenModifier(const float Modifier);
+	void RevertResourceRegenModifier(const float Modifier);
 
 	void ApplyResourceConsumptionModifier(const float Modifier);
 	void RevertResourceConsumptionModifier(const float Modifier);

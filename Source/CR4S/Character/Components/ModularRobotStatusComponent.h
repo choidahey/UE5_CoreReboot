@@ -41,7 +41,8 @@ public:
 	FORCEINLINE float GetMaxWeight() const { return RobotStatus.MaxWeight; }
 	FORCEINLINE float GetCurrentWeight() const { return RobotStatus.Weight; }
 
-	FORCEINLINE void SetEnergyConsumption(const float NewAmount) { RobotStatus.EnergyConsumptionAmount = NewAmount; }
+	void SetEnergyConsumptionAmount(const float NewAmount);
+	FORCEINLINE void ResetEnergyConsumptionAmount() { RobotStatus.EnergyConsumptionAmount=OriginalEnergyConsumption; }
 #pragma endregion
 
 #pragma region Add
@@ -68,8 +69,8 @@ public:
 	void ApplyRecoilModifier(const float Modifier);
 	void RevertRecoilModifier(const float Modifier);
 
-	void ApplyMeleeDamamgeModifier(const float Modifier);
-	void RevertMeleeDamamgeModifier(const float Modifier);
+	void ApplyMeleeDamageModifier(const float Modifier);
+	void RevertMeleeDamageModifier(const float Modifier);
 #pragma endregion
 	
 #pragma region Hover
@@ -129,6 +130,9 @@ protected:
 	uint8 bIsStunned:1 {false};
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	uint8 bIsRobotActive:1 {true};
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	float OriginalEnergyConsumption{0};
 	
 #pragma endregion
 	

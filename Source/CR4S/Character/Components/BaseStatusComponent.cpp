@@ -115,7 +115,7 @@ void UBaseStatusComponent::ApplyResourceRegenModifier(const float Modifier)
 	BaseStatus.ResourceRegenMultiplier*=Modifier;
 }
 
-void UBaseStatusComponent::RevertRegenModifier(const float Modifier)
+void UBaseStatusComponent::RevertResourceRegenModifier(const float Modifier)
 {
 	BaseStatus.ResourceRegenMultiplier/=Modifier;
 }

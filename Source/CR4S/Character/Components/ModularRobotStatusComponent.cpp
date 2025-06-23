@@ -124,6 +124,12 @@ void UModularRobotStatusComponent::TickComponent(float DeltaTime, ELevelTick Tic
 }
 
 
+void UModularRobotStatusComponent::SetEnergyConsumptionAmount(const float NewAmount)
+{
+	OriginalEnergyConsumption=RobotStatus.EnergyConsumptionAmount;
+	RobotStatus.EnergyConsumptionAmount=NewAmount;
+}
+
 void UModularRobotStatusComponent::AddMaxEnergy(const float InAmount)
 {
 	RobotStatus.MaxEnergy+=InAmount;
@@ -219,12 +225,12 @@ void UModularRobotStatusComponent::RevertRecoilModifier(const float Modifier)
 	RobotStatus.RecoilModifier/=Modifier;
 }
 
-void UModularRobotStatusComponent::ApplyMeleeDamamgeModifier(const float Modifier)
+void UModularRobotStatusComponent::ApplyMeleeDamageModifier(const float Modifier)
 {
 	RobotStatus.MeleeDamageModifier*=Modifier;
 }
 
-void UModularRobotStatusComponent::RevertMeleeDamamgeModifier(const float Modifier)
+void UModularRobotStatusComponent::RevertMeleeDamageModifier(const float Modifier)
 {
 	RobotStatus.MeleeDamageModifier/=Modifier;
 }
