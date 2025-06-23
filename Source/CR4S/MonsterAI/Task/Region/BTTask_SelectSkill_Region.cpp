@@ -18,7 +18,7 @@ int32 UBTTask_SelectSkill_Region::SelectSkillFromAvailable(const TArray<int32>& 
 	if (!CachedMonster.IsValid() || !CachedBlackboard) return INDEX_NONE;
 
 	const uint8 PatternID = CachedBlackboard->GetValueAsInt(FRegionBossAIKeys::CurrentPatternID);
-	const uint8 PhaseValue = CachedBlackboard->GetValueAsInt(FRegionBossAIKeys::CurrentPhase);
+	const uint8 PhaseValue = CachedBlackboard->GetValueAsEnum(FRegionBossAIKeys::CurrentPhase);
 	const int32 StepIndex = CachedBlackboard->GetValueAsInt(FRegionBossAIKeys::PatternStepIndex);
 
 	ARegionBossMonster* RegionBoss = Cast<ARegionBossMonster>(CachedMonster.Get());

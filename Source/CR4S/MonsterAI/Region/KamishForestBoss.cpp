@@ -120,3 +120,13 @@ void AKamishForestBoss::DestroyActiveClouds()
 	}
 }
 
+void AKamishForestBoss::SetWeaponLandingLocation(FVector Location)
+{
+	if (AAIController* AIC = Cast<AAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
+		{
+			BB->SetValueAsVector(FRegionBossAIKeys::SkillTargetLocation, Location);
+		}
+	}
+}

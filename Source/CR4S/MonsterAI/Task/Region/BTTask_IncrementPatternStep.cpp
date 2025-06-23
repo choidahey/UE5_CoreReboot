@@ -25,7 +25,7 @@ EBTNodeResult::Type UBTTask_IncrementPatternStep::ExecuteTask(UBehaviorTreeCompo
 		return EBTNodeResult::Failed;
 	}
 
-	const uint8 PhaseValue = BB->GetValueAsInt(FRegionBossAIKeys::CurrentPhase);
+	const uint8 PhaseValue = BB->GetValueAsEnum(FRegionBossAIKeys::CurrentPhase);
 	const EBossPhase Phase = static_cast<EBossPhase>(PhaseValue);
 
 	const FRegionPatternData* PatternData = Monster->PatternDataAsset->PatternList.FindByPredicate(

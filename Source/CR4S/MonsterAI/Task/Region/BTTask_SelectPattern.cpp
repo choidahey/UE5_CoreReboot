@@ -23,7 +23,7 @@ EBTNodeResult::Type UBTTask_SelectPattern::ExecuteTask(UBehaviorTreeComponent& O
 
 	const float Distance = FVector::Dist(Monster->GetActorLocation(), Target->GetActorLocation());
 
-	const uint8 PhaseValue = BB->GetValueAsInt(FRegionBossAIKeys::CurrentPhase);
+	const uint8 PhaseValue = BB->GetValueAsEnum(FRegionBossAIKeys::CurrentPhase);
 	const EBossPhase Phase = static_cast<EBossPhase>(PhaseValue);
 	const uint8 LastPatternID = BB->GetValueAsInt(FRegionBossAIKeys::PreviousPatternID);
 

@@ -24,6 +24,9 @@ protected:
 	void SpawnCloudEffect();
 	void DestroyActiveClouds();
 	
+public:
+	void SetWeaponLandingLocation(FVector Location);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Weapon")
 	TSubclassOf<AActor> WeaponActorClass;
