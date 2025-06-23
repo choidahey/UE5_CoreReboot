@@ -254,7 +254,7 @@ public:
 
 public:
 	void StartFadeOut();
-	void UpdateFade(UMaterialInstanceDynamic* DynMat);
+	void UpdateFade();
 	
 private:
 	// Fade Out
