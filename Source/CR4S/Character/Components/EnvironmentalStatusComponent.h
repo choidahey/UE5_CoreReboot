@@ -8,6 +8,10 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterHumidityChanged, float, NewHumidity);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterTemperatureChanged, float, NewTemperature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTemperatureBreach, int32, BreachCode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHumidityBreach, int32, BreachCode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTemperatureNormalized);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHumidityNormalized);
 
 class AEnvironmentManager;
 
@@ -36,6 +40,11 @@ public:
 	FORCEINLINE float GetMaxHumidity() const { return MaxHumidity; }
 	FORCEINLINE float GetMinHumidity() const { return MinHumidity; }
 
+	FORCEINLINE void SetMaxTemperature(float Value) { MaxTemperature = Value; }
+	FORCEINLINE void SetMinTemperature(float Value) { MinTemperature = Value; }
+	FORCEINLINE void SetMaxHumidity(float Value) { MaxHumidity = Value; }
+	FORCEINLINE void SetMinHumidity(float Value) { MinHumidity = Value; }
+
 	float GetBaseTemperatureBySeason(ESeasonType Season) const;
 	float GetBaseHumidityBySeason(ESeasonType Season) const;
 
@@ -44,9 +53,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "EnvironmentalStatus")
 	void ModifyHumidity(float Delta, float Speed);
 
-	void SetMaxTemperature(float Max);
-	void SetMinTemperature(float Min);
-	void SetMaxHumidity(float Max);
+
 
 #pragma endregion
 
@@ -101,6 +108,9 @@ private:
 
 	TWeakObjectPtr<AEnvironmentManager> EnvironmentManager;
 
+	bool bWasTemperatureInRange = true;
+	bool bWasHumidityInRange = true;
+
 #pragma endregion
 #pragma region Delegates and Delegate Parameters
 public:
@@ -109,11 +119,20 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Environment")
 	FOnCharacterHumidityChanged OnHumidityChanged;
-
+	UPROPERTY(BlueprintAssignable, Category = "Environment")
+	FOnTemperatureBreach OnTemperatureBreach;
+	UPROPERTY(BlueprintAssignable, Category = "Environment")
+	FOnHumidityBreach OnHumidityBreach;
+	UPROPERTY(BlueprintAssignable, Category = "Environment")
+	FOnTemperatureNormalized OnTemperatureNormalized;
+	UPROPERTY(BlueprintAssignable, Category = "Environment")
+	FOnHumidityNormalized OnHumidityNormalized;
 
 private:
 	int32 DayCycleLength;
 	float CurrentDayNightRatio = 0.5f;
+
+
 
 #pragma endregion
 
