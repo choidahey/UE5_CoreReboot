@@ -43,6 +43,12 @@ public:
 	void EquipLegParts(const FGameplayTag& Tag);
 	void EquipBoosterParts(const FGameplayTag& Tag);
 
+	void UnequipCoreParts();
+	void UnequipBodyParts();
+	void UnequipArmParts();
+	void UnequipLegParts();
+	void UnequipBoosterParts();
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetLegManagerEnabled(const bool bIsEnabled);
 #pragma endregion
@@ -194,6 +200,15 @@ protected:
 	FLegPartsInfo LegInfo;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FBoosterPartsInfo BoosterInfo;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float OriginalMaxWalkSpeed{0};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float OriginalDashStrength{0};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float OriginalMaxSlopeAngle{0};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float OriginalDashCooldown{0};
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsDashing:1 {false};

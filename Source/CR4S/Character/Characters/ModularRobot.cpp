@@ -111,7 +111,7 @@ void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
 	Status->AddHumidityThreshold(CoreInfo.AdditiveHumidityThreshold);
 	Status->AddMaxResource(CoreInfo.MaxResource);
 	Status->AddCurrentResource(CoreInfo.MaxResource);
-	Status->SetEnergyConsumption(CoreInfo.EnergyConsumptionAmount);
+	Status->SetEnergyConsumptionAmount(CoreInfo.EnergyConsumptionAmount);
 	Status->AddMaxStun(CoreInfo.MaxStun);
 }
 
@@ -153,7 +153,7 @@ void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
 	Status->AddArmor(ArmInfo.Armor);
 	Status->AddWeight(ArmInfo.Weight);
 	Status->ApplyRecoilModifier(ArmInfo.RecoilModifier);
-	Status->ApplyMeleeDamamgeModifier(ArmInfo.MeleeDamageModifier);
+	Status->ApplyMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
 }
 
 void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
@@ -179,8 +179,11 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 	Status->AddMaxStun(LegInfo.MaxStun);
 	Status->AddMaxWeight(LegInfo.MaxTotalWeight);
 	Status->AddWeight(LegInfo.Weight);
+	OriginalMaxWalkSpeed=RobotSettings.MaxWalkSpeed;
 	RobotSettings.MaxWalkSpeed=LegInfo.MaxWalkSpeed;
+	OriginalDashStrength=RobotSettings.DashStrength;
 	RobotSettings.DashStrength=LegInfo.DashStrength;
+	OriginalMaxSlopeAngle=GetCharacterMovement()->GetWalkableFloorAngle();
 	GetCharacterMovement()->SetWalkableFloorAngle(LegInfo.MaxSlopeAngle);
 	Status->ApplyEnergyEfficiency(LegInfo.EnergyEfficiency);
 }
@@ -192,9 +195,76 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 
 	const bool bSuccessed = Loader->LoadBoosterPartsDataByTag(Tag, BoosterInfo);
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
-	
+
+	OriginalDashCooldown=RobotSettings.DashCooldown;
 	RobotSettings.DashCooldown=BoosterInfo.DashCooldown;
 	Status->SetRollStaminaCost(BoosterInfo.DashResourceCost);
+}
+
+void AModularRobot::UnequipCoreParts()
+{
+	Status->AddAttackPower(-(CoreInfo.AttackPower));
+	Status->AddArmorMultiplier(-(CoreInfo.ArmorMultiplier));
+	Status->AddHeatThreshold(-(CoreInfo.AdditiveTemperatureThreshold));
+	Status->AddColdThreshold(CoreInfo.AdditiveTemperatureThreshold);
+	Status->AddHumidityThreshold(-(CoreInfo.AdditiveHumidityThreshold));
+	Status->AddCurrentResource(-(CoreInfo.MaxResource));
+	Status->AddMaxResource(-(CoreInfo.MaxResource));
+	Status->ResetEnergyConsumptionAmount();
+	Status->AddMaxStun(-(CoreInfo.MaxStun));
+}
+
+void AModularRobot::UnequipBodyParts()
+{
+	GetMesh()->SetSkeletalMesh(nullptr);
+
+	Status->AddMaxHP(-(BodyInfo.MaxHealth));
+	Status->AddCurrentHP(-(BodyInfo.MaxHealth));
+	Status->AddArmor(-(BodyInfo.Armor));
+	Status->AddMaxStun(-(BodyInfo.MaxStun));
+	Status->AddWeight(-(BodyInfo.Weight));
+	Status->RevertEnergyEfficiency(BodyInfo.EnergyEfficiency);
+	Status->RevertResourceRegenModifier(BodyInfo.ResourceRegenModifier);
+	Status->ResetResourceRegenDelay();
+	Status->RevertResourceConsumptionModifier(BodyInfo.ResourceConsumptionModifier);
+}
+
+void AModularRobot::UnequipArmParts()
+{
+	ArmMesh->SetSkeletalMesh(nullptr);
+
+	Status->AddMaxHP(-(ArmInfo.MaxHealth));
+	Status->AddCurrentHP(-(ArmInfo.MaxHealth));
+	Status->AddArmor(-(ArmInfo.Armor));
+	Status->AddWeight(-(ArmInfo.Weight));
+	Status->RevertRecoilModifier(ArmInfo.RecoilModifier);
+	Status->RevertMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
+}
+
+void AModularRobot::UnequipLegParts()
+{
+	LegMesh->SetSkeletalMesh(nullptr);
+	
+	LegMesh->SetAnimInstanceClass(nullptr);
+	
+	SetLegManagerEnabled(false);
+
+	Status->AddMaxHP(-(LegInfo.MaxHealth));
+	Status->AddCurrentHP(-(LegInfo.MaxHealth));
+	Status->AddArmor(-(LegInfo.Armor));
+	Status->AddMaxStun(-(LegInfo.MaxStun));
+	Status->AddWeight(-(LegInfo.Weight));
+	Status->AddMaxWeight(-(LegInfo.MaxTotalWeight));
+	RobotSettings.MaxWalkSpeed=OriginalMaxWalkSpeed;
+	RobotSettings.DashStrength=OriginalDashStrength;
+	GetCharacterMovement()->SetWalkableFloorAngle(OriginalMaxSlopeAngle);
+	Status->RevertEnergyEfficiency(LegInfo.EnergyEfficiency);
+}
+
+void AModularRobot::UnequipBoosterParts()
+{
+	RobotSettings.DashCooldown=OriginalDashCooldown;
+	Status->ResetRollStaminaCost();
 }
 
 void AModularRobot::TakeStun_Implementation(const float StunAmount)
