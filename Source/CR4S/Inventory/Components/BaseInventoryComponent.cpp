@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "GameplayTagsManager.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/Data/InventorySaveData.h"
 #include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
@@ -134,6 +135,11 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 
 		if (SameInventoryItem->GetCurrentStackCount() < ItemData->MaxStackCount)
 		{
+			if (CheckRottenItem(OriginItem, SameInventoryItem))
+			{
+				continue;
+			}
+			
 			const int32 SameInventoryItemCount = SameInventoryItem->GetCurrentStackCount();
 			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItemCount;
 			const int32 ActualAddCount = FMath::Min(CanAddCount, RemainingCount);
@@ -219,6 +225,24 @@ void UBaseInventoryComponent::PostFillEmptySlots(UBaseInventoryItem* OriginItem,
 	}
 }
 
+bool UBaseInventoryComponent::CheckRottenItem(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
+{
+	if (TargetItem && !TargetItem->IsA(UConsumableInventoryItem::StaticClass()))
+	{
+		return false;
+	}
+	
+	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
+	const UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
+	
+	if (IsValid(OriginConsumableInventoryItem) && OriginConsumableInventoryItem->IsRotten())
+	{
+		return !TargetConsumableInventoryItem->IsRotten();
+	}
+
+	return TargetConsumableInventoryItem->IsRotten();
+}
+
 UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplayTagContainer& ItemTags)
 {
 	FGameplayTag ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.Tools"));
@@ -250,6 +274,50 @@ bool UBaseInventoryComponent::IsItemAllowedByFilter(const FGameplayTagContainer&
 	}
 
 	return FilterData->IsAllowedItem(ItemTags);
+}
+
+FInventorySaveData UBaseInventoryComponent::GetInventorySaveData()
+{
+	FInventorySaveData SaveData = FInventorySaveData();
+	for (UBaseInventoryItem* Item : InventoryItems)
+	{
+		if (IsValid(Item))
+		{
+			FInventoryItemSaveData ItemData = Item->GetInventoryItemSaveData();
+			SaveData.ItemSaveData.Add(ItemData);
+		}
+	}
+
+	return SaveData;
+}
+
+void UBaseInventoryComponent::LoadInventorySaveData(const FInventorySaveData& SaveData)
+{
+	ClearInventoryItems();
+	
+	TArray<FInventoryItemSaveData> ItemSaveData = SaveData.ItemSaveData;
+	for (const FInventoryItemSaveData& SaveItemData : ItemSaveData)
+	{
+		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
+		Item->LoadInventoryItemSaveData(SaveItemData);
+		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
+		InventoryItems[Index] = Item;
+
+		NotifyInventoryItemChanged(Index);
+	}
+}
+
+void UBaseInventoryComponent::ClearInventoryItems()
+{
+	for (int32 Index = 0; Index < InventoryItems.Num(); Index++)
+	{
+		if (IsValid(InventoryItems[Index]))
+		{
+			NotifyInventoryItemChanged(Index);
+		}
+	}
+
+	InventoryItems.Init(nullptr, MaxInventorySize);
 }
 
 int32 UBaseInventoryComponent::GetUseSlotCount()
@@ -355,6 +423,12 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 	UBaseInventoryItem* ToItem = InventoryItems[ToItemIndex];
 	UBaseInventoryItem* FromItem = FromInventoryComponent->InventoryItems[FromItemIndex];
 
+	if (CheckRottenItem(FromItem, ToItem))
+	{
+		SwapItem(FromInventoryComponent, FromItemIndex, ToItemIndex);
+		return;
+	}
+	
 	const int32 ToItemCount = ToItem->GetCurrentStackCount();
 	const int32 MaxStackCount = ToItem->GetMaxStackCount();
 	if (ToItemCount < MaxStackCount)
