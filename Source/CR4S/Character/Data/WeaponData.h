@@ -35,6 +35,8 @@ public:
 	float HomingActivationDelay{0.2f};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxLifeTime{3};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunAmount{0};
 };
 
 USTRUCT(BlueprintType)
@@ -49,8 +51,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DamageMultiplier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float StunAmount{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Weight{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackCooldownTime{1};
@@ -63,6 +63,8 @@ struct CR4S_API FMeleeWeaponInfo
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxCombo{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -102,7 +104,7 @@ struct CR4S_API FSpreadShotInfo
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 BulletPerShot{16};
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletsPerShot > 1"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletPerShot > 1"))
 	float SpreadAngle{20.f};
 };
 

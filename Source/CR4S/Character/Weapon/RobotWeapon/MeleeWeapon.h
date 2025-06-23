@@ -17,6 +17,11 @@ class CR4S_API AMeleeWeapon : public ABaseWeapon
 public:
 	AMeleeWeapon();
 
+#pragma region Get
+	FORCEINLINE float GetStunAmount() const { return TypeSpecificInfo.StunAmount; }
+#pragma endregion
+
+	
 #pragma region Override
 public:
 	virtual void OnAttack() override;

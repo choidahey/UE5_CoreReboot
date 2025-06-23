@@ -194,7 +194,7 @@ void AModularRobot::UnMountRobot()
 		const bool bCanExit=FindPossibleUnmountLocation(NextCharacter,PossibleLocation);
 		if (!bCanExit)
 		{
-			UE_LOG(LogHong1,Error,TEXT("Can't find unmounted location"));
+			UE_LOG(LogHong1,Warning,TEXT("Can't find unmounted location"));
 			return;
 		}
 		
