@@ -1,188 +1,155 @@
 #include "BTTask_HelperBotAttack.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/Actor.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "../BaseHelperBot.h"
-#include "FriendlyAI/AnimalMonster.h"
-#include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
+#include "../AnimalMonster.h"
 #include "Engine/World.h"
+#include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
 
 UBTTask_HelperBotAttack::UBTTask_HelperBotAttack()
 {
-   NodeName = TEXT("HelperBot Attack");
-   bNotifyTick = true;
+	NodeName = TEXT("HelperBotAttack");
+	bNotifyTick = true;
 }
 
 EBTNodeResult::Type UBTTask_HelperBotAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-   UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-   if (!BB)
-   {
-   	return EBTNodeResult::Failed;
-   }
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (!BB) return EBTNodeResult::Failed;
 
-   APawn* Helper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
-   if (!Helper)
-   {
-   	return EBTNodeResult::Failed;
-   }
-   
-   AActor* TargetActor = FindNearestMonster(Helper);
-   if (!TargetActor)
-   {
-   	return EBTNodeResult::Failed;
-   }
-   
-   float Distance = FVector::Dist(Helper->GetActorLocation(), TargetActor->GetActorLocation());
-   if (Distance > AttackRange)
-   {
-   	return EBTNodeResult::Failed;
-   }
+	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	if (!Helper) return EBTNodeResult::Failed;
 
-   CachedTarget = TargetActor;
-   CachedHelper = Helper;
-   
-   CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperBotAttack::OnTargetDestroyed);
-   CachedTarget->OnDestroyed.AddDynamic(this, &UBTTask_HelperBotAttack::OnTargetDestroyed);
-   
-   ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(Helper);
-   if (HelperBot)
-   {
-   	CachedAttackPerSecond = HelperBot->GetAttackPerSecond();
-   	HelperBot->SetIsWorking(true);
-   	HelperBot->UpdateEyeBeamWorkTarget(TargetActor);
-   }
+	AActor* TargetEnemy = FindNearestEnemy(Helper);
+	if (!TargetEnemy) return EBTNodeResult::Failed;
 
-   return EBTNodeResult::InProgress;
+	BB->SetValueAsObject(TEXT("AttackTarget"), TargetEnemy);
+	CachedTarget = TargetEnemy;
+	
+	CachedDamagePerSecond = Helper->GetAttackPerSecond();
+	Helper->SetIsWorking(true);
+	Helper->UpdateEyeBeamWorkTarget(TargetEnemy);
+	
+	AttackTimer = 0.f;
+	
+	return EBTNodeResult::InProgress;
 }
 
 void UBTTask_HelperBotAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-   if (!CachedHelper)
-   {
-   	FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-   	return;
-   }
+	if (!CachedHelper)
+	{
+		CleanupAndFinish(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
 
-   ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(CachedHelper);
-   if (!HelperBot)
-   {
-   	FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-   	return;
-   }
-   
-   if (!IsValidMonsterTarget(CachedTarget))
-   {
-   	CachedTarget = FindNearestMonster(CachedHelper);
-   	if (!CachedTarget)
-   	{
-   		HelperBot->SetIsWorking(false);
-   		HelperBot->StopEyeBeamWork();
-   		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-   		return;
-   	}
-   	
-   	CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperBotAttack::OnTargetDestroyed);
-   	CachedTarget->OnDestroyed.AddDynamic(this, &UBTTask_HelperBotAttack::OnTargetDestroyed);
-   }
-   
-   float Distance = FVector::Dist(CachedHelper->GetActorLocation(), CachedTarget->GetActorLocation());
-   if (Distance > AttackRange)
-   {
-   	CachedTarget = FindNearestMonster(CachedHelper);
-   	if (!CachedTarget)
-   	{
-   		HelperBot->SetIsWorking(false);
-   		HelperBot->StopEyeBeamWork();
-   		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-   		return;
-   	}
-   	
-   	CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperBotAttack::OnTargetDestroyed);
-   	CachedTarget->OnDestroyed.AddDynamic(this, &UBTTask_HelperBotAttack::OnTargetDestroyed);
-   }
-   
-   FVector TargetDirection = (CachedTarget->GetActorLocation() - CachedHelper->GetActorLocation()).GetSafeNormal();
-   FRotator TargetRotation = TargetDirection.Rotation();
-   FRotator CurrentRotation = CachedHelper->GetActorRotation();
-   FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaSeconds, 2.0f);
-   CachedHelper->SetActorRotation(NewRotation);
-   
-   HelperBot->UpdateEyeBeamWorkTarget(CachedTarget);
-   
-   const float DamageThisFrame = CachedAttackPerSecond * DeltaSeconds;
-   UGameplayStatics::ApplyDamage(CachedTarget, DamageThisFrame, HelperBot->GetController(), HelperBot, UDamageType::StaticClass());
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	if (!Helper)
+	{
+		CleanupAndFinish(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
+
+	if (CachedTarget && IsValid(CachedTarget))
+	{
+		FVector Direction = (CachedTarget->GetActorLocation() - Helper->GetActorLocation()).GetSafeNormal();
+		FRotator LookRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+		Helper->SetActorRotation(LookRotation);
+
+		Helper->UpdateEyeBeamWorkTarget(CachedTarget);
+	}
+	
+	AttackTimer += DeltaSeconds;
+
+	if (AttackTimer >= MaxAttackDuration)
+	{
+		CleanupAndFinish(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
+	
+	AAnimalMonster* Monster = Cast<AAnimalMonster>(CachedTarget);
+	ASeasonBossMonster* Boss = Cast<ASeasonBossMonster>(CachedTarget);
+	if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed() || 
+		(Monster && Monster->CurrentState == EAnimalState::Dead) ||
+		(Boss && Boss->IsDead())) 
+	{
+		CleanupAndFinish(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
+	
+	if (CachedTarget)
+	{
+		float DistanceToTarget = FVector::Dist(Helper->GetActorLocation(), CachedTarget->GetActorLocation());
+		if (DistanceToTarget > AttackRange)
+		{
+			CleanupAndFinish(OwnerComp, EBTNodeResult::Succeeded);
+			return;
+		}
+	}
+	
+	if (CachedTarget)
+	{
+		const float DamageThisFrame = CachedDamagePerSecond * DeltaSeconds;
+		UGameplayStatics::ApplyDamage(CachedTarget, DamageThisFrame, Helper->GetController(), Helper, UDamageType::StaticClass());
+	}
 }
 
-void UBTTask_HelperBotAttack::OnTargetDestroyed(AActor* /*DestroyedActor*/)
+AActor* UBTTask_HelperBotAttack::FindNearestEnemy(APawn* Helper)
 {
-   if (CachedTarget)
-   {
-   	CachedTarget->OnDestroyed.RemoveDynamic(this, &UBTTask_HelperBotAttack::OnTargetDestroyed);
-   	CachedTarget = nullptr;
-   }
+	if (!Helper) return nullptr;
+	
+	UWorld* World = Helper->GetWorld();
+	if (!World) return nullptr;
+	
+	TArray<AActor*> FoundEnemies;
+	UGameplayStatics::GetAllActorsOfClass(World, AAnimalMonster::StaticClass(), FoundEnemies);
+
+	TArray<AActor*> BossEnemies;
+	UGameplayStatics::GetAllActorsOfClass(World, ASeasonBossMonster::StaticClass(), BossEnemies);
+	FoundEnemies.Append(BossEnemies);
+	
+	AActor* NearestEnemy = nullptr;
+	float NearestDistance = AttackRange;
+	FVector HelperLocation = Helper->GetActorLocation();
+	
+	for (AActor* Enemy : FoundEnemies)
+	{
+		if (!IsValid(Enemy) || Enemy->IsActorBeingDestroyed()) continue;
+		
+		AAnimalMonster* Monster = Cast<AAnimalMonster>(Enemy);
+		if (Monster && Monster->CurrentState == EAnimalState::Dead) continue;
+
+		ASeasonBossMonster* Boss = Cast<ASeasonBossMonster>(Enemy);
+		if (Boss && Boss->IsDead()) continue;
+		
+		float Distance = FVector::Dist(HelperLocation, Enemy->GetActorLocation());
+		if (Distance <= AttackRange && Distance < NearestDistance)
+		{
+			NearestDistance = Distance;
+			NearestEnemy = Enemy;
+		}
+	}
+	
+	return NearestEnemy;
 }
 
-AActor* UBTTask_HelperBotAttack::FindNearestMonster(APawn* Helper)
+void UBTTask_HelperBotAttack::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp, EBTNodeResult::Type Result)
 {
-   if (!Helper || !Helper->GetWorld())
-   {
-   	return nullptr;
-   }
-
-   TArray<AActor*> FoundMonsters;
-   
-   TArray<AActor*> AnimalMonsters;
-   UGameplayStatics::GetAllActorsOfClass(Helper->GetWorld(), AAnimalMonster::StaticClass(), AnimalMonsters);
-   FoundMonsters.Append(AnimalMonsters);
-   
-   TArray<AActor*> BossMonsters;
-   UGameplayStatics::GetAllActorsOfClass(Helper->GetWorld(), ASeasonBossMonster::StaticClass(), BossMonsters);
-   FoundMonsters.Append(BossMonsters);
-
-   if (FoundMonsters.Num() == 0)
-   {
-   	return nullptr;
-   }
-   
-   AActor* NearestMonster = nullptr;
-   float NearestDistance = AttackRange;
-   FVector HelperLocation = Helper->GetActorLocation();
-
-   for (AActor* Monster : FoundMonsters)
-   {
-   	if (!IsValidMonsterTarget(Monster))
-   	{
-   		continue;
-   	}
-
-   	float Distance = FVector::Dist(HelperLocation, Monster->GetActorLocation());
-   	if (Distance < NearestDistance)
-   	{
-   		NearestDistance = Distance;
-   		NearestMonster = Monster;
-   	}
-   }
-
-   return NearestMonster;
-}
-
-bool UBTTask_HelperBotAttack::IsValidMonsterTarget(AActor* Actor)
-{
-   if (!IsValid(Actor))
-   {
-   	return false;
-   }
-   
-   if (AAnimalMonster* AnimalMonster = Cast<AAnimalMonster>(Actor))
-   {
-   	return AnimalMonster->CurrentState != EAnimalState::Dead;
-   }
-   
-   if (ASeasonBossMonster* BossMonster = Cast<ASeasonBossMonster>(Actor))
-   {
-   	return !BossMonster->IsDead();
-   }
-
-   return false;
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	if (Helper)
+	{
+		Helper->SetIsWorking(false);
+		Helper->StopEyeBeamWork();
+	}
+	
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	if (BB)
+	{
+		BB->SetValueAsObject(TEXT("AttackTarget"), nullptr);
+	}
+	
+	FinishLatentTask(OwnerComp, Result);
 }

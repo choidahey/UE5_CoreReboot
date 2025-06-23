@@ -29,10 +29,23 @@ EBTNodeResult::Type UBTTask_AnimalPatrol::ExecuteTask(UBehaviorTreeComponent& Ow
     Mem->Elapsed = 0.f;
 
     const FVector Origin = Pawn->GetActorLocation();
-    FNavLocation Result;
-
     const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-    if (!NavSys || !NavSys->GetRandomPointInNavigableRadius(Origin, PatrolRadius, Result))
+    if (!NavSys) return EBTNodeResult::Failed;
+
+    FNavLocation Result;
+    bool bFoundPoint = false;
+    
+    for (int32 i = 0; i < 50; ++i)
+    {
+        float CurrentRadius = PatrolRadius * FMath::Max(0.05f, 1.0f - (i * 0.02f));
+        if (NavSys->GetRandomPointInNavigableRadius(Origin, CurrentRadius, Result))
+        {
+            bFoundPoint = true;
+            break;
+        }
+    }
+    
+    if (!bFoundPoint)
     {
         return EBTNodeResult::Failed;
     }

@@ -21,6 +21,7 @@ public:
 protected:
 	UFUNCTION() void SetIdle();
 	UFUNCTION() void SetFollowing();
+	UFUNCTION() void SetGathering();
 	UFUNCTION() void SetChopWood();
 	UFUNCTION() void CloseStateWidget();
 	UFUNCTION() void SetMining();
@@ -46,7 +47,8 @@ protected:
 	UPROPERTY(meta=(BindWidget)) class UTextBlock* BotNameText;
 	UPROPERTY(meta=(BindWidget)) class UEditableTextBox* BotNameEditBox;
 	UPROPERTY(meta=(BindWidget)) class UButton* ChangeNameButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* PickUpButton; 
+	UPROPERTY(meta=(BindWidget)) class UButton* PickUpButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* SetGatheringButton; 
 
 	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot = nullptr;
 

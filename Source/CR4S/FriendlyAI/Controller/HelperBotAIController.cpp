@@ -19,11 +19,15 @@ void AHelperBotAIController::BeginPlay()
 {
 	Super::BeginPlay();
 	RunBotLogic();
-
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (PlayerPawn)
+	
+	if (Blackboard)
 	{
-		Blackboard->SetValueAsObject(TEXT("TargetActor"), PlayerPawn);
+		Blackboard->SetValueAsObject(TEXT("AttackTarget"), nullptr);
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		if (PlayerPawn)
+		{
+			Blackboard->SetValueAsObject(TEXT("TargetActor"), PlayerPawn);
+		}
 	}
 }
 

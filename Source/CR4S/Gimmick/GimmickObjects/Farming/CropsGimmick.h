@@ -67,7 +67,7 @@ private:
 
 public:
 	FORCEINLINE float GetCurrentGrowthPercent() const { return CurrentGrowthPercent; }
-
+	FORCEINLINE bool GetIsHarvestable() const { return bIsHarvestable; }
 private:
 	void InitGrowthState();
 	

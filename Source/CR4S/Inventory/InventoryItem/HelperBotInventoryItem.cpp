@@ -47,7 +47,7 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 	if (IsValid(HelperBot))
 	{
 		HelperBot->SetIsFromInventory(true);
-		HelperBot->SetPickUpData(HelperBotData);
+		HelperBot->SetPickUpData(GetHelperBotData());
 		
 		InventoryComponent->RemoveItemByIndex(Index, 1);
 	}

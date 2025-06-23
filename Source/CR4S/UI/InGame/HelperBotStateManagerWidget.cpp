@@ -58,6 +58,7 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (SetIdleButton) SetIdleButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetIdle);
 	if (SetFollowingButton) SetFollowingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetFollowing);
 	if (SetChopWoodButton) SetChopWoodButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetChopWood);
+	if (SetGatheringButton) SetGatheringButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetGathering);
 	if (CloseButton) CloseButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::CloseStateWidget);
 	if (OpenInventoryButton) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
 	if (SetMiningButton) SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
@@ -145,6 +146,12 @@ void UHelperBotStateManagerWidget::SetMining()
 void UHelperBotStateManagerWidget::SetRepairing()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Repairing);
+	CloseWidgetAndResetInput();
+}
+
+void UHelperBotStateManagerWidget::SetGathering()
+{
+	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Gathering);
 	CloseWidgetAndResetInput();
 }
 
@@ -269,9 +276,19 @@ void UHelperBotStateManagerWidget::PickUp()
 {
 	if (OwnerAIController)
 	{
-		if (APawn* BotPawn = OwnerAIController->GetPawn())
+		if (ABaseHelperBot* Bot = Cast<ABaseHelperBot>(OwnerAIController->GetPawn()))
 		{
-			BotPawn->Destroy();
+			if (APlayerCharacter* PC = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
+			{
+				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
+				{
+					FHelperPickUpData PickUpData;
+					PickUpData.BotName = Bot->GetBotName();
+					PickUpData.CurrentHealth = Bot->GetCurrentHealth();
+					InvComp->AddHelperBotItem(TEXT("HelperBot"), 1, PickUpData);
+				}
+			}
+			Bot->Destroy();
 		}
 	}
 	CloseWidgetAndResetInput();
