@@ -19,6 +19,8 @@ class CR4S_API URobotInputBufferComponent : public UInputBufferComponent
 public:
 	URobotInputBufferComponent();
 
+	FORCEINLINE void SetWeaponComponent(URobotWeaponComponent* InWeaponComp) { CachedWeaponComponent=InWeaponComp; }
+	
 #pragma region Override
 public:
 	virtual void ExecuteInputQueue() const override;
@@ -29,7 +31,8 @@ protected:
 #pragma endregion
 
 #pragma region Cached
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<URobotWeaponComponent> WeaponComponent;
+	TObjectPtr<URobotWeaponComponent> CachedWeaponComponent;
 #pragma endregion
 };

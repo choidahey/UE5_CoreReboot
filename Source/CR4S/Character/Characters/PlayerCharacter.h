@@ -92,6 +92,8 @@ private:
 	virtual void Input_OnSwitchShoulder();
 
 	void Input_OnAttack();
+
+	void Input_OnInteraction();
 #pragma endregion
 
 #pragma region Components
@@ -162,6 +164,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> AttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> InteractionAction;
 #pragma endregion
 	
 #pragma region LookSettings

@@ -40,9 +40,10 @@ void ASingleShotWeapon::OnAttack()
 	
 	FireBullet(MuzzleLocation,SpawnRotation);
 	
-	TypeSpecificInfo.AmmoInfo.CurrentAmmo--;
+	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
+	Super::OnAttack();
 }
 
 // Called when the game starts or when spawned

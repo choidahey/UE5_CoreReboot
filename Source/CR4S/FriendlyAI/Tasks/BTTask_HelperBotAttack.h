@@ -11,10 +11,7 @@ class CR4S_API UBTTask_HelperBotAttack : public UBTTaskNode
 
 public:
 	UBTTask_HelperBotAttack();
-
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector AttackTargetKey;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	float AttackRange = 0.0f;
 

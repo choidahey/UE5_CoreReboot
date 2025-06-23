@@ -28,6 +28,7 @@ void AAutomaticFireWeapon::OnAttack()
 		FireInterval,
 		true
 	);
+	Super::OnAttack();
 }
 
 void AAutomaticFireWeapon::StopAttack()
@@ -37,6 +38,7 @@ void AAutomaticFireWeapon::StopAttack()
 	{
 		StartAttackCooldown();
 	}
+	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned
@@ -77,7 +79,7 @@ void AAutomaticFireWeapon::FireBulletForInterval()
 	const FRotator SpawnRotation=ShootDirection.Rotation();
 	FireBullet(MuzzleLocation, SpawnRotation);
 
-	--TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	AddCurrentAmmo(-1);
 	ApplyRecoil();
 }
 

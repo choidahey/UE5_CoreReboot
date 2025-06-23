@@ -11,9 +11,16 @@ UBTService_FAFlyGroundTarget::UBTService_FAFlyGroundTarget()
 	NodeName = TEXT("Fly To Ground Target");
 }
 
+uint16 UBTService_FAFlyGroundTarget::GetInstanceMemorySize() const
+{
+	return sizeof(FBTService_FAFlyGroundTargetMemory);
+}
+
 void UBTService_FAFlyGroundTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+
+	FBTService_FAFlyGroundTargetMemory* Memory = reinterpret_cast<FBTService_FAFlyGroundTargetMemory*>(NodeMemory);
 
 	AFAAIController* AICon = Cast<AFAAIController>(OwnerComp.GetAIOwner());
 	if (!AICon) return;
@@ -30,9 +37,9 @@ void UBTService_FAFlyGroundTarget::TickNode(UBehaviorTreeComponent& OwnerComp, u
 	const FVector ForwardMovement = FVector(FlyingSpeed * DeltaSeconds, 0.f, 0.f);
 	ControlledPawn->AddActorLocalOffset(ForwardMovement, true);
 
-	const float YawDelta = CurrentYawSpeed * DeltaSeconds;
-	const float PitchDelta = (CurrentPitchSpeed + PitchAdjustment) * DeltaSeconds;
-	const float RollDelta = CurrentRollSpeed * DeltaSeconds;
+	const float YawDelta = Memory->CurrentYawSpeed * DeltaSeconds;
+	const float PitchDelta = (Memory->CurrentPitchSpeed + PitchAdjustment) * DeltaSeconds;
+	const float RollDelta = Memory->CurrentRollSpeed * DeltaSeconds;
 
 	const FRotator DeltaRotation = FRotator(PitchDelta, YawDelta, RollDelta);
 	ControlledPawn->AddActorLocalRotation(DeltaRotation, true);
@@ -57,27 +64,27 @@ void UBTService_FAFlyGroundTarget::TickNode(UBehaviorTreeComponent& OwnerComp, u
 	const float FlyingTurnSpeed = BlackboardComp->GetValueAsFloat(TEXT("FlyingTurnSpeed"));
 
 	const float TargetYawSpeed = InputY * FlyingTurnSpeed;
-	CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, DeltaSeconds, 1.0f);
+	Memory->CurrentYawSpeed = FMath::FInterpTo(Memory->CurrentYawSpeed, TargetYawSpeed, DeltaSeconds, 1.0f);
 
 	
 	const FRotator CurrentRotation = ControlledPawn->GetActorRotation();
 	const float CurrentRoll = CurrentRotation.Roll;
 
-	const float YawInput = CurrentYawSpeed * 0.5f;
+	const float YawInput = Memory->CurrentYawSpeed * 0.5f;
 	const float ReversedRoll = -CurrentRoll * 3.0f;
 
 	const float InputYAbs = FMath::Abs(InputY);
 	const bool bTurning = InputYAbs > 0.5f;
 
 	const float TargetRollSpeed = bTurning ? YawInput : ReversedRoll;
-	CurrentRollSpeed = FMath::FInterpTo(CurrentRollSpeed, TargetRollSpeed, DeltaSeconds, 1.0f);
+	Memory->CurrentRollSpeed = FMath::FInterpTo(Memory->CurrentRollSpeed, TargetRollSpeed, DeltaSeconds, 1.0f);
 	
-	const float YawAbs = FMath::Abs(CurrentYawSpeed);
+	const float YawAbs = FMath::Abs(Memory->CurrentYawSpeed);
 
 	const float DirectionalPitch = InputZ * FlyingTurnSpeed * 1.0f;
 	const float SteeringPenalty = YawAbs * -0.2f;
 	const float TargetPitchSpeed = DirectionalPitch + SteeringPenalty;
 
-	CurrentPitchSpeed = FMath::FInterpTo(CurrentPitchSpeed, TargetPitchSpeed, DeltaSeconds, 2.0f);
+	Memory->CurrentPitchSpeed = FMath::FInterpTo(Memory->CurrentPitchSpeed, TargetPitchSpeed, DeltaSeconds, 2.0f);
 
 }

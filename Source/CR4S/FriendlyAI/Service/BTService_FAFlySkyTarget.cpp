@@ -9,9 +9,16 @@ UBTService_FAFlySkyTarget::UBTService_FAFlySkyTarget()
 	NodeName = TEXT("Fly To Sky Target");
 }
 
+uint16 UBTService_FAFlySkyTarget::GetInstanceMemorySize() const
+{
+	return sizeof(FBTService_FAFlySkyTargetMemory);
+}
+
 void UBTService_FAFlySkyTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+
+	FBTService_FAFlySkyTargetMemory* Memory = reinterpret_cast<FBTService_FAFlySkyTargetMemory*>(NodeMemory);
 
 	APawn* ControlledPawn = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
 	if (!ControlledPawn) return;
@@ -36,23 +43,22 @@ void UBTService_FAFlySkyTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 	float OffsetZ = LocalDirection.Z;
 	
 	float TargetYawSpeed = OffsetY * TurnSpeed;
-	CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, DeltaSeconds, 1.0f);
+	Memory->CurrentYawSpeed = FMath::FInterpTo(Memory->CurrentYawSpeed, TargetYawSpeed, DeltaSeconds, 1.0f);
 
 	float PitchTarget = OffsetZ * TurnSpeed;
-	float YawInfluence = -0.2f * FMath::Abs(CurrentYawSpeed);
+	float YawInfluence = -0.2f * FMath::Abs(Memory->CurrentYawSpeed);
 	float TargetPitchSpeed = PitchTarget + YawInfluence + PitchAdjustment;
-	CurrentPitchSpeed = FMath::FInterpTo(CurrentPitchSpeed, TargetPitchSpeed, DeltaSeconds, 1.0f);
+	Memory->CurrentPitchSpeed = FMath::FInterpTo(Memory->CurrentPitchSpeed, TargetPitchSpeed, DeltaSeconds, 1.0f);
 
 	float RollOptionA = -3.0f * ActorRotation.Roll;
-	float RollOptionB = 0.5f * CurrentYawSpeed;
+	float RollOptionB = 0.5f * Memory->CurrentYawSpeed;
 	float SelectedRoll = (FMath::Abs(OffsetY) > 0.5f) ? RollOptionA : RollOptionB;
-	CurrentRollSpeed = FMath::FInterpTo(CurrentRollSpeed, SelectedRoll, DeltaSeconds, 1.0f);
+	Memory->CurrentRollSpeed = FMath::FInterpTo(Memory->CurrentRollSpeed, SelectedRoll, DeltaSeconds, 1.0f);
 
 	FRotator FinalRotation = FRotator(
-		CurrentPitchSpeed * DeltaSeconds,
-		CurrentYawSpeed * DeltaSeconds,
-		CurrentRollSpeed * DeltaSeconds
+		Memory->CurrentPitchSpeed * DeltaSeconds,
+		Memory->CurrentYawSpeed * DeltaSeconds,
+		Memory->CurrentRollSpeed * DeltaSeconds
 	);
 	ControlledPawn->AddActorLocalRotation(FinalRotation);
 }
-

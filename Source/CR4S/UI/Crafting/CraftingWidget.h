@@ -79,4 +79,13 @@ private:
 	TArray<FIngredientData> CurrentIngredients;
 	
 #pragma endregion
+
+#pragma region Delegate
+
+public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCraftingComplete);
+	UPROPERTY(BlueprintAssignable, Category = "Crafting")
+	FOnCraftingComplete OnCraftingComplete;
+	
+#pragma endregion 
 };

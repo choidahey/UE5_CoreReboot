@@ -20,6 +20,11 @@ public:
 	float EnergyConsumptionAmount{100};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float EnergyConsumptionInterval{0.1};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HoverResourceCost{100};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HoverResourceConsumptionInterval{0.1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ColdResourceConsumptionMultiplier {1.2};

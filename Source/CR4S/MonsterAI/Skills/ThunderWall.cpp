@@ -16,7 +16,7 @@ AThunderWall::AThunderWall()
 
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
-
+	CollisionComp->SetHiddenInGame(true);
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AThunderWall::OnOverlap);
 	
 	NiagaraComp->SetupAttachment(RootComponent);

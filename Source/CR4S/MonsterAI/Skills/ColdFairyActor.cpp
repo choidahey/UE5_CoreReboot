@@ -1,40 +1,28 @@
 #include "MonsterAI/Skills/ColdFairyActor.h"
-
 #include "CR4S.h"
+#include "NiagaraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Components/SphereComponent.h"
-#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
-#include "MonsterAI/Components/MonsterSkillComponent.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "MonsterAI/BaseMonster.h"
 
 AColdFairyActor::AColdFairyActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
-	if (USphereComponent* Sphere = Cast<USphereComponent>(CollisionComp))
-	{
-		Sphere->SetSphereRadius(20.f);
-		Sphere->SetupAttachment(RootComp);
-	}
+	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionComp"));
 	CollisionComp->SetupAttachment(RootComp);
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
-	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
-	CollisionComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-	CollisionComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-	CollisionComp->SetNotifyRigidBodyCollision(true);
-	CollisionComp->OnComponentHit.AddDynamic(this, &AColdFairyActor::OnHit);
+	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
+	CollisionComp->SetGenerateOverlapEvents(true);
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AColdFairyActor::OnOverlap);
 
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
+	NiagaraComp->SetupAttachment(RootComp);
+	
 	StaticMesh->SetupAttachment(RootComp);
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
-	ProjectileMovementComp->UpdatedComponent = CollisionComp;
+	ProjectileMovementComp->UpdatedComponent = RootComp;
 	ProjectileMovementComp->InitialSpeed = Speed;
 	ProjectileMovementComp->MaxSpeed = MaxSpeed;
 	ProjectileMovementComp->ProjectileGravityScale = 1.0f;
@@ -42,6 +30,7 @@ AColdFairyActor::AColdFairyActor()
 	ProjectileMovementComp->bAutoActivate = false;
 	ProjectileMovementComp->bIsHomingProjectile = false;
 	ProjectileMovementComp->HomingAccelerationMagnitude = 0.f;
+	ProjectileMovementComp->OnProjectileStop.AddDynamic(this, &AColdFairyActor::OnProjectileStop);
 }
 
 void AColdFairyActor::BeginPlay()
@@ -49,6 +38,12 @@ void AColdFairyActor::BeginPlay()
 	Super::BeginPlay();
 
 	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
+
+	if (IsValid(CollisionComp) && CollisionComp->IsRegistered())
+	{
+		if (APawn* InstPawn = GetInstigator<APawn>())
+			CollisionComp->IgnoreActorWhenMoving(InstPawn, true);
+	}
 }
 
 void AColdFairyActor::Tick(float DeltaTime)
@@ -65,6 +60,13 @@ void AColdFairyActor::Tick(float DeltaTime)
 	}
 }
 
+void AColdFairyActor::OnProjectileStop(const FHitResult& ImpactResult)
+{
+	CR4S_Log(LogDa, Log, TEXT("[%s] OnProjectileStop - Hit: %s"), *MyHeader, *ImpactResult.GetActor()->GetName());
+	
+	StopAndStick(ImpactResult);
+}
+
 void AColdFairyActor::InitialLaunch(AActor* InTarget, int32 InIndex, int32 InTotalCount)
 {
 	if (!InTarget) return;
@@ -73,10 +75,8 @@ void AColdFairyActor::InitialLaunch(AActor* InTarget, int32 InIndex, int32 InTot
 	SpawnOrder = InIndex;
 	TotalCount = InTotalCount;
 
-	if (APawn* InstPawn = GetInstigator<APawn>())
-		CollisionComp->IgnoreActorWhenMoving(InstPawn, true);
-	
-	bSequentialLaunch ? HandleSequenceLaunch() : HandleImmediateLaunch();
+	// bSequentialLaunch ? HandleSequenceLaunch() : HandleImmediateLaunch();
+	bSequentialLaunch ? HandleSequenceLaunch() : Launch();
 }
 
 void AColdFairyActor::HandleSequenceLaunch()
@@ -121,6 +121,44 @@ void AColdFairyActor::HandleImmediateLaunch() const
 	}
 }
 
+void AColdFairyActor::StopAndStick(const FHitResult& HitResult, AActor* HitActor, UPrimitiveComponent* HitComp)
+{
+	if (!ProjectileMovementComp->IsActive()) return;
+	
+	ProjectileMovementComp->StopMovementImmediately();
+	ProjectileMovementComp->Deactivate();
+	ProjectileMovementComp->bIsHomingProjectile = false;
+	ProjectileMovementComp->Velocity = FVector::ZeroVector;
+	
+	SetActorLocation(HitResult.ImpactPoint);
+	
+	if (IsValid(CollisionComp) && CollisionComp->IsRegistered())
+	{
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CollisionComp->SetGenerateOverlapEvents(false);
+	}
+	
+	if (IsValid(HitComp))
+	{
+		CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		CollisionComp->AttachToComponent(HitComp,FAttachmentTransformRules::KeepWorldTransform);
+	}
+	else if (IsValid(HitActor))
+	{
+		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
+	}
+	
+	FTimerDelegate DestroyDelegate;
+	DestroyDelegate.BindLambda([this]() 
+	{ 
+		CR4S_Log(LogDa, Log, TEXT("[%s] LifeTime expired, destroying actor"), *MyHeader);
+		Destroy(); 
+	});
+	
+	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, DestroyDelegate, LifeTime, false);
+}
+
 void AColdFairyActor::Launch()
 {
 	if (!CR4S_VALIDATE(LogDa, IsValid(this))) return;
@@ -133,7 +171,8 @@ void AColdFairyActor::Launch()
 		ProjectileMovementComp->Activate(true);
 	
 	ProjectileMovementComp->bIsHomingProjectile = true;
-	ProjectileMovementComp->HomingAccelerationMagnitude = 5000.f;
+	ProjectileMovementComp->ProjectileGravityScale = 0.3f; 
+	ProjectileMovementComp->HomingAccelerationMagnitude = 2000.f;
 	ProjectileMovementComp->HomingTargetComponent = TargetActor->GetRootComponent();
 	
 	FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
@@ -155,27 +194,16 @@ void AColdFairyActor::Launch()
 	);
 }
 
-void AColdFairyActor::OnHit(
-	UPrimitiveComponent* HitComp,
+void AColdFairyActor::OnOverlap(
+	UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComp,
-	FVector NormalImpulse,
-	const FHitResult& Hit)
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
-	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
-    ProjectileMovementComp->StopMovementImmediately();
-    SetActorLocation(Hit.ImpactPoint);
-
-    if (CollisionComp->IsRegistered())
-        CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-    
-    AttachToComponent(OtherComp, FAttachmentTransformRules::KeepWorldTransform);
-
-    GetWorld()->GetTimerManager().SetTimer(
-        DestroyTimerHandle,
-        FTimerDelegate::CreateLambda([this]() { Destroy(); }),
-        2.0f,
-        false
-    );
+	StopAndStick(SweepResult, OtherActor, OtherComp);
 }
+

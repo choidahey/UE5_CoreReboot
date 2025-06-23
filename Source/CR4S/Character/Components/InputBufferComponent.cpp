@@ -36,7 +36,7 @@ void UInputBufferComponent::SetInputQueue(const EInputType Input)
 		BufferClearTimerHandle,
 		this,
 		&UInputBufferComponent::ClearInputQueue,
-		1.f,
+		0.2f,
 		false
 	);
 }

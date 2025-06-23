@@ -8,6 +8,7 @@
 #include "EnvironmentQuery/EnvQuery.h"
 #include "../Component/GroundMovementComponent.h"
 #include "EnvironmentQuery/EnvQueryInstanceBlueprintWrapper.h"
+#include "FriendlyAI/BaseHelperBot.h"
 
 AHelperBotAIController::AHelperBotAIController()
 {
@@ -50,6 +51,11 @@ void AHelperBotAIController::SetBotState(EHelperBotState NewState)
 		{
 			Blackboard->SetValueAsObject(TEXT("TargetActor"), PlayerPawn);
 		}
+	}
+	
+	if (ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(GetPawn()))
+	{
+		HelperBot->UpdateStateVisualEffects();
 	}
 }
 

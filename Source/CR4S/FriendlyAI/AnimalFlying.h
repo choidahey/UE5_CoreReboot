@@ -198,6 +198,9 @@ private:
 	bool bAreWeFlying = false;
 
 	UPROPERTY(EditAnywhere)
+	bool bAreWePerched = false;
+
+	UPROPERTY(EditAnywhere)
 	bool bAreWeWalking = false;
 
 	UPROPERTY(EditAnywhere)

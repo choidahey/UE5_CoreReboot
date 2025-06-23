@@ -322,7 +322,7 @@ void AAnimalAIController::SetAnimalState(EAnimalState NewState)
         {
             if (GroundAnimal->AIJumpComponent && GroundAnimal->AIJumpComponent->IsActive())
             {
-                GroundAnimal->AIJumpComponent->Deactivate();
+                GroundAnimal->AIJumpComponent->DeactivateJumpComponent();
             }
         }
     }

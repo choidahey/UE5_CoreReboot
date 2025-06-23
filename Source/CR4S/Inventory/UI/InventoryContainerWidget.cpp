@@ -237,14 +237,8 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 	case EOpenWidgetType::PlantBox:
 		TargetWidget = PlanterBoxInventoryWidget;
 		break;
-	case EOpenWidgetType::CompostBin:
-		TargetWidget = CompostBinWidget;
-		break;
 	case EOpenWidgetType::RobotWorkshop:
 		TargetWidget = RobotWorkshopWidget;
-		break;
-	case EOpenWidgetType::HelperBotWorkshop:
-		TargetWidget = HelperBotWorkshopWidget;
 		break;
 	}
 
@@ -273,7 +267,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		return;
 	}
 
-	const UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
+	UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
 		return;
@@ -287,7 +281,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		                                                ? PlayerInventoryComponent
 		                                                : OtherInventoryComponent;
 
-	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
+	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount(), Item);
 
 	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }
