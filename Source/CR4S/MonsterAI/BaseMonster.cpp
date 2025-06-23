@@ -129,9 +129,9 @@ void ABaseMonster::HandleDeath()
 			BB->SetValueAsBool(FAIKeys::IsDead, true);
 	}
 
-	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	GetMesh()->SetAllBodiesSimulatePhysics(true);
-	GetMesh()->SetSimulatePhysics(true);
+	// GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	// GetMesh()->SetAllBodiesSimulatePhysics(true);
+	// GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (AnimComponent)
