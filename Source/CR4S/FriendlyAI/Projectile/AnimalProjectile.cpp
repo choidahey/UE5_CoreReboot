@@ -8,6 +8,9 @@ AAnimalProjectile::AAnimalProjectile()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	RootSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	RootComponent = RootSceneComponent;
+	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
@@ -16,7 +19,7 @@ AAnimalProjectile::AAnimalProjectile()
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	MeshComponent->SetNotifyRigidBodyCollision(true);
 	MeshComponent->OnComponentHit.AddDynamic(this, &AAnimalProjectile::OnProjectileHit);
-	RootComponent = MeshComponent;
+	MeshComponent->SetupAttachment(RootSceneComponent);
 	
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->bRotationFollowsVelocity = true;

@@ -27,9 +27,12 @@ public:
 #pragma endregion
 
 #pragma region Attack
-
-	void PerformMeleeAttack() override;
-	void PerformChargeAttack() override;
+	virtual float PlayAttackMontage() override;
+	virtual float PlayChargeAttackMontage() override;
+	virtual float PlayRangedAttackMontage() override;
+	virtual void ResetAttackFlag() override;
+	virtual void PerformMeleeAttack() override;
+	virtual void PerformChargeAttack() override;
 	
 #pragma endregion
 };
