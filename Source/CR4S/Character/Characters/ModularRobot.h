@@ -37,16 +37,25 @@ public:
 	AModularRobot();
 
 #pragma region PartsEquip
+	UFUNCTION(BlueprintCallable)
 	void EquipCoreParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
 	void EquipBodyParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
 	void EquipArmParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
 	void EquipLegParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
 	void EquipBoosterParts(const FGameplayTag& Tag);
-
+	UFUNCTION(BlueprintCallable)
 	void UnequipCoreParts();
+	UFUNCTION(BlueprintCallable)
 	void UnequipBodyParts();
+	UFUNCTION(BlueprintCallable)
 	void UnequipArmParts();
+	UFUNCTION(BlueprintCallable)
 	void UnequipLegParts();
+	UFUNCTION(BlueprintCallable)
 	void UnequipBoosterParts();
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -194,24 +203,15 @@ protected:
 	FTimerHandle DashCooldownTimerHandle;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FCorePartsInfo CoreInfo;
+	FGameplayTag CoreTag;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FBodyPartsInfo BodyInfo;
+	FGameplayTag BodyTag;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FArmPartsInfo ArmInfo;
+	FGameplayTag ArmTag;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FLegPartsInfo LegInfo;
+	FGameplayTag LegTag;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FBoosterPartsInfo BoosterInfo;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float OriginalMaxWalkSpeed{0};
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float OriginalDashStrength{0};
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float OriginalMaxSlopeAngle{0};
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float OriginalDashCooldown{0};
+	FGameplayTag BoosterTag;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsDashing:1 {false};
