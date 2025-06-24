@@ -600,9 +600,10 @@ void AModularRobot::DisconnectWidgets() const
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				InGameWidget->ClearBindingsToStatus();
-				InGameWidget->ClearBindingsToEnvStatus();
-				InGameWidget->ClearAmmoWidgetToWeapon();
+				InGameWidget->UnbindStatusFromUI();
+				InGameWidget->UnbindEnvStatusFromUI();
+				InGameWidget->UnbindWeaponFromUI();
+				InGameWidget->UnbindAllHomingWeaponFromUI();
 			}
 		}
 	}

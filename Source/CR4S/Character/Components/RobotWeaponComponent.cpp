@@ -181,7 +181,7 @@ void URobotWeaponComponent::BindWidgetWeapon()
 			InGameWidget->BindAmmoWidgetToWeapon(Weapons[i],i);
 			if (AHomingWeapon* Homing=Cast<AHomingWeapon>(Weapons[i]))
 			{
-				InGameWidget->BindLockOnWidgetToHomingWeapon(Homing);
+				InGameWidget->BindLockOnWidgetToHomingWeapon(Homing,i);
 			}
 		}
 	}

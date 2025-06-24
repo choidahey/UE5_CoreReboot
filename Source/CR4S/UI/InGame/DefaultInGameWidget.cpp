@@ -16,11 +16,17 @@
 void UDefaultInGameWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	if (!CR4S_ENSURE(LogHong1,LockOnWidget)) return;
 	
 	AimCircle->SetVisibility(ESlateVisibility::Hidden);
-
 	CurrentAmmoWidgets->SetVisibility(ESlateVisibility::Hidden);
+
+	if (LockOnWidgets.IsEmpty())
+	{
+		LockOnWidgets.Add(LockOnWidget0);
+		LockOnWidgets.Add(LockOnWidget1);
+		LockOnWidgets.Add(LockOnWidget2);
+		LockOnWidgets.Add(LockOnWidget3);
+	}
 }
 
 void UDefaultInGameWidget::ToggleWidgetMode(const bool bIsRobot)
@@ -49,11 +55,22 @@ void UDefaultInGameWidget::ToggleWidgetMode(const bool bIsRobot)
 	}
 }
 
-void UDefaultInGameWidget::BindLockOnWidgetToHomingWeapon(AHomingWeapon* HomingWeapon)
+void UDefaultInGameWidget::BindLockOnWidgetToHomingWeapon(AHomingWeapon* HomingWeapon, const int32 SlotIdx)
 {
-	if (!CR4S_ENSURE(LogHong1,HomingWeapon && LockOnWidget)) return;
+	if (!CR4S_ENSURE(LogHong1,LockOnWidgets.IsValidIndex(SlotIdx)&&IsValid(HomingWeapon)&&IsValid(LockOnWidgets[SlotIdx]))) return;
 
-	LockOnWidget->InitializeWidgetForWeapon(HomingWeapon);	
+	LockOnWidgets[SlotIdx]->InitializeWidgetForWeapon(HomingWeapon);
+}
+
+void UDefaultInGameWidget::UnbindAllHomingWeaponFromUI()
+{
+	for (ULockOnWidget* LockOnWidget : LockOnWidgets)
+	{
+		if (IsValid(LockOnWidget))
+		{
+			LockOnWidget->ClearBinding();
+		}
+	}
 }
 
 void UDefaultInGameWidget::BindAmmoWidgetToWeapon(ABaseWeapon* InWeapon, const int32 SlotIdx)
@@ -88,7 +105,7 @@ void UDefaultInGameWidget::BindEnvStatusWidgetToEnvStatus(UEnvironmentalStatusCo
 	EnvironmentStatusWidget->InitializeWidget(InStatus);
 }
 
-void UDefaultInGameWidget::ClearBindingsToStatus()
+void UDefaultInGameWidget::UnbindStatusFromUI()
 {
 	if (!CR4S_ENSURE(LogHong1,StatusWidget)) return;
 	StatusWidget->ClearBindings();
@@ -97,13 +114,13 @@ void UDefaultInGameWidget::ClearBindingsToStatus()
 	EnvironmentStatusWidget->ClearBindingsToStatusComp();
 }
 
-void UDefaultInGameWidget::ClearBindingsToEnvStatus()
+void UDefaultInGameWidget::UnbindEnvStatusFromUI()
 {
 	if (!CR4S_ENSURE(LogHong1,EnvironmentStatusWidget)) return;
 	EnvironmentStatusWidget->ClearBindingsToEnvStatusComp();
 }
 
-void UDefaultInGameWidget::ClearAmmoWidgetToWeapon()
+void UDefaultInGameWidget::UnbindWeaponFromUI()
 {
 	if (!CR4S_ENSURE(LogHong1,CurrentAmmoWidgets)) return;
 	CurrentAmmoWidgets->ClearBindingsToWeapon();
