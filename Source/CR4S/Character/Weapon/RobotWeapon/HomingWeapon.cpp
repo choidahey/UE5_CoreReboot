@@ -46,18 +46,6 @@ void AHomingWeapon::OnAttack()
 void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	Super::Initialize(OwnerCharacter, SlotIdx);
-	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
-	
-	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
-	if (!CR4S_ENSURE(LogHong1,PC)) return;
-
-	ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(PC->GetHUD());
-	if (!CR4S_ENSURE(LogHong1,CurrentHUD)) return;
-
-	UDefaultInGameWidget* InGaemWidget=CurrentHUD->GetInGameWidget();
-	if (!CR4S_ENSURE(LogHong1,InGaemWidget)) return;
-
-	InGaemWidget->BindLockOnWidgetToHomingWeapon(this);
 }
 
 void AHomingWeapon::StopAttack()

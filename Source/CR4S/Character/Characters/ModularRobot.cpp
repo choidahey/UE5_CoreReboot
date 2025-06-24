@@ -232,7 +232,7 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 {
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
-
+	
 	FBoosterPartsInfo BoosterInfo;
 	const bool bSuccessed = Loader->LoadBoosterPartsDataByTag(Tag, BoosterInfo);
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
@@ -584,6 +584,9 @@ void AModularRobot::InitializeWidgets() const
 
 				Status->Refresh();
 				EnvironmentalStatus->Refresh();
+
+				if (!CR4S_ENSURE(LogHong1,WeaponManager)) return;
+				WeaponManager->BindWidgetWeapon();
 			}
 		}
 	}
@@ -599,6 +602,7 @@ void AModularRobot::DisconnectWidgets() const
 			{
 				InGameWidget->ClearBindingsToStatus();
 				InGameWidget->ClearBindingsToEnvStatus();
+				InGameWidget->ClearAmmoWidgetToWeapon();
 			}
 		}
 	}

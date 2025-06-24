@@ -44,6 +44,7 @@ public:
 
 	void ClearBindingsToStatus();
 	void ClearBindingsToEnvStatus();
+	void ClearAmmoWidgetToWeapon();
 #pragma endregion
 	
 #pragma region UpdateWidget

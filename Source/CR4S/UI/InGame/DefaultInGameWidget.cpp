@@ -63,6 +63,7 @@ void UDefaultInGameWidget::BindAmmoWidgetToWeapon(ABaseWeapon* InWeapon, const i
 	CurrentAmmoWidgets->InitializeWidgetForWeapon(InWeapon,SlotIdx);
 }
 
+
 void UDefaultInGameWidget::BindWidgetsToStatus(UBaseStatusComponent* InStatus)
 {
 	if (!CR4S_ENSURE(LogHong1,InStatus && StatusWidget)) return;
@@ -100,6 +101,12 @@ void UDefaultInGameWidget::ClearBindingsToEnvStatus()
 {
 	if (!CR4S_ENSURE(LogHong1,EnvironmentStatusWidget)) return;
 	EnvironmentStatusWidget->ClearBindingsToEnvStatusComp();
+}
+
+void UDefaultInGameWidget::ClearAmmoWidgetToWeapon()
+{
+	if (!CR4S_ENSURE(LogHong1,CurrentAmmoWidgets)) return;
+	CurrentAmmoWidgets->ClearBindingsToWeapon();
 }
 
 void UDefaultInGameWidget::UpdateHungerWidget(const float InPercentage)

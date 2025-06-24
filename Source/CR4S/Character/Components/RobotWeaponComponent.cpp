@@ -104,7 +104,7 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 
 	if (IsValid(Weapons[SlotIdx]))
 	{
-		Weapons[SlotIdx]->Destroy();
+		UnequipWeapon(SlotIdx);
 	}
 	
 	FActorSpawnParameters SpawnParams;
@@ -131,13 +131,39 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 		NewWeapon->SetGameplayTag(Tag);
 		NewWeapon->Initialize(OwningCharacter, SlotIdx);
 		Weapons[SlotIdx]=NewWeapon;
-		BindWidgetWeapon(NewWeapon,SlotIdx);
+
+		UModularRobotStatusComponent* Status=OwningCharacter->GetStatusComponent();
+		if (!CR4S_ENSURE(LogHong1,Status)) return;
+
+		const float WeaponWeight=NewWeapon->GetWeaponWeight();
+		Status->AddWeight(WeaponWeight);
+		if (IsArmSlot(SlotIdx))
+		{
+			Status->AddCurrentArmMountWeight(WeaponWeight);
+		}
 	}
 }
 
-void URobotWeaponComponent::BindWidgetWeapon(ABaseWeapon* Target, const int32 SlotIdx)
+void URobotWeaponComponent::UnequipWeapon(const int32 SlotIdx)
 {
-	if (!CR4S_ENSURE(LogHong1,Target && OwningCharacter)) return;
+	if (!Weapons.IsValidIndex(SlotIdx) || !IsValid(Weapons[SlotIdx]) || !OwningCharacter) return;
+
+	UModularRobotStatusComponent* Status=OwningCharacter->GetStatusComponent();
+	if (!CR4S_ENSURE(LogHong1,Status)) return;
+
+	const float WeaponWeight=Weapons[SlotIdx]->GetWeaponWeight();
+	Status->AddWeight(-(WeaponWeight));
+	if (IsArmSlot(SlotIdx))
+	{
+		Status->AddCurrentArmMountWeight(-(WeaponWeight));
+	}
+	Weapons[SlotIdx]->Destroy();
+	Weapons[SlotIdx]=nullptr;
+}
+
+void URobotWeaponComponent::BindWidgetWeapon()
+{
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
 
 	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
 	if (!CR4S_ENSURE(LogHong1,PC)) return;
@@ -148,7 +174,22 @@ void URobotWeaponComponent::BindWidgetWeapon(ABaseWeapon* Target, const int32 Sl
 	UDefaultInGameWidget* InGameWidget=Cast<UDefaultInGameWidget>(CurrentHUD->GetInGameWidget());
 	if (!CR4S_ENSURE(LogHong1,InGameWidget)) return;
 
-	InGameWidget->BindAmmoWidgetToWeapon(Target,SlotIdx);
+	for (int32 i=0;i<Weapons.Num();++i)
+	{
+		if (Weapons.IsValidIndex(i)&&IsValid(Weapons[i]))
+		{
+			InGameWidget->BindAmmoWidgetToWeapon(Weapons[i],i);
+			if (AHomingWeapon* Homing=Cast<AHomingWeapon>(Weapons[i]))
+			{
+				InGameWidget->BindLockOnWidgetToHomingWeapon(Homing);
+			}
+		}
+	}
+}
+
+bool URobotWeaponComponent::IsArmSlot(const int32 SlotIdx) const
+{
+	return SlotIdx==0 || SlotIdx==1;
 }
 
 void URobotWeaponComponent::BeginPlay()
