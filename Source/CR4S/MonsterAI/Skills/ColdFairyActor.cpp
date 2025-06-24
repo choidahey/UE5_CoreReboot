@@ -140,7 +140,7 @@ void AColdFairyActor::StopAndStick(const FHitResult& HitResult, AActor* HitActor
 	
 	if (IsValid(HitComp) && HitComp != CollisionComp)
 	{
-		CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);  // 여기 터짐
 		CollisionComp->AttachToComponent(HitComp,FAttachmentTransformRules::KeepWorldTransform);
 	}
 	else if (IsValid(HitActor) && HitComp != CollisionComp)
@@ -202,9 +202,10 @@ void AColdFairyActor::OnOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-
+	if (!OtherActor || !OtherComp) return;
 	if (OtherActor && OtherActor->IsA<AColdFairyActor>()) return;
+	
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
 	StopAndStick(SweepResult, OtherActor, OtherComp);
 }
