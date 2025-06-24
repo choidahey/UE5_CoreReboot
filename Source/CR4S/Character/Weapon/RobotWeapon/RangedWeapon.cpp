@@ -12,7 +12,7 @@ ARangedWeapon::ARangedWeapon()
 {
 }
 
-void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter)
+void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	UGameInstance* GI=GetGameInstance();
 	if (!GI) return;
@@ -25,7 +25,7 @@ void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter)
 	{
 		return;
 	}
-	Super::Initialize(OwnerCharacter);
+	Super::Initialize(OwnerCharacter, SlotIdx);
 }
 
 void ARangedWeapon::FireMultiBullet(AActor* HomingTarget)
@@ -95,7 +95,7 @@ FVector ARangedWeapon::GetMuzzleLocation(const FName& SocketName) const
 {
 	if (!OwningCharacter||!OwningCharacter->GetMesh()) return FVector::ZeroVector;
 	
-	return SkeletalMeshComp->GetSocketLocation(SocketName);
+	return StaticMeshComp->GetSocketLocation(SocketName);
 }
 
 void ARangedWeapon::FireBullet(const FVector& MuzzleLocation, const FRotator& SpawnRotation, AActor* HomingTarget)
@@ -125,10 +125,12 @@ void ARangedWeapon::ApplyRecoil() const
 	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
 	if (!PC) return;
 
-	float Recoil=TypeSpecificInfo.RecoilInfo.Recoil;
-	float HorizontalMultiplier=TypeSpecificInfo.RecoilInfo.HorizontalRecoilMultiplier; 
-	const float HorizontalRecoil=FMath::FRandRange(-Recoil*HorizontalMultiplier,Recoil*HorizontalMultiplier);
-	PC->AddPitchInput(Recoil);
+	const float RecoilModifier=OwningCharacter->GetRecoilModifier();
+
+	const float FinalRecoil=TypeSpecificInfo.RecoilInfo.Recoil*RecoilModifier;
+	const float HorizontalMultiplier=TypeSpecificInfo.RecoilInfo.HorizontalRecoilMultiplier; 
+	const float HorizontalRecoil=FMath::FRandRange(-FinalRecoil*HorizontalMultiplier,FinalRecoil*HorizontalMultiplier);
+	PC->AddPitchInput(FinalRecoil);
 	PC->AddYawInput(HorizontalRecoil);
 }
 

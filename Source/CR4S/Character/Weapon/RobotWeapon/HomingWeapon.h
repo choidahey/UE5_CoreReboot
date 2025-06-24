@@ -23,7 +23,7 @@ public:
 #pragma region Override
 public:
 	virtual void OnAttack() override;
-	virtual void Initialize(AModularRobot* OwnerCharacter) override;
+	virtual void Initialize(AModularRobot* OwnerCharacter, int32 SlotIdx) override;
 	virtual void StopAttack() override;
 	virtual void Tick(float DeltaTime) override;
 protected:

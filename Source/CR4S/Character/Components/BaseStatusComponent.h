@@ -27,8 +27,8 @@ public:
 #pragma region Refresh
 	virtual void Refresh();
 #pragma endregion
-	
-#pragma region Get
+
+#pragma region Get & Set
 	FORCEINLINE float GetMaxHP() const { return BaseStatus.MaxHealth; }
 	FORCEINLINE float GetCurrentHP() const { return BaseStatus.Health; }
 	
@@ -41,6 +41,12 @@ public:
 	FORCEINLINE float GetColdThreshold() const { return BaseStatus.ColdThreshold; }
 	FORCEINLINE float GetHeatThreshold() const { return BaseStatus.HeatThreshold; }
 	FORCEINLINE float GetHumidityThreshold() const { return BaseStatus.HumidityThreshold; }
+
+	void SetResourceConsumptionAmount(const float NewCost);
+	FORCEINLINE void ResetResourceConsumptionAmount() { BaseStatus.ResourceConsumptionAmount = DefaultBaseStatus.ResourceConsumptionAmount; }
+	
+	void SetResourceRegenDelay(const float NewDelay);
+	FORCEINLINE void ResetResourceRegenDelay() { BaseStatus.ResourceRegenDelay = DefaultBaseStatus.ResourceRegenDelay; }
 #pragma endregion
 
 #pragma region Add
@@ -60,6 +66,14 @@ public:
 	void AddHeatThreshold(const float InAmount);
 	UFUNCTION(BlueprintCallable)
 	void AddHumidityThreshold(const float InAmount);
+#pragma endregion
+
+#pragma region Modifier
+	void ApplyResourceRegenModifier(const float Modifier);
+	void RevertResourceRegenModifier(const float Modifier);
+
+	void ApplyResourceConsumptionModifier(const float Modifier);
+	void RevertResourceConsumptionModifier(const float Modifier);
 #pragma endregion
 	
 #pragma region Roll & Dash
@@ -107,6 +121,9 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FBaseStats BaseStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FBaseStats DefaultBaseStatus;
 #pragma endregion
 	
 #pragma region Delegate
@@ -122,7 +139,7 @@ public:
 	FOnHumidityThresholdChangedDelegate OnHumidityThresholdChanged;
 #pragma endregion
 
-#pragma region Flag
+#pragma region Cached
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	uint8 bIsOverHeated:1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))

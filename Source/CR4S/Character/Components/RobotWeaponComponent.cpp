@@ -150,7 +150,7 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 		);
 		
 		NewWeapon->SetGameplayTag(Tag);
-		NewWeapon->Initialize(OwningCharacter);
+		NewWeapon->Initialize(OwningCharacter, SlotIdx);
 		Weapons[SlotIdx]=NewWeapon;
 		BindWidgetWeapon(NewWeapon,SlotIdx);
 	}
@@ -180,7 +180,7 @@ void URobotWeaponComponent::BeginPlay()
 	{
 		if (Weapons.IsValidIndex(i)&&IsValid(Weapons[i]))
 		{
-			Weapons[i]->Initialize(OwningCharacter);
+			Weapons[i]->Initialize(OwningCharacter, i);
 		}
 	}
 
