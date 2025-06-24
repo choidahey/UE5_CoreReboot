@@ -53,7 +53,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Weight{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxArmLoad{0};
+	float MaxArmMountWeight{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float CurrentArmMountWeight{0};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RecoilModifier{1};
