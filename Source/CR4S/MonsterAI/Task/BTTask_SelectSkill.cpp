@@ -27,8 +27,10 @@ EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& Own
 	UE_LOG(LogTemp, Warning, TEXT("[UBTTask_SelectSkill] SelectedSkill Index is %d"), SelectedSkillIndex);
 
 	if (SelectedSkillIndex == INDEX_NONE) return EBTNodeResult::Failed;
+	const ESkillAttackType SelectedAttackType = SkillComp->GetSkillData(SelectedSkillIndex).AttackType;
 
-	CachedBlackboard->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);	
+	CachedBlackboard->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);
+	CachedBlackboard->SetValueAsEnum(FRegionBossAIKeys::AttackType, static_cast<uint8>(SelectedAttackType));
 
 	return EBTNodeResult::Succeeded;
 }

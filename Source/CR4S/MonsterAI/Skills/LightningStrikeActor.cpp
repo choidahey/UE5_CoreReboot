@@ -74,7 +74,6 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 		);
 	}
 #endif
-	
 
 	FTimerHandle DestroyHandle;
 	GetWorld()->GetTimerManager().SetTimer(
