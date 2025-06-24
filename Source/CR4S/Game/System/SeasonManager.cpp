@@ -61,10 +61,7 @@ void USeasonManager::Deinitialize()
 }
 void USeasonManager::LoadSeason()
 {
-	// if Saved Data Exists, Load Season Data
-	// else Set Default Season
 	UE_LOG(LogTemp, Warning, TEXT("Loading Season"));
-	SetCurrentSeason(ESeasonType::BountifulSeason);
 
 	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
@@ -97,6 +94,14 @@ void USeasonManager::HandleDayChange()
 	}
 }
 
+
+void USeasonManager::SetCurrentDawnDuskTime(float Dawn, float Dusk)
+{
+	CurrentDawnTime = Dawn;
+	CurrentDuskTime = Dusk;
+
+	OnDayChanged.Broadcast(CurrentDawnTime, CurrentDuskTime);
+}
 
 void USeasonManager::GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime)
 {
@@ -138,7 +143,6 @@ void USeasonManager::ChangeToNextSeason()
 	}
 
 	SetCurrentSeason(NextSeason);	
-	OnSeasonChanged.Broadcast(NextSeason);
 }
 
 
@@ -148,7 +152,7 @@ void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 	UE_LOG(LogTemp, Warning, TEXT("Current Season changed to: %s"), *UEnum::GetValueAsString(NewSeason));
 
 	EnvironmentManager->SetWeatherBySeason(NewSeason);
-
+	OnSeasonChanged.Broadcast(NewSeason);
 	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
 

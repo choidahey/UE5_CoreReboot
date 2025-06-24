@@ -2,17 +2,22 @@
 
 #include "CoreMinimal.h"
 
-#include "ConsumableInventoryItemData.generated.h"
+#include "ConsumableItemSaveGame.generated.h"
 
 USTRUCT(BlueprintType)
 struct FFreshnessInfo
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsRotten = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ShelfLifeSeconds = 100.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RemainingFreshnessTime = 100.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DecayRateMultiplier = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int64 PreviousDecayPlayTime = -1;
 	
 	bool ShouldDecay() const
@@ -43,15 +48,4 @@ struct FResistanceEffect
 	float Elapsed = 0.f;
 	int32 ResistanceValue = 0;
 	int64 PrevPlayTime = -1;
-};
-
-USTRUCT(BlueprintType)
-struct FConsumableInventoryItemData
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FFreshnessInfo FreshnessInfo = FFreshnessInfo();
-	UPROPERTY()
-	TMap<EResistanceBuffType, FResistanceEffect> ResistanceEffects;
 };

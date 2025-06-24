@@ -9,39 +9,25 @@ class UConfirmWidget;
 class USettingsWidget;
 class UCreditsWidget;
 class UDifficultyOptionsWidget;
+class UGameSaveWidget;
 class USoundBase;
-class UAudioComponent;
 
 UCLASS()
 class CR4S_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
-
-public:
-	UFUNCTION()
-	void FadeOutBGM(float FadeDuration = 1.0f);
-
 protected:
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
-	void OnPlayGameButtonHovered();
-	UFUNCTION()
-	void OnPlayGameButtonUnhovered();
-	UFUNCTION()
-	void OnGameButtonHovered();
-	UFUNCTION()
-	void OnGameButtonUnhovered();
+	void OnPlayGameButtonClicked();
 	UFUNCTION()
 	void OnSettingsButtonClicked();
 	UFUNCTION()
 	void OnCreditsButtonClicked();
 	UFUNCTION()
 	void OnQuitButtonClicked();
-	UFUNCTION()
-	void OnNewGameButtonClicked();
-
 
 	void CreateChildWidgets();
 
@@ -50,31 +36,32 @@ protected:
 public:
 	void HideMenuButtons();
 	void ShowMenuButtons();
-	void ShowGameButtons();
-	void HideGameButtons();
 
 protected:
 	UPROPERTY()
-	UConfirmWidget* ConfirmWidgetInstance;
+	TObjectPtr<UConfirmWidget> ConfirmWidgetInstance;
 	UPROPERTY()
-	UDifficultyOptionsWidget* DifficultyOptionsWidgetInstance;
+	TObjectPtr<UDifficultyOptionsWidget> DifficultyOptionsWidgetInstance;
 	UPROPERTY()
-	USettingsWidget* SettingsWidgetInstance;
+	TObjectPtr<UGameSaveWidget> GameSaveWidgetInstance;
 	UPROPERTY()
-	UCreditsWidget* CreditsWidgetInstance;
+	TObjectPtr<USettingsWidget> SettingsWidgetInstance;
+	UPROPERTY()
+	TObjectPtr<UCreditsWidget> CreditsWidgetInstance;
+
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UConfirmWidget> ConfirmWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UDifficultyOptionsWidget> DifficultyOptionsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UGameSaveWidget> GameSaveWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UCreditsWidget> CreditsWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
 	USoundBase* MainMenuBGM;
-	UPROPERTY()
-	UAudioComponent* BGMComponent;
 
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* PlayGameButton;
@@ -84,16 +71,6 @@ protected:
 	UButtonWidget* CreditsButton;
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* QuitButton;
-	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* NewGameButton;
-	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* LoadGameButton;
-
-
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* FadeIn;
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* FadeOut;
 
 	FTimerHandle FadeOutTimerHandle;
 };

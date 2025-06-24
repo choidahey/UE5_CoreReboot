@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/Data/ItemData.h"
-#include "Inventory/Data/InventorySaveData.h"
+#include "Inventory/Data/InventorySaveGame.h"
 #include "UObject/Object.h"
 
 #include "BaseInventoryItem.generated.h"
@@ -75,6 +75,7 @@ public:
 	FORCEINLINE void ChangeSlotIndex(const int32 NewSlotIndex) { InventoryItemData.SlotIndex = NewSlotIndex; }
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
+	FORCEINLINE int32 GetSlotIndex() const { return InventoryItemData.SlotIndex; }
 	FORCEINLINE const FName& GetItemRowName() const { return InventoryItemData.RowName; }
 	FORCEINLINE const FItemInfoData& GetItemInfoData() const { return InventoryItemData.ItemInfoData; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
@@ -112,9 +113,9 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|SaveData")
-	virtual FInventoryItemSaveData GetInventoryItemSaveData();
+	virtual FInventoryItemSaveGame GetInventoryItemSaveData();
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|LoadData")
-	virtual void LoadInventoryItemSaveData(const FInventoryItemSaveData& SaveData);
+	virtual void LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemSaveGame& ItemSaveGame);
 	
 #pragma endregion
 

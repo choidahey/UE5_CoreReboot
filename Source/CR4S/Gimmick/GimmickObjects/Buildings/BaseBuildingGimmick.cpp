@@ -15,6 +15,8 @@ ABaseBuildingGimmick::ABaseBuildingGimmick()
 	BuildingDurabilityWidgetComponent
 		= CreateDefaultSubobject<UWidgetComponent>(TEXT("BuildingDurabilityWidgetComponent"));
 	BuildingDurabilityWidgetComponent->SetupAttachment(RootComponent);
+
+	Tags.Emplace("House");
 }
 
 void ABaseBuildingGimmick::BeginPlay()
