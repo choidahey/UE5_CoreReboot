@@ -71,6 +71,7 @@ public:
 #pragma region Get
 	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
 	FORCEINLINE bool IsRobotActive() const { return Status->IsRobotActive(); }
+	FORCEINLINE float GetRecoilModifier() const { return Status->GetRecoilModifier(); }
 #pragma endregion
 
 #pragma region Death

@@ -45,6 +45,7 @@ public:
 
 	FORCEINLINE float GetMaxWeight() const { return RobotStatus.MaxWeight; }
 	FORCEINLINE float GetCurrentWeight() const { return RobotStatus.Weight; }
+	FORCEINLINE float GetRecoilModifier() const { return RobotStatus.RecoilModifier; }
 
 	void SetEnergyConsumptionAmount(const float NewAmount);
 	FORCEINLINE void ResetEnergyConsumptionAmount() { RobotStatus.EnergyConsumptionAmount=DefaultRobotStatus.EnergyConsumptionAmount; }

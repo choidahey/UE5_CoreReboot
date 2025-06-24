@@ -125,10 +125,12 @@ void ARangedWeapon::ApplyRecoil() const
 	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
 	if (!PC) return;
 
-	float Recoil=TypeSpecificInfo.RecoilInfo.Recoil;
+	const float RecoilModifier=OwningCharacter->GetRecoilModifier();
+	
+	float FinalRecoil=TypeSpecificInfo.RecoilInfo.Recoil*RecoilModifier;
 	float HorizontalMultiplier=TypeSpecificInfo.RecoilInfo.HorizontalRecoilMultiplier; 
-	const float HorizontalRecoil=FMath::FRandRange(-Recoil*HorizontalMultiplier,Recoil*HorizontalMultiplier);
-	PC->AddPitchInput(Recoil);
+	const float HorizontalRecoil=FMath::FRandRange(-FinalRecoil*HorizontalMultiplier,FinalRecoil*HorizontalMultiplier);
+	PC->AddPitchInput(FinalRecoil);
 	PC->AddYawInput(HorizontalRecoil);
 }
 
