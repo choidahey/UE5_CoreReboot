@@ -26,7 +26,7 @@ public:
 	int32 CollisionCheckCount{8};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float DashStrength{0};
+	float BoosterStrength{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
 	float LegStrength{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")

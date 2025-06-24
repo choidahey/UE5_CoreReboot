@@ -215,7 +215,8 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
 
 	BoosterTag=Tag;
-	
+
+	RobotSettings.BoosterStrength=BoosterInfo.BoosterStrength;
 	RobotSettings.DashCooldown=BoosterInfo.DashCooldown;
 	Status->SetResourceConsumptionAmount(BoosterInfo.ResourceConsumption);
 }
@@ -329,7 +330,8 @@ void AModularRobot::UnequipBoosterParts()
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
 
 	BoosterTag=FGameplayTag::EmptyTag;
-	
+
+	RobotSettings.BoosterStrength=DefaultSettings.BoosterStrength;
 	RobotSettings.DashCooldown=DefaultSettings.DashCooldown;
 	Status->ResetResourceConsumptionAmount();
 }
@@ -712,19 +714,24 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	FVector LastInput=GetLastMovementInputVector();
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-	float DashPower=RobotSettings.DashStrength;
+	float DashPower=RobotSettings.BoosterStrength;
 	FVector LaunchVelocity=FVector::ZeroVector;
+	UE_LOG(LogHong1,Warning,TEXT("1. DashPower: %f"),DashPower);
 	
 	const bool bInAir=GetCharacterMovement()->IsFalling()||GetCharacterMovement()->IsFlying();
 	if (!bInAir)
 	{
 		DashPower+=RobotSettings.LegStrength;
 	}
+	UE_LOG(LogHong1,Warning,TEXT("2. DashPower: %f"),DashPower);
+	
 
 	const float WeightBasedDivisor=Status->GetCurrentWeight()*RobotSettings.WeightFactor;
 	const float FinalVelocityAmount=DashPower/WeightBasedDivisor;
 	LaunchVelocity=DashDirection*FinalVelocityAmount;
 	LaunchVelocity.Z += bInAir ? 0 : RobotSettings.DashZMultiplier*FinalVelocityAmount;;
+
+	UE_LOG(LogHong1,Warning,TEXT("3. WeightBaseDivisor: %f, FinalVelocityAmount: %f"),WeightBasedDivisor,FinalVelocityAmount);
 	
 	Status->ConsumeResourceForRoll();
 	LaunchCharacter(LaunchVelocity,true,true);

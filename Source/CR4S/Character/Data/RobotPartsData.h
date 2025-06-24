@@ -119,7 +119,7 @@ struct CR4S_API FBoosterPartsInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Power{20000};
+	float BoosterStrength{20000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceConsumption{2000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
