@@ -22,6 +22,7 @@
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "Components/PoseableMeshComponent.h"
 
 
@@ -504,5 +505,65 @@ void ABaseHelperBot::UpdateFadeOut()
 	{
 		GetWorldTimerManager().ClearTimer(FadeTimerHandle);
 	}
+}
+#pragma endregion
+
+#pragma region RobotRepair
+bool ABaseHelperBot::CanRepair(APlayerCharacter* Player) const
+{
+	if (CurrentHealth >= CurrentStats.MaxHealth)
+	{
+		return false;
+	}
+	
+	if (!Player)
+	{
+		return false;
+	}
+	
+	UPlayerInventoryComponent* PlayerInventory = Player->FindComponentByClass<UPlayerInventoryComponent>();
+	if (!PlayerInventory)
+	{
+		return false;
+	}
+
+	for (const auto& RequiredItem : CurrentStats.RepairRequiredItems)
+	{
+		FName ItemName = RequiredItem.Key;
+		int32 RequiredCount = RequiredItem.Value;
+		
+		if (PlayerInventory->GetItemCountByRowName(ItemName) < RequiredCount)
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+bool ABaseHelperBot::RepairBot(APlayerCharacter* Player)
+{
+	if (!CanRepair(Player))
+	{
+		return false;
+	}
+	
+	UPlayerInventoryComponent* PlayerInventory = Player->FindComponentByClass<UPlayerInventoryComponent>();
+	if (!PlayerInventory)
+	{
+		return false;
+	}
+	
+	for (const auto& RequiredItem : CurrentStats.RepairRequiredItems)
+	{
+		FName ItemName = RequiredItem.Key;
+		int32 RequiredCount = RequiredItem.Value;
+		
+		PlayerInventory->RemoveItemByRowName(ItemName, RequiredCount);
+	}
+	
+	CurrentHealth = CurrentStats.MaxHealth;
+	
+	return true;
 }
 #pragma endregion

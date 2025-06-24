@@ -109,31 +109,18 @@ private:
 #pragma region Getters/Setters
 	
 public:
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetWoodDamagePerSecond() const { return CurrentStats.WoodDamagePerSecond; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetRockPerSecond() const { return CurrentStats.RockDamagePerSecond; }
-	
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetRepairingPerSecond() const { return CurrentStats.RepairingPerSecond; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
-	
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
+	FORCEINLINE float GetMaxHealth() const { return CurrentStats.MaxHealth; }
+	FORCEINLINE FString GetBotName() const { return BotName; }
 	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
-
-	UFUNCTION(BlueprintCallable, Category = "Bot Info")
-	FORCEINLINE FString GetBotName() const { return BotName; }
-
+	
 	FHelperPickUpData GetHelperBotData() const { return PickUpData; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
@@ -231,6 +218,15 @@ public:
 
 private:
 	bool bIsWorking = false;
+#pragma endregion
+
+#pragma region RobotRepair
+public:
+	UFUNCTION()
+	bool CanRepair(APlayerCharacter* Player) const;
+	
+	UFUNCTION()
+	bool RepairBot(APlayerCharacter* Player);
 #pragma endregion
 	
 #pragma region Damage & Death

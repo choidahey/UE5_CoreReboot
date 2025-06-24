@@ -46,6 +46,8 @@ void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIControll
 				                                       &UHelperBotStateManagerWidget::UpdateLookAtPlayer, 0.02f, true);
 			}
 		}
+		UpdateHealthDisplay();
+		UpdateRepairButtonState();
 	}
 }
 
@@ -68,6 +70,8 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (ChangeNameButton) ChangeNameButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::ChangeNameButtonClicked);
 	if (BotNameEditBox) BotNameEditBox->OnTextCommitted.AddDynamic(this, &UHelperBotStateManagerWidget::OnNameEditCommitted);
 	if (PickUpButton) PickUpButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::PickUp);
+	if (RepairBotButton) RepairBotButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::RepairBot);
+
 		
 	GetWorld()->GetTimerManager().SetTimer(DistanceCheckTimer, this, 
 		&UHelperBotStateManagerWidget::CheckPlayerDistance, 0.5f, true);
@@ -314,4 +318,53 @@ void UHelperBotStateManagerWidget::PickUp()
 		}
 	}
 	CloseWidgetAndResetInput();
+}
+
+void UHelperBotStateManagerWidget::RepairBot()
+{
+	if (!HelperBot)
+	{
+		return;
+	}
+	
+	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	if (!Player)
+	{
+		return;
+	}
+	
+	if (HelperBot->RepairBot(Player))
+	{
+		UpdateHealthDisplay();
+		UpdateRepairButtonState();
+	}
+}
+
+void UHelperBotStateManagerWidget::UpdateRepairButtonState()
+{
+	if (!RepairBotButton || !HelperBot)
+	{
+		return;
+	}
+	
+	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	bool bCanRepair = HelperBot->CanRepair(Player);
+	
+	RepairBotButton->SetIsEnabled(bCanRepair);
+}
+
+void UHelperBotStateManagerWidget::UpdateHealthDisplay()
+{
+	if (!HelperBot)
+	{
+		return;
+	}
+   
+	if (HealthText)
+	{
+		FString HealthString = FString::Printf(TEXT("%d / %d"), 
+			(int32)HelperBot->GetCurrentHealth(), 
+			(int32)HelperBot->GetMaxHealth());
+		HealthText->SetText(FText::FromString(HealthString));
+	}
 }
