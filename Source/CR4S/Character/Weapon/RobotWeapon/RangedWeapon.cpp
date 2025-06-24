@@ -126,9 +126,9 @@ void ARangedWeapon::ApplyRecoil() const
 	if (!PC) return;
 
 	const float RecoilModifier=OwningCharacter->GetRecoilModifier();
-	
-	float FinalRecoil=TypeSpecificInfo.RecoilInfo.Recoil*RecoilModifier;
-	float HorizontalMultiplier=TypeSpecificInfo.RecoilInfo.HorizontalRecoilMultiplier; 
+
+	const float FinalRecoil=TypeSpecificInfo.RecoilInfo.Recoil*RecoilModifier;
+	const float HorizontalMultiplier=TypeSpecificInfo.RecoilInfo.HorizontalRecoilMultiplier; 
 	const float HorizontalRecoil=FMath::FRandRange(-FinalRecoil*HorizontalMultiplier,FinalRecoil*HorizontalMultiplier);
 	PC->AddPitchInput(FinalRecoil);
 	PC->AddYawInput(HorizontalRecoil);
