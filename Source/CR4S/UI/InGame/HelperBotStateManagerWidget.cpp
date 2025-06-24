@@ -11,6 +11,7 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIController* InController, EHelperBotState InPreviousState)
 {
@@ -280,6 +281,27 @@ void UHelperBotStateManagerWidget::PickUp()
 		{
 			if (APlayerCharacter* PC = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
 			{
+				if (UBaseInventoryComponent* BotInventory = Bot->FindComponentByClass<UBaseInventoryComponent>())
+				{
+					if (UPlayerInventoryComponent* PlayerInventory = PC->FindComponentByClass<UPlayerInventoryComponent>())
+					{
+						TMap<FName, int32> ItemsToTransfer;
+						const TArray<TObjectPtr<UBaseInventoryItem>>& BotItems = BotInventory->GetInventoryItems();
+						
+						for (const UBaseInventoryItem* Item : BotItems)
+						{
+							if (IsValid(Item))
+							{
+								FName ItemRowName = Item->GetInventoryItemData()->RowName;
+								int32 ItemCount = Item->GetCurrentStackCount();
+								ItemsToTransfer.FindOrAdd(ItemRowName) += ItemCount;
+							}
+						}
+						
+						PlayerInventory->AddItems(ItemsToTransfer);
+					}
+				}
+				
 				Bot->StartFadeOut();
 				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
 				{
