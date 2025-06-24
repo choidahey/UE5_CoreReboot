@@ -24,6 +24,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/PoseableMeshComponent.h"
+#include "Components/WidgetComponent.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -66,6 +67,12 @@ ABaseHelperBot::ABaseHelperBot()
 	HitEffectComponent->SetupAttachment(RootComponent);
 	HitEffectComponent->SetAutoActivate(false);
 	HitEffectComponent->SetVisibility(false);
+
+	InfoWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InfoWidgetComponent"));
+	InfoWidgetComponent->SetupAttachment(RootComponent);
+	InfoWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	InfoWidgetComponent->SetDrawAtDesiredSize(true);
+	InfoWidgetComponent->SetVisibility(false);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -85,6 +92,16 @@ void ABaseHelperBot::BeginPlay()
 		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
 		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
 		InteractableComp->SetInteractionText(FText::FromString(BotName));
+	}
+	
+	if (IsValid(InfoWidgetComponent))
+	{
+		InfoUIInstance = Cast<UHelperBotInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
+		if (IsValid(InfoUIInstance))
+		{
+			InfoUIInstance->SetOwnerHelperBot(this);
+		}
+		InfoWidgetComponent->SetVisibility(false);
 	}
 }
 
@@ -126,25 +143,21 @@ void ABaseHelperBot::OnDetectedChange(AActor* InteractableActor, bool bIsDetecte
 {
 	if (bIsDetected)
 	{
-		if (!InfoUIInstance && InfoUIClass)
+		if (IsValid(InfoWidgetComponent))
 		{
-			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+			InfoUIInstance = Cast<UHelperBotInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
+			if (IsValid(InfoUIInstance))
 			{
-				InfoUIInstance = CreateWidget<UHelperBotInfoWidget>(PC, InfoUIClass);
-				if (InfoUIInstance)
-				{
-					InfoUIInstance->SetHealth(GetCurrentHealth(), CurrentStats.MaxHealth);
-					InfoUIInstance->AddToViewport();
-				}
+				InfoUIInstance->SetOwnerHelperBot(this);
+				InfoWidgetComponent->SetVisibility(true);
 			}
 		}
 	}
 	else
 	{
-		if (InfoUIInstance)
+		if (IsValid(InfoWidgetComponent))
 		{
-			InfoUIInstance->RemoveFromParent();
-			InfoUIInstance = nullptr;
+			InfoWidgetComponent->SetVisibility(false);
 		}
 	}
 }

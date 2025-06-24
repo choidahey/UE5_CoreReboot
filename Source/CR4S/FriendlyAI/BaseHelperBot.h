@@ -109,14 +109,18 @@ private:
 #pragma region Getters/Setters
 	
 public:
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHealth() const { return CurrentHealth; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHealth() const { return CurrentStats.MaxHealth; }
+	
 	FORCEINLINE float GetWoodDamagePerSecond() const { return CurrentStats.WoodDamagePerSecond; }
 	FORCEINLINE float GetRockPerSecond() const { return CurrentStats.RockDamagePerSecond; }
 	FORCEINLINE float GetRepairingPerSecond() const { return CurrentStats.RepairingPerSecond; }
-	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
 	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
-	FORCEINLINE float GetMaxHealth() const { return CurrentStats.MaxHealth; }
 	FORCEINLINE FString GetBotName() const { return BotName; }
 	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
@@ -200,8 +204,8 @@ public:
 	void OnDetectedChange(AActor* InteractableActor, bool bIsDetected);
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UHelperBotInfoWidget> InfoUIClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	class UWidgetComponent* InfoWidgetComponent = nullptr;
 
 	UPROPERTY()
 	TObjectPtr<UHelperBotInfoWidget> InfoUIInstance = nullptr;
