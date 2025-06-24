@@ -135,6 +135,14 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
     
     if (FVector::Dist(AICon->GetPawn()->GetActorLocation(), Target) <= AcceptanceRadius)
     {
+        if (APawn* Pawn = AICon->GetPawn())
+        {
+            FRotator CurrentRot = Pawn->GetActorRotation();
+            FRotator LookRot   = (Target - Pawn->GetActorLocation()).Rotation();
+            CurrentRot.Yaw     = LookRot.Yaw;
+            Pawn->SetActorRotation(CurrentRot);
+        }
+    
         if (QueryInstance)
         {
             QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
