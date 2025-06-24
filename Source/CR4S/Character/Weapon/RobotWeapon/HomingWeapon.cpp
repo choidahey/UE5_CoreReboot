@@ -18,7 +18,6 @@ AHomingWeapon::AHomingWeapon()
 
 void AHomingWeapon::OnAttack()
 {
-	CR4S_SIMPLE_SCOPE_LOG;
 	if (!bCanAttack||bIsReloading||bIsTryingToLockOn) return;
 	
 	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
@@ -53,7 +52,6 @@ void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotId
 
 void AHomingWeapon::StopAttack()
 {
-	CR4S_SIMPLE_SCOPE_LOG;
 	if (!bIsAttackButtonHeldDown) return;
 
 	bIsAttackButtonHeldDown=false;
