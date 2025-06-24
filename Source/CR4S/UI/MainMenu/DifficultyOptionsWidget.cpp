@@ -56,7 +56,7 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 
 	if (MainMenuWidgetRef)
 	{
-		MainMenuWidgetRef->FadeOutBGM(1.0f); // 1ÃÊ ÆäÀÌµå ¾Æ¿ô
+		MainMenuWidgetRef->FadeOutBGM(1.0f); // 1ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½
 	}
 
 
@@ -76,5 +76,5 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 
 void UDifficultyOptionsWidget::OpenSurvivalLevel()
 {
-	UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
+	UGameplayStatics::OpenLevel(this, FName("MainMap"));
 }
