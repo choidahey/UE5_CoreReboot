@@ -189,8 +189,7 @@ void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable, int32 InSki
 			{
 				if (bEnable)
 				{
-					Collider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-					Collider->SetCollisionResponseToAllChannels(ECR_Overlap);
+					Collider->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 					Collider->SetGenerateOverlapEvents(true);
 				}
 				else
