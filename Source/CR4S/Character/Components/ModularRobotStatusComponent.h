@@ -7,9 +7,10 @@
 #include "Character/Data/ModularRobotStatus.h"
 #include "ModularRobotStatusComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnStunChangedDelegate, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float, Percent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStunChangedDelegate, float, Percent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxWeightChangedDelegate, float, NewValue);
 
 class AModularRobot;
 class UModularRobotStatusAsset;
@@ -22,6 +23,10 @@ class CR4S_API UModularRobotStatusComponent : public UBaseStatusComponent
 public:
 	UModularRobotStatusComponent();
 
+#pragma region Check
+	bool CheckWeightCapacity(const float AdditionalWeight) const;
+#pragma endregion
+	
 #pragma region Refresh
 	virtual void Refresh() override;
 #pragma endregion
@@ -144,9 +149,14 @@ private:
 
 #pragma region Delegate
 public:
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnEnergyChangedDelegate OnEnergyChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnStunChangedDelegate OnStunChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnWeightChangedDelegate OnWeightChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnMaxWeightChangedDelegate OnMaxWeightChanged;
 #pragma endregion
 
 #pragma region Timer

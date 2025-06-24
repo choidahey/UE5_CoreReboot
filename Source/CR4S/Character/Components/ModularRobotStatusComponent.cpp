@@ -16,12 +16,21 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+bool UModularRobotStatusComponent::CheckWeightCapacity(const float AdditionalWeight) const
+{
+	const float TotalWeight=AdditionalWeight+RobotStatus.Weight;
+	if (TotalWeight>RobotStatus.MaxWeight) return false;
+
+	return false;
+}
+
 void UModularRobotStatusComponent::Refresh()
 {
 	Super::Refresh();
 	AddEnergy(0);
 	AddStun(0);
 	AddWeight(0);
+	AddMaxWeight(0);
 }
 
 
@@ -192,16 +201,13 @@ void UModularRobotStatusComponent::AddAttackPowerMultiplier(const float InAmount
 void UModularRobotStatusComponent::AddMaxWeight(const float InAmount)
 {
 	RobotStatus.MaxWeight+=InAmount;
-	const float Percentage=FMath::Clamp(RobotStatus.Weight/RobotStatus.MaxWeight,0.f,1.f);
-	OnWeightChanged.Broadcast(Percentage);
+	OnMaxWeightChanged.Broadcast(RobotStatus.MaxWeight);
 }
 
 void UModularRobotStatusComponent::AddWeight(const float InAmount)
 {
-	const float Temp=FMath::Clamp(RobotStatus.Weight+InAmount,0.f,RobotStatus.MaxWeight);
-	RobotStatus.Weight=Temp;
-	const float Percentage=FMath::Clamp(RobotStatus.Weight/RobotStatus.MaxWeight,0.f,1.f);
-	OnWeightChanged.Broadcast(Percentage);
+	RobotStatus.Weight+=InAmount;
+	OnWeightChanged.Broadcast(RobotStatus.Weight);
 }
 
 void UModularRobotStatusComponent::ApplyEnergyEfficiency(const float Modifier)
@@ -238,7 +244,7 @@ void UModularRobotStatusComponent::StartHover()
 {
 	if (!CR4S_ENSURE(LogHong1,GetWorld() && OwningCharacter)) return;
 
-	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=RobotStatus.HoverResourceCost))
+	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=RobotStatus.HoverCostMultiplier))
 	{
 		OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 		GetWorld()->GetTimerManager().SetTimer(

@@ -42,8 +42,8 @@ public:
 	FORCEINLINE float GetHeatThreshold() const { return BaseStatus.HeatThreshold; }
 	FORCEINLINE float GetHumidityThreshold() const { return BaseStatus.HumidityThreshold; }
 
-	void SetRollStaminaCost(const float NewCost);
-	FORCEINLINE void ResetRollStaminaCost() { BaseStatus.RollStaminaCost = DefaultBaseStatus.RollStaminaCost; }
+	void SetResourceConsumptionAmount(const float NewCost);
+	FORCEINLINE void ResetResourceConsumptionAmount() { BaseStatus.ResourceConsumptionAmount = DefaultBaseStatus.ResourceConsumptionAmount; }
 	
 	void SetResourceRegenDelay(const float NewDelay);
 	FORCEINLINE void ResetResourceRegenDelay() { BaseStatus.ResourceRegenDelay = DefaultBaseStatus.ResourceRegenDelay; }

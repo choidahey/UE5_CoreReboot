@@ -32,9 +32,9 @@ void UBaseStatusComponent::BeginPlay()
 }
 
 
-void UBaseStatusComponent::SetRollStaminaCost(const float NewCost)
+void UBaseStatusComponent::SetResourceConsumptionAmount(const float NewCost)
 {
-	BaseStatus.RollStaminaCost=NewCost;
+	BaseStatus.ResourceConsumptionAmount=NewCost;
 }
 
 void UBaseStatusComponent::SetResourceRegenDelay(const float NewDelay)

@@ -55,6 +55,12 @@ public:
 	float ResourceRegenDelay{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceConsumptionModifier{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HeatThreshold{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ColdThreshold{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HumidityThreshold{0};
 };
 
 USTRUCT(BlueprintType)
@@ -100,7 +106,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxWalkSpeed{700};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float DashStrength{5000};
+	float LegStrength{5000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxSlopeAngle{30};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -115,7 +121,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Power{20000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float DashResourceCost{2000};
+	float ResourceConsumption{2000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DashCooldown{1};
 };
