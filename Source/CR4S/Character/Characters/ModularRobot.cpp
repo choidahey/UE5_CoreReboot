@@ -111,6 +111,11 @@ void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
 	const bool bSucceed = Loader->LoadCorePartsDataByTag(Tag, CoreInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
 
+	if (CoreTag.IsValid())
+	{
+		UnequipCoreParts();
+	}
+	
 	CoreTag=Tag;
 	
 	Status->AddAttackPower(CoreInfo.AttackPower);
@@ -133,6 +138,11 @@ void AModularRobot::EquipBodyParts(const FGameplayTag& Tag)
 	const bool bSucceed = Loader->LoadBodyPartsDataByTag(Tag, BodyInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
 
+	if (BodyTag.IsValid())
+	{
+		UnequipBodyParts();
+	}
+	
 	BodyTag=Tag;
 
 	Status->AddMaxHP(BodyInfo.MaxHealth);
@@ -160,6 +170,11 @@ void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
 	FArmPartsInfo ArmInfo;
 	const bool bSucceed = Loader->LoadArmPartsDataByTag(Tag, ArmInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
+
+	if (ArmTag.IsValid())
+	{
+		UnequipArmParts();
+	}
 	
 	ArmTag=Tag;
 
@@ -167,6 +182,7 @@ void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
 	Status->AddCurrentHP(ArmInfo.MaxHealth);
 	Status->AddArmor(ArmInfo.Armor);
 	Status->AddWeight(ArmInfo.Weight);
+	Status->AddMaxArmMountWeight(ArmInfo.MaxArmLoad);
 	Status->ApplyRecoilModifier(ArmInfo.RecoilModifier);
 	Status->ApplyMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
 	
@@ -183,7 +199,11 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 	const bool bSucceed = Loader->LoadLegPartsDataByTag(Tag, LegInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
 
-
+	if (LegTag.IsValid())
+	{
+		UnequipLegParts();
+	}
+	
 	Status->AddMaxWeight(LegInfo.MaxTotalWeight);
 	
 	LegTag=Tag;
@@ -217,6 +237,11 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 	const bool bSuccessed = Loader->LoadBoosterPartsDataByTag(Tag, BoosterInfo);
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
 
+	if (BoosterTag.IsValid())
+	{
+		UnequipBoosterParts();
+	}
+	
 	BoosterTag=Tag;
 
 	RobotSettings.BoosterStrength=BoosterInfo.BoosterStrength;
@@ -290,6 +315,7 @@ void AModularRobot::UnequipArmParts()
 	Status->AddCurrentHP(-(ArmInfo.MaxHealth));
 	Status->AddArmor(-(ArmInfo.Armor));
 	Status->AddWeight(-(ArmInfo.Weight));
+	Status->AddMaxArmMountWeight(-(ArmInfo.MaxArmLoad));
 	Status->RevertRecoilModifier(ArmInfo.RecoilModifier);
 	Status->RevertMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
 }
