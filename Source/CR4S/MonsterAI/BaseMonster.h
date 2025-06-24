@@ -82,9 +82,7 @@ public:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	bool IsDead() const;
-
-	UFUNCTION()
-	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
 	void StartFadeOut();
 	void UpdateFade();
 

@@ -124,42 +124,22 @@ void ABaseMonster::HandleDeath()
 	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
 	{
 		AIC->StopMovement();
+		
+		if (UBehaviorTreeComponent* BTComp = AIC->FindComponentByClass<UBehaviorTreeComponent>())
+			BTComp->StopTree(EBTStopMode::Safe);
 
 		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
 			BB->SetValueAsBool(FAIKeys::IsDead, true);
 	}
 
-	// TODO :: BT 끊어주는거 추가
-	
-	// GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	// GetMesh()->SetAllBodiesSimulatePhysics(true);
-	// GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (AnimComponent)
 	{
-		// TODO :: 갑자기 벌떡 일어남
 		AnimComponent->PlayDeathMontage();
 	}
 
-	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
-	{
-		if (UAnimMontage* DeathMontage = AnimComponent->GetDeathMontage())
-		{
-			FOnMontageEnded EndDel;
-			EndDel.BindUObject(this, &ABaseMonster::OnDeathMontageEnded);
-			AnimInst->Montage_SetEndDelegate(EndDel, DeathMontage);
-		}
-	}
-}
-
-void ABaseMonster::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (bInterrupted)
-		return;
-
-	SetLifeSpan(1.5f);
-
+	SetLifeSpan(2.f);
 	StartFadeOut();
 }
 

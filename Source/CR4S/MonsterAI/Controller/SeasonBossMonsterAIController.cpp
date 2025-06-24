@@ -46,20 +46,13 @@ void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 
 	UMonsterAnimComponent* AnimComp = OwnerMonster->FindComponentByClass<UMonsterAnimComponent>();
 	const bool bIsPlayingAttackMontage = (AnimComp != nullptr) ? AnimComp->IsAnyMontagePlaying() : false;
-	
-	if (bIsPlayingAttackMontage)
+
+	if (Target)
 	{
-		ClearFocus(EAIFocusPriority::Gameplay);
+		SetFocus(Target, EAIFocusPriority::Gameplay);
 	}
 	else
 	{
-		if (Target)
-		{
-			SetFocus(Target, EAIFocusPriority::Gameplay);
-		}
-		else
-		{
-			ClearFocus(EAIFocusPriority::Gameplay);
-		}
+		ClearFocus(EAIFocusPriority::Gameplay);
 	}
 }
