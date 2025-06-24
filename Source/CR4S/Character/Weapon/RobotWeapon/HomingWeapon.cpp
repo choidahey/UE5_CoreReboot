@@ -34,7 +34,7 @@ void AHomingWeapon::OnAttack()
 
 	if (TargetActor && TargetActor!=GetOwner())
 	{
-		bIsAttackButtonHeldDonw=true;
+		bIsAttackButtonHeldDown=true;
 		
 		bIsTryingToLockOn = true;
 		bIsLockedOn = false;
@@ -54,9 +54,9 @@ void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotId
 void AHomingWeapon::StopAttack()
 {
 	CR4S_SIMPLE_SCOPE_LOG;
-	if (!bIsAttackButtonHeldDonw) return;
+	if (!bIsAttackButtonHeldDown) return;
 
-	bIsAttackButtonHeldDonw=false;
+	bIsAttackButtonHeldDown=false;
 	
 	bIsTryingToLockOn = false;
 	SetActorTickEnabled(false);
