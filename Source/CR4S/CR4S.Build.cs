@@ -23,10 +23,12 @@ public class CR4S : ModuleRules
 			"NavigationSystem",
 			"DeveloperSettings",
 			"Niagara",
-			"GameplayTags"
-		});
+			"GameplayTags",
+			"OnlineSubsystem",
+            "OnlineSubsystemSteam"
+        });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });
 
 		PublicIncludePaths.AddRange(new string[]
 		{
