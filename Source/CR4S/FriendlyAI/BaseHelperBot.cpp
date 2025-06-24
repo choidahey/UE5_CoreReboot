@@ -22,6 +22,7 @@
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Components/PoseableMeshComponent.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -371,11 +372,26 @@ float ABaseHelperBot::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 void ABaseHelperBot::PlayHitEffect(const FVector& HitDirection)
 {
-	if (HitEffectComponent)
+	if (HitEffectComponent && HitEffectComponent->GetAsset())
 	{
 		FVector HitLocation = GetActorLocation() + HitDirection * 50.0f;
 		HitEffectComponent->SetWorldLocation(HitLocation);
+		HitEffectComponent->SetVisibility(true);
 		HitEffectComponent->Activate(true);
+	}
+	
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetBodySimulatePhysics(FName("Spine"), true);
+		
+		FVector ImpulseForce = HitDirection * 150000.0f;
+		MeshComp->AddImpulseAtLocation(ImpulseForce, GetActorLocation(), FName("Spine"));
+		
+		FTimerHandle PhysicsTimer;
+		GetWorldTimerManager().SetTimer(PhysicsTimer, [this, MeshComp]()
+		{
+			MeshComp->SetBodySimulatePhysics(FName("Spine"), false);
+		}, 0.2f, false);
 	}
 }
 

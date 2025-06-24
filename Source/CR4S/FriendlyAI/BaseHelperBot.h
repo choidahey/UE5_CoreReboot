@@ -245,6 +245,10 @@ private:
 	void PlayHitEffect(const FVector& HitDirection);
 	void StartDeathSequence();
 
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "Hit Effect")
+	FVector SpineShakeOffset = FVector::ZeroVector;
+
 #pragma endregion
 
 #pragma region FadeEffect
