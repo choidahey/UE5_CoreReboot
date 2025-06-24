@@ -431,8 +431,8 @@ void ABaseAnimal::OnInteract(AActor* Interactor)
     {
         Inventory->AddItems(DroppedItems);
     }
-
-    Destroy();
+    StartFadeOut();
+    SetLifeSpan(2.0f);
 }
 
 void ABaseAnimal::Capture()
@@ -642,26 +642,41 @@ void ABaseAnimal::PerformRangedAttack()
 #pragma region Pade Out Effect
 void ABaseAnimal::StartFadeOut()
 {    
-    if (UMaterialInstanceDynamic* DynMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0))
+    USkeletalMeshComponent* MeshComp = GetMesh();
+    if (!MeshComp) return;
+    
+    for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
     {
-        DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
-        FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade, DynMat);
-        GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+        if (UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i))
+        {
+            DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+        }
     }
+
+    FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade);
+    GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+
+    MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 }
 
-void ABaseAnimal::UpdateFade(UMaterialInstanceDynamic* DynMat)
+void ABaseAnimal::UpdateFade()
 {
     ElapsedFadeTime += 0.02f;
     float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
-    DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+    
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+        {
+            if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(MeshComp->GetMaterial(i)))
+            {
+                DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+            }
+        }
+    }
     
     if (ElapsedFadeTime >= 2.0f)
     {
-        if (USkeletalMeshComponent* MeshComp = GetMesh())
-        {
-            MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
-        }
         GetWorldTimerManager().ClearTimer(FadeTimerHandle);
     }
 }
