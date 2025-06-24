@@ -111,6 +111,11 @@ void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
 	const bool bSucceed = Loader->LoadCorePartsDataByTag(Tag, CoreInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
 
+	if (CoreTag.IsValid())
+	{
+		UnequipCoreParts();
+	}
+	
 	CoreTag=Tag;
 	
 	Status->AddAttackPower(CoreInfo.AttackPower);
@@ -133,6 +138,11 @@ void AModularRobot::EquipBodyParts(const FGameplayTag& Tag)
 	const bool bSucceed = Loader->LoadBodyPartsDataByTag(Tag, BodyInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
 
+	if (BodyTag.IsValid())
+	{
+		UnequipBodyParts();
+	}
+	
 	BodyTag=Tag;
 
 	Status->AddMaxHP(BodyInfo.MaxHealth);
@@ -160,6 +170,11 @@ void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
 	FArmPartsInfo ArmInfo;
 	const bool bSucceed = Loader->LoadArmPartsDataByTag(Tag, ArmInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
+
+	if (ArmTag.IsValid())
+	{
+		UnequipArmParts();
+	}
 	
 	ArmTag=Tag;
 
@@ -167,6 +182,7 @@ void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
 	Status->AddCurrentHP(ArmInfo.MaxHealth);
 	Status->AddArmor(ArmInfo.Armor);
 	Status->AddWeight(ArmInfo.Weight);
+	Status->AddMaxArmMountWeight(ArmInfo.MaxArmLoad);
 	Status->ApplyRecoilModifier(ArmInfo.RecoilModifier);
 	Status->ApplyMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
 	
@@ -183,7 +199,11 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 	const bool bSucceed = Loader->LoadLegPartsDataByTag(Tag, LegInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
 
-
+	if (LegTag.IsValid())
+	{
+		UnequipLegParts();
+	}
+	
 	Status->AddMaxWeight(LegInfo.MaxTotalWeight);
 	
 	LegTag=Tag;
@@ -212,11 +232,16 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 {
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
-
+	
 	FBoosterPartsInfo BoosterInfo;
 	const bool bSuccessed = Loader->LoadBoosterPartsDataByTag(Tag, BoosterInfo);
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
 
+	if (BoosterTag.IsValid())
+	{
+		UnequipBoosterParts();
+	}
+	
 	BoosterTag=Tag;
 
 	RobotSettings.BoosterStrength=BoosterInfo.BoosterStrength;
@@ -290,6 +315,7 @@ void AModularRobot::UnequipArmParts()
 	Status->AddCurrentHP(-(ArmInfo.MaxHealth));
 	Status->AddArmor(-(ArmInfo.Armor));
 	Status->AddWeight(-(ArmInfo.Weight));
+	Status->AddMaxArmMountWeight(-(ArmInfo.MaxArmLoad));
 	Status->RevertRecoilModifier(ArmInfo.RecoilModifier);
 	Status->RevertMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
 }
@@ -344,7 +370,7 @@ void AModularRobot::TakeStun_Implementation(const float StunAmount)
 	 Status->AddStun(StunAmount);
 }
 
-void AModularRobot::SetInputEnable(const bool bEnableInput)
+void AModularRobot::SetInputEnable(const bool bEnableInput) const
 {
 	APlayerController* PC=Cast<APlayerController>(GetController());
 	if (!CR4S_ENSURE(LogHong1,PC)) return;
@@ -354,11 +380,31 @@ void AModularRobot::SetInputEnable(const bool bEnableInput)
 	
 	if (bEnableInput)
 	{
-		InputSubsystem->AddMappingContext(InputMappingContext,RobotSettings.MappingContextPriority);
+		InputSubsystem->AddMappingContext(MovementMappingContext,RobotSettings.MovementMappingContextPriority);
+		InputSubsystem->AddMappingContext(UtilityMappingContext,RobotSettings.UtilityMappingContextPriority);
 	}
 	else
 	{
-		InputSubsystem->RemoveMappingContext(InputMappingContext);
+		InputSubsystem->RemoveMappingContext(MovementMappingContext);
+		InputSubsystem->RemoveMappingContext(UtilityMappingContext);
+	}
+}
+
+void AModularRobot::SetMovementInputEnable(const bool bEnableMovementInput) const
+{
+	APlayerController* PC=Cast<APlayerController>(GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
+	
+	if (bEnableMovementInput)
+	{
+		InputSubsystem->AddMappingContext(MovementMappingContext,RobotSettings.MovementMappingContextPriority);
+	}
+	else
+	{
+		InputSubsystem->RemoveMappingContext(MovementMappingContext);
 	}
 }
 
@@ -532,12 +578,15 @@ void AModularRobot::InitializeWidgets() const
 				if (!CR4S_ENSURE(LogHong1,Status)) return;
 				InGameWidget->BindWidgetsToStatus(Status);
 				InGameWidget->ToggleWidgetMode(true);
+				Status->Refresh();
 
 				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
 				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
-
-				Status->Refresh();
 				EnvironmentalStatus->Refresh();
+
+				if (!CR4S_ENSURE(LogHong1,WeaponManager)) return;
+				WeaponManager->BindWidgetWeapon();
+				WeaponManager->RefreshWeaponUI();
 			}
 		}
 	}
@@ -551,8 +600,10 @@ void AModularRobot::DisconnectWidgets() const
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				InGameWidget->ClearBindingsToStatus();
-				InGameWidget->ClearBindingsToEnvStatus();
+				InGameWidget->UnbindStatusFromUI();
+				InGameWidget->UnbindEnvStatusFromUI();
+				InGameWidget->UnbindWeaponFromUI();
+				InGameWidget->UnbindAllHomingWeaponFromUI();
 			}
 		}
 	}
@@ -601,7 +652,8 @@ void AModularRobot::NotifyControllerChanged()
 		auto* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PreviousPlayer->GetLocalPlayer())};
 		if (IsValid(InputSubsystem))
 		{
-			InputSubsystem->RemoveMappingContext(InputMappingContext);
+			InputSubsystem->RemoveMappingContext(MovementMappingContext);
+			InputSubsystem->RemoveMappingContext(UtilityMappingContext);
 		}
 	}
 
@@ -618,7 +670,15 @@ void AModularRobot::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, RobotSettings.MappingContextPriority, Options);
+			InputSubsystem->AddMappingContext(MovementMappingContext, RobotSettings.MovementMappingContextPriority, Options);
+			InputSubsystem->AddMappingContext(UtilityMappingContext, RobotSettings.UtilityMappingContextPriority, Options);
+			
+			if (!Status) return;
+			const bool bEnableInput= !(Status->IsOverWeighted() || Status->IsArmOverWeighted());
+			if (!bEnableInput)
+			{
+				SetMovementInputEnable(bEnableInput);
+			}
 		}
 	}
 
@@ -639,7 +699,8 @@ void AModularRobot::UnPossessed()
 		UEnhancedInputLocalPlayerSubsystem* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer())};
 		if (IsValid(InputSubsystem))
 		{
-			InputSubsystem->RemoveMappingContext(InputMappingContext);
+			InputSubsystem->RemoveMappingContext(MovementMappingContext);
+			InputSubsystem->RemoveMappingContext(UtilityMappingContext);
 		}
 	}
 	DisconnectWidgets();
@@ -776,7 +837,7 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			//Looking
 			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
 			//Dash
-			EnhancedInputComponent->BindAction(HorizontalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_Dash);
+			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AModularRobot::Input_Dash);
 			// Jump
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);

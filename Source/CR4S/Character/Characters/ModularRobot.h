@@ -37,6 +37,11 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
+#pragma region InputEnable
+	void SetInputEnable(const bool bEnableInput) const;
+	void SetMovementInputEnable(const bool bEnableMovementInput) const;
+#pragma endregion
+	
 #pragma region PartsEquip
 	UFUNCTION(BlueprintCallable)
 	void EquipCoreParts(const FGameplayTag& Tag);
@@ -65,13 +70,13 @@ public:
 	
 #pragma region Stun
 	virtual void TakeStun_Implementation(const float StunAmount) override;
-	void SetInputEnable(const bool bEnableInput);
 #pragma endregion
 	
 #pragma region Get
 	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
 	FORCEINLINE bool IsRobotActive() const { return Status->IsRobotActive(); }
 	FORCEINLINE float GetRecoilModifier() const { return Status->GetRecoilModifier(); }
+	FORCEINLINE UModularRobotStatusComponent* GetStatusComponent() const { return Status; }
 #pragma endregion
 
 #pragma region Death
@@ -131,33 +136,34 @@ protected:
 
 #pragma region InputActions
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputMappingContext> InputMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputMappingContext> MovementMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> MoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> JumpAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> HorizontalDashAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> InteractionAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack1Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack2Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack3Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack4Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> DashAction;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack2Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack3Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack4Action;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Utility", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputMappingContext> UtilityMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Utility", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> InteractionAction;
 #pragma endregion
 
 #pragma region Settings

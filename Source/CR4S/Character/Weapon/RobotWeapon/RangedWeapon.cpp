@@ -28,6 +28,11 @@ void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotId
 	Super::Initialize(OwnerCharacter, SlotIdx);
 }
 
+void ARangedWeapon::RefreshUI()
+{
+	AddCurrentAmmo(0);
+}
+
 void ARangedWeapon::FireMultiBullet(AActor* HomingTarget)
 {
 	const TArray<FName> Muzzles=TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames;

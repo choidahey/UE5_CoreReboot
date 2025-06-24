@@ -46,6 +46,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="LockOn")
 	uint8 bIsTryingToLockOn :1 {false};
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="LockOn")
+	uint8 bIsAttackButtonHeldDown:1 {false};
 #pragma endregion
 
 #pragma region Delegate
