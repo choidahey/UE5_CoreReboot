@@ -150,8 +150,9 @@ public:
 	TMap<FGameplayTag,FBodyPartsInfo> BodyInfo
 	{
 					{ BodyTags::BalanceLight,{} },
-					{ BodyTags::HumidityLight,{} },
-					{ BodyTags::TemperatureLight,{} }
+					{ BodyTags::BalanceHeavy,{} },
+					{ BodyTags::HumidityStandard,{} },
+					{ BodyTags::TemperatureStandard,{} }
 	};
 };
 
@@ -165,7 +166,7 @@ public:
 	{
 					{ ArmTags::BalanceHeavy,{} },
 					{ ArmTags::MeleeLight,{} },
-					{ ArmTags::RangedLight,{} }
+					{ ArmTags::RangedStandard,{} }
 	};
 };
 
@@ -177,8 +178,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Leg")
 	TMap<FGameplayTag,FLegPartsInfo> LegInfo
 	{
-					{ LegTags::BipedalLight,{} },
 					{ LegTags::QuadrupedalLight,{} },
+					{ LegTags::BipedalStandard,{} },
+					{ LegTags::ReverseBipedalLight,{} },
+					{ LegTags::QuadrupedalHeavy,{} },
 					{ LegTags::ReverseBipedalLight,{} }
 	};
 };

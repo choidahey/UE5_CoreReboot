@@ -55,14 +55,15 @@ namespace ArmTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(BalanceHeavy, FName(TEXT("RobotParts.Arm.Balance.Heavy")));
 	UE_DEFINE_GAMEPLAY_TAG(MeleeLight, FName(TEXT("RobotParts.Arm.Melee.Light")));
-	UE_DEFINE_GAMEPLAY_TAG(RangedLight, FName(TEXT("RobotParts.Arm.Ranged.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(RangedStandard, FName(TEXT("RobotParts.Arm.Ranged.Standard")));
 }
 
 namespace BodyTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(BalanceLight, FName(TEXT("RobotParts.Body.Balance.Light")));
-	UE_DEFINE_GAMEPLAY_TAG(HumidityLight, FName(TEXT("RobotParts.Body.Humidity.Light")));
-	UE_DEFINE_GAMEPLAY_TAG(TemperatureLight, FName(TEXT("RobotParts.Body.Temperature.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(HumidityStandard, FName(TEXT("RobotParts.Body.Humidity.Standard")));
+	UE_DEFINE_GAMEPLAY_TAG(TemperatureStandard, FName(TEXT("RobotParts.Body.Temperature.Standard")));
+	UE_DEFINE_GAMEPLAY_TAG(BalanceHeavy, FName(TEXT("RobotParts.Body.Balance.Heavy")));
 }
 
 namespace BoosterTags
@@ -87,7 +88,9 @@ namespace LegTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(Quadrupedal, FName(TEXT("RobotParts.Leg.Quadrupedal")));
 	
-	UE_DEFINE_GAMEPLAY_TAG(BipedalLight, FName(TEXT("RobotParts.Leg.Bipedal.Light")));
 	UE_DEFINE_GAMEPLAY_TAG(QuadrupedalLight, FName(TEXT("RobotParts.Leg.Quadrupedal.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(BipedalStandard, FName(TEXT("RobotParts.Leg.Bipedal.Standard")));
 	UE_DEFINE_GAMEPLAY_TAG(ReverseBipedalLight, FName(TEXT("RobotParts.Leg.ReverseBipedal.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(QuadrupedalHeavy, FName(TEXT("RobotParts.Leg.Quadrupedal.Heavy")));
+	UE_DEFINE_GAMEPLAY_TAG(ReverseBipedalStandard, FName(TEXT("RobotParts.Leg.ReverseBipedal.Standard")));
 }
