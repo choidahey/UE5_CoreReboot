@@ -5,6 +5,7 @@
 
 #include "BaseBuildingGimmick.generated.h"
 
+class UObjectShakeComponent;
 class UItemGimmickSubsystem;
 class UWidgetComponent;
 class UBuildingDurabilityWidget;
@@ -31,6 +32,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "BuildingGimmick|Components")
 	TObjectPtr<UWidgetComponent> BuildingDurabilityWidgetComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BuildingGimmick|Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UObjectShakeComponent> ShakeComponent;
 	
 #pragma endregion 
 
