@@ -45,7 +45,7 @@ public:
 	
 private:
 	UFUNCTION()
-	void DestroyItemPouch(int32 NumOccupiedSlots);
+	void DestroyEmptyItemPouch(int32 NumOccupiedSlots);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
@@ -66,5 +66,20 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "LaunchItemPouch")
 	float UpImpulseStrength;
 	
-#pragma endregion 
+#pragma endregion
+
+#pragma region Destroy
+
+private:
+	UFUNCTION()
+	void UpdateWorldTime(int64 NewPlayTime);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
+	float DestroyDelay;
+
+	float ElapsedSeconds;
+
+	int64 PrevPlayTime;
+	
+#pragma endregion
 };

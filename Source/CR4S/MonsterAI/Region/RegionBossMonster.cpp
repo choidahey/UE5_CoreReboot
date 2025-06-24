@@ -34,6 +34,7 @@ void ARegionBossMonster::BeginPlay()
 	if (UMonsterStateComponent* StateComp = FindComponentByClass<UMonsterStateComponent>())
 	{
 		StateComp->SetState(EMonsterState::Patrol);
+		StateComp->SetPhase(EBossPhase::Normal);
 		StateComp->OnPhaseChanged.AddUniqueDynamic(this, &ARegionBossMonster::HandlePhaseChanged);
 	}
 
@@ -121,31 +122,6 @@ FVector ARegionBossMonster::GetNextPatrolLocation()
 	return NextPoint;
 }
 
-const TArray<EApproachType>& ARegionBossMonster::GetApproachCandidates(int32 SkillIndex) const
-{
-	static TArray<EApproachType> Empty;
-
-	const FRegionSkillApproachEntry* Entry = SkillApproachList.FindByPredicate(
-		[SkillIndex](const FRegionSkillApproachEntry& E)
-		{
-			return E.SkillIndex == SkillIndex;
-		}
-	);
-
-	if (!Entry) return Empty;
-
-	return Entry->ApproachCandidates;
-}
-
-UEnvQuery* ARegionBossMonster::GetEQSByApproachType(EApproachType Type) const
-{
-	if (ApproachEQSMap.Contains(Type))
-	{
-		return ApproachEQSMap[Type];
-	}
-	return nullptr;
-}
-
 void ARegionBossMonster::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
@@ -211,7 +187,7 @@ void ARegionBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
 	{
 		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
 		{
-			BB->SetValueAsInt(TEXT("CurrentPhase"), static_cast<int32>(NewPhase));
+			BB->SetValueAsEnum(TEXT("CurrentPhase"), static_cast<int32>(NewPhase));
 		}
 	}
 }
