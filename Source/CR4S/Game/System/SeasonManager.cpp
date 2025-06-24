@@ -1,7 +1,7 @@
 #include "Game/System/SeasonManager.h"
 #include "Game/System/SeasonType.h"
 #include "Game/System/EnvironmentManager.h"
-#include "MonsterAI/Data/SeasonBossDataAsset.h"
+#include "MonsterAI/Data/SeasonWave.h"
 #include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
@@ -9,13 +9,12 @@
 bool USeasonManager::ShouldCreateSubsystem(UObject* Outer) const
 {
 	UWorld* World = Cast<UWorld>(Outer);
-	if (World && World->GetName() == TEXT("SurvivalLevel_1"))
+	if (World && World->GetName() == TEXT("MenuLevel"))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: ShouldCreateSubsystem called for SurvivalLevel"));
-		return true;  // Creates this subsystem only in the SurvivalLevel world
+		return false;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("SeasonManager: ShouldCreateSubsystem called for other world"));
-	return false;
+
+	return true;
 }
 
 void USeasonManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -25,19 +24,19 @@ void USeasonManager::Initialize(FSubsystemCollectionBase& Collection)
 
 	FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &USeasonManager::OnPostWorldInit);
 
-	//Load Season Boss DataAsset
-	const FString AssetPath = TEXT("/Game/CR4S/_Data/Monster/Season/DA_SeasonBoss.DA_SeasonBoss");
-	USeasonBossDataAsset* LoadedAsset = Cast<USeasonBossDataAsset>(
-		StaticLoadObject(USeasonBossDataAsset::StaticClass(), nullptr, *AssetPath));
+	//Load Season Wave DataAsset
+	const FString AssetPath = TEXT("/Game/CR4S/_Data/Monster/Season/DA_SeasonWave.DA_SeasonWave");
+	USeasonWave* LoadedAsset = Cast<USeasonWave>(
+		StaticLoadObject(USeasonWave::StaticClass(), nullptr, *AssetPath));
 
 	if (LoadedAsset)
 	{
-		SeasonBossData = LoadedAsset;
-		UE_LOG(LogTemp, Log, TEXT("SeasonManager: Successfully loaded SeasonBossDataAsset"));
+		SeasonWaveData = LoadedAsset;
+		UE_LOG(LogTemp, Log, TEXT("SeasonManager: Successfully loaded SeasonWaveDataAsset"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("SeasonManager: Failed to load SeasonBossDataAsset from path: %s"), *AssetPath);
+		UE_LOG(LogTemp, Error, TEXT("SeasonManager: Failed to load SeasonWaveDataAsset from path: %s"), *AssetPath);
 	}
 }
 
@@ -62,10 +61,7 @@ void USeasonManager::Deinitialize()
 }
 void USeasonManager::LoadSeason()
 {
-	// if Saved Data Exists, Load Season Data
-	// else Set Default Season
 	UE_LOG(LogTemp, Warning, TEXT("Loading Season"));
-	SetCurrentSeason(ESeasonType::BountifulSeason);
 
 	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
@@ -94,9 +90,18 @@ void USeasonManager::HandleDayChange()
 	else if (CurrentSeasonDay == SeasonLength)
 	{
 		SpawnSeasonBoss();
+		SpawnSeasonMonsters();
 	}
 }
 
+
+void USeasonManager::SetCurrentDawnDuskTime(float Dawn, float Dusk)
+{
+	CurrentDawnTime = Dawn;
+	CurrentDuskTime = Dusk;
+
+	OnDayChanged.Broadcast(CurrentDawnTime, CurrentDuskTime);
+}
 
 void USeasonManager::GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime)
 {
@@ -138,7 +143,6 @@ void USeasonManager::ChangeToNextSeason()
 	}
 
 	SetCurrentSeason(NextSeason);	
-	OnSeasonChanged.Broadcast(NextSeason);
 }
 
 
@@ -148,21 +152,39 @@ void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 	UE_LOG(LogTemp, Warning, TEXT("Current Season changed to: %s"), *UEnum::GetValueAsString(NewSeason));
 
 	EnvironmentManager->SetWeatherBySeason(NewSeason);
-
+	OnSeasonChanged.Broadcast(NewSeason);
 	GetTargetDawnDuskTimeForSeason(CurrentSeason, TargetDawnTime, TargetDuskTime);
 }
 
+TArray<FMonsterWaveEntry> USeasonManager::GetMonsterWaveEntriesForSeason(ESeasonType Season) const
+{
+	if (!SeasonWaveData) return {};
+
+	const FMonsterWaveArray* WaveArray = SeasonWaveData->SeasonWaves.Find(Season);
+	if (WaveArray)
+	{
+		return WaveArray->Entries;
+	}
+
+	return {};
+}
+
+
 TSubclassOf<ASeasonBossMonster> USeasonManager::GetSeasonBossClass(ESeasonType Season) const
 {
-	if (!SeasonBossData) return nullptr;
+	if (!SeasonWaveData) return nullptr;
 
-	for (const FSeasonBossEntry& Entry : SeasonBossData->Bosses)
+	const FMonsterWaveArray* WaveArray = SeasonWaveData->SeasonWaves.Find(Season);
+	if (!WaveArray) return nullptr;
+
+	for (const FMonsterWaveEntry& Entry : WaveArray->Entries)
 	{
-		if (Entry.SeasonName == Season)
+		if (Entry.bIsBoss && Entry.MonsterClass->IsChildOf(ASeasonBossMonster::StaticClass()))
 		{
-			return Entry.SeasonBossClass;
+			return Cast<UClass>(Entry.MonsterClass);
 		}
 	}
+
 	return nullptr;
 }
 
@@ -178,36 +200,11 @@ void USeasonManager::SpawnSeasonBoss()
 		return;
 	}
 
-	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(World, 0);
-	if (!PlayerPawn) return;
-
-	const FVector PlayerLocation = PlayerPawn->GetActorLocation();
-
-	const float MinRadius = 5000.f;
-	const float MaxRadius = 6000.f;
-	const int32 MaxAttempts = 20;
-
-	FVector FinalSpawnLocation = PlayerLocation + FVector(2500.f, 2500.f, 1000.f);
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
-
-	if (NavSys)
+	FVector SpawnLocation = GetRandomSpawnLocationAroundPlayer(5000.f, 6000.f, 20);
+	if (SpawnLocation == FVector::ZeroVector)
 	{
-		for (int32 i = 0; i < MaxAttempts; ++i)
-		{
-			const float RandAngle = FMath::RandRange(0.f, 360.f);
-			const float RandRadius = FMath::RandRange(MinRadius, MaxRadius);
-			const FVector Offset = FVector(FMath::Cos(FMath::DegreesToRadians(RandAngle)), FMath::Sin(FMath::DegreesToRadians(RandAngle)), 0.f) * RandRadius;
-
-			const FVector TestLocation = PlayerLocation + Offset;
-
-			FNavLocation OutNavLocation;
-			if (NavSys->ProjectPointToNavigation(TestLocation, OutNavLocation))
-			{
-				FinalSpawnLocation = OutNavLocation.Location;
-				UE_LOG(LogTemp, Log, TEXT("SeasonManager: Found valid boss spawn location after %d attempts"), i + 1);
-				break;
-			}
-		}
+		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: Failed to find valid boss spawn location"));
+		return;
 	}
 
 	if (SpawnedBoss && IsValid(SpawnedBoss))
@@ -217,8 +214,8 @@ void USeasonManager::SpawnSeasonBoss()
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	
-	SpawnedBoss = World->SpawnActor<ASeasonBossMonster>(BossClass, FinalSpawnLocation, FRotator::ZeroRotator, Params);
+
+	SpawnedBoss = World->SpawnActor<ASeasonBossMonster>(BossClass, SpawnLocation, FRotator::ZeroRotator, Params);
 	if (SpawnedBoss)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: Spawned boss for season %s"), *UEnum::GetValueAsString(CurrentSeason));
@@ -226,9 +223,71 @@ void USeasonManager::SpawnSeasonBoss()
 }
 
 
-void USeasonManager::HandleSeasonChange(ESeasonType NewSeason)
+void USeasonManager::SpawnSeasonMonsters()
 {
+	UWorld* World = GetWorld();
+	if (!World || !SeasonWaveData) return;
 
+	const TArray<FMonsterWaveEntry> WaveEntries = GetMonsterWaveEntriesForSeason(CurrentSeason);
 
-	UE_LOG(LogTemp, Warning, TEXT("Handling season change to: %s"), *UEnum::GetValueAsString(NewSeason));
+	for (const FMonsterWaveEntry& Entry : WaveEntries)
+	{
+		if (Entry.bIsBoss || !Entry.MonsterClass) continue;
+
+		FVector GroupCenter = GetRandomSpawnLocationAroundPlayer(5000.f, 6000.f, 20);
+		if (GroupCenter == FVector::ZeroVector) continue;
+
+		for (int32 i = 0; i < Entry.SpawnCount; ++i)
+		{
+			FVector Offset = FVector(
+				FMath::RandRange(-500.f, 500.f),
+				FMath::RandRange(-500.f, 500.f),
+				0.f
+			);
+			FVector SpawnLocation = GroupCenter + Offset;
+
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+			AActor* Spawned = World->SpawnActor<AActor>(Entry.MonsterClass, SpawnLocation, FRotator::ZeroRotator, Params);
+			if (Spawned)
+			{
+				UE_LOG(LogTemp, Log, TEXT("SeasonManager: Spawned monster %s"), *Entry.MonsterClass->GetName());
+			}
+		}
+	}
 }
+
+
+
+FVector USeasonManager::GetRandomSpawnLocationAroundPlayer(float MinRadius, float MaxRadius, int32 MaxAttempts)
+{
+	UWorld* World = GetWorld();
+	if (!World) return FVector::ZeroVector;
+
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(World, 0);
+	if (!PlayerPawn) return FVector::ZeroVector;
+
+	const FVector PlayerLocation = PlayerPawn->GetActorLocation();
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
+
+	if (!NavSys) return FVector::ZeroVector;
+
+	for (int32 i = 0; i < MaxAttempts; ++i)
+	{
+		const float RandAngle = FMath::RandRange(0.f, 360.f);
+		const float RandRadius = FMath::RandRange(MinRadius, MaxRadius);
+		const FVector Offset = FVector(FMath::Cos(FMath::DegreesToRadians(RandAngle)), FMath::Sin(FMath::DegreesToRadians(RandAngle)), 0.f) * RandRadius;
+		const FVector TestLocation = PlayerLocation + Offset;
+
+		FNavLocation OutNavLocation;
+		if (NavSys->ProjectPointToNavigation(TestLocation, OutNavLocation))
+		{
+			return OutNavLocation.Location;
+		}
+	}
+
+	return FVector::ZeroVector;
+}
+
+

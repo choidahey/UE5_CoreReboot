@@ -7,27 +7,20 @@
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
     UWorld* World = Cast<UWorld>(Outer);
-    if (World && World->GetName() == TEXT("SurvivalLevel_1"))
+    if (World && World->GetName() == TEXT("MenuLevel"))
     {
-		return true;  // Creates this subsystem only in the SurvivalLevel world
+		return false;
     }
 
-    return false;
+    return true;
 }
 
 void UWorldTimeManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	LoadTimeData();
-
     FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UWorldTimeManager::OnPostWorldInit);
 	FWorldDelegates::OnWorldCleanup.AddUObject(this, &UWorldTimeManager::OnWorldCleanup);
-}
-
-void UWorldTimeManager::LoadTimeData()
-{
-	// if Saved Data Exists, Load Time Data
 }
 
 void UWorldTimeManager::OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS)
@@ -60,12 +53,12 @@ void UWorldTimeManager::StartWorldTime()
 
 void UWorldTimeManager::SetWorldTime(FWorldTimeData NewTimeData)
 {
-	//CurrentTimeData = NewTimeData;
-	//TotalPlayTime = NewTimeData.Day * DayCycleLength * 60 + NewTimeData.Minute * 60 + NewTimeData.Second;
+	CurrentTimeData = NewTimeData;
+	TotalPlayTime = NewTimeData.Day * DayCycleLength * 60 + NewTimeData.Minute * 60 + NewTimeData.Second;
 
-	//AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
-	//UpdateTimeWidget();
-	//OnWorldTimeUpdated.Broadcast(TotalPlayTime);
+	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
+	UpdateTimeWidget();
+	OnWorldTimeUpdated.Broadcast(TotalPlayTime);
 }
 
 void UWorldTimeManager::UpdateTime()

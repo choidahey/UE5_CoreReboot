@@ -9,4 +9,7 @@ class CR4S_API UC4GameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(BlueprintReadWrite)
+	FString CurrentSlotName;
 };

@@ -75,6 +75,42 @@ void AAnimalGround::RecoverFromStun()
 #pragma endregion
 
 #pragma region Attack
+float AAnimalGround::PlayAttackMontage()
+{
+	if (AIJumpComponent)
+	{
+		AIJumpComponent->DeactivateJumpComponent();
+	}
+	return Super::PlayAttackMontage();
+}
+
+float AAnimalGround::PlayChargeAttackMontage()
+{
+	if (AIJumpComponent)
+	{
+		AIJumpComponent->DeactivateJumpComponent();
+	}
+	return Super::PlayChargeAttackMontage();
+}
+
+float AAnimalGround::PlayRangedAttackMontage()
+{
+	if (AIJumpComponent)
+	{
+		AIJumpComponent->DeactivateJumpComponent();
+	}
+	return Super::PlayRangedAttackMontage();
+}
+
+void AAnimalGround::ResetAttackFlag()
+{
+	Super::ResetAttackFlag();
+	if (AIJumpComponent)
+	{
+		AIJumpComponent->ActivateJumpComponent();
+	}
+}
+
 void AAnimalGround::PerformMeleeAttack()
 {
 	Super::PerformMeleeAttack();

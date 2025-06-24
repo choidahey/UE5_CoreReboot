@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/Data/ItemData.h"
+#include "Inventory/Data/InventorySaveGame.h"
 #include "UObject/Object.h"
 
 #include "BaseInventoryItem.generated.h"
@@ -11,38 +12,6 @@ class UPlayerInventoryComponent;
 class UPlayerCharacterStatusComponent;
 class UBaseInventoryComponent;
 class APlayerCharacter;
-
-USTRUCT(BlueprintType)
-struct FInventoryItemData
-{
-	GENERATED_BODY()
-
-	FInventoryItemData()
-		: SlotIndex(0)
-	{
-	}
-
-	FInventoryItemData(const int32 InSlotIndex,
-	                   const FName InRowName,
-	                   const FItemInfoData& InItemInfoData)
-		: SlotIndex(InSlotIndex),
-		  RowName(InRowName),
-		  ItemInfoData(InItemInfoData)
-	{
-	}
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 SlotIndex;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName RowName;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FItemInfoData ItemInfoData;
-
-	bool IsStackableItem() const
-	{
-		return ItemInfoData.MaxStackCount > 1;
-	}
-};
 
 UCLASS(BlueprintType)
 class CR4S_API UBaseInventoryItem : public UObject
@@ -106,6 +75,7 @@ public:
 	FORCEINLINE void ChangeSlotIndex(const int32 NewSlotIndex) { InventoryItemData.SlotIndex = NewSlotIndex; }
 
 	FORCEINLINE const FInventoryItemData* GetInventoryItemData() const { return &InventoryItemData; }
+	FORCEINLINE int32 GetSlotIndex() const { return InventoryItemData.SlotIndex; }
 	FORCEINLINE const FName& GetItemRowName() const { return InventoryItemData.RowName; }
 	FORCEINLINE const FItemInfoData& GetItemInfoData() const { return InventoryItemData.ItemInfoData; }
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|Data")
@@ -137,6 +107,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	int32 CurrentStackCount;
 
+#pragma endregion
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "InventoryItem|SaveData")
+	virtual FInventoryItemSaveGame GetInventoryItemSaveData();
+	UFUNCTION(BlueprintCallable, Category = "InventoryItem|LoadData")
+	virtual void LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemSaveGame& ItemSaveGame);
+	
 #pragma endregion
 
 #pragma region Delegate

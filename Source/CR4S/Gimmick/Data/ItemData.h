@@ -36,15 +36,6 @@ struct FToolItemData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
-struct FBossMonsterSpawnItemData : public FTableRowBase
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "보스 몬스터 데이터"))
-	FDataTableRowHandle BossMonsterData = FDataTableRowHandle();
-};
-
-USTRUCT(BlueprintType)
 struct FConsumableItemData : public FTableRowBase
 {
 	GENERATED_BODY()

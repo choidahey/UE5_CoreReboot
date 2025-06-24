@@ -23,6 +23,7 @@ public:
 
 public:
 	bool HasCrops() const;
+	static bool IsRotten(UBaseInventoryItem* OriginItem);
 
 #pragma endregion
 };

@@ -6,20 +6,30 @@
 class UButton;
 class UTextBlock;
 
+DECLARE_DYNAMIC_DELEGATE(FOnYes);
+DECLARE_DYNAMIC_DELEGATE(FOnNo);
+
 UCLASS()
 class CR4S_API UConfirmWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	void Confirm(const FText& Message);
+
+	FOnYes OnYes;
+	FOnNo OnNo;
+
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UFUNCTION()
 	void OnYesButtonClicked();
 	UFUNCTION()
 	void OnNoButtonClicked();
 
-	void SetMessageText(FText NewMessage);
+
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* YesButton;
@@ -27,4 +37,6 @@ protected:
 	UButton* NoButton;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MessageText;
+
+
 };
