@@ -18,6 +18,7 @@
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Character/Components/RobotInputBufferComponent.h"
 #include "Character/Data/RobotPartsData.h"
+#include "Components/TimelineComponent.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -94,6 +95,8 @@ AModularRobot::AModularRobot()
 	RobotInventoryComponent = CreateDefaultSubobject<URobotInventoryComponent>(TEXT("RobotInventoryComponent"));
 
 	EnvironmentalStatus=CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
+
+	HoverTimeLine=CreateDefaultSubobject<UTimelineComponent>(TEXT("HoverTimeLine"));
 }
 
 void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
@@ -138,6 +141,9 @@ void AModularRobot::EquipBodyParts(const FGameplayTag& Tag)
 	Status->ApplyResourceRegenModifier(BodyInfo.ResourceRegenModifier);
 	Status->SetResourceRegenDelay(BodyInfo.ResourceRegenDelay);
 	Status->ApplyResourceConsumptionModifier(BodyInfo.ResourceConsumptionModifier);
+	Status->AddHeatThreshold(BodyInfo.HeatThreshold);
+	Status->AddColdThreshold(BodyInfo.ColdThreshold);
+	Status->AddHumidityThreshold(BodyInfo.HumidityThreshold);
 	
 	if (!CR4S_ENSURE(LogHong1,BodyInfo.SkeletalMesh)) return;
 	GetMesh()->SetSkeletalMesh(BodyInfo.SkeletalMesh);
@@ -151,7 +157,7 @@ void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
 	FArmPartsInfo ArmInfo;
 	const bool bSucceed = Loader->LoadArmPartsDataByTag(Tag, ArmInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
-
+	
 	ArmTag=Tag;
 
 	Status->AddMaxHP(ArmInfo.MaxHealth);
@@ -174,19 +180,18 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 	const bool bSucceed = Loader->LoadLegPartsDataByTag(Tag, LegInfo);
 	if (!CR4S_ENSURE(LogHong1,bSucceed)) return;
 
+
+	Status->AddMaxWeight(LegInfo.MaxTotalWeight);
+	
 	LegTag=Tag;
-
-	const bool bIsQuadrupedal=Tag.MatchesTag(LegTags::Quadrupedal);
-	SetLegManagerEnabled(bIsQuadrupedal);
-
+	
 	Status->AddMaxHP(LegInfo.MaxHealth);
 	Status->AddCurrentHP(LegInfo.MaxHealth);
 	Status->AddArmor(LegInfo.Armor);
 	Status->AddMaxStun(LegInfo.MaxStun);
-	Status->AddMaxWeight(LegInfo.MaxTotalWeight);
 	Status->AddWeight(LegInfo.Weight);
 	RobotSettings.MaxWalkSpeed=LegInfo.MaxWalkSpeed;
-	RobotSettings.DashStrength=LegInfo.DashStrength;
+	RobotSettings.LegStrength=LegInfo.LegStrength;
 	GetCharacterMovement()->SetWalkableFloorAngle(LegInfo.MaxSlopeAngle);
 	Status->ApplyEnergyEfficiency(LegInfo.EnergyEfficiency);
 	
@@ -195,6 +200,9 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 
 	if (!CR4S_ENSURE(LogHong1,LegInfo.AnimInstance)) return;
 	LegMesh->SetAnimInstanceClass(LegInfo.AnimInstance);
+	
+	const bool bIsQuadrupedal=Tag.MatchesTag(LegTags::Quadrupedal);
+	SetLegManagerEnabled(bIsQuadrupedal);
 }
 
 void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
@@ -209,7 +217,7 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 	BoosterTag=Tag;
 	
 	RobotSettings.DashCooldown=BoosterInfo.DashCooldown;
-	Status->SetRollStaminaCost(BoosterInfo.DashResourceCost);
+	Status->SetResourceConsumptionAmount(BoosterInfo.ResourceConsumption);
 }
 
 void AModularRobot::UnequipCoreParts()
@@ -256,6 +264,9 @@ void AModularRobot::UnequipBodyParts()
 	Status->RevertResourceRegenModifier(BodyInfo.ResourceRegenModifier);
 	Status->ResetResourceRegenDelay();
 	Status->RevertResourceConsumptionModifier(BodyInfo.ResourceConsumptionModifier);
+	Status->AddHeatThreshold(-(BodyInfo.HeatThreshold));
+	Status->AddColdThreshold(-(BodyInfo.ColdThreshold));
+	Status->AddHumidityThreshold(-(BodyInfo.HumidityThreshold));
 }
 
 void AModularRobot::UnequipArmParts()
@@ -303,7 +314,7 @@ void AModularRobot::UnequipLegParts()
 	Status->AddWeight(-(LegInfo.Weight));
 	Status->AddMaxWeight(-(LegInfo.MaxTotalWeight));
 	RobotSettings.MaxWalkSpeed=DefaultSettings.MaxWalkSpeed;
-	RobotSettings.DashStrength=DefaultSettings.DashStrength;
+	RobotSettings.LegStrength=DefaultSettings.LegStrength;
 	GetCharacterMovement()->SetWalkableFloorAngle(DefaultSettings.MaxSlopeAngle);
 	Status->RevertEnergyEfficiency(LegInfo.EnergyEfficiency);
 }
@@ -320,7 +331,7 @@ void AModularRobot::UnequipBoosterParts()
 	BoosterTag=FGameplayTag::EmptyTag;
 	
 	RobotSettings.DashCooldown=DefaultSettings.DashCooldown;
-	Status->ResetRollStaminaCost();
+	Status->ResetResourceConsumptionAmount();
 }
 
 void AModularRobot::TakeStun_Implementation(const float StunAmount)
@@ -551,6 +562,14 @@ void AModularRobot::BeginPlay()
 
 	GetCharacterMovement()->JumpZVelocity=RobotSettings.JumpZVelocity;
 	GetCharacterMovement()->MaxWalkSpeed=RobotSettings.MaxWalkSpeed;
+
+	if (RobotSettings.HoverCurve)
+	{
+		FOnTimelineFloat UpdateCallback;
+		UpdateCallback.BindDynamic(this,&ThisClass::OnHoverTimeLineUpdate);
+		HoverTimeLine->AddInterpFloat(RobotSettings.HoverCurve,UpdateCallback);
+		HoverTimeLine->SetLooping(true);
+	}
 	
 	if (InteractComp)
 	{
@@ -662,6 +681,7 @@ void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 	{
 		Status->StartHover();
 		bIsHovering=true;
+		HoverTimeLine->PlayFromStart();
 	}
 	else
 	{
@@ -679,44 +699,37 @@ void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 	{
 		Status->StopHover();
 		bIsHovering=false;
+		HoverTimeLine->Stop();
 	}
 }
 
-void AModularRobot::Input_HorizontalDash(const FInputActionValue& Value)
+void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
+	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()|| !BoosterTag.IsValid()) return;
 	
 	bIsDashing = true;
 	
 	FVector LastInput=GetLastMovementInputVector();
 	FVector ForwardVector=GetActorForwardVector();
 	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-	FVector LaunchVelocity=DashDirection*RobotSettings.DashStrength;
-	LaunchVelocity.Z+=RobotSettings.DashZStrength;
+	float DashPower=RobotSettings.DashStrength;
+	FVector LaunchVelocity=FVector::ZeroVector;
 	
-	Status->ConsumeResourceForRoll();
-	LaunchCharacter(LaunchVelocity,true,true);
-	
-	GetWorldTimerManager().SetTimer(
-		DashCooldownTimerHandle,
-		this,
-		&AModularRobot::ResetDashCooldown,
-		RobotSettings.DashCooldown,
-		false
-	);
-}
+	const bool bInAir=GetCharacterMovement()->IsFalling()||GetCharacterMovement()->IsFlying();
+	if (!bInAir)
+	{
+		DashPower+=RobotSettings.LegStrength;
+	}
 
-void AModularRobot::Input_VerticalDash(const FInputActionValue& Value)
-{
-	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()) return;
-	
-	bIsDashing = true;
-	
-	const FVector AerialDashDirection=GetActorUpVector();
-	FVector LaunchVelocity=AerialDashDirection*RobotSettings.AerialDashStrength;
+	const float WeightBasedDivisor=Status->GetCurrentWeight()*RobotSettings.WeightFactor;
+	const float FinalVelocityAmount=DashPower/WeightBasedDivisor;
+	LaunchVelocity=DashDirection*FinalVelocityAmount;
+	LaunchVelocity.Z += bInAir ? 0 : RobotSettings.DashZMultiplier*FinalVelocityAmount;;
 	
 	Status->ConsumeResourceForRoll();
 	LaunchCharacter(LaunchVelocity,true,true);
+
+	if (RobotSettings.DashCooldown<KINDA_SMALL_NUMBER) return;
 	
 	GetWorldTimerManager().SetTimer(
 		DashCooldownTimerHandle,
@@ -730,6 +743,15 @@ void AModularRobot::Input_VerticalDash(const FInputActionValue& Value)
 void AModularRobot::ResetDashCooldown()
 {
 	bIsDashing = false;
+}
+
+void AModularRobot::OnHoverTimeLineUpdate(float Value)
+{
+	const float UpwardSpeed = RobotSettings.HoverUpwardSpeed*Value;
+	if (UCharacterMovementComponent* MovementComp=GetCharacterMovement())
+	{
+		MovementComp->Velocity.Z=UpwardSpeed;
+	}
 }
 
 
@@ -747,8 +769,7 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			//Looking
 			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
 			//Dash
-			EnhancedInputComponent->BindAction(HorizontalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_HorizontalDash);
-			EnhancedInputComponent->BindAction(VerticalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_VerticalDash);
+			EnhancedInputComponent->BindAction(HorizontalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_Dash);
 			// Jump
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);

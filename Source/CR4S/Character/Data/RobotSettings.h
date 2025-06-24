@@ -26,13 +26,15 @@ public:
 	int32 CollisionCheckCount{8};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float DashStrength{3000};
+	float DashStrength{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float DashZStrength{400};
+	float LegStrength{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float AerialDashStrength{1000};
+	float DashZMultiplier{0.3};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
 	float DashCooldown{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	float WeightFactor{0.1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float MaxWalkSpeed{600};
@@ -40,6 +42,11 @@ public:
 	float JumpZVelocity{700};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float MaxSlopeAngle{10};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hovere")
+	TObjectPtr<UCurveFloat> HoverCurve;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hovere")
+	float HoverUpwardSpeed{30};
 };
 
 USTRUCT(BlueprintType,Blueprintable)

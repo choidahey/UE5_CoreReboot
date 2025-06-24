@@ -10,6 +10,7 @@
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class UTimelineComponent;
 class UDataLoaderSubsystem;
 struct FGameplayTag;
 class URobotInventoryComponent;
@@ -118,12 +119,13 @@ protected:
 	UFUNCTION()
 	void Input_StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void Input_HorizontalDash(const FInputActionValue& Value);
-	UFUNCTION()
-	void Input_VerticalDash(const FInputActionValue& Value);
+	void Input_Dash(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void ResetDashCooldown();
+
+	UFUNCTION()
+	void OnHoverTimeLineUpdate(float Value);
 #pragma endregion
 
 #pragma region InputActions
@@ -142,8 +144,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> HorizontalDashAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> VerticalDashAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> InteractionAction;
@@ -217,6 +217,11 @@ protected:
 	uint8 bIsDashing:1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsHovering:1 {false};
+#pragma endregion
+
+#pragma region Hover
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UTimelineComponent> HoverTimeLine;
 #pragma endregion
 
 #pragma region DebugOption
