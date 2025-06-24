@@ -57,11 +57,9 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 
 	if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
 	{
-<<<<<<< HEAD
-		MainMenuWidgetRef->FadeOutBGM(1.0f); // 1�� ���̵� �ƿ�
-=======
+
 		AudioManager->StopBGM();
->>>>>>> 1f091cf5a109ae66a25a37b9117eb0ad23417219
+
 	}
 
 
