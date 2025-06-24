@@ -28,16 +28,10 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Shake")
 	void Shake();
-	UFUNCTION(BlueprintCallable, Category = "Shake")
-	void StartShake();
-	UFUNCTION(BlueprintCallable, Category = "Shake")
-	FORCEINLINE bool CanShake() const { return bCanShake; }
 	
 private:
-	
-	UFUNCTION(BlueprintCallable, Category = "Shake")
+	void StartShake();
 	void PerformShake();
-	UFUNCTION(BlueprintCallable, Category = "Shake")
 	void StopShake();
 
 	FTimerHandle ShakeTimerHandle;

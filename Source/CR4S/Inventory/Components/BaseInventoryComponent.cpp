@@ -2,8 +2,8 @@
 
 #include "CR4S.h"
 #include "GameplayTagsManager.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/Data/InventorySaveGame.h"
 #include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
