@@ -43,10 +43,10 @@ public:
 	FORCEINLINE float GetHumidityThreshold() const { return BaseStatus.HumidityThreshold; }
 
 	void SetRollStaminaCost(const float NewCost);
-	FORCEINLINE void ResetRollStaminaCost() { BaseStatus.RollStaminaCost = OriginalRollStaminaCost; }
+	FORCEINLINE void ResetRollStaminaCost() { BaseStatus.RollStaminaCost = DefaultBaseStatus.RollStaminaCost; }
 	
 	void SetResourceRegenDelay(const float NewDelay);
-	FORCEINLINE void ResetResourceRegenDelay() { BaseStatus.ResourceRegenDelay = OriginalResourceRegenDelay; }
+	FORCEINLINE void ResetResourceRegenDelay() { BaseStatus.ResourceRegenDelay = DefaultBaseStatus.ResourceRegenDelay; }
 #pragma endregion
 
 #pragma region Add
@@ -121,6 +121,9 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FBaseStats BaseStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FBaseStats DefaultBaseStatus;
 #pragma endregion
 	
 #pragma region Delegate
@@ -143,11 +146,6 @@ public:
 	uint8 bIsFreezing:1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	uint8 bIsHumidityAffected:1 {false};
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
-	float OriginalRollStaminaCost{0};
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
-	float OriginalResourceRegenDelay{0};
 #pragma endregion
 
 #pragma region Timer

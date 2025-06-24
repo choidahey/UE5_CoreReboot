@@ -38,6 +38,8 @@ public:
 	float MaxWalkSpeed{600};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float JumpZVelocity{700};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float MaxSlopeAngle{10};
 };
 
 USTRUCT(BlueprintType,Blueprintable)

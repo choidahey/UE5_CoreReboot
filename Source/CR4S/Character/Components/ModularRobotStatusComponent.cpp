@@ -126,7 +126,6 @@ void UModularRobotStatusComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 void UModularRobotStatusComponent::SetEnergyConsumptionAmount(const float NewAmount)
 {
-	OriginalEnergyConsumption=RobotStatus.EnergyConsumptionAmount;
 	RobotStatus.EnergyConsumptionAmount=NewAmount;
 }
 

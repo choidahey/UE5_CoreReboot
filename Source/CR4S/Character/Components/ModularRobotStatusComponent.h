@@ -42,7 +42,7 @@ public:
 	FORCEINLINE float GetCurrentWeight() const { return RobotStatus.Weight; }
 
 	void SetEnergyConsumptionAmount(const float NewAmount);
-	FORCEINLINE void ResetEnergyConsumptionAmount() { RobotStatus.EnergyConsumptionAmount=OriginalEnergyConsumption; }
+	FORCEINLINE void ResetEnergyConsumptionAmount() { RobotStatus.EnergyConsumptionAmount=DefaultRobotStatus.EnergyConsumptionAmount; }
 #pragma endregion
 
 #pragma region Add
@@ -130,9 +130,6 @@ protected:
 	uint8 bIsStunned:1 {false};
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	uint8 bIsRobotActive:1 {true};
-
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
-	float OriginalEnergyConsumption{0};
 	
 #pragma endregion
 	
@@ -140,6 +137,9 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FModularRobotStats RobotStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FModularRobotStats DefaultRobotStatus;
 #pragma endregion
 
 #pragma region Delegate

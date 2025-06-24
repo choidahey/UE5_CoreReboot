@@ -154,6 +154,9 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
 	FRobotSettings RobotSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	FRobotSettings DefaultSettings;
 #pragma endregion
 	
 #pragma region Components
