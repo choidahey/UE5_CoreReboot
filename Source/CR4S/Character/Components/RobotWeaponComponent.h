@@ -48,6 +48,7 @@ public:
 	
 #pragma region EquipWeapon
 public:
+	void RefreshWeaponUI();
 	UFUNCTION(BlueprintCallable)
 	void EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx);
 	void UnequipWeapon(const int32 SlotIdx);
@@ -71,7 +72,8 @@ protected:
 	
 	//Left, Right Arm (0,1), Left, Right Shoulder(2,3)	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
-	TArray<TObjectPtr<ABaseWeapon>> Weapons; 
+	TArray<TObjectPtr<ABaseWeapon>> Weapons;
+
 #pragma endregion
 
 #pragma region WeaponSettings

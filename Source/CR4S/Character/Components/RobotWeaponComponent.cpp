@@ -85,6 +85,20 @@ void URobotWeaponComponent::StopAttackBySlot(const int32 SlotIdx)
 	Weapons[SlotIdx]->StopAttack();
 }
 
+void URobotWeaponComponent::RefreshWeaponUI()
+{
+	for (ABaseWeapon* Weapon:Weapons)
+	{
+		if (IsValid(Weapon))
+		{
+			if (ARangedWeapon* RangedWeapon=Cast<ARangedWeapon>(Weapon))
+			{
+				RangedWeapon->RefreshUI();
+			}
+		}
+	}
+}
+
 void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx)
 {
 	if (!CR4S_ENSURE(LogHong1,Weapons.IsValidIndex(SlotIdx) && OwningCharacter)) return;
