@@ -344,7 +344,7 @@ void AModularRobot::TakeStun_Implementation(const float StunAmount)
 	 Status->AddStun(StunAmount);
 }
 
-void AModularRobot::SetInputEnable(const bool bEnableInput)
+void AModularRobot::SetInputEnable(const bool bEnableInput) const
 {
 	APlayerController* PC=Cast<APlayerController>(GetController());
 	if (!CR4S_ENSURE(LogHong1,PC)) return;
@@ -354,11 +354,31 @@ void AModularRobot::SetInputEnable(const bool bEnableInput)
 	
 	if (bEnableInput)
 	{
-		InputSubsystem->AddMappingContext(InputMappingContext,RobotSettings.MappingContextPriority);
+		InputSubsystem->AddMappingContext(MovementMappingContext,RobotSettings.MovementMappingContextPriority);
+		InputSubsystem->AddMappingContext(UtilityMappingContext,RobotSettings.UtilityMappingContextPriority);
 	}
 	else
 	{
-		InputSubsystem->RemoveMappingContext(InputMappingContext);
+		InputSubsystem->RemoveMappingContext(MovementMappingContext);
+		InputSubsystem->RemoveMappingContext(UtilityMappingContext);
+	}
+}
+
+void AModularRobot::SetMovementInputEnable(const bool bEnableMovementInput) const
+{
+	APlayerController* PC=Cast<APlayerController>(GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
+	
+	if (bEnableMovementInput)
+	{
+		InputSubsystem->AddMappingContext(MovementMappingContext,RobotSettings.MovementMappingContextPriority);
+	}
+	else
+	{
+		InputSubsystem->RemoveMappingContext(MovementMappingContext);
 	}
 }
 
@@ -601,7 +621,8 @@ void AModularRobot::NotifyControllerChanged()
 		auto* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PreviousPlayer->GetLocalPlayer())};
 		if (IsValid(InputSubsystem))
 		{
-			InputSubsystem->RemoveMappingContext(InputMappingContext);
+			InputSubsystem->RemoveMappingContext(MovementMappingContext);
+			InputSubsystem->RemoveMappingContext(UtilityMappingContext);
 		}
 	}
 
@@ -618,7 +639,15 @@ void AModularRobot::NotifyControllerChanged()
 			FModifyContextOptions Options;
 			Options.bNotifyUserSettings = true;
 
-			InputSubsystem->AddMappingContext(InputMappingContext, RobotSettings.MappingContextPriority, Options);
+			InputSubsystem->AddMappingContext(MovementMappingContext, RobotSettings.MovementMappingContextPriority, Options);
+			InputSubsystem->AddMappingContext(UtilityMappingContext, RobotSettings.UtilityMappingContextPriority, Options);
+			
+			if (!Status) return;
+			const bool bEnableInput= !(Status->IsOverWeighted() || Status->IsArmOverWeighted());
+			if (!bEnableInput)
+			{
+				SetMovementInputEnable(bEnableInput);
+			}
 		}
 	}
 
@@ -639,7 +668,8 @@ void AModularRobot::UnPossessed()
 		UEnhancedInputLocalPlayerSubsystem* InputSubsystem{ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer())};
 		if (IsValid(InputSubsystem))
 		{
-			InputSubsystem->RemoveMappingContext(InputMappingContext);
+			InputSubsystem->RemoveMappingContext(MovementMappingContext);
+			InputSubsystem->RemoveMappingContext(UtilityMappingContext);
 		}
 	}
 	DisconnectWidgets();
@@ -779,7 +809,7 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			//Looking
 			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
 			//Dash
-			EnhancedInputComponent->BindAction(HorizontalDashAction, ETriggerEvent::Started, this, &AModularRobot::Input_Dash);
+			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AModularRobot::Input_Dash);
 			// Jump
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AModularRobot::Input_StartJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
