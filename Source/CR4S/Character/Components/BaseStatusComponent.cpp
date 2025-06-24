@@ -130,13 +130,13 @@ void UBaseStatusComponent::RevertResourceConsumptionModifier(const float Modifie
 
 bool UBaseStatusComponent::HasEnoughResourceForRoll() const
 {
-	return GetCurrentResource()>=(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier);
+	return GetCurrentResource()>=(BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier);
 }
 
 //Dash & Roll
 void UBaseStatusComponent::ConsumeResourceForRoll()
 {
-	AddCurrentResource(-(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier));
+	AddCurrentResource(-(BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier));
 	OnResourceConsumed();
 }
 

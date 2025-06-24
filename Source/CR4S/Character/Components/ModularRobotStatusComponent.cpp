@@ -267,12 +267,14 @@ void UModularRobotStatusComponent::StopHover()
 
 void UModularRobotStatusComponent::ConsumeResourceForHovering()
 {
-	if (GetCurrentResource()<RobotStatus.HoverResourceCost)
+	const float HoverCost=RobotStatus.HoverCostMultiplier*BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier;
+	if (GetCurrentResource()<HoverCost)
 	{
 		StopHover();
 		return;
 	}
-	AddCurrentResource(-(RobotStatus.HoverResourceCost));
+	
+	AddCurrentResource(-(HoverCost));
 	OnResourceConsumed();
 }
 
