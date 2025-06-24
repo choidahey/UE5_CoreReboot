@@ -7,6 +7,7 @@
 #include "RobotInputBufferComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
+#include "Character/Weapon/RobotWeapon/HomingWeapon.h"
 #include "Character/Weapon/RobotWeapon/RangedWeapon.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
@@ -25,93 +26,71 @@ URobotWeaponComponent::URobotWeaponComponent()
 
 void URobotWeaponComponent::Input_OnAttackLeftArm()
 {
-	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
-	
-	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack1))
-	{
-		Weapons[0]->OnAttack();
-	}
+	TryAttackBySlot(0,EInputType::RobotAttack1);
 }
 
 void URobotWeaponComponent::Input_StopAttackLeftArm()
 {
-	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	if (!Weapons.IsValidIndex(0)||!IsValid(Weapons[0])) return;
-
-	//InputBuffer->ClearInputQueue();
-	Weapons[0]->StopAttack();
+	StopAttackBySlot(0);
 }
 
 void URobotWeaponComponent::Input_OnAttackRightArm()
 {
-	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	
-	if (!Weapons.IsValidIndex(1)||!IsValid(Weapons[1])) return;
-	
-	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack2))
-	{
-		Weapons[1]->OnAttack();
-	}
+	TryAttackBySlot(1,EInputType::RobotAttack2);
 }
 
 void URobotWeaponComponent::Input_StopAttackRightArm()
 {
-	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	if (!Weapons.IsValidIndex(1)||!IsValid(Weapons[1])) return;
-
-	//InputBuffer->ClearInputQueue();
-	Weapons[1]->StopAttack();
+	StopAttackBySlot(1);
 }
 
 void URobotWeaponComponent::Input_OnAttackLeftShoulder()
 {
-	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	
-	if (!Weapons.IsValidIndex(2)||!IsValid(Weapons[2])) return;
-	
-	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack3))
-	{
-		Weapons[2]->OnAttack();
-	}
+	TryAttackBySlot(2,EInputType::RobotAttack3);
 }
 
 void URobotWeaponComponent::Input_StopAttackLeftShoulder()
 {
-	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	if (!Weapons.IsValidIndex(2)||!IsValid(Weapons[2])) return;
-
-	//InputBuffer->ClearInputQueue();
-	Weapons[2]->StopAttack();
+	StopAttackBySlot(2);
 }
 
 void URobotWeaponComponent::Input_OnAttackRightShoulder()
 {
-	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	
-	if (!Weapons.IsValidIndex(3)||!IsValid(Weapons[3])) return;
-	
-	if (InputBuffer->CheckInputQueue(EInputType::RobotAttack4))
-	{
-		Weapons[3]->OnAttack();
-	}
+	TryAttackBySlot(3,EInputType::RobotAttack4);
 }
 
 void URobotWeaponComponent::Input_StopAttackRightShoulder()
 {
+	StopAttackBySlot(3);
+}
+
+void URobotWeaponComponent::TryAttackBySlot(const int32 SlotIdx, const EInputType AttackInput)
+{
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
-	if (!Weapons.IsValidIndex(3)||!IsValid(Weapons[3])) return;
+	
+	if (!Weapons.IsValidIndex(SlotIdx)||!IsValid(Weapons[SlotIdx])) return;
+	
+	if (InputBuffer->CheckInputQueue(AttackInput))
+	{
+		Weapons[SlotIdx]->OnAttack();
+	}
+}
+
+void URobotWeaponComponent::StopAttackBySlot(const int32 SlotIdx)
+{
+	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
+	if (!Weapons.IsValidIndex(SlotIdx)||!IsValid(Weapons[SlotIdx])) return;
 
 	//InputBuffer->ClearInputQueue();
-	Weapons[3]->StopAttack();
+	Weapons[SlotIdx]->StopAttack();
 }
 
 void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx)
 {
-	if (!CR4S_ENSURE(LogHong1,Weapons.IsValidIndex(SlotIdx))) return;
+	if (!CR4S_ENSURE(LogHong1,Weapons.IsValidIndex(SlotIdx) && OwningCharacter)) return;
 
 	// Can't equip MeleeWeapon on Shouler (Only Arm)
-	if (Tag.MatchesTag(WeaponTags::Melee)&&SlotIdx>1) return;
+	if (Tag.MatchesTag(WeaponTags::Melee) && !IsArmSlot(SlotIdx)) return;
 	
 	UGameInstance* GI=OwningCharacter->GetGameInstance();
 	if (!CR4S_ENSURE(LogHong1,GI)) return;
