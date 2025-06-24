@@ -6,6 +6,7 @@
 
 #include "BaseInventoryComponent.generated.h"
 
+struct FInventorySaveGame;
 struct FHelperPickUpData;
 struct FInventoryItemData;
 class UInventoryFilterData;
@@ -78,7 +79,8 @@ public:
 
 	static void PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
-	
+
+	static bool CheckRottenItem(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void AveragingFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void UpdateFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 	static void SetHelperBotPickUpDate(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
@@ -170,6 +172,19 @@ private:
 	TObjectPtr<UInventoryFilterData> FilterData;
 
 #pragma endregion
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "InventorySystem|SaveData")
+	virtual FInventorySaveGame GetInventorySaveGame();
+	UFUNCTION(BlueprintCallable, Category = "InventorySystem|LoadData")
+	virtual void LoadInventorySaveGame(const FInventorySaveGame& SaveGameData);
+
+private:
+	void ClearInventoryItems();
+	
+#pragma endregion 
 
 #pragma region Delegate
 

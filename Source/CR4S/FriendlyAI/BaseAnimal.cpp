@@ -14,8 +14,11 @@
 #include "Component/GroundMovementComponent.h"
 #include "AnimalFlying.h"
 #include "AnimalGround.h"
+#include "AnimalMonster.h"
 #include "../Character/Characters/PlayerCharacter.h"
 #include "NavigationInvokerComponent.h"
+#include "Controller/AnimalMonsterAIController.h"
+#include "Gimmick/Components/InteractableComponent.h"
 
 ABaseAnimal::ABaseAnimal()
 {
@@ -55,7 +58,6 @@ void ABaseAnimal::BeginPlay()
     LoadStats();
     
     bUseControllerRotationYaw = false;
-
 }
 
 void ABaseAnimal::Tick(float DeltaTime)
@@ -280,11 +282,15 @@ void ABaseAnimal::RecoverFromStun()
 
 void ABaseAnimal::Die()
 {
-    if (CurrentState == EAnimalState::Dead) return;
+    if (CurrentState != EAnimalState::Dead) return;
     
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
         C->OnDied();
+    }
+    else if (AAnimalMonsterAIController* MC = Cast<AAnimalMonsterAIController>(GetController()))
+    {
+        MC->OnDied();
     }
 
     if (IsValid(ActiveInteractWidget))
@@ -307,7 +313,7 @@ void ABaseAnimal::Die()
         AIController->StopMovement();
         AIController->UnPossess(); 
     }
-    
+        
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
 
@@ -316,8 +322,11 @@ void ABaseAnimal::Die()
 
     GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);    
+    GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
     SetLifeSpan(30.f);
+
+    ElapsedFadeTime = 0.f;
+    GetWorldTimerManager().SetTimer(FadeDelayTimerHandle, this, &ABaseAnimal::StartFadeOut, 28.f, false);
 }
 
 void ABaseAnimal::SetAnimalState(EAnimalState NewState)
@@ -422,8 +431,8 @@ void ABaseAnimal::OnInteract(AActor* Interactor)
     {
         Inventory->AddItems(DroppedItems);
     }
-
-    Destroy();
+    StartFadeOut();
+    SetLifeSpan(2.0f);
 }
 
 void ABaseAnimal::Capture()
@@ -627,5 +636,48 @@ void ABaseAnimal::PerformRangedAttack()
         RangedAttackCooldown,
         false
     );
+}
+#pragma endregion
+
+#pragma region Pade Out Effect
+void ABaseAnimal::StartFadeOut()
+{    
+    USkeletalMeshComponent* MeshComp = GetMesh();
+    if (!MeshComp) return;
+    
+    for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+    {
+        if (UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i))
+        {
+            DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+        }
+    }
+
+    FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade);
+    GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+
+    MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+}
+
+void ABaseAnimal::UpdateFade()
+{
+    ElapsedFadeTime += 0.02f;
+    float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
+    
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+        {
+            if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(MeshComp->GetMaterial(i)))
+            {
+                DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+            }
+        }
+    }
+    
+    if (ElapsedFadeTime >= 2.0f)
+    {
+        GetWorldTimerManager().ClearTimer(FadeTimerHandle);
+    }
 }
 #pragma endregion

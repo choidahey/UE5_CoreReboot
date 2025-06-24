@@ -26,17 +26,37 @@ enum class EBossPhase : uint8
 {
     Normal = 0,
     Berserk = 1,
-    Groggy = 2
+    Rampage = 2
 };
 
 UENUM(BlueprintType)
-enum class EApproachType : uint8
+enum class EKamishAttackPattern : uint8
 {
-    Stand       UMETA(DisplayName = "Stand and Cast"),
-    AdvanceCast UMETA(DisplayName = "Advance then Cast"),
-    Dash        UMETA(DisplayName = "Dash In"),
-    CloseBurst  UMETA(DisplayName = "Close Range Burst"),
-    Stalk       UMETA(DisplayName = "Stalking"),
-    Flank       UMETA(DisplayName = "Flank"),
-    Teleport    UMETA(DisplayName = "Teleport and Attack")
+    None                        UMETA(DisplayName = "None"),
+
+    // 개막
+    Open_ThunderLeapSlash       UMETA(DisplayName = "Open, Thunder, Leap & Slash"),
+
+    // 원거리 계열
+    Ranged_ThrowDash            UMETA(DisplayName = "Throw, Dash"),
+    Ranged_ThunderThrowDash     UMETA(DisplayName = "Thunder, Throw, Dash"),
+    Ranged_ThunderLeap          UMETA(DisplayName = "Thunder, Leap"),
+    Ranged_LongThunderLeap      UMETA(DisplayName = "Long Thunder, Leap"),
+
+    // 중거리 계열
+    Mid_LeapLight               UMETA(DisplayName = "Leap, Light Attack"),
+    Mid_LeapHeavyLight          UMETA(DisplayName = "Leap, Heavy & Light"),
+    Mid_DashHeavy               UMETA(DisplayName = "Strafe, Dash, Heavy"),
+    Mid_ThrowDashHeavy          UMETA(DisplayName = "Throw, Dash, Heavy"),
+    Mid_DashThrowDashHeavy      UMETA(DisplayName = "Dash, Throw, Dash, Heavy"),
+
+    // 근거리 계열
+    Melee_LightAttackA          UMETA(DisplayName = "Light Attack (Right Swing)"),
+    Melee_LightAttackB          UMETA(DisplayName = "Light Attack (Left Swing)"),
+    Melee_LightAttackC          UMETA(DisplayName = "Light Attack (Right Slam)"),
+    Melee_LightAttackD          UMETA(DisplayName = "Light Attack (Left Upper)"),
+    Melee_HeavyAttackA          UMETA(DisplayName = "Heavy Attack (Strike)"),
+    Melee_HeavyAttackB          UMETA(DisplayName = "Heavy Attack (Left Swing)"),
+    Melee_HeavyAttackC          UMETA(DisplayName = "Heavy Attack (Right Swing)"),
+    Melee_Nanta                 UMETA(DisplayName = "Nanta")
 };

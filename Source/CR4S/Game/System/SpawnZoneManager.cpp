@@ -8,11 +8,11 @@
 bool USpawnZoneManager::ShouldCreateSubsystem(UObject* Outer) const
 {
 	UWorld* World = Cast<UWorld>(Outer);
-	if (World && World->GetName() == TEXT("SurvivalLevel_1"))
+	if (World && World->GetName() == TEXT("MenuLevel"))
 	{
-		return true;  // Creates this subsystem only in the SurvivalLevel world
+        return false;
 	}
-	return false;
+	return true;
 }
 
 void USpawnZoneManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -88,7 +88,7 @@ void USpawnZoneManager::NotifyGridEntered(const FIntPoint& GridCoord)
                 int32& Count = ZoneDetectionCounts.FindOrAdd(Zone);
                 if (Count == 0)
                 {
-                    Zone->SpawnActorsInZone();
+                    Zone->SetZoneActive(true);
                 }
                 Count++;
 
@@ -115,7 +115,7 @@ void USpawnZoneManager::NotifyGridLeft(const FIntPoint& GridCoord)
 					UE_LOG(LogTemp, Log, TEXT("Zone %s left grid (%d, %d), count: %d"), *Zone->GetName(), GridCoord.X, GridCoord.Y, *CountPtr);
                     if (*CountPtr <= 0)
                     {
-                        Zone->DespawnActorsInZone();
+                        Zone->SetZoneActive(false);
                         ZoneDetectionCounts.Remove(Zone);
                     }
                 }

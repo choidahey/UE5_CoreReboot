@@ -1,7 +1,9 @@
 #include "MonsterAI/Task/Region/BTTask_SelectSkill_Region.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
+#include "MonsterAI/Data/RegionBossPatternDataAsset.h"
 #include "MonsterAI/BaseMonster.h"
+#include "MonsterAI/Region/RegionBossMonster.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "MonsterAI/MonsterAIHelper.h"
 
@@ -13,64 +15,26 @@ struct FCandidate
 
 int32 UBTTask_SelectSkill_Region::SelectSkillFromAvailable(const TArray<int32>& AvailableSkills, AActor* Target)
 {
-	if (!CachedMonster.IsValid() || !Target || !CachedBlackboard) return INDEX_NONE;
+	if (!CachedMonster.IsValid() || !CachedBlackboard) return INDEX_NONE;
 
-	const float Distance = FVector::Dist(CachedMonster->GetActorLocation(), Target->GetActorLocation());
-	const int32 CurrentPhase = CachedBlackboard->GetValueAsInt(TEXT("CurrentPhase"));
+	const uint8 PatternID = CachedBlackboard->GetValueAsInt(FRegionBossAIKeys::CurrentPatternID);
+	const uint8 PhaseValue = CachedBlackboard->GetValueAsEnum(FRegionBossAIKeys::CurrentPhase);
+	const int32 StepIndex = CachedBlackboard->GetValueAsInt(FRegionBossAIKeys::PatternStepIndex);
 
-	UMonsterSkillComponent* SkillComp = CachedMonster->FindComponentByClass<UMonsterSkillComponent>();
-	if (!SkillComp) return INDEX_NONE;
+	ARegionBossMonster* RegionBoss = Cast<ARegionBossMonster>(CachedMonster.Get());
+	if (!IsValid(RegionBoss) || !RegionBoss->PatternDataAsset) return INDEX_NONE;
 
-	UE_LOG(LogTemp, Warning, TEXT("[SelectSkill] Phase: %d, Distance: %.1f"), CurrentPhase, Distance);
+	const FRegionPatternData* Pattern = RegionBoss->PatternDataAsset->PatternList.FindByPredicate(
+		[&](const FRegionPatternData& P) { return P.PatternID == PatternID; });
 
-	TArray<FCandidate> Candidates;
-	float TotalWeight = 0.f;
+	const FPhaseSkillSequence* Sequence = Pattern
+		? Pattern->PhaseSequences.FindByPredicate([&](const FPhaseSkillSequence& Seq)
+			{ return Seq.Phase == static_cast<EBossPhase>(PhaseValue); })
+		: nullptr;
 
-	for (int32 Index : AvailableSkills)
-	{
-		const FMonsterSkillData& Skill = SkillComp->GetSkillData(Index);
+	if (!Sequence || !Sequence->SkillIndices.IsValidIndex(StepIndex))
+		return INDEX_NONE;
 
-		for (const FSkillProbabilityEntry& Entry : Skill.ProbabilityList)
-		{
-			if (Entry.Phase != CurrentPhase) continue;
-
-			if (Distance >= Entry.MinDistance && Distance <= Entry.MaxDistance)
-			{
-				Candidates.Add({ Index, Entry.Probability });
-				TotalWeight += Entry.Probability;
-
-				UE_LOG(LogTemp, Warning,
-					TEXT("[SelectSkill] Candidate Skill Index: %d (Distance: %.1f ~ %.1f, Probability: %.2f)"),
-					Index, Entry.MinDistance, Entry.MaxDistance, Entry.Probability);
-
-				break;
-			}
-		}
-	}
-
-	if (Candidates.IsEmpty() || TotalWeight <= 0.f)
-	{
-		const int32 FallbackSkill = AvailableSkills[FMath::RandRange(0, AvailableSkills.Num() - 1)];
-		UE_LOG(LogTemp, Warning, TEXT("[SelectSkill] No candidates, fallback to random skill index: %d"), FallbackSkill);
-		return FallbackSkill;
-	}
-
-	const float Random = FMath::FRandRange(0.f, TotalWeight);
-	float Accumulated = 0.f;
-
-	for (const FCandidate& Candidate : Candidates)
-	{
-		Accumulated += Candidate.Weight;
-		if (Random <= Accumulated)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[SelectSkill] Selected Skill Index: %d (Random Roll: %.2f / Total: %.2f)"),
-				Candidate.SkillIndex, Random, TotalWeight);
-
-			return Candidate.SkillIndex;
-		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[SelectSkill] Selected Skill Index (Last Fallback): %d"), Candidates.Last().SkillIndex);
-
-	return Candidates.Last().SkillIndex;
+	const int32 DesiredSkill = Sequence->SkillIndices[StepIndex];
+	return AvailableSkills.Contains(DesiredSkill) ? DesiredSkill : INDEX_NONE;
 }

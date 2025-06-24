@@ -1,12 +1,10 @@
 ﻿#include "ItemPouchGimmick.h"
 
 #include "CR4S.h"
-#include "GameFramework/Character.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/OpenWidgetType.h"
-#include "Kismet/GameplayStatics.h"
 
 AItemPouchGimmick::AItemPouchGimmick()
 	: ForwardImpulseStrength(100.f),

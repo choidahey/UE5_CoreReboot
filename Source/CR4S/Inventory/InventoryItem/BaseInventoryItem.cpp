@@ -14,7 +14,8 @@ UBaseInventoryItem::UBaseInventoryItem()
 }
 
 void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-                                           const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
+                                           const FInventoryItemData& NewInventoryItemData,
+                                           const int32 StackCount)
 {
 	UpdateInventoryItem(NewInventoryComponent);
 
@@ -41,7 +42,7 @@ void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 	{
 		WorldTimeManager = World->GetSubsystem<UWorldTimeManager>();
 	}
-	
+
 	if (bUsePassiveEffect)
 	{
 		StartPassiveEffect();
@@ -89,4 +90,15 @@ void UBaseInventoryItem::EndPassiveEffect()
 void UBaseInventoryItem::SetCurrentStackCount(const int32 NewStackCount)
 {
 	CurrentStackCount = FMath::Clamp(NewStackCount, 0, InventoryItemData.ItemInfoData.MaxStackCount);
+}
+
+FInventoryItemSaveGame UBaseInventoryItem::GetInventoryItemSaveData()
+{
+	return FInventoryItemSaveGame(InventoryItemData, CurrentStackCount);
+}
+
+void UBaseInventoryItem::LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+                                                   const FInventoryItemSaveGame& ItemSaveGame)
+{
+	InitInventoryItem(NewInventoryComponent, ItemSaveGame.InventoryItemData, ItemSaveGame.Count);
 }

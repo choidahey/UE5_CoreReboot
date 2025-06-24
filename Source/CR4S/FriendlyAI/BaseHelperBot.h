@@ -124,6 +124,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
 
+	UFUNCTION(BlueprintCallable, Category = "Stats")
+	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
+	
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
 	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
@@ -131,13 +134,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
 	FORCEINLINE FString GetBotName() const { return BotName; }
 
+	FHelperPickUpData GetHelperBotData() const { return PickUpData; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
 	void SetBotName(const FString& NewName);
 	
 	FORCEINLINE void SetIsFromInventory(bool bFromInventory) { bIsFromInventory = bFromInventory; }
 
-	void SetPickUpData(const FHelperPickUpData& InPickUpData) { PickUpData = InPickUpData; }
+	void SetPickUpData(const FHelperPickUpData& InPickUpData);
 	
 #pragma endregion
 

@@ -38,6 +38,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	FName StateKeyName = TEXT("HelperBotState");
 
+	UPROPERTY(EditDefaultsOnly)
+	FName AttackTargetKeyName = TEXT("AttackTarget");
+
 	
 public:
 	void RunEQSQuery();
