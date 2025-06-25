@@ -20,8 +20,9 @@ public:
 
 	virtual void NativeConstruct() override;
 	
-#pragma region InitializeWidget
+#pragma region Bind & Unbind
 	void InitializeWidgetForWeapon(ABaseWeapon* InWeapon, const int32 SlotIdx);
+	void ClearBindingsToWeapon();
 #pragma endregion
 
 #pragma region UpdateWidget
@@ -46,5 +47,10 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Setting")
 	float MaxProgress{0.2};
+#pragma endregion
+
+#pragma region Cached
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Cached")
+	TArray<TObjectPtr<ABaseWeapon>> CachedWeapons;
 #pragma endregion
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputBufferComponent.h"
 #include "Character/Data/RobotSettings.h"
 #include "RobotWeaponComponent.generated.h"
 
@@ -40,12 +41,19 @@ public:
 	void Input_OnAttackRightShoulder();
 	UFUNCTION(BlueprintCallable)
 	void Input_StopAttackRightShoulder();
+
+	void TryAttackBySlot(const int32 SlotIdx, const EInputType AttackInput);
+	void StopAttackBySlot(const int32 SlotIdx);
 #pragma endregion
 	
 #pragma region EquipWeapon
+public:
+	void RefreshWeaponUI();
 	UFUNCTION(BlueprintCallable)
 	void EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx);
-	void BindWidgetWeapon(ABaseWeapon* Target, const int32 SlotIdx);
+	void UnequipWeapon(const int32 SlotIdx);
+	void BindWidgetWeapon();
+	bool IsArmSlot(const int32 SlotIdx) const;
 #pragma endregion
 
 #pragma region Overrides
@@ -64,7 +72,8 @@ protected:
 	
 	//Left, Right Arm (0,1), Left, Right Shoulder(2,3)	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
-	TArray<TObjectPtr<ABaseWeapon>> Weapons; 
+	TArray<TObjectPtr<ABaseWeapon>> Weapons;
+
 #pragma endregion
 
 #pragma region WeaponSettings

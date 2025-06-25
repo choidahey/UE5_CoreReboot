@@ -21,6 +21,8 @@ class CR4S_API ARangedWeapon : public ABaseWeapon
 public:
 	// Sets default values for this actor's properties
 	ARangedWeapon();
+
+	void RefreshUI();
 	
 #pragma region Override
 public:

@@ -33,6 +33,8 @@ void AHomingWeapon::OnAttack()
 
 	if (TargetActor && TargetActor!=GetOwner())
 	{
+		bIsAttackButtonHeldDown=true;
+		
 		bIsTryingToLockOn = true;
 		bIsLockedOn = false;
 		LockOnDurationCounter=0.f;
@@ -46,24 +48,14 @@ void AHomingWeapon::OnAttack()
 void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	Super::Initialize(OwnerCharacter, SlotIdx);
-	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
-	
-	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
-	if (!CR4S_ENSURE(LogHong1,PC)) return;
-
-	ASurvivalHUD* CurrentHUD=Cast<ASurvivalHUD>(PC->GetHUD());
-	if (!CR4S_ENSURE(LogHong1,CurrentHUD)) return;
-
-	UDefaultInGameWidget* InGaemWidget=CurrentHUD->GetInGameWidget();
-	if (!CR4S_ENSURE(LogHong1,InGaemWidget)) return;
-
-	InGaemWidget->BindLockOnWidgetToHomingWeapon(this);
 }
 
 void AHomingWeapon::StopAttack()
 {
-	if (!bIsTryingToLockOn) return;
+	if (!bIsAttackButtonHeldDown) return;
 
+	bIsAttackButtonHeldDown=false;
+	
 	bIsTryingToLockOn = false;
 	SetActorTickEnabled(false);
 	OnLockOnCanceled.Broadcast();
@@ -101,50 +93,62 @@ void AHomingWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bIsTryingToLockOn || !TrackingTarget.IsValid())
+	if (!bIsTryingToLockOn)
 	{
-		StopAttack();
+		SetActorTickEnabled(false);
 		return;
 	}
 
 	APlayerController* PC=Cast<APlayerController>(OwningCharacter->GetController());
-	if (!CR4S_ENSURE(LogHong1,PC))
+
+	bool bShouldCancelLockOn=false;
+	if (!CR4S_ENSURE(LogHong1,PC && TrackingTarget.IsValid()))
 	{
-		StopAttack();
-		return;
+		bShouldCancelLockOn=true;
 	}
-
-	FVector TargetLocation=TrackingTarget->GetActorLocation();
-	FVector2D TargetScreenLocation;
-
-	if (PC->ProjectWorldLocationToScreen(TargetLocation, TargetScreenLocation))
+	else
 	{
-		int32 ViewportX, ViewportY;
-		PC->GetViewportSize(ViewportX, ViewportY);
-		const float ActualPixelRadius=ViewportY*TypeSpecificInfo.HomingInfo.LockOnMaintainRadius;
-		const FVector2D ScreenCenter(ViewportX*0.5f,ViewportY*0.5f);
-
-		const float DistanceFromCenter=FVector2D::Distance(ScreenCenter,TargetScreenLocation);
-		if (DistanceFromCenter<=ActualPixelRadius)
+		FVector TargetLocation=TrackingTarget->GetActorLocation();
+		FVector2D TargetScreenLocation;
+		
+		if (PC->ProjectWorldLocationToScreen(TargetLocation, TargetScreenLocation))
 		{
-			LockOnDurationCounter+=DeltaTime;
-			OnTryingToLockOn.Broadcast(TargetScreenLocation);
-			if (!bIsLockedOn && LockOnDurationCounter>=TypeSpecificInfo.HomingInfo.LockOnTime)
+			int32 ViewportX, ViewportY;
+			PC->GetViewportSize(ViewportX, ViewportY);
+			const float ActualPixelRadius=ViewportY*TypeSpecificInfo.HomingInfo.LockOnMaintainRadius;
+			const FVector2D ScreenCenter(ViewportX*0.5f,ViewportY*0.5f);
+
+			const float DistanceFromCenter=FVector2D::Distance(ScreenCenter,TargetScreenLocation);
+			if (DistanceFromCenter<=ActualPixelRadius)
 			{
-				bIsLockedOn=true;
-				OnLockOnFinished.Broadcast();
+				LockOnDurationCounter+=DeltaTime;
+				OnTryingToLockOn.Broadcast(TargetScreenLocation);
+				if (!bIsLockedOn && LockOnDurationCounter>=TypeSpecificInfo.HomingInfo.LockOnTime)
+				{
+					bIsLockedOn=true;
+					OnLockOnFinished.Broadcast();
+				}
+			}
+			else
+			{
+				bIsLockedOn=false;
+				bShouldCancelLockOn=true;	
 			}
 		}
 		else
 		{
 			bIsLockedOn=false;
-			StopAttack();
+			bShouldCancelLockOn=true;
 		}
 	}
-	else
+
+	if (bShouldCancelLockOn)
 	{
+		OnLockOnCanceled.Broadcast();
+		bIsTryingToLockOn=false;
 		bIsLockedOn=false;
-		StopAttack();
+		TrackingTarget=nullptr;
+		SetActorTickEnabled(false);
 	}
 }
 

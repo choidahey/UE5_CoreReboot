@@ -16,12 +16,14 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-bool UModularRobotStatusComponent::CheckWeightCapacity(const float AdditionalWeight) const
+void UModularRobotStatusComponent::CheckTotalWeightCapacity()
 {
-	const float TotalWeight=AdditionalWeight+RobotStatus.Weight;
-	if (TotalWeight>RobotStatus.MaxWeight) return false;
+	bExceedsTotalWeightLimit = (RobotStatus.Weight>RobotStatus.MaxWeight) ? true : false;
+}
 
-	return false;
+void UModularRobotStatusComponent::CheckArmCapacity()
+{
+	bExceedsArmWeightLimit = (RobotStatus.CurrentArmMountWeight>RobotStatus.MaxArmMountWeight) ? true : false;
 }
 
 void UModularRobotStatusComponent::Refresh()
@@ -202,12 +204,28 @@ void UModularRobotStatusComponent::AddMaxWeight(const float InAmount)
 {
 	RobotStatus.MaxWeight+=InAmount;
 	OnMaxWeightChanged.Broadcast(RobotStatus.MaxWeight);
+	CheckTotalWeightCapacity();
 }
 
 void UModularRobotStatusComponent::AddWeight(const float InAmount)
 {
 	RobotStatus.Weight+=InAmount;
 	OnWeightChanged.Broadcast(RobotStatus.Weight);
+	CheckTotalWeightCapacity();
+}
+
+void UModularRobotStatusComponent::AddMaxArmMountWeight(const float InAmount)
+{
+	RobotStatus.MaxArmMountWeight+=InAmount;
+	OnMaxArmLoadChanged.Broadcast(RobotStatus.MaxArmMountWeight);
+	CheckArmCapacity();
+}
+
+void UModularRobotStatusComponent::AddCurrentArmMountWeight(const float InAmount)
+{
+	RobotStatus.CurrentArmMountWeight+=InAmount;
+	OnArmLoadChanged.Broadcast(RobotStatus.CurrentArmMountWeight);
+	CheckArmCapacity();
 }
 
 void UModularRobotStatusComponent::ApplyEnergyEfficiency(const float Modifier)

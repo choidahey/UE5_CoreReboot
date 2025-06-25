@@ -135,8 +135,8 @@ void APlayerCharacter::DisconnectWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				InGameWidget->ClearBindingsToStatus();
-				InGameWidget->ClearBindingsToEnvStatus();
+				InGameWidget->UnbindStatusFromUI();
+				InGameWidget->UnbindEnvStatusFromUI();
 			}
 		}
 	}

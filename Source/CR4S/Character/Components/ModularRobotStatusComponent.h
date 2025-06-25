@@ -11,6 +11,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float, Per
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStunChangedDelegate, float, Percent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxWeightChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnArmLoadChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxArmLoadChangedDelegate, float, NewValue);
 
 class AModularRobot;
 class UModularRobotStatusAsset;
@@ -23,8 +25,12 @@ class CR4S_API UModularRobotStatusComponent : public UBaseStatusComponent
 public:
 	UModularRobotStatusComponent();
 
-#pragma region Check
-	bool CheckWeightCapacity(const float AdditionalWeight) const;
+#pragma region CheckWeight
+	void CheckTotalWeightCapacity();
+	void CheckArmCapacity();
+
+	FORCEINLINE bool IsOverWeighted() const { return bExceedsTotalWeightLimit; }
+	FORCEINLINE bool IsArmOverWeighted() const { return bExceedsArmWeightLimit; }
 #pragma endregion
 	
 #pragma region Refresh
@@ -66,6 +72,8 @@ public:
 
 	void AddMaxWeight(const float InAmount);
 	void AddWeight(const float InAmount);
+	void AddMaxArmMountWeight(const float InAmount);
+	void AddCurrentArmMountWeight(const float InAmount);
 #pragma endregion
 
 #pragma region Modifier
@@ -132,11 +140,14 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
 	uint8 bIsStunned:1 {false};
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
 	uint8 bIsRobotActive:1 {true};
-	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
+	uint8 bExceedsTotalWeightLimit:1 {false};
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
+	uint8 bExceedsArmWeightLimit:1 {false};
 #pragma endregion
 	
 #pragma region Status
@@ -158,6 +169,10 @@ public:
 	FOnWeightChangedDelegate OnWeightChanged;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnMaxWeightChangedDelegate OnMaxWeightChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnArmLoadChangedDelegate OnArmLoadChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnMaxArmLoadChangedDelegate OnMaxArmLoadChanged;
 #pragma endregion
 
 #pragma region Timer

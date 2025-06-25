@@ -16,7 +16,9 @@ struct CR4S_API FRobotSettings
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
-	int32 MappingContextPriority{2};
+	int32 MovementMappingContextPriority{2};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	int32 UtilityMappingContextPriority{2};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	float UnMountOffset {-200};
