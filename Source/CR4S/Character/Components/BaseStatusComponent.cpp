@@ -32,6 +32,16 @@ void UBaseStatusComponent::BeginPlay()
 }
 
 
+void UBaseStatusComponent::SetResourceConsumptionAmount(const float NewCost)
+{
+	BaseStatus.ResourceConsumptionAmount=NewCost;
+}
+
+void UBaseStatusComponent::SetResourceRegenDelay(const float NewDelay)
+{
+	BaseStatus.ResourceRegenDelay=NewDelay;
+}
+
 void UBaseStatusComponent::AddMaxHP(const float InAmount)
 {
 	BaseStatus.MaxHealth+=InAmount;
@@ -98,15 +108,35 @@ void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
 }
 
+void UBaseStatusComponent::ApplyResourceRegenModifier(const float Modifier)
+{
+	BaseStatus.ResourceRegenMultiplier*=Modifier;
+}
+
+void UBaseStatusComponent::RevertResourceRegenModifier(const float Modifier)
+{
+	BaseStatus.ResourceRegenMultiplier/=Modifier;
+}
+
+void UBaseStatusComponent::ApplyResourceConsumptionModifier(const float Modifier)
+{
+	BaseStatus.ResourceConsumptionMultiplier*=Modifier;
+}
+
+void UBaseStatusComponent::RevertResourceConsumptionModifier(const float Modifier)
+{
+	BaseStatus.ResourceConsumptionMultiplier/=Modifier;
+}
+
 bool UBaseStatusComponent::HasEnoughResourceForRoll() const
 {
-	return GetCurrentResource()>=(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier);
+	return GetCurrentResource()>=(BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier);
 }
 
 //Dash & Roll
 void UBaseStatusComponent::ConsumeResourceForRoll()
 {
-	AddCurrentResource(-(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier));
+	AddCurrentResource(-(BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier));
 	OnResourceConsumed();
 }
 

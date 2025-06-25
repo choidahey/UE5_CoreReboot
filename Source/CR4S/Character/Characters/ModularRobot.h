@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
+#include "Character/Data/RobotPartsData.h"
 #include "Character/Data/RobotSettings.h"
 #include "GameFramework/Character.h"
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class UTimelineComponent;
+class UDataLoaderSubsystem;
+struct FGameplayTag;
 class URobotInventoryComponent;
 class URobotInputBufferComponent;
 class UInputBufferComponent;
@@ -33,14 +37,46 @@ public:
 	// Sets default values for this character's properties
 	AModularRobot();
 
+#pragma region InputEnable
+	void SetInputEnable(const bool bEnableInput) const;
+	void SetMovementInputEnable(const bool bEnableMovementInput) const;
+#pragma endregion
+	
+#pragma region PartsEquip
+	UFUNCTION(BlueprintCallable)
+	void EquipCoreParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
+	void EquipBodyParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
+	void EquipArmParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
+	void EquipLegParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
+	void EquipBoosterParts(const FGameplayTag& Tag);
+	UFUNCTION(BlueprintCallable)
+	void UnequipCoreParts();
+	UFUNCTION(BlueprintCallable)
+	void UnequipBodyParts();
+	UFUNCTION(BlueprintCallable)
+	void UnequipArmParts();
+	UFUNCTION(BlueprintCallable)
+	void UnequipLegParts();
+	UFUNCTION(BlueprintCallable)
+	void UnequipBoosterParts();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetLegManagerEnabled(const bool bIsEnabled);
+#pragma endregion
+	
 #pragma region Stun
 	virtual void TakeStun_Implementation(const float StunAmount) override;
-	void SetInputEnable(const bool bEnableInput);
 #pragma endregion
 	
 #pragma region Get
 	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
 	FORCEINLINE bool IsRobotActive() const { return Status->IsRobotActive(); }
+	FORCEINLINE float GetRecoilModifier() const { return Status->GetRecoilModifier(); }
+	FORCEINLINE UModularRobotStatusComponent* GetStatusComponent() const { return Status; }
 #pragma endregion
 
 #pragma region Death
@@ -48,14 +84,17 @@ public:
 #pragma endregion
 	
 #pragma region Load Data
+	UDataLoaderSubsystem* GetDataLoaderSubsystem() const;
 	void LoadDataFromDataLoader();
 #pragma endregion
 	
-#pragma region ChangePossess
+#pragma region Mount
 	UFUNCTION(BlueprintCallable)
 	void MountRobot(AActor* InActor);
 	UFUNCTION(BlueprintCallable)
 	void UnMountRobot();
+
+	bool FindPossibleUnmountLocation(ACharacter* CharacterToDrop, FVector& OutLocation) const;
 #pragma endregion
 
 #pragma region Widgets
@@ -86,51 +125,54 @@ protected:
 	UFUNCTION()
 	void Input_StopJump(const FInputActionValue& Value);
 	UFUNCTION()
-	void Input_HorizontalDash(const FInputActionValue& Value);
-	UFUNCTION()
-	void Input_VerticalDash(const FInputActionValue& Value);
+	void Input_Dash(const FInputActionValue& Value);
 
 	UFUNCTION()
 	void ResetDashCooldown();
+
+	UFUNCTION()
+	void OnHoverTimeLineUpdate(float Value);
 #pragma endregion
 
 #pragma region InputActions
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputMappingContext> InputMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputMappingContext> MovementMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> MoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> JumpAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> HorizontalDashAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> VerticalDashAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> InteractionAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack1Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack2Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack3Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Modular Robot", Meta = (DisplayThumbnail = false))
-	TObjectPtr<UInputAction> Attack4Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> DashAction;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack2Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack3Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> Attack4Action;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Utility", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputMappingContext> UtilityMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Utility", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> InteractionAction;
 #pragma endregion
 
 #pragma region Settings
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
 	FRobotSettings RobotSettings;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	FRobotSettings DefaultSettings;
 #pragma endregion
 	
 #pragma region Components
@@ -154,6 +196,10 @@ private:
 	TObjectPtr<URobotInputBufferComponent> InputBuffer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<URobotInventoryComponent> RobotInventoryComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USkeletalMeshComponent> LegMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USkeletalMeshComponent> ArmMesh;
 #pragma endregion
 
 #pragma region Cached
@@ -162,10 +208,32 @@ protected:
 	TObjectPtr<APlayerCharacter> MountedCharacter;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FTimerHandle DashCooldownTimerHandle;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FGameplayTag CoreTag;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FGameplayTag BodyTag;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FGameplayTag ArmTag;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FGameplayTag LegTag;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FGameplayTag BoosterTag;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsDashing:1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsHovering:1 {false};
+#pragma endregion
+
+#pragma region Hover
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UTimelineComponent> HoverTimeLine;
+#pragma endregion
+
+#pragma region DebugOption
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	uint8 bIsDebugMode:1 {false};
 #pragma endregion
 };
 

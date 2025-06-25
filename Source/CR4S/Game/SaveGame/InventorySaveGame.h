@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "ConsumableItemSaveGame.h"
-#include "InventoryItemData.h"
 #include "FriendlyAI/Data/HelperBotSaveData.h"
+#include "Inventory/Data/ConsumableItemSaveGame.h"
+#include "Inventory/Data/InventoryItemData.h"
 
 #include "InventorySaveGame.generated.h"
 

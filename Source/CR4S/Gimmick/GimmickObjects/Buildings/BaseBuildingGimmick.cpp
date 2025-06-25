@@ -1,6 +1,7 @@
 ﻿#include "BaseBuildingGimmick.h"
 
 #include "Components/WidgetComponent.h"
+#include "Gimmick/Components/ObjectShakeComponent.h"
 #include "Gimmick/UI/BuildingDurabilityWidget.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 
@@ -17,6 +18,8 @@ ABaseBuildingGimmick::ABaseBuildingGimmick()
 	BuildingDurabilityWidgetComponent->SetupAttachment(RootComponent);
 
 	Tags.Emplace("House");
+
+	ShakeComponent = CreateDefaultSubobject<UObjectShakeComponent>(TEXT("ShakeComponent"));
 }
 
 void ABaseBuildingGimmick::BeginPlay()

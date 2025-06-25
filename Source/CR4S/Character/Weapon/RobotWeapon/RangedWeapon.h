@@ -21,10 +21,12 @@ class CR4S_API ARangedWeapon : public ABaseWeapon
 public:
 	// Sets default values for this actor's properties
 	ARangedWeapon();
+
+	void RefreshUI();
 	
 #pragma region Override
 public:
-	virtual void Initialize(AModularRobot* OwnerCharacter) override;
+	virtual void Initialize(AModularRobot* OwnerCharacter, int32 SlotIdx) override;
 #pragma endregion
 
 #pragma region Common

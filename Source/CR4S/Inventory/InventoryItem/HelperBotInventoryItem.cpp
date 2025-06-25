@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "FriendlyAI/BaseHelperBot.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 
 #define LOCTEXT_NAMESPACE "HelperBotInventoryItem"
 
