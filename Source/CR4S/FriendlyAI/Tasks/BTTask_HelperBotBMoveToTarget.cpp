@@ -36,6 +36,11 @@ void UBTTask_HelperBotBMoveToTarget::TickTask(UBehaviorTreeComponent& OwnerComp,
         FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
+    
+    if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+    {
+        BB->SetValueAsObject("TargetActor", PlayerPawn);
+    }
 
     const float Distance = FVector::Dist(Pawn->GetActorLocation(), PlayerPawn->GetActorLocation());
     
@@ -43,13 +48,13 @@ void UBTTask_HelperBotBMoveToTarget::TickTask(UBehaviorTreeComponent& OwnerComp,
     {
         if (Distance >= DistanceThreshold)
         {
-            if (!JumpComp->IsActive())
-                JumpComp->Activate(true);
+            if (!JumpComp->GetIsComponentActive())
+                JumpComp->ActivateJumpComponent();
         }
         else
         {
-            if (JumpComp->IsActive())
-                JumpComp->Deactivate();
+            if (JumpComp->GetIsComponentActive())
+                JumpComp->DeactivateJumpComponent();
         }
     }
 }

@@ -19,7 +19,7 @@ EBTNodeResult::Type UBTTask_HelperRepair::ExecuteTask(UBehaviorTreeComponent& Ow
         return EBTNodeResult::Failed;
     }
 
-    AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject("ResourceTarget"));
+    AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
     if (!TargetActor)
     {
         return EBTNodeResult::Failed;

@@ -21,7 +21,7 @@ EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!BB) return EBTNodeResult::Failed;
 
-	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(ResourceTargetKey.SelectedKeyName));
+	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!TargetActor) return EBTNodeResult::Failed;
 	
 	ATreeGimmick* Tree = Cast<ATreeGimmick>(TargetActor);

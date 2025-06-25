@@ -25,9 +25,7 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 		return EBTNodeResult::Failed;
 	}
 
-	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(ResourceTargetKey.SelectedKeyName));
-	UE_LOG(LogTemp, Warning, TEXT("BTTask_GatherResource: TargetActor = %s"),
-		   TargetActor ? *TargetActor->GetClass()->GetName() : TEXT("NULL"));
+	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!TargetActor)
 	{
 		return EBTNodeResult::Failed;
@@ -35,7 +33,6 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 
 	if (!TargetActor->IsA(ADestructibleGimmick::StaticClass()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BTTask_GatherResource: IsA(ADestructibleGimmick) failed"));
 		return EBTNodeResult::Failed;
 	}
 	
@@ -81,6 +78,12 @@ void UBTTask_HelperGatherResource::TickTask(UBehaviorTreeComponent& OwnerComp, u
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return;
 	}
+	
+	// ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	// if (Helper && TargetActor)
+	// {
+	// 	Helper->UpdateEyeBeamWorkTarget(TargetActor);
+	// }
 
 	UGameplayStatics::ApplyDamage(CachedTarget, DamageThisFrame, Helper->GetController(), Helper, UDamageType::StaticClass());
 }

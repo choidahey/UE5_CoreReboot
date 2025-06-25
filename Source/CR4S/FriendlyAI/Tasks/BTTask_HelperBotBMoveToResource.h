@@ -9,7 +9,32 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "AITypes.h"
+#include "Engine/TimerHandle.h"
 #include "BTTask_HelperBotBMoveToResource.generated.h"
+
+USTRUCT()
+struct FBTMoveToResourceMemory
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TObjectPtr<UEnvQueryInstanceBlueprintWrapper> QueryInstance = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UBehaviorTreeComponent> OwnerCompPtr = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<class UAIJumpComponent> JumpComponent = nullptr;
+
+	FTimerHandle CheckTimer;
+
+	FBTMoveToResourceMemory()
+		: QueryInstance(nullptr)
+		, OwnerCompPtr(nullptr)
+		, JumpComponent(nullptr)
+	{
+	}
+};
 
 UCLASS()
 class CR4S_API UBTTask_HelperBotBMoveToResource : public UBTTaskNode
@@ -21,6 +46,7 @@ public:
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	virtual uint16 GetInstanceMemorySize() const override;
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -36,12 +62,8 @@ protected:
 	float AcceptanceRadius = 30.f;
 
 private:
-	UEnvQueryInstanceBlueprintWrapper* QueryInstance = nullptr;
-	UBehaviorTreeComponent* OwnerCompPtr = nullptr;
-
 	UFUNCTION()
 	void OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* Wrapper, EEnvQueryStatus::Type Status);
 
-	UFUNCTION()
-	void HandleMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result);
+	void CheckReachedTarget(FBTMoveToResourceMemory* MyMemory);
 };

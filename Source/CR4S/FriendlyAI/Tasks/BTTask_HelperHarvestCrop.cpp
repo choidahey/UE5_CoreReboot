@@ -17,7 +17,7 @@ EBTNodeResult::Type UBTTask_HelperHarvestCrop::ExecuteTask(UBehaviorTreeComponen
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!BB) return EBTNodeResult::Failed;
 
-	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(ResourceTargetKey.SelectedKeyName));
+	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!TargetActor) 
 	{
 		return EBTNodeResult::Failed;
