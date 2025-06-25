@@ -3,12 +3,7 @@
 #include "Game/System/WorldTimeManager.h"
 
 UHealthDecayComponent::UHealthDecayComponent()
-	: MaxHealth(7000.f),
-	  CurrentHealth(7000.f),
-	  TargetHealthRatio(0.2f),
-	  DecayDuration(2400.f),
-	  MinHealth(0),
-	  HealthDecayRate(0)
+	: bIsInit(false)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -23,68 +18,74 @@ void UHealthDecayComponent::BeginPlay()
 		WorldTimeManager = World->GetSubsystem<UWorldTimeManager>();
 	}
 
-	ResetHealthDecay();
+	if (!bIsInit)
+	{
+		ResetHealthDecay();
+		bIsInit = true;
+	}
 }
 
 void UHealthDecayComponent::StartHealthDecay()
 {
-	if (IsValid(WorldTimeManager))
+	if (IsValid(WorldTimeManager) && !HealthDecayData.bIsActive)
 	{
 		WorldTimeManager->OnWorldTimeUpdated
 		                .AddUniqueDynamic(this, &ThisClass::HandleWorldTimeUpdated);
+
+		HealthDecayData.bIsActive = true;
 	}
 }
 
 void UHealthDecayComponent::StopHealthDecay()
 {
 	if (IsValid(WorldTimeManager) &&
-		WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(this, &ThisClass::HandleWorldTimeUpdated))
+		WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(this, &ThisClass::HandleWorldTimeUpdated) &&
+		HealthDecayData.bIsActive)
 	{
 		WorldTimeManager->OnWorldTimeUpdated
 		                .RemoveDynamic(this, &ThisClass::HandleWorldTimeUpdated);
+
+		HealthDecayData.bIsActive = false;
 	}
 }
 
 void UHealthDecayComponent::ResetHealthDecay()
 {
-	PreviousPlayTime = -1;
-	CurrentHealth = MaxHealth;
-	MinHealth = MaxHealth * TargetHealthRatio;
-	HealthDecayRate = (MaxHealth - MinHealth) / DecayDuration;
+	HealthDecayData.ResetHealthDecay();
 }
 
 void UHealthDecayComponent::HandleWorldTimeUpdated(const int64 NewPlayTime)
 {
-	if (PreviousPlayTime < 0)
+	if (HealthDecayData.PreviousPlayTime < 0)
 	{
-		PreviousPlayTime = NewPlayTime;
+		HealthDecayData.PreviousPlayTime = NewPlayTime;
 		return;
 	}
 
-	const int64 DeltaInt = NewPlayTime - PreviousPlayTime;
-	PreviousPlayTime = NewPlayTime;
+	const int64 DeltaInt = NewPlayTime - HealthDecayData.PreviousPlayTime;
+	HealthDecayData.PreviousPlayTime = NewPlayTime;
 
 	if (DeltaInt <= 0) return;
 
 	const float DeltaSeconds = static_cast<float>(DeltaInt);
 
-	if (CurrentHealth > MinHealth)
+	if (HealthDecayData.CurrentHealth > HealthDecayData.MinHealth)
 	{
-		CurrentHealth -= HealthDecayRate * DeltaSeconds;
-		CurrentHealth = FMath::Max(CurrentHealth, MinHealth);
+		HealthDecayData.CurrentHealth -= HealthDecayData.HealthDecayRate * DeltaSeconds;
+		HealthDecayData.CurrentHealth = FMath::Max(HealthDecayData.CurrentHealth, HealthDecayData.MinHealth);
 
 		if (OnUpdateHealthDecay.IsBound())
 		{
-			OnUpdateHealthDecay.Broadcast(CurrentHealth);
+			OnUpdateHealthDecay.Broadcast(HealthDecayData.CurrentHealth);
 		}
 
-		if (CurrentHealth <= MinHealth)
+		if (HealthDecayData.CurrentHealth <= HealthDecayData.MinHealth)
 		{
 			if (OnEndHealthDecay.IsBound())
 			{
 				OnEndHealthDecay.Broadcast();
 			}
-			
+
 			StopHealthDecay();
 		}
 	}
@@ -94,7 +95,20 @@ void UHealthDecayComponent::HandleWorldTimeUpdated(const int64 NewPlayTime)
 		{
 			OnEndHealthDecay.Broadcast();
 		}
-		
+
 		StopHealthDecay();
+	}
+}
+
+void UHealthDecayComponent::LoadHealthDecayData(const FHealthDecayData& NewHealthDecayData)
+{
+	HealthDecayData = NewHealthDecayData;
+
+	if (HealthDecayData.bIsActive)
+	{
+		bIsInit = true;
+		HealthDecayData.PreviousPlayTime = -1;
+		HealthDecayData.bIsActive = false;
+		StartHealthDecay();
 	}
 }
