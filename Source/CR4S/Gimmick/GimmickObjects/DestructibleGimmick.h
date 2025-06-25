@@ -6,6 +6,7 @@
 
 #include "DestructibleGimmick.generated.h"
 
+class UObjectShakeComponent;
 class ABaseDestructObject;
 class UDestructibleComponent;
 
@@ -58,30 +59,13 @@ protected:
 	float ToolBonusDamageMultiplier;
 	
 #pragma endregion
-	
-#pragma region Shake
+
+#pragma region ShakeComponent
 
 private:
-	void StartShake();
-	void PerformShake();
-	void StopShake();
-
-	FTimerHandle ShakeTimerHandle;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	bool bCanShake;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeDuration;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeInterval;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeIntensity;
-
-	UPROPERTY(VisibleAnywhere, Category = "Shake")
-	FVector OriginalLocation;
-	UPROPERTY(VisibleAnywhere, Category = "Shake")
-	float ElapsedTime;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UObjectShakeComponent> ShakeComponent;
 	
-#pragma endregion
+#pragma endregion 
 	
 };

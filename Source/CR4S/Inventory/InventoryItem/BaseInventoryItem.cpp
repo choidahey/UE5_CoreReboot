@@ -2,6 +2,7 @@
 
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"

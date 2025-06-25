@@ -52,7 +52,8 @@ void AItemPouchGimmick::BeginPlay()
 void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 {
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(Interactor)) ||
-		!CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)))
+		!CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)) ||
+		bIsOpenWidget)
 	{
 		return;
 	}
@@ -69,11 +70,14 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 
 	if (IsValid(PlayerInventoryComponent))
 	{
-		InventoryComponent->OnOccupiedSlotsChange.BindDynamic(this, &ThisClass::DestroyEmptyItemPouch);
+		InventoryComponent->OnOccupiedSlotsChange.AddUniqueDynamic(this, &ThisClass::DestroyEmptyItemPouch);
 
 		InventoryComponent->SetMaxInventorySize(InventoryComponent->GetUseSlotCount());
 
 		PlayerInventoryComponent->OpenOtherInventoryWidget(EOpenWidgetType::ItemPouch, InventoryComponent);
+		PlayerInventoryComponent->OnInventoryClose.AddUniqueDynamic(this, &ThisClass::UnBoundDelegate);
+
+		bIsOpenWidget = true;
 	}
 }
 
@@ -122,6 +126,7 @@ void AItemPouchGimmick::UpdateWorldTime(const int64 NewPlayTime)
 
 	if (ElapsedSeconds >= DestroyDelay)
 	{
+		CloseWidget();
 		Destroy();
 	}
 }
@@ -134,4 +139,25 @@ void AItemPouchGimmick::DestroyEmptyItemPouch(const int32 NumOccupiedSlots)
 
 		Destroy();
 	}
+}
+
+void AItemPouchGimmick::UnBoundDelegate()
+{
+	if (IsValid(PlayerInventoryComponent) &&
+		PlayerInventoryComponent->OnInventoryClose.IsAlreadyBound(this, &ThisClass::UnBoundDelegate))
+	{
+		PlayerInventoryComponent->OnInventoryClose.RemoveDynamic(this, &ThisClass::UnBoundDelegate);
+		PlayerInventoryComponent = nullptr;
+	}
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AItemPouchGimmick::CloseWidget()
+{
+	if (bIsOpenWidget && IsValid(PlayerInventoryComponent))
+	{
+		PlayerInventoryComponent->CloseInventoryWidget();
+	}
+
+	bIsOpenWidget = false;
 }
