@@ -27,7 +27,8 @@ protected:
 protected:
 	void SpawnOpeningPattern();  // Template Method
 	virtual UNiagaraSystem* GetOpeningNiagara() const PURE_VIRTUAL(ASeasonBossMonster::GetOpeningNiagara, return nullptr;);
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
+	FVector OpeningNiagaraScale = FVector(1.f, 1.f, 1.f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
 	float EnvVolRadius = 500.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")

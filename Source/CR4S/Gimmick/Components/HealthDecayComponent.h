@@ -44,6 +44,9 @@ public:
 		HealthDecayData.CurrentHealth = NewCurrentHealth;
 	}
 
+	UFUNCTION(BlueprintCallable, Category = "HealthDecay")
+	FORCEINLINE bool IsInit() const { return bIsInit; }
+
 private:
 	UFUNCTION()
 	void HandleWorldTimeUpdated(const int64 NewPlayTime);
@@ -53,7 +56,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UWorldTimeManager> WorldTimeManager;
-
+	
 	bool bIsInit;
 
 #pragma endregion

@@ -18,6 +18,6 @@ protected:
 		return OpeningNiagara;
 	}
 
-	UPROPERTY(EditDefaultsOnly, Category="Boss|Opening Pattern")
+	UPROPERTY(EditDefaultsOnly, Category="Opening Pattern")
 	TObjectPtr<UNiagaraSystem> OpeningNiagara = nullptr;
 };

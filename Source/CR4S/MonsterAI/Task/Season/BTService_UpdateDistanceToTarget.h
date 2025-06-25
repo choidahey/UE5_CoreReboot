@@ -21,7 +21,7 @@ struct FSkillTypeWeightConfig
 	float RangedOptimalDistance = 3000.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Distance Influence", meta = (ClampMin = "0", ClampMax = "1"))
-	float DistanceInfluenceStrength = 0.7f;
+	float DistanceInfluenceStrength = 0.5f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Consecutive Prevention")
 	bool bPreventConsecutive = true;

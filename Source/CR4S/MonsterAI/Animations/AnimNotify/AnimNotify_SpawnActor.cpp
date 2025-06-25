@@ -5,7 +5,6 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
-#include "MonsterAI/Skills/AcidWaveActor.h"
 #include "MonsterAI/Skills/FieldActor.h"
 #include "MonsterAI/Skills/SpawnCircleActor.h"
 
@@ -66,10 +65,6 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{
 		FieldActor->Initialize(Cast<AActor>(OwnerPawn), Target);
-	}
-	else if (AAcidWaveActor* WaveActor = Cast<AAcidWaveActor>(SpawnActor))
-	{
-		WaveActor->Initialize(Cast<AActor>(OwnerPawn), Target);
 	}
 	else if (ASpawnCircleActor* SpawnCircle = Cast<ASpawnCircleActor>(SpawnActor))
 	{
