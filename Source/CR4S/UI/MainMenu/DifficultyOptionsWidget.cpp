@@ -57,7 +57,9 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 
 	if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
 	{
+
 		AudioManager->StopBGM();
+
 	}
 
 
@@ -77,5 +79,5 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 
 void UDifficultyOptionsWidget::OpenSurvivalLevel()
 {
-	UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
+	UGameplayStatics::OpenLevel(this, FName("MainMap"));
 }

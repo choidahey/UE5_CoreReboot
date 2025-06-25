@@ -242,6 +242,6 @@ void USettingsWidget::LoadSettingsData()
 		SFXVolumeSlider->SetValue(SettingsData->SFXVolume);
 	}
 
-	// TODO: ¹à±â, ¾ð¾î µî Ãß°¡ UI ¿ä¼Ò µ¿±âÈ­
+	// TODO: ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß°ï¿½ UI ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­
 }
 

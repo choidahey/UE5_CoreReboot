@@ -9,7 +9,7 @@ AColdFairyActor::AColdFairyActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionComp"));
+	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
 	CollisionComp->SetupAttachment(RootComp);
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
