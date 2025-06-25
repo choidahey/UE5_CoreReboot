@@ -5,6 +5,7 @@
 #include "UI/MainMenu/GameSaveWidget.h"
 #include "UI/Common/ConfirmWidget.h"
 #include "UI/Common/ButtonWidget.h"
+#include "Animation/WidgetAnimation.h"
 #include "Components/TextBlock.h"
 #include "Game/System/AudioManager.h"
 
@@ -37,6 +38,8 @@ void UMainMenuWidget::NativeConstruct()
 		AudioManager->PlayBGM(MainMenuBGM);
 	}
 
+
+	ShowMenuButtons();
 }
 
 void UMainMenuWidget::CreateChildWidgets()
@@ -61,6 +64,7 @@ void UMainMenuWidget::CreateChildWidgets()
 	{
 		ConfirmWidgetInstance = CreateWidget<UConfirmWidget>(GetWorld(), ConfirmWidgetClass);
 	}
+
 }
 
 void UMainMenuWidget::OnPlayGameButtonClicked()
@@ -72,8 +76,8 @@ void UMainMenuWidget::OnPlayGameButtonClicked()
 			GameSaveWidgetInstance->AddToViewport();
 		}
 
-		//HideMenuButtons();
-		GameSaveWidgetInstance->ParentWidgetRef = this;
+		HideMenuButtons();
+		GameSaveWidgetInstance->MainMenuWidgetRef = this;
 		GameSaveWidgetInstance->OpenWindow();
 	}
 }
@@ -104,21 +108,13 @@ void UMainMenuWidget::OnCreditsButtonClicked()
 
 void UMainMenuWidget::ShowMenuButtons()
 {
-	SetWidgetVisibility(PlayGameButton, ESlateVisibility::Visible);
-	SetWidgetVisibility(SettingsButton, ESlateVisibility::Visible);
-	SetWidgetVisibility(CreditsButton, ESlateVisibility::Visible);
-	SetWidgetVisibility(QuitButton, ESlateVisibility::Visible);
+	PlayAnimation(ShowButtonsAnim);
 }
 
 void UMainMenuWidget::HideMenuButtons()
 {
-	SetWidgetVisibility(PlayGameButton, ESlateVisibility::Hidden);
-	SetWidgetVisibility(SettingsButton, ESlateVisibility::Hidden);
-	SetWidgetVisibility(CreditsButton, ESlateVisibility::Hidden);
-	SetWidgetVisibility(QuitButton, ESlateVisibility::Hidden);
+	PlayAnimation(ShowButtonsAnim, ShowButtonsAnim->GetEndTime(), 1, EUMGSequencePlayMode::Reverse);
 }
-
-
 
 void UMainMenuWidget::SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility InVisibility)
 {

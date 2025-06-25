@@ -72,5 +72,8 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* QuitButton;
 
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* ShowButtonsAnim;
+
 	FTimerHandle FadeOutTimerHandle;
 };
