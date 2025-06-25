@@ -43,12 +43,14 @@ void UBaseStatusComponent::SetMaxHP(const float NewValue)
 void UBaseStatusComponent::SetCurrentHP(const float NewValue)
 {
 	const float ClampedHP=FMath::Clamp(NewValue,0,BaseStatus.MaxHealth);
-	if (FMath::IsNearlyEqual(BaseStatus.Health,ClampedHP)) return;
+	const bool bValueChanged= !FMath::IsNearlyEqual(BaseStatus.Health,ClampedHP);
 	
 	BaseStatus.Health=ClampedHP;
 	
 	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
 	OnHPChanged.Broadcast(Percentage);
+
+	if (!bValueChanged) return;
 	
 	if (BaseStatus.Health <= 0)
 	{
@@ -66,7 +68,6 @@ void UBaseStatusComponent::SetMaxResource(const float NewValue)
 void UBaseStatusComponent::SetCurrentResource(const float NewValue)
 {
 	const float ClampedResource = FMath::Clamp(NewValue, 0.f, BaseStatus.MaxResource);
-	if (FMath::IsNearlyEqual(BaseStatus.Resource, ClampedResource)) return;
 
 	BaseStatus.Resource = ClampedResource;
 	

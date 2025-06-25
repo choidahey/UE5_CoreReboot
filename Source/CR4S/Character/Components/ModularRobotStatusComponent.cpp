@@ -135,13 +135,15 @@ void UModularRobotStatusComponent::SetMaxEnergy(const float NewValue)
 void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 {
 	const float ClampedEnergy = FMath::Clamp(NewValue, 0.f, RobotStatus.MaxEnergy);
-	if (FMath::IsNearlyEqual(RobotStatus.Energy, ClampedEnergy)) return;
+	const bool bValueChanged= !FMath::IsNearlyEqual(RobotStatus.Energy, ClampedEnergy);
 	
 	RobotStatus.Energy = ClampedEnergy;
 	
 	const float Percentage = FMath::Clamp(RobotStatus.Energy / RobotStatus.MaxEnergy, 0.f, 1.f);
 	OnEnergyChanged.Broadcast(Percentage);
 
+	if (!bValueChanged) return;
+	
 	if (RobotStatus.Energy <= KINDA_SMALL_NUMBER)
 	{
 		if (bIsRobotActive)
@@ -169,11 +171,13 @@ void UModularRobotStatusComponent::SetMaxStun(const float NewValue)
 void UModularRobotStatusComponent::SetCurrentStun(const float NewValue)
 {
 	const float ClampedStun = FMath::Clamp(NewValue, 0.f, RobotStatus.MaxStun);
-	if (FMath::IsNearlyEqual(RobotStatus.Stun, ClampedStun)) return;
+	const bool bValueChanged= !FMath::IsNearlyEqual(RobotStatus.Stun, ClampedStun);
 
 	RobotStatus.Stun = ClampedStun;
 	const float Percentage = FMath::Clamp(RobotStatus.Stun / RobotStatus.MaxStun, 0.f, 1.f);
 	OnStunChanged.Broadcast(Percentage);
+
+	if (!bValueChanged) return;
 
 	if (Percentage >= 1.f && !bIsStunned)
 	{

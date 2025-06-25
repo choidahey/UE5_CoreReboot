@@ -29,13 +29,14 @@ void UPlayerCharacterStatusComponent::SetMaxHunger(const float NewValue)
 void UPlayerCharacterStatusComponent::SetCurrentHunger(const float NewValue)
 {
 	const float ClampedHunger = FMath::Clamp(NewValue, 0.f, PlayerStatus.MaxHunger);
-	if (FMath::IsNearlyEqual(PlayerStatus.Hunger, ClampedHunger)) return;
+	const bool bValueChanged= !FMath::IsNearlyEqual(PlayerStatus.Hunger, ClampedHunger);
 	
 	PlayerStatus.Hunger = ClampedHunger;
 	const float Percentage = FMath::Clamp(PlayerStatus.Hunger / PlayerStatus.MaxHunger, 0.f, 1.f);
 	OnHungerChanged.Broadcast(Percentage);
 
-	// 공복 상태 체크 로직
+	if (!bValueChanged) return;
+
 	if (PlayerStatus.Hunger<=KINDA_SMALL_NUMBER)
 	{
 		if (!bIsStarving)
