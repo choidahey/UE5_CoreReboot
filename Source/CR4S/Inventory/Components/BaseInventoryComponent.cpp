@@ -2,8 +2,8 @@
 
 #include "CR4S.h"
 #include "GameplayTagsManager.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/Data/InventorySaveData.h"
 #include "Inventory/InventoryFilterData/InventoryFilterData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
@@ -276,31 +276,42 @@ bool UBaseInventoryComponent::IsItemAllowedByFilter(const FGameplayTagContainer&
 	return FilterData->IsAllowedItem(ItemTags);
 }
 
-FInventorySaveData UBaseInventoryComponent::GetInventorySaveData()
+FInventorySaveGame UBaseInventoryComponent::GetInventorySaveGame()
 {
-	FInventorySaveData SaveData = FInventorySaveData();
+	FInventorySaveGame SaveGame;
 	for (UBaseInventoryItem* Item : InventoryItems)
 	{
 		if (IsValid(Item))
 		{
-			FInventoryItemSaveData ItemData = Item->GetInventoryItemSaveData();
-			SaveData.ItemSaveData.Add(ItemData);
+			SaveGame.InventoryItemSaveGame.Emplace(Item->GetInventoryItemSaveData());
 		}
 	}
 
-	return SaveData;
+	return SaveGame;
 }
 
-void UBaseInventoryComponent::LoadInventorySaveData(const FInventorySaveData& SaveData)
+void UBaseInventoryComponent::LoadInventorySaveGame(const FInventorySaveGame& SaveGameData)
 {
 	ClearInventoryItems();
 	
-	TArray<FInventoryItemSaveData> ItemSaveData = SaveData.ItemSaveData;
-	for (const FInventoryItemSaveData& SaveItemData : ItemSaveData)
+	TArray<FInventoryItemSaveGame> ItemSaveGame = SaveGameData.InventoryItemSaveGame;
+	for (const FInventoryItemSaveGame& SaveItemData : ItemSaveGame)
 	{
-		UBaseInventoryItem* Item = NewObject<UBaseInventoryItem>(this);
-		Item->LoadInventoryItemSaveData(SaveItemData);
 		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
+		UBaseInventoryItem* Item = nullptr;
+		switch (SaveItemData.InventoryItemData.ItemType) {
+		case EInventoryItemType::General:
+			Item = NewObject<UBaseInventoryItem>(this);
+			break;
+		case EInventoryItemType::Consumable:
+			Item = NewObject<UConsumableInventoryItem>(this);
+			break;
+		case EInventoryItemType::HelperBot:
+			Item = NewObject<UHelperBotInventoryItem>(this);
+			break;
+		}
+		
+		Item->LoadInventoryItemSaveData(this, SaveItemData);
 		InventoryItems[Index] = Item;
 
 		NotifyInventoryItemChanged(Index);
@@ -313,11 +324,10 @@ void UBaseInventoryComponent::ClearInventoryItems()
 	{
 		if (IsValid(InventoryItems[Index]))
 		{
+			InventoryItems[Index] = nullptr;
 			NotifyInventoryItemChanged(Index);
 		}
 	}
-
-	InventoryItems.Init(nullptr, MaxInventorySize);
 }
 
 int32 UBaseInventoryComponent::GetUseSlotCount()
@@ -479,7 +489,7 @@ void UBaseInventoryComponent::UpdateFreshness(UBaseInventoryItem* OriginItem, UB
 
 void UBaseInventoryComponent::SetHelperBotPickUpDate(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem)
 {
-	UHelperBotInventoryItem* OriginHelperBotInventoryItem = Cast<UHelperBotInventoryItem>(OriginItem);
+	const UHelperBotInventoryItem* OriginHelperBotInventoryItem = Cast<UHelperBotInventoryItem>(OriginItem);
 	UHelperBotInventoryItem* TargetHelperBotInventoryItem = Cast<UHelperBotInventoryItem>(TargetItem);
 	if (!IsValid(OriginHelperBotInventoryItem) ||
 		!IsValid(TargetHelperBotInventoryItem))

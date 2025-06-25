@@ -18,23 +18,7 @@ protected:
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector SkillTargetLocationKey;
-
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector ApproachTypeKey;
-
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float AcceptableRadius = 50.f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float SlowMoveSpeed = 400.f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float DashMoveSpeed = 1800.f;
-
-private:
-	FVector TargetLocation = FVector::ZeroVector;
-	EApproachType ApproachType = EApproachType::Stand;
 
 };

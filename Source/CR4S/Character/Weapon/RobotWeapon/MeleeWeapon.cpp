@@ -18,7 +18,7 @@ void AMeleeWeapon::OnAttack()
 	Super::OnAttack();
 }
 
-void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
+void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	UGameInstance* GI=GetGameInstance();
 	if (!GI) return;
@@ -31,5 +31,5 @@ void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
 	{
 		return;
 	}
-	Super::Initialize(OwnerCharacter);
+	Super::Initialize(OwnerCharacter, SlotIdx);
 }

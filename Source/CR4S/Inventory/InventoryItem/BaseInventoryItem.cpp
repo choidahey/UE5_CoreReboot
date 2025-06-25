@@ -2,6 +2,7 @@
 
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
@@ -14,7 +15,8 @@ UBaseInventoryItem::UBaseInventoryItem()
 }
 
 void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-                                           const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
+                                           const FInventoryItemData& NewInventoryItemData,
+                                           const int32 StackCount)
 {
 	UpdateInventoryItem(NewInventoryComponent);
 
@@ -91,13 +93,13 @@ void UBaseInventoryItem::SetCurrentStackCount(const int32 NewStackCount)
 	CurrentStackCount = FMath::Clamp(NewStackCount, 0, InventoryItemData.ItemInfoData.MaxStackCount);
 }
 
-FInventoryItemSaveData UBaseInventoryItem::GetInventoryItemSaveData()
+FInventoryItemSaveGame UBaseInventoryItem::GetInventoryItemSaveData()
 {
-	return FInventoryItemSaveData(InventoryItemData, CurrentStackCount);
+	return FInventoryItemSaveGame(InventoryItemData, CurrentStackCount);
 }
 
-void UBaseInventoryItem::LoadInventoryItemSaveData(const FInventoryItemSaveData& SaveData)
+void UBaseInventoryItem::LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+                                                   const FInventoryItemSaveGame& ItemSaveGame)
 {
-	InventoryItemData = SaveData.InventoryItemData;
-	SetCurrentStackCount(SaveData.Count);
+	InitInventoryItem(NewInventoryComponent, ItemSaveGame.InventoryItemData, ItemSaveGame.Count);
 }

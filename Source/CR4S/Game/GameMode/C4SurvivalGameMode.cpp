@@ -1,15 +1,16 @@
 #include "Game/GameMode/C4SurvivalGameMode.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Kismet/GameplayStatics.h"
+
 
 void AC4SurvivalGameMode::StartPlay()
 {
     Super::StartPlay();
 
-    if (GameStartSFX)
-    {
-        UGameplayStatics::PlaySound2D(this, GameStartSFX);
-    }
+    UE_LOG(LogTemp, Warning, TEXT("StartPlay time: %.6f"), FPlatformTime::Seconds());
+
+    HandleStartGame();
 }
 
 void AC4SurvivalGameMode::ReturnToMenu()
@@ -26,5 +27,24 @@ void AC4SurvivalGameMode::EndGameSequence()
     if (HUD)
     {
         HUD->PlayEndingSequence();
+    }
+}
+
+void AC4SurvivalGameMode::HandleStartGame()
+{
+    USaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
+    if (SaveGameManager->IsNewGame())
+    {
+        // Add New Game Logic
+    }
+
+    else
+    {
+        SaveGameManager->ApplyAll();
+
+        if (GameStartSFX)
+        {
+            UGameplayStatics::PlaySound2D(this, GameStartSFX);
+        }
     }
 }

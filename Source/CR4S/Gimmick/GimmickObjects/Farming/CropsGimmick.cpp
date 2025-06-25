@@ -11,7 +11,7 @@ ACropsGimmick::ACropsGimmick()
 	: HarvestText(FText::FromString(TEXT("수확 하기"))),
 	  DetectingActor(nullptr),
 	  bIsDetected(false),
-	  bIsHarvestable(false),
+	  bIsHarvestable(true),
 	  GrowthTimeMinutes(0),
 	  ElapsedSeconds(0),
 	  TotalGrowthSeconds(0),
@@ -112,6 +112,12 @@ void ACropsGimmick::Harvest(const AActor* Interactor)
 	GetResources(Interactor);
 
 	GimmickDestroy();
+}
+
+void ACropsGimmick::OnPlant()
+{
+	bIsHarvestable = false;
+	InitGrowthState();
 }
 
 void ACropsGimmick::InitGrowthState()

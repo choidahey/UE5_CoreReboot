@@ -16,6 +16,8 @@ void AEnvironmentManager::BeginPlay()
     // Load Weather if there is Save
 
     //For NewGame, Season Starts with Bountiful Season
+    UE_LOG(LogTemp, Warning, TEXT("BeginPlay time: %.6f"), FPlatformTime::Seconds());
+
 
     TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
     if (TimeManager)

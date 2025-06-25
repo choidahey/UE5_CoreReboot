@@ -30,15 +30,21 @@ protected:
 
 #pragma region Getters & Setters
 public:
-	FORCEINLINE ESeasonType GetCurrentSeason() const { return CurrentSeason; }
 	FORCEINLINE int32 GetSeasonLength() const { return SeasonLength; }
+
+	FORCEINLINE ESeasonType GetCurrentSeason() const { return CurrentSeason; }
+	FORCEINLINE int32 GetCurrentSeasonDay() const { return CurrentSeasonDay; }
+
 	FORCEINLINE float GetCurrentDawnTime() const { return CurrentDawnTime; }
 	FORCEINLINE float GetCurrentDuskTime() const { return CurrentDuskTime; }
-	FORCEINLINE void SetSeasonLength(int32 Length) { SeasonLength = Length; }
 
 	void GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime);
+
+	FORCEINLINE void SetSeasonLength(int32 Length) { SeasonLength = Length; }
+	FORCEINLINE void SetCurrentSeasonDay(int32 Day) { CurrentSeasonDay = Day; }
+	void SetCurrentDawnDuskTime(float Dawn, float Dusk);
 	void SetCurrentSeason(ESeasonType NewSeason);
-	
+
 	void HandleDayChange();
 
 	void ChangeToNextSeason();

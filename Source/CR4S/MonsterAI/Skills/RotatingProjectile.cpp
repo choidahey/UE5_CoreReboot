@@ -4,6 +4,7 @@
 #include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
+#include "MonsterAI/Region/KamishForestBoss.h"
 
 ARotatingProjectile::ARotatingProjectile()
 {
@@ -163,6 +164,12 @@ void ARotatingProjectile::HandleLanding()
 
 	bHasLanded = true;
 	MoveSpeed = 0.f;
+
+	if (AKamishForestBoss* Boss = Cast<AKamishForestBoss>(GetOwner()))
+	{
+		Boss->SetWeaponLandingLocation(GetActorLocation());
+		UE_LOG(LogTemp, Log, TEXT("[Projectile] Landing location sent to boss: %s"), *GetActorLocation().ToString());
+	}
 
 	FTimerHandle CollisionUpdateTimer;
 	GetWorld()->GetTimerManager().SetTimer(

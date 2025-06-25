@@ -13,6 +13,7 @@ class CR4S_API UHelperBotInventoryItem : public UBaseInventoryItem
 #pragma region UBaseInventoryItem Override
 
 public:
+	virtual void InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemData& NewInventoryItemData, const int32 StackCount = 0) override;
 	virtual void UseItem(int32 Index) override;
 
 #pragma endregion
@@ -21,10 +22,21 @@ public:
 
 public:
 	FORCEINLINE const FHelperPickUpData& GetHelperBotData() const { return HelperBotData; }
-	FORCEINLINE void SetHelperBotData(const FHelperPickUpData& NewHelperBotData) { HelperBotData = NewHelperBotData; }
+	void SetHelperBotData(const FHelperPickUpData& NewHelperBotData);
 
 private:
-	FHelperPickUpData HelperBotData = FHelperPickUpData();
+	FHelperPickUpData HelperBotData;
 
+	FText BotNameText;
+	FText HPText;
+
+#pragma endregion
+
+#pragma region Save & Load
+
+public:
+	virtual FInventoryItemSaveGame GetInventoryItemSaveData() override;
+	virtual void LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemSaveGame& ItemSaveGame) override;
+	
 #pragma endregion
 };

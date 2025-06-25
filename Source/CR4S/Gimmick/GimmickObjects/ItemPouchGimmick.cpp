@@ -1,6 +1,7 @@
 ﻿#include "ItemPouchGimmick.h"
 
 #include "CR4S.h"
+#include "Game/System/WorldTimeManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
@@ -8,7 +9,10 @@
 
 AItemPouchGimmick::AItemPouchGimmick()
 	: ForwardImpulseStrength(100.f),
-	  UpImpulseStrength(50.f)
+	  UpImpulseStrength(50.f),
+	  DestroyDelay(180.f),
+	  ElapsedSeconds(0.f),
+	  PrevPlayTime(-1)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -19,7 +23,7 @@ AItemPouchGimmick::AItemPouchGimmick()
 	InventoryComponent->SetInventoryTitleText(FText::FromString("ITEM POUCH"));
 
 	GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
+
 	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
@@ -33,12 +37,23 @@ void AItemPouchGimmick::BeginPlay()
 	{
 		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
+
+	UWorld* World = GetWorld();
+	if (IsValid(World))
+	{
+		UWorldTimeManager* TimeManager = World->GetSubsystem<UWorldTimeManager>();
+		if (IsValid(TimeManager))
+		{
+			TimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::UpdateWorldTime);
+		}
+	}
 }
 
 void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 {
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(Interactor)) ||
-		!CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)))
+		!CR4S_VALIDATE(LogGimmick, IsValid(InventoryComponent)) ||
+		bIsOpenWidget)
 	{
 		return;
 	}
@@ -55,11 +70,14 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 
 	if (IsValid(PlayerInventoryComponent))
 	{
-		InventoryComponent->OnOccupiedSlotsChange.BindDynamic(this, &ThisClass::DestroyItemPouch);
+		InventoryComponent->OnOccupiedSlotsChange.AddUniqueDynamic(this, &ThisClass::DestroyEmptyItemPouch);
 
 		InventoryComponent->SetMaxInventorySize(InventoryComponent->GetUseSlotCount());
 
 		PlayerInventoryComponent->OpenOtherInventoryWidget(EOpenWidgetType::ItemPouch, InventoryComponent);
+		PlayerInventoryComponent->OnInventoryClose.AddUniqueDynamic(this, &ThisClass::UnBoundDelegate);
+
+		bIsOpenWidget = true;
 	}
 }
 
@@ -79,7 +97,7 @@ void AItemPouchGimmick::LaunchItemPouch(const AActor* SourceActor) const
 	{
 		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GimmickMeshComponent->SetSimulatePhysics(true);
-		
+
 		FVector ImpulseVector = SourceActor->GetActorForwardVector() * ForwardImpulseStrength;
 		ImpulseVector += FVector::UpVector * UpImpulseStrength;
 
@@ -87,7 +105,33 @@ void AItemPouchGimmick::LaunchItemPouch(const AActor* SourceActor) const
 	}
 }
 
-void AItemPouchGimmick::DestroyItemPouch(const int32 NumOccupiedSlots)
+void AItemPouchGimmick::UpdateWorldTime(const int64 NewPlayTime)
+{
+	if (PrevPlayTime < 0)
+	{
+		PrevPlayTime = NewPlayTime;
+		return;
+	}
+
+	const int64 DeltaInt = NewPlayTime - PrevPlayTime;
+	PrevPlayTime = NewPlayTime;
+
+	if (DeltaInt <= 0)
+	{
+		return;
+	}
+
+	const float DeltaSeconds = static_cast<float>(DeltaInt);
+	ElapsedSeconds += DeltaSeconds;
+
+	if (ElapsedSeconds >= DestroyDelay)
+	{
+		CloseWidget();
+		Destroy();
+	}
+}
+
+void AItemPouchGimmick::DestroyEmptyItemPouch(const int32 NumOccupiedSlots)
 {
 	if (NumOccupiedSlots == 0)
 	{
@@ -95,4 +139,25 @@ void AItemPouchGimmick::DestroyItemPouch(const int32 NumOccupiedSlots)
 
 		Destroy();
 	}
+}
+
+void AItemPouchGimmick::UnBoundDelegate()
+{
+	if (IsValid(PlayerInventoryComponent) &&
+		PlayerInventoryComponent->OnInventoryClose.IsAlreadyBound(this, &ThisClass::UnBoundDelegate))
+	{
+		PlayerInventoryComponent->OnInventoryClose.RemoveDynamic(this, &ThisClass::UnBoundDelegate);
+		PlayerInventoryComponent = nullptr;
+	}
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AItemPouchGimmick::CloseWidget()
+{
+	if (bIsOpenWidget && IsValid(PlayerInventoryComponent))
+	{
+		PlayerInventoryComponent->CloseInventoryWidget();
+	}
+
+	bIsOpenWidget = false;
 }

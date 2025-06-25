@@ -79,8 +79,8 @@ void UCharacterStatusWidget::InitializeWidget(UBaseStatusComponent* InStatus)
 	
 	if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(InStatus))
 	{
-		RobotStatusComp->OnEnergyChanged.AddUObject(this,&UCharacterStatusWidget::UpdateEnergy);
-		RobotStatusComp->OnStunChanged.AddUObject(this,&UCharacterStatusWidget::UpdateStun);
+		RobotStatusComp->OnEnergyChanged.AddDynamic(this,&UCharacterStatusWidget::UpdateEnergy);
+		RobotStatusComp->OnStunChanged.AddDynamic(this,&UCharacterStatusWidget::UpdateStun);
 	}
 }
 

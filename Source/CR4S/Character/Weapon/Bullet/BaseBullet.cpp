@@ -10,6 +10,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Utility/CombatStatics.h"
 
 // Sets default values
 ABaseBullet::ABaseBullet()
@@ -138,7 +139,7 @@ void ABaseBullet::OnOverlapBegin(
 			1.0f
 		);
 	}
-	
+	UCombatStatics::ApplyStun(OtherActor,BulletInfo.StunAmount);
 	Destroy();
 }
 
