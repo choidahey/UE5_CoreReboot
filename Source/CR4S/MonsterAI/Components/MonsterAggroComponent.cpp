@@ -1,11 +1,11 @@
 ﻿#include "MonsterAggroComponent.h"
-
 #include "BehaviorTree/BlackboardComponent.h"
 
 
 UMonsterAggroComponent::UMonsterAggroComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.TickInterval = 0.5f;
 }
 
 void UMonsterAggroComponent::BeginPlay()
@@ -78,14 +78,4 @@ void UMonsterAggroComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 	
 	RecalculateAggro();
-
 }
-
-void UMonsterAggroComponent::ApplyToBlackboard(class UBlackboardComponent* BB, const struct FBlackboardKeySelector& KeySelector) const
-{
-	if (BB)
-	{
-		BB->SetValueAsObject(KeySelector.SelectedKeyName, CurrentTarget.Get());
-	}
-}
-
