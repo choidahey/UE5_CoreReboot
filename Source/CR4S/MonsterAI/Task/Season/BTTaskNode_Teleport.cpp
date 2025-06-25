@@ -63,7 +63,7 @@ EBTNodeResult::Type UBTTaskNode_Teleport::ExecuteTask(
     }
 
     if (UCapsuleComponent* CapsuleComp = CachedPawn->FindComponentByClass<UCapsuleComponent>())
-        CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+        CapsuleComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
     
     if (TrailEffectTemplate && CachedMeshComp)
     {
@@ -151,7 +151,7 @@ EBTNodeResult::Type UBTTaskNode_Teleport::AbortTask(
         }
         
         if (UCapsuleComponent* CapsuleComp = CachedPawn->FindComponentByClass<UCapsuleComponent>())
-            CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+            CapsuleComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
     }
     
     if (TrailEffectComp)

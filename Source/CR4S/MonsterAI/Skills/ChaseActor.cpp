@@ -78,8 +78,6 @@ void AChaseSkillActor::Tick(float DeltaTime)
 	}
 
 	const float DistToTarget = FVector::Dist(CurrentLocation, TargetLocation);
-	UE_LOG(LogTemp, Log, TEXT("[%s] DistToTarget = %f"), *GetClass()->GetName(), DistToTarget);
-
 	if (DistToTarget <= SpawnDistance)
 	{
 		if (SpawnActorClass)
@@ -90,16 +88,7 @@ void AChaseSkillActor::Tick(float DeltaTime)
 			Params.Owner = this;
 			Params.Instigator = Cast<APawn>(GetOwner());
 
-			if (AActor* Spawned = GetWorld()->SpawnActor<AActor>(SpawnActorClass, Tf, Params))
-			{
-				UE_LOG(LogTemp, Log, TEXT("[ChaseSkill] Spawned %s at %s"),
-					*Spawned->GetName(), *CurrentLocation.ToString());
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("[ChaseSkill] SpawnActor failed for class %s"),
-					*SpawnActorClass->GetName());
-			}
+			GetWorld()->SpawnActor<AActor>(SpawnActorClass, Tf, Params);
 		}
 		
 		Destroy();
@@ -127,7 +116,7 @@ void AChaseSkillActor::Tick(float DeltaTime)
 			
 			FHitResult Hit;
 			FVector Start = CurrentLocation;
-			FVector End   = Start - FVector(0.f, 0.f, 1000.f);
+			FVector End = Start - FVector(0.f, 0.f, 1000.f);
 
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(this);
@@ -145,6 +134,9 @@ void AChaseSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor->IsA(ABaseSkillActor::StaticClass())) return;
+
+	if (OtherActor && OtherActor == GetInstigator()) return;
+		
 	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
 	Destroy();

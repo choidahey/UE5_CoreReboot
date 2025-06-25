@@ -3,6 +3,7 @@
 #include "AIController.h"
 #include "CR4S.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "MonsterAI/Data/MonsterSkillData.h"
@@ -30,19 +31,27 @@ void UBTService_UpdateDistanceToTarget::TickNode(
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	AAIController* AIC = OwnerComp.GetAIOwner();
 	APawn* Pawn = AIC ? AIC->GetPawn() : nullptr;
-	AActor* Target = BB ? Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName)) : nullptr;
 
-	// TODO :: Target 예외 처리해줘야할까?
-
-	if (!BB || !Pawn || !Target)
+	if (!BB || !Pawn)
 	{
 		if (bShowDebugInfo)
 		{
-			CR4S_Log(LogDa, Warning, TEXT("[%s] Missing Pawn/BB/Target"), *NodeName);
+			CR4S_Log(LogDa, Warning, TEXT("[%s] Missing Pawn/BB"), *NodeName);
 		}
 		return;
 	}
+	
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
 
+	if (!IsValid(Target))
+	{
+		Target = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+	}
+	if (!IsValid(Target))
+	{
+		Target = UGameplayStatics::GetPlayerPawn(Pawn->GetWorld(), 0);
+	}
+	
 	const float Dist = Pawn->GetDistanceTo(Target);
 	BB->SetValueAsFloat(CurrentDistanceKey.SelectedKeyName, Dist);
 

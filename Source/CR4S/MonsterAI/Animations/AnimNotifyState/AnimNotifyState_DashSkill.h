@@ -23,6 +23,11 @@ public:
 	
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp,
 						   UAnimSequenceBase* Animation) override;
+	
+	virtual void BeginDestroy() override;
+
+protected:
+	void CleanupSpawnedActors();
 
 #pragma region Use Spawn Actor
 protected:
@@ -76,11 +81,8 @@ protected:
 #pragma endregion Dash Option
 
 private:
-	UPROPERTY()
-	AActor* SpawnedActor = nullptr;
-
-	UPROPERTY()
-	UNiagaraComponent* SpawnedNiagaraComp = nullptr;
+	TWeakObjectPtr<AActor> SpawnedActor;
+	TWeakObjectPtr<UNiagaraComponent> SpawnedNiagaraComp;
 	
 	FVector TargetActorLocation = FVector::ZeroVector;
 	FVector StartingLocation = FVector::ZeroVector;

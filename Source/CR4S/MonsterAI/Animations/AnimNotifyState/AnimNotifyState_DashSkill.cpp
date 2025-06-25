@@ -56,13 +56,17 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
     {
 		if (bIsAttachInSocket)
 		{
-			SpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(
+			AActor* NewSpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(
 				SpawnActorClass,
 				SocketLocation,
 				InitialActorRotation,
 				SpawnParams);
             	
-			SpawnedActor->AttachToComponent(MeshComp, FAttachmentTransformRules::KeepWorldTransform, ActorAttachSocketName);
+			if (NewSpawnedActor)
+			{
+				NewSpawnedActor->AttachToComponent(MeshComp, FAttachmentTransformRules::KeepWorldTransform, ActorAttachSocketName);
+				SpawnedActor = NewSpawnedActor;
+			}
 		}
 		else
 		{
@@ -78,21 +82,25 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 				GroundZ = Hit.Location.Z;
 			}
 
-			SpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(
+			AActor* NewSpawnedActor = MeshComp->GetWorld()->SpawnActor<AActor>(
 				SpawnActorClass,
 				SocketLocation,
 				InitialActorRotation,
 				SpawnParams);
 
-			SpawnedActor->AttachToComponent(MeshComp, FAttachmentTransformRules::KeepWorldTransform, ActorAttachSocketName);
-			SpawnedActor->SetActorLocation(FVector(SocketLocation.X, SocketLocation.Y, GroundZ));
+			if (NewSpawnedActor)
+			{
+				NewSpawnedActor->AttachToComponent(MeshComp, FAttachmentTransformRules::KeepWorldTransform, ActorAttachSocketName);
+				NewSpawnedActor->SetActorLocation(FVector(SocketLocation.X, SocketLocation.Y, GroundZ));
+				SpawnedActor = NewSpawnedActor;
+			}
 		}
     }
 	
 	if (bUseNiagaraEffect && IsValid(NiagaraEffect))
 	{
 		FName EffSocket = NiagaraAttachSocketName.IsNone() ? NAME_None : NiagaraAttachSocketName;
-		SpawnedNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+		UNiagaraComponent* NewNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
 			NiagaraEffect,
 			MeshComp,
 			EffSocket,
@@ -101,7 +109,11 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 			EAttachLocation::KeepRelativeOffset,
 			true);
 
-		SpawnedNiagaraComp->SetRelativeScale3D(NiagaraScale);
+		if (NewNiagaraComp)
+		{
+			NewNiagaraComp->SetRelativeScale3D(NiagaraScale);
+			SpawnedNiagaraComp = NewNiagaraComp;
+		}
 	}
 }
 
@@ -122,15 +134,36 @@ void UAnimNotifyState_DashSkill::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 
 void UAnimNotifyState_DashSkill::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (SpawnedActor && SpawnedActor->IsValidLowLevel())
-		SpawnedActor->Destroy();
-
-	SpawnedActor = nullptr;
+	CleanupSpawnedActors();
 	InitialDashDirection = FVector::ZeroVector;
+}
 
-	if (SpawnedNiagaraComp && SpawnedNiagaraComp->IsValidLowLevel())
+void UAnimNotifyState_DashSkill::BeginDestroy()
+{
+	// 객체가 파괴될 때 스폰된 Actor들을 정리
+	CleanupSpawnedActors();
+	Super::BeginDestroy();
+}
+
+void UAnimNotifyState_DashSkill::CleanupSpawnedActors()
+{
+	// 스폰된 Actor 정리
+	if (AActor* Actor = SpawnedActor.Get())
 	{
-		SpawnedNiagaraComp->DestroyComponent();
+		if (IsValid(Actor))
+		{
+			Actor->Destroy();
+		}
+		SpawnedActor = nullptr;
+	}
+
+	// 스폰된 Niagara 컴포넌트 정리
+	if (UNiagaraComponent* NiagaraComp = SpawnedNiagaraComp.Get())
+	{
+		if (IsValid(NiagaraComp))
+		{
+			NiagaraComp->DestroyComponent();
+		}
 		SpawnedNiagaraComp = nullptr;
 	}
 }
