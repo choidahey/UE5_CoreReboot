@@ -76,6 +76,7 @@ void ABaseAnimal::LoadStats()
         {
             StatsRow = Row;
             CurrentStats = *Row;
+            CurrentStats.RunSpeed = Row->RunSpeed;
             bStatsReady = true;
             CurrentHealth = Row->MaxHealth;
             JumpPower = Row->JumpPower;
