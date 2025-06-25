@@ -177,9 +177,36 @@ void UBTTask_HelperBotBMoveToResource::CheckReachedTarget(FBTMoveToResourceMemor
     {
         MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->CheckTimer);
         MyMemory->JumpComponent->DeactivateJumpComponent();
-        //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: Target reached, task completed"));
+        
+        FTimerDelegate RotationDelegate = FTimerDelegate::CreateUObject(this, &UBTTask_HelperBotBMoveToResource::HandleTargetRotation, MyMemory);
+        MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().SetTimer(MyMemory->RotationTimer, RotationDelegate, 0.016f, true); // 60fps
+       
         FinishLatentTask(*MyMemory->OwnerCompPtr, EBTNodeResult::Succeeded);
     }
+}
+
+void UBTTask_HelperBotBMoveToResource::HandleTargetRotation(FBTMoveToResourceMemory* MyMemory)
+{
+    if (!MyMemory || !MyMemory->OwnerCompPtr)
+        return;
+       
+    AAIController* AICon = MyMemory->OwnerCompPtr->GetAIOwner();
+    if (!AICon)
+        return;
+       
+    APawn* Pawn = AICon->GetPawn();
+    if (!Pawn)
+        return;
+       
+    AActor* TargetActor = Cast<AActor>(MyMemory->OwnerCompPtr->GetBlackboardComponent()->GetValueAsObject("TargetActor"));
+    if (!TargetActor)
+        return;
+       
+    FVector TargetDirection = (TargetActor->GetActorLocation() - Pawn->GetActorLocation()).GetSafeNormal();
+    FRotator TargetRotation = TargetDirection.Rotation();
+    FRotator CurrentRotation = Pawn->GetActorRotation();
+    FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, 0.016f, 270.0f);
+    Pawn->SetActorRotation(NewRotation);
 }
 
 EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::AbortTask(
@@ -200,6 +227,7 @@ EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::AbortTask(
     if (MyMemory->OwnerCompPtr)
     {
         MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->CheckTimer);
+        MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->RotationTimer);
     }
 
     if (AAIController* AICon = Cast<AAIController>(OwnerComp.GetAIOwner()))

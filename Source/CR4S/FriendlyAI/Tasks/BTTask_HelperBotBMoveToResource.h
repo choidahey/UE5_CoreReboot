@@ -27,6 +27,7 @@ struct FBTMoveToResourceMemory
 	TObjectPtr<class UAIJumpComponent> JumpComponent = nullptr;
 
 	FTimerHandle CheckTimer;
+	FTimerHandle RotationTimer;
 
 	FBTMoveToResourceMemory()
 		: QueryInstance(nullptr)
@@ -35,6 +36,7 @@ struct FBTMoveToResourceMemory
 	{
 	}
 };
+
 
 UCLASS()
 class CR4S_API UBTTask_HelperBotBMoveToResource : public UBTTaskNode
@@ -64,6 +66,6 @@ protected:
 private:
 	UFUNCTION()
 	void OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* Wrapper, EEnvQueryStatus::Type Status);
-
+	void HandleTargetRotation(FBTMoveToResourceMemory* MyMemory);
 	void CheckReachedTarget(FBTMoveToResourceMemory* MyMemory);
 };
