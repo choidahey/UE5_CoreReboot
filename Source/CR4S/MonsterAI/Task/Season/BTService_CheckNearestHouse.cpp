@@ -34,8 +34,7 @@ void UBTService_CheckNearestHouse::OnBecomeRelevant(UBehaviorTreeComponent& Owne
 
 	BlackboardComp->SetValueAsObject(NearestHouseActor.SelectedKeyName, NearestHouse);
 	BlackboardComp->SetValueAsFloat(HouseAcceptanceRadiusKey.SelectedKeyName,
-		HouseAttackRange + CalculateActorRadius(NearestHouse)
-		);
+		HouseAttackRange + CalculateActorRadius(NearestHouse));
 }
 
 void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -49,7 +48,6 @@ void UBTService_CheckNearestHouse::TickNode(UBehaviorTreeComponent& OwnerComp, u
 	
 	if (!IsValid(CurrentNearest))
 	{
-		CR4S_Log(LogDa, Warning, TEXT("[CheckNearestHouse] Invalid NearestHouse"));
 		if (!IsValid(CachedOwnerPawn)) return;
 
 		const FVector OwnerPawnLoc = CachedOwnerPawn->GetActorLocation();
@@ -64,8 +62,7 @@ AActor* UBTService_CheckNearestHouse::FindNearestHouse(const FVector& PlayerLoca
 	TArray<AActor*> Houses;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), HouseTag, Houses);
 
-	if (Houses.Num() <= 0)
-		return nullptr;
+	if (Houses.Num() <= 0) return nullptr;
 
 	float NearestDistance = TNumericLimits<float>::Max();
 	AActor* NearestActor = nullptr;
@@ -88,14 +85,11 @@ AActor* UBTService_CheckNearestHouse::FindNearestHouse(const FVector& PlayerLoca
 
 float UBTService_CheckNearestHouse::CalculateActorRadius(const AActor* InActor) const
 {
-	if (!IsValid(InActor))
-		return 0.f;
-	
+	if (!IsValid(InActor)) return 0.f;
+
 	FVector Center, BoxExtent;
 	InActor->GetActorBounds(false, Center, BoxExtent);
 	const float BaseRadius = BoxExtent.GetMax();
-
-	CR4S_Log(LogDa, Log, TEXT("house Radius : %f"), BaseRadius + RadiusOffset);
 
 	return BaseRadius + RadiusOffset;
 }

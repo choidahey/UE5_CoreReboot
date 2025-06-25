@@ -21,6 +21,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaTime) override;
 	UFUNCTION()
 	void OnProjectileStop(const FHitResult& ImpactResult);
@@ -31,8 +32,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	bool bSequentialLaunch = true;
 
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	bool bUseHoming = false;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bUseHoming"))
+	float GravityScale = 0.1f;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(EditCondition="bUseHoming"))
+	float HomingAcceleration = 2000.f;
+
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(ClampMin="0.0"))
 	float Interval = 0.05f;
+
+	UPROPERTY(EditAnywhere, Category = "Boss|Skill", meta=(ClampMin="0.0"))
+	float LaunchDelay = 0.f;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	float Speed = 1500.f;
@@ -65,7 +78,6 @@ private:
 	bool bHasLaunched = false;
 	int32 SpawnOrder = 0;
 	int32 TotalCount = 0;
-	float LaunchDelay = 0.f;
 
 	FTimerHandle LaunchTimerHandle;
 	FTimerHandle DestroyTimerHandle;

@@ -56,12 +56,10 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	if (IsValid(TargetActor))
 	{
 		StateComp->SetState(EMonsterState::Attack);
-		CR4S_Log(LogDa, Warning, TEXT("TargetActor is Valid ! State = Attack"));
 	}
 	else if (IsValid(TargetHouse))
 	{
 		StateComp->SetState(EMonsterState::AttackHouse);
-		CR4S_Log(LogDa, Warning, TEXT("TargetHouse is Valid ! State = AttackHouse"));
 	}
 	else
 	{
@@ -69,10 +67,10 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 			BB->SetValueAsObject(FAIKeys::TargetActor, PlayerPawn);
 		
 		StateComp->SetState(EMonsterState::Attack);
-		CR4S_Log(LogDa, Log, TEXT("[UpdateState] TargetHouse, TargetActor is invalid or nullptr State = Attack"));
 	}
 	
-	CR4S_Log(LogDa, Log, TEXT("[UpdateState] %s Current State : %d"),
-			*OwnerPawn->GetName(),
-			BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));
+	CR4S_Log(LogDa, Log, TEXT("[%s] %s Current State : %d"),
+		*GetClass()->GetName(),
+		*OwnerPawn->GetName(),
+		BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));
 }

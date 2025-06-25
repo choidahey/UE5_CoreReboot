@@ -124,14 +124,14 @@ void ABaseMonster::HandleDeath()
 	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
 	{
 		AIC->StopMovement();
+		
+		if (UBehaviorTreeComponent* BTComp = AIC->FindComponentByClass<UBehaviorTreeComponent>())
+			BTComp->StopTree(EBTStopMode::Safe);
 
 		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
 			BB->SetValueAsBool(FAIKeys::IsDead, true);
 	}
 
-	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	GetMesh()->SetAllBodiesSimulatePhysics(true);
-	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (AnimComponent)
@@ -139,30 +139,48 @@ void ABaseMonster::HandleDeath()
 		AnimComponent->PlayDeathMontage();
 	}
 
-	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
-	{
-		if (UAnimMontage* DeathMontage = AnimComponent->GetDeathMontage())
-		{
-			FOnMontageEnded EndDel;
-			EndDel.BindUObject(this, &ABaseMonster::OnDeathMontageEnded);
-			AnimInst->Montage_SetEndDelegate(EndDel, DeathMontage);
-		}
-	}
+	SetLifeSpan(2.f);
+	StartFadeOut();
 }
 
-void ABaseMonster::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (bInterrupted)
-		return;
-
-	SetLifeSpan(1.5f);
-	
-	if (DissolveMaterial)
+void ABaseMonster::StartFadeOut()
+{    
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp) return;
+    
+	for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
 	{
-		for (int32 i = 0; i < GetMesh()->GetNumMaterials(); ++i)
+		if (UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i))
 		{
-			GetMesh()->SetMaterial(i, DissolveMaterial);
+			DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
 		}
+	}
+
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseMonster::UpdateFade);
+	GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+
+	MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+}
+
+void ABaseMonster::UpdateFade()
+{
+	ElapsedFadeTime += 0.02f;
+	float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
+    
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+		{
+			if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(MeshComp->GetMaterial(i)))
+			{
+				DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+			}
+		}
+	}
+    
+	if (ElapsedFadeTime >= 2.0f)
+	{
+		GetWorldTimerManager().ClearTimer(FadeTimerHandle);
 	}
 }
 
