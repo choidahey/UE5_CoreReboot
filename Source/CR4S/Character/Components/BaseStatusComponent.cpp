@@ -32,6 +32,76 @@ void UBaseStatusComponent::BeginPlay()
 }
 
 
+void UBaseStatusComponent::SetMaxHP(const float NewValue)
+{
+	BaseStatus.MaxHealth = NewValue;
+
+	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
+	OnHPChanged.Broadcast(Percentage);
+}
+
+void UBaseStatusComponent::SetCurrentHP(const float NewValue)
+{
+	const float ClampedHP=FMath::Clamp(NewValue,0,BaseStatus.MaxHealth);
+	if (FMath::IsNearlyEqual(BaseStatus.Health,ClampedHP)) return;
+	
+	BaseStatus.Health=ClampedHP;
+	
+	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
+	OnHPChanged.Broadcast(Percentage);
+	
+	if (BaseStatus.Health <= 0)
+	{
+		OnDeathState.Broadcast();
+	}
+}
+
+void UBaseStatusComponent::SetMaxResource(const float NewValue)
+{
+	BaseStatus.MaxResource = NewValue;
+	const float Percentage = FMath::Clamp(BaseStatus.Resource / BaseStatus.MaxResource, 0.f, 1.f);
+	OnResourceChanged.Broadcast(Percentage);
+}
+
+void UBaseStatusComponent::SetCurrentResource(const float NewValue)
+{
+	const float ClampedResource = FMath::Clamp(NewValue, 0.f, BaseStatus.MaxResource);
+	if (FMath::IsNearlyEqual(BaseStatus.Resource, ClampedResource)) return;
+
+	BaseStatus.Resource = ClampedResource;
+	
+	const float Percentage = FMath::Clamp(BaseStatus.Resource / BaseStatus.MaxResource, 0.f, 1.f);
+	OnResourceChanged.Broadcast(Percentage);
+}
+
+void UBaseStatusComponent::SetArmor(const float NewValue)
+{
+	BaseStatus.Armor = NewValue;
+}
+
+void UBaseStatusComponent::SetAttackPower(const float NewValue)
+{
+	BaseStatus.AttackPower=NewValue;
+}
+
+void UBaseStatusComponent::SetColdThreshold(const float NewValue)
+{
+	BaseStatus.ColdThreshold=NewValue;
+	OnColdThresholdChanged.Broadcast(BaseStatus.ColdThreshold);
+}
+
+void UBaseStatusComponent::SetHeatThreshold(const float NewValue)
+{
+	BaseStatus.HeatThreshold=NewValue;
+	OnHeatThresholdChanged.Broadcast(BaseStatus.HeatThreshold);
+}
+
+void UBaseStatusComponent::SetHumidityThreshold(const float NewValue)
+{
+	BaseStatus.HumidityThreshold=NewValue;
+	OnHeatThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
+}
+
 void UBaseStatusComponent::SetResourceConsumptionAmount(const float NewCost)
 {
 	BaseStatus.ResourceConsumptionAmount=NewCost;
@@ -44,68 +114,47 @@ void UBaseStatusComponent::SetResourceRegenDelay(const float NewDelay)
 
 void UBaseStatusComponent::AddMaxHP(const float InAmount)
 {
-	BaseStatus.MaxHealth+=InAmount;
-	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
-	OnHPChanged.Broadcast(Percentage);
-}
-
-void UBaseStatusComponent::AddMaxResource(const float InAmount)
-{
-	BaseStatus.MaxResource+=InAmount;
-	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
-	OnResourceChanged.Broadcast(Percentage);
+	SetMaxHP(BaseStatus.MaxHealth+InAmount);
 }
 
 void UBaseStatusComponent::AddCurrentHP(const float InAmount)
 {
-	const float Temp=FMath::Clamp(BaseStatus.Health+InAmount,0,BaseStatus.MaxHealth);
-	if (Temp <= 0)
-	{
-		BaseStatus.Health = 0;
-		OnDeathState.Broadcast();
-	}
-	else
-	{
-		BaseStatus.Health=Temp;
-	}
-	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
-	OnHPChanged.Broadcast(Percentage);
+	SetCurrentHP(BaseStatus.Health+InAmount);
+}
+
+void UBaseStatusComponent::AddMaxResource(const float InAmount)
+{
+	SetMaxResource(BaseStatus.MaxResource+InAmount);
 }
 
 void UBaseStatusComponent::AddCurrentResource(const float InAmount)
 {
-	const float Temp=FMath::Clamp(BaseStatus.Resource+InAmount,0,BaseStatus.MaxResource);
-	BaseStatus.Resource=Temp;
-	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
-	OnResourceChanged.Broadcast(Percentage);
+	SetCurrentResource(BaseStatus.Resource+InAmount);
 }
 
 void UBaseStatusComponent::AddAttackPower(const float InAmount)
 {
-	BaseStatus.AttackPower+=InAmount;
+	SetAttackPower(BaseStatus.AttackPower+InAmount);
 }
 
 void UBaseStatusComponent::AddArmor(const float InAmount)
 {
-	BaseStatus.Armor+=InAmount;
+	SetArmor(BaseStatus.Armor+InAmount);
 }
 
 void UBaseStatusComponent::AddColdThreshold(const float InAmount)
 {
-	BaseStatus.ColdThreshold+=InAmount;
-	OnColdThresholdChanged.Broadcast(BaseStatus.ColdThreshold);
+	SetColdThreshold(BaseStatus.ColdThreshold+InAmount);
 }
 
 void UBaseStatusComponent::AddHeatThreshold(const float InAmount)
 {
-	BaseStatus.HeatThreshold+=InAmount;
-	OnHeatThresholdChanged.Broadcast(BaseStatus.HeatThreshold);
+	SetHeatThreshold(BaseStatus.HeatThreshold+InAmount);
 }
 
 void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 {
-	BaseStatus.HumidityThreshold+=InAmount;
-	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
+	SetHumidityThreshold(BaseStatus.HumidityThreshold+InAmount);
 }
 
 void UBaseStatusComponent::ApplyResourceRegenModifier(const float Modifier)

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "PlayerCharacterSaveGame.generated.h"
 
 USTRUCT(BlueprintType)
 struct CR4S_API FPlayerCharacterSaveGame
@@ -35,6 +36,8 @@ public:
 	FGameplayTag Stance;
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
 	FGameplayTag Gait;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
+	uint8 bIsRightShoulder:1 {true};
 };
 
 USTRUCT(BlueprintType)
