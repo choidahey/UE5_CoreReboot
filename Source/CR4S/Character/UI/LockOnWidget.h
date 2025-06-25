@@ -23,6 +23,7 @@ public:
 
 #pragma region WidgetUpdate & Bind
 	void InitializeWidgetForWeapon(AHomingWeapon* HomingWeapon);
+	void ClearBinding();
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateImageVisible();
@@ -37,4 +38,7 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UImage> LockOnImage;
+
+	UPROPERTY()
+	TWeakObjectPtr<AHomingWeapon> CachedHomingWeapon;
 };

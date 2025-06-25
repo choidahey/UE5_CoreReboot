@@ -2,6 +2,7 @@
 
 #include "EngineUtils.h"
 #include "Game/CheatManager/TimeCheatHelper.h"
+#include "Game/CheatManager/SaveGameHelper.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "CR4S.h"
@@ -15,6 +16,15 @@ void UC4CheatManager::InitCheatManager()
     TimeHelper = NewObject<UTimeCheatHelper>(this);
 
     ItemGimmickHelper = NewObject<UItemGimmickHelper>(this);
+    SaveGameHelper = NewObject<USaveGameHelper>(this);
+}
+
+void UC4CheatManager::SaveNow()
+{
+    if (SaveGameHelper)
+    {
+        SaveGameHelper->SaveNow();
+    }
 }
 
 void UC4CheatManager::AddItem(const FName RowName, const int32 Count) const

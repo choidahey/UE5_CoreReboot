@@ -28,6 +28,21 @@ void ULockOnWidget::InitializeWidgetForWeapon(AHomingWeapon* HomingWeapon)
 	HomingWeapon->OnLockOnCanceled.AddDynamic(this,&ULockOnWidget::UpdateImageInvisible);
 	HomingWeapon->OnLockOnFinished.AddDynamic(this,&ULockOnWidget::SetLockedOnColor);
 	HomingWeapon->OnTryingToLockOn.AddDynamic(this,&ULockOnWidget::UpdateImagePosition);
+
+	CachedHomingWeapon=HomingWeapon;
+}
+
+void ULockOnWidget::ClearBinding()
+{
+	if (CachedHomingWeapon.IsValid())
+	{
+		CachedHomingWeapon->OnLockOnStarted.RemoveDynamic(this,&ULockOnWidget::UpdateImageVisible);
+		CachedHomingWeapon->OnLockOnCanceled.RemoveDynamic(this,&ULockOnWidget::UpdateImageInvisible);
+		CachedHomingWeapon->OnLockOnFinished.RemoveDynamic(this,&ULockOnWidget::SetLockedOnColor);
+		CachedHomingWeapon->OnTryingToLockOn.RemoveDynamic(this,&ULockOnWidget::UpdateImagePosition);
+	}
+	UpdateImageInvisible();
+	CachedHomingWeapon=nullptr;
 }
 
 void ULockOnWidget::UpdateImageVisible()

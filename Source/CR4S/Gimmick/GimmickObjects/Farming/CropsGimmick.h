@@ -1,9 +1,11 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "CropsGimmick.generated.h"
 
+class UEnvironmentalStatusComponent;
 class UInteractableComponent;
 
 UCLASS(BlueprintType)
@@ -61,36 +63,46 @@ private:
 
 #pragma endregion
 
-#pragma region Grow
+#pragma region Growth
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Growth")
+	void OnPlant();
+	
 	FORCEINLINE float GetCurrentGrowthPercent() const { return CurrentGrowthPercent; }
 	FORCEINLINE bool GetIsHarvestable() const { return bIsHarvestable; }
+
 private:
+	void InitGrowthState();
+
 	UFUNCTION()
-	void Grow(int64 PlayTime);
+	void Grow(int64 NewPlayTime);
 	void UpdateGrowthStage();
 
 	void BindDelegate();
 	void UnBindDelegate();
 
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 GrowthTimeMinutes;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	float ElapsedSeconds;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	float TotalGrowthSeconds;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 MaxStageCount;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 StageDuration;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 CurrentStage;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	float CurrentGrowthPercent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	TArray<TObjectPtr<UStaticMesh>> CropsMeshes;
+
+	int64 PrevPlayTime;
+
+	FCropsGimmickData CropsGimmickData;
 
 #pragma endregion
 
@@ -111,6 +123,14 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "CropsGimmick|Delegates")
 	FOnCropComposted OnCropComposted;
+
+#pragma endregion
+
+#pragma region EnvironmentalStatus
+
+private:
+	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 
 #pragma endregion
 };

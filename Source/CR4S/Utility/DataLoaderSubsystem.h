@@ -8,6 +8,16 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "DataLoaderSubsystem.generated.h"
 
+struct FArmPartsInfo;
+struct FBodyPartsInfo;
+struct FLegPartsInfo;
+struct FBoosterPartsInfo;
+struct FCorePartsInfo;
+class UBoosterPartsData;
+class ULegPartsData;
+class UArmPartsData;
+class UBodyPartsData;
+class UCorePartsData;
 struct FWeaponSettings;
 struct FRobotSettings;
 class URobotSettingsDataAsset;
@@ -28,6 +38,11 @@ public:
 	void LoadWeaponSettingsData(FWeaponSettings& OutSettingsInfo) const;
 	bool LoadToolInfoByTag(const FGameplayTag& Tag, FPlayerToolInfo& OutSettingsInfo) const;
 	bool LoadWeaponClassDataByTag(const FGameplayTag& Tag, TSubclassOf<ABaseWeapon>& OutWeaponClass) const;
+	bool LoadCorePartsDataByTag(const FGameplayTag& Tag, FCorePartsInfo& OutPartsInfo) const;
+	bool LoadBodyPartsDataByTag(const FGameplayTag& Tag, FBodyPartsInfo& OutPartsInfo) const;
+	bool LoadArmPartsDataByTag(const FGameplayTag& Tag, FArmPartsInfo& OutPartsInfo) const;
+	bool LoadLegPartsDataByTag(const FGameplayTag& Tag, FLegPartsInfo& OutPartsInfo) const;
+	bool LoadBoosterPartsDataByTag(const FGameplayTag& Tag, FBoosterPartsInfo& OutPartsInfo) const;
 	
 	template<typename T>
 	bool LoadWeaponInfoByTag(const FGameplayTag& Tag, T& OutInfo, FBaseWeaponInfo& OutBaseInfo)
@@ -69,4 +84,19 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UWeaponClassDataAsset> WeaponClassDataAsset;
+
+	UPROPERTY()
+	TObjectPtr<UCorePartsData> CorePartsDataAsset;
+	
+	UPROPERTY()
+	TObjectPtr<UBodyPartsData> BodyPartsDataAsset;
+
+	UPROPERTY()
+	TObjectPtr<UArmPartsData> ArmPartsDataAsset;
+
+	UPROPERTY()
+	TObjectPtr<ULegPartsData> LegPartsDataAsset;
+
+	UPROPERTY()
+	TObjectPtr<UBoosterPartsData> BoosterPartsDataAsset;
 };

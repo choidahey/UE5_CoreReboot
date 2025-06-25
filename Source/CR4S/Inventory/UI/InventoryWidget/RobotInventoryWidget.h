@@ -53,6 +53,10 @@ private:
 
 #pragma region BindWidget
 
+public:
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE UCraftingWidget* GetCraftingWidget() const { return CraftingWidget; }
+	
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> CreateModeButton;
