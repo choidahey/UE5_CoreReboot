@@ -19,9 +19,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float SpawnDelayTime = 0.5f;
-
-private:
-	UPROPERTY()
-	AActor* TargetActor = nullptr;
-	FTimerHandle SpawnTimerHandle;
 };

@@ -10,7 +10,7 @@
 
 void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
-	if (!IsValid(MeshComp->GetWorld()) || !IsValid(MeshComp) || !IsValid(Animation)) return;
+	if (!IsValid(MeshComp) || !IsValid(MeshComp->GetWorld()) || !IsValid(Animation)) return;
 	
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!IsValid(OwnerPawn)) return;
@@ -27,8 +27,11 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 	BB->SetValueAsBool(TEXT("IsDashing"), true);
 	
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
-	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+	if (!IsValid(Target))
+		Target = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+	if (!IsValid(Target))
+		Target = UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+	if (!IsValid(Target)) return;
 	
 	if (IsValid(Target))
 	{
@@ -60,7 +63,7 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 				InitialActorRotation,
 				SpawnParams);
             	
-			if (NewSpawnedActor)
+			if (IsValid(NewSpawnedActor))
 			{
 				NewSpawnedActor->AttachToComponent(MeshComp, FAttachmentTransformRules::KeepWorldTransform, ActorAttachSocketName);
 				SpawnedActor = NewSpawnedActor;
@@ -86,7 +89,7 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 				InitialActorRotation,
 				SpawnParams);
 
-			if (NewSpawnedActor)
+			if (IsValid(NewSpawnedActor))
 			{
 				NewSpawnedActor->AttachToComponent(MeshComp, FAttachmentTransformRules::KeepWorldTransform, ActorAttachSocketName);
 				NewSpawnedActor->SetActorLocation(FVector(SocketLocation.X, SocketLocation.Y, GroundZ));
@@ -107,7 +110,7 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 			EAttachLocation::KeepRelativeOffset,
 			true);
 
-		if (NewNiagaraComp)
+		if (IsValid(NewNiagaraComp))
 		{
 			NewNiagaraComp->SetRelativeScale3D(NiagaraScale);
 			SpawnedNiagaraComp = NewNiagaraComp;
@@ -131,6 +134,8 @@ void UAnimNotifyState_DashSkill::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 
 void UAnimNotifyState_DashSkill::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	if (!IsValid(MeshComp)) return;
+	
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (IsValid(OwnerPawn))
 	{
@@ -149,29 +154,21 @@ void UAnimNotifyState_DashSkill::NotifyEnd(USkeletalMeshComponent* MeshComp, UAn
 	InitialDashDirection = FVector::ZeroVector;
 }
 
-void UAnimNotifyState_DashSkill::BeginDestroy()
-{
-	CleanupSpawnedActors();
-	Super::BeginDestroy();
-}
-
 void UAnimNotifyState_DashSkill::CleanupSpawnedActors()
 {
 	if (AActor* Actor = SpawnedActor.Get())
 	{
 		if (IsValid(Actor))
-		{
 			Actor->Destroy();
-		}
+
 		SpawnedActor = nullptr;
 	}
 
 	if (UNiagaraComponent* NiagaraComp = SpawnedNiagaraComp.Get())
 	{
 		if (IsValid(NiagaraComp))
-		{
 			NiagaraComp->DestroyComponent();
-		}
+
 		SpawnedNiagaraComp = nullptr;
 	}
 }
