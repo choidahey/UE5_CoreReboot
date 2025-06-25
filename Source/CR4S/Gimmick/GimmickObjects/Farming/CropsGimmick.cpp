@@ -252,4 +252,6 @@ void ACropsGimmick::LoadPlantedCropsGimmick(const FCropsGimmickData& NewCropsGim
 	CropsGimmickData = NewCropsGimmickData;
 	CropsGimmickData.PrevPlayTime = -1;
 	CropsGimmickData.CurrentStage = 0;
+
+	UpdateGrowthStage();
 }
