@@ -8,6 +8,31 @@
 class UEnvironmentalStatusComponent;
 class UInteractableComponent;
 
+USTRUCT(BlueprintType)
+struct FCropsGimmickData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	int32 GrowthTimeMinutes = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	float ElapsedSeconds = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	float TotalGrowthSeconds = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	int32 MaxStageCount = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	int32 StageDuration = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	int32 CurrentStage = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	float CurrentGrowthPercent = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
+	int64 PrevPlayTime = -1;
+	UPROPERTY()
+	FCropsGimmickDetailData CropsGimmickDetailData;
+};
+
 UCLASS(BlueprintType)
 class CR4S_API ACropsGimmick : public ABaseGimmick
 {
@@ -60,6 +85,8 @@ public:
 private:
 	UPROPERTY(EditAnywhere, Category = "Grow")
 	bool bIsHarvestable;
+	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	bool bIsPlanted;
 
 #pragma endregion
 
@@ -69,7 +96,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Growth")
 	void OnPlant();
 	
-	FORCEINLINE float GetCurrentGrowthPercent() const { return CurrentGrowthPercent; }
+	FORCEINLINE float GetCurrentGrowthPercent() const { return CropsGimmickData.CurrentGrowthPercent; }
 	FORCEINLINE bool GetIsHarvestable() const { return bIsHarvestable; }
 
 private:
@@ -83,24 +110,7 @@ private:
 	void UnBindDelegate();
 
 	UPROPERTY(VisibleAnywhere, Category = "Growth")
-	int32 GrowthTimeMinutes;
-	UPROPERTY(VisibleAnywhere, Category = "Growth")
-	float ElapsedSeconds;
-	UPROPERTY(VisibleAnywhere, Category = "Growth")
-	float TotalGrowthSeconds;
-	UPROPERTY(VisibleAnywhere, Category = "Growth")
-	int32 MaxStageCount;
-	UPROPERTY(VisibleAnywhere, Category = "Growth")
-	int32 StageDuration;
-	UPROPERTY(VisibleAnywhere, Category = "Growth")
-	int32 CurrentStage;
-	UPROPERTY(VisibleAnywhere, Category = "Growth")
-	float CurrentGrowthPercent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	TArray<TObjectPtr<UStaticMesh>> CropsMeshes;
-
-	int64 PrevPlayTime;
 
 	FCropsGimmickData CropsGimmickData;
 
@@ -132,5 +142,15 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 
+#pragma endregion
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintPure, Category = "CropsGimmick|SaveGame")
+	FORCEINLINE FCropsGimmickData GetCropsGimmickData() const { return CropsGimmickData; }
+	UFUNCTION(BlueprintCallable, Category = "CropsGimmick|LoadGame")
+	void LoadPlantedCropsGimmick(const FCropsGimmickData& NewCropsGimmickData);
+	
 #pragma endregion
 };

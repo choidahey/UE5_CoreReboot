@@ -12,13 +12,7 @@ ACropsGimmick::ACropsGimmick()
 	  DetectingActor(nullptr),
 	  bIsDetected(false),
 	  bIsHarvestable(true),
-	  GrowthTimeMinutes(0),
-	  ElapsedSeconds(0),
-	  TotalGrowthSeconds(0),
-	  MaxStageCount(0),
-	  CurrentStage(0),
-	  CurrentGrowthPercent(0.f),
-	  PrevPlayTime(-1)
+	  bIsPlanted(false)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -49,10 +43,10 @@ void ACropsGimmick::BeginPlay()
 		if (IsValid(DataTable))
 		{
 			const FName RowName = GimmickInfoData->DetailData.RowName;
-			if (const FCropsGimmickData* Data
-				= DataTable->FindRow<FCropsGimmickData>(RowName, TEXT("CropsGimmickData")))
+			if (const FCropsGimmickDetailData* Data
+				= DataTable->FindRow<FCropsGimmickDetailData>(RowName, TEXT("CropsGimmickData")))
 			{
-				CropsGimmickData = *Data;
+				CropsGimmickData.CropsGimmickDetailData = *Data;
 			}
 		}
 	}
@@ -87,7 +81,7 @@ void ACropsGimmick::UpdateInteractionText() const
 	if (IsValid(InteractableComponent))
 	{
 		const FString InteractionString = DefaultInteractionText.ToString()
-			+ FString::Printf(TEXT(" %.1f%%"), CurrentGrowthPercent);
+			+ FString::Printf(TEXT(" %.1f%%"), CropsGimmickData.CurrentGrowthPercent);
 
 		FText Text = FText::FromString(InteractionString);
 
@@ -116,13 +110,14 @@ void ACropsGimmick::Harvest(const AActor* Interactor)
 
 void ACropsGimmick::OnPlant()
 {
+	bIsPlanted = true;
 	bIsHarvestable = false;
 	InitGrowthState();
 }
 
 void ACropsGimmick::InitGrowthState()
 {
-	CropsMeshes = CropsGimmickData.CropsMeshes;
+	CropsMeshes = CropsGimmickData.CropsGimmickDetailData.CropsMeshes;
 
 	if (CR4S_VALIDATE(LogGimmick, CropsMeshes.Num() > 0))
 	{
@@ -132,13 +127,13 @@ void ACropsGimmick::InitGrowthState()
 			{
 				GimmickMeshComponent->SetStaticMesh(CropsMeshes[0]);
 
-				GrowthTimeMinutes = CropsGimmickData.GrowthRate;
-				ElapsedSeconds = 0;
-				CurrentStage = 0;
-				TotalGrowthSeconds = GrowthTimeMinutes * 60;
-				MaxStageCount = CropsMeshes.Num() - 1;
-				StageDuration = TotalGrowthSeconds / (MaxStageCount);
-				CurrentGrowthPercent = 0.f;
+				CropsGimmickData.GrowthTimeMinutes = CropsGimmickData.CropsGimmickDetailData.GrowthRate;
+				CropsGimmickData.ElapsedSeconds = 0;
+				CropsGimmickData.CurrentStage = 0;
+				CropsGimmickData.TotalGrowthSeconds = CropsGimmickData.GrowthTimeMinutes * 60;
+				CropsGimmickData.MaxStageCount = CropsMeshes.Num() - 1;
+				CropsGimmickData.StageDuration = CropsGimmickData.TotalGrowthSeconds / CropsGimmickData.MaxStageCount;
+				CropsGimmickData.CurrentGrowthPercent = 0.f;
 
 				BindDelegate();
 			}
@@ -148,7 +143,7 @@ void ACropsGimmick::InitGrowthState()
 			if (IsValid(CropsMeshes.Last()))
 			{
 				GimmickMeshComponent->SetStaticMesh(CropsMeshes.Last());
-				CurrentGrowthPercent = 100.f;
+				CropsGimmickData.CurrentGrowthPercent = 100.f;
 			}
 		}
 	}
@@ -156,19 +151,19 @@ void ACropsGimmick::InitGrowthState()
 
 void ACropsGimmick::Grow(const int64 NewPlayTime)
 {
-	if (CropsMeshes.Num() < 2 || TotalGrowthSeconds <= 0.f)
+	if (CropsMeshes.Num() < 2 || CropsGimmickData.TotalGrowthSeconds <= 0.f)
 	{
 		return;
 	}
 
-	if (PrevPlayTime < 0)
+	if (CropsGimmickData.PrevPlayTime < 0)
 	{
-		PrevPlayTime = NewPlayTime;
+		CropsGimmickData.PrevPlayTime = NewPlayTime;
 		return;
 	}
 
-	const int64 DeltaInt = NewPlayTime - PrevPlayTime;
-	PrevPlayTime = NewPlayTime;
+	const int64 DeltaInt = NewPlayTime - CropsGimmickData.PrevPlayTime;
+	CropsGimmickData.PrevPlayTime = NewPlayTime;
 
 	if (DeltaInt <= 0)
 	{
@@ -179,17 +174,20 @@ void ACropsGimmick::Grow(const int64 NewPlayTime)
 	{
 		if (FMath::RandRange(1, 100) <= 70)
 		{
-			ElapsedSeconds += 1;
+			CropsGimmickData.ElapsedSeconds += 1;
 		}
 
-		CurrentGrowthPercent = FMath::Clamp(ElapsedSeconds * 100.0f / TotalGrowthSeconds, 0.0f, 200.0f);
+		CropsGimmickData.CurrentGrowthPercent
+			= FMath::Clamp(CropsGimmickData.ElapsedSeconds * 100.0f / CropsGimmickData.TotalGrowthSeconds,
+			               0.0f,
+			               200.0f);
 
 		if (OnGrow.IsBound())
 		{
-			OnGrow.Broadcast(CurrentGrowthPercent);
+			OnGrow.Broadcast(CropsGimmickData.CurrentGrowthPercent);
 		}
 
-		if (CurrentGrowthPercent == 200.f)
+		if (CropsGimmickData.CurrentGrowthPercent == 200.f)
 		{
 			if (OnCropComposted.IsBound())
 			{
@@ -199,7 +197,7 @@ void ACropsGimmick::Grow(const int64 NewPlayTime)
 			continue;
 		}
 
-		if (CurrentGrowthPercent > 100.f)
+		if (CropsGimmickData.CurrentGrowthPercent > 100.f)
 		{
 			continue;
 		}
@@ -211,19 +209,19 @@ void ACropsGimmick::Grow(const int64 NewPlayTime)
 void ACropsGimmick::UpdateGrowthStage()
 {
 	const int32 NewStage = FMath::Clamp(
-		FMath::FloorToInt(ElapsedSeconds / StageDuration),
+		FMath::FloorToInt(CropsGimmickData.ElapsedSeconds / CropsGimmickData.StageDuration),
 		0,
-		MaxStageCount
+		CropsGimmickData.MaxStageCount
 	);
 
-	if (NewStage != CurrentStage)
+	if (NewStage != CropsGimmickData.CurrentStage)
 	{
-		CurrentStage = NewStage;
-		if (CropsMeshes.IsValidIndex(CurrentStage) && CropsMeshes[CurrentStage])
+		CropsGimmickData.CurrentStage = NewStage;
+		if (CropsMeshes.IsValidIndex(CropsGimmickData.CurrentStage) && CropsMeshes[CropsGimmickData.CurrentStage])
 		{
-			GimmickMeshComponent->SetStaticMesh(CropsMeshes[CurrentStage]);
+			GimmickMeshComponent->SetStaticMesh(CropsMeshes[CropsGimmickData.CurrentStage]);
 
-			if (CurrentStage == MaxStageCount)
+			if (CropsGimmickData.CurrentStage == CropsGimmickData.MaxStageCount)
 			{
 				bIsHarvestable = true;
 			}
@@ -247,4 +245,11 @@ void ACropsGimmick::UnBindDelegate()
 	{
 		WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::Grow);
 	}
+}
+
+void ACropsGimmick::LoadPlantedCropsGimmick(const FCropsGimmickData& NewCropsGimmickData)
+{
+	CropsGimmickData = NewCropsGimmickData;
+	CropsGimmickData.PrevPlayTime = -1;
+	CropsGimmickData.CurrentStage = 0;
 }
