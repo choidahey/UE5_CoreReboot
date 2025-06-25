@@ -9,6 +9,7 @@
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
 #include "Inventory/InventoryItem/HelperBotInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
+#include "Utility/Cr4sGameplayTags.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
 	: MaxInventorySize(10),
@@ -245,20 +246,17 @@ bool UBaseInventoryComponent::CheckRottenItem(UBaseInventoryItem* OriginItem, UB
 
 UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplayTagContainer& ItemTags)
 {
-	FGameplayTag ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.Tools"));
-	if (ItemTags.HasTag(ItemTag))
+	if (ItemTags.HasTag(ItemTags::Tools))
 	{
 		return NewObject<UToolInventoryItem>(this);
 	}
-
-	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.Consumable"));
-	if (ItemTags.HasTag(ItemTag))
+	
+	if (ItemTags.HasTag(ItemTags::Consumable))
 	{
 		return NewObject<UConsumableInventoryItem>(this);
 	}
-
-	ItemTag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Item.HelperBot"));
-	if (ItemTags.HasTag(ItemTag))
+	
+	if (ItemTags.HasTag(ItemTags::HelperBot))
 	{
 		return NewObject<UHelperBotInventoryItem>(this);
 	}
