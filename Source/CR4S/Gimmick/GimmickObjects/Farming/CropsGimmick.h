@@ -9,7 +9,7 @@ class UEnvironmentalStatusComponent;
 class UInteractableComponent;
 
 USTRUCT(BlueprintType)
-struct FCropsGimmickData
+struct FCropsGimmickGrowthData
 {
 	GENERATED_BODY()
 
@@ -30,7 +30,7 @@ struct FCropsGimmickData
 	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int64 PrevPlayTime = -1;
 	UPROPERTY()
-	FCropsGimmickDetailData CropsGimmickDetailData;
+	FCropsGimmickData CropsGimmickData;
 };
 
 UCLASS(BlueprintType)
@@ -96,7 +96,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Growth")
 	void OnPlant();
 	
-	FORCEINLINE float GetCurrentGrowthPercent() const { return CropsGimmickData.CurrentGrowthPercent; }
+	FORCEINLINE float GetCurrentGrowthPercent() const { return CropsGimmickGrowthData.CurrentGrowthPercent; }
 	FORCEINLINE bool GetIsHarvestable() const { return bIsHarvestable; }
 
 private:
@@ -112,7 +112,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	TArray<TObjectPtr<UStaticMesh>> CropsMeshes;
 
-	FCropsGimmickData CropsGimmickData;
+	FCropsGimmickGrowthData CropsGimmickGrowthData;
 
 #pragma endregion
 
@@ -148,9 +148,9 @@ private:
 
 public:
 	UFUNCTION(BlueprintPure, Category = "CropsGimmick|SaveGame")
-	FORCEINLINE FCropsGimmickData GetCropsGimmickData() const { return CropsGimmickData; }
+	FORCEINLINE FCropsGimmickGrowthData GetCropsGimmickData() const { return CropsGimmickGrowthData; }
 	UFUNCTION(BlueprintCallable, Category = "CropsGimmick|LoadGame")
-	void LoadPlantedCropsGimmick(const FCropsGimmickData& NewCropsGimmickData);
+	void LoadPlantedCropsGimmick(const FCropsGimmickGrowthData& NewCropsGimmickData);
 	
 #pragma endregion
 };

@@ -42,7 +42,7 @@ struct FGimmickInfoData : public FTableRowBase
 };
 
 USTRUCT(BlueprintType)
-struct FCropsGimmickDetailData : public FTableRowBase
+struct FCropsGimmickData : public FTableRowBase
 {
 	GENERATED_BODY()
 
