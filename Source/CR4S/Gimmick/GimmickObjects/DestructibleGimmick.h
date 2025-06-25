@@ -23,6 +23,8 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData) override;
 	
 #pragma endregion
 	

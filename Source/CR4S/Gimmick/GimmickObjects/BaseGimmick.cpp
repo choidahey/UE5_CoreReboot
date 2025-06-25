@@ -1,6 +1,8 @@
 ﻿#include "BaseGimmick.h"
 
 #include "CR4S.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/SaveGame/GimmickSaveGame.h"
 #include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
@@ -14,6 +16,9 @@ ABaseGimmick::ABaseGimmick()
 
 	GimmickMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	GimmickMeshComponent->SetupAttachment(SceneComponent);
+
+	ObjectPoolComponent = CreateDefaultSubobject<UObjectPoolComponent>(TEXT("ObjectPoolComponent"));
+	ObjectPoolComponent->InitialPoolSize = 2;
 }
 
 void ABaseGimmick::BeginPlay()
@@ -69,9 +74,32 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 	InventorySystem->AddItems(Resources);
 }
 
+FGimmickSaveGameData ABaseGimmick::GetGimmickSaveGameData_Implementation(bool& bSuccess)
+{
+	FGimmickSaveGameData GimmickSaveGameData;
+	GimmickSaveGameData.GimmickClass = GetClass();
+	GimmickSaveGameData.Transform = GetTransform();
+
+	bSuccess = true;
+
+	return GimmickSaveGameData;
+}
+
+void ABaseGimmick::LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData)
+{
+	SetActorTransform(GimmickSaveGameData.Transform);
+}
+
 void ABaseGimmick::GimmickDestroy()
 {
-	// CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is destroyed"));
-
-	Destroy();
+	if (IsValid(ObjectPoolComponent))
+	{
+		CR4S_Log(LogGimmick, Warning, TEXT("Gimmick return to pool"));
+		ObjectPoolComponent->HandleReturnToPool();
+	}
+	else
+	{
+		CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is destroyed"));
+		Destroy();
+	}
 }

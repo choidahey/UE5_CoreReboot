@@ -3,8 +3,7 @@
 #include "Gimmick/Components/DestructibleComponent.h"
 
 ATreeGimmick::ATreeGimmick()
-	: bIsDestroyed(false),
-	  bIsTrunkDestroyed(false),
+	: bIsTrunkDestroyed(false),
 	  StumpHealth(50.f),
 	  ImpulseStrength(100.f),
 	  RemoveTrunkDelay(5.f)
@@ -47,6 +46,16 @@ void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 {
 	bIsTrunkDestroyed = true;
 
+	if (IsValid(DestructibleComponent))
+	{
+		DestructibleComponent->SetMaxHealth(StumpHealth);
+	}
+	
+	if (!IsValid(TrunkMeshComponent))
+	{
+		return;
+	}
+	
 	TrunkMeshComponent->SetSimulatePhysics(true);
 
 	FVector Direction = GetActorLocation() - DamageCauser->GetActorLocation();
@@ -56,8 +65,6 @@ void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 	const float Strength = TrunkMeshComponent->GetMass() * ImpulseStrength;
 
 	TrunkMeshComponent->AddImpulse(Direction * Strength);
-
-	DestructibleComponent->SetMaxHealth(StumpHealth);
 
 	GetWorldTimerManager().SetTimer(
 		RemoveTrunkTimerHandle,

@@ -29,7 +29,9 @@ public:
 #pragma region Health
 
 public:
+	UFUNCTION(BlueprintPure, Category = "Health")
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	UFUNCTION(BlueprintPure, Category = "Health")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 	FORCEINLINE bool IsDestructed() const { return CurrentHealth <= 0.0f; }
 

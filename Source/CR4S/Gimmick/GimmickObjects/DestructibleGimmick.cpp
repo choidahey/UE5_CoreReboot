@@ -61,6 +61,16 @@ float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageE
 	return Damage;
 }
 
+void ADestructibleGimmick::LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData)
+{
+	Super::LoadGimmickSaveGameData_Implementation(GimmickSaveGameData);
+
+	if (IsValid(ShakeComponent))
+	{
+		ShakeComponent->SetOriginalLocation(GetActorLocation());
+	}
+}
+
 void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount,
                                                const float CurrentHealth)
 {

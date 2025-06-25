@@ -7,6 +7,7 @@
 
 #include "ItemGimmickSubsystem.generated.h"
 
+struct FGimmickSaveGame;
 class ABaseGimmick;
 
 UCLASS(BlueprintType)
@@ -76,4 +77,14 @@ private:
 	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
 #pragma endregion
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Gimmick|SaveGame")
+	FGimmickSaveGame GetGimmickSaveGame() const;
+	UFUNCTION(BlueprintCallable, Category = "Gimmick|LoadGame")
+	void LoadGimmickSaveGame(const FGimmickSaveGame& GimmickSaveGame);
+	
+#pragma endregion 
 };

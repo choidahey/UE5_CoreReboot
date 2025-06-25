@@ -82,6 +82,9 @@ private:
 public:
 	void Harvest(const AActor* Interactor);
 
+	UFUNCTION(BlueprintPure, Category = "CropsGimmick|Farming")
+	FORCEINLINE bool IsPlanted() const { return bIsPlanted; }
+
 private:
 	UPROPERTY(EditAnywhere, Category = "Grow")
 	bool bIsHarvestable;
@@ -95,7 +98,7 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Growth")
 	void OnPlant();
-	
+
 	FORCEINLINE float GetCurrentGrowthPercent() const { return CropsGimmickGrowthData.CurrentGrowthPercent; }
 	FORCEINLINE bool GetIsHarvestable() const { return bIsHarvestable; }
 
@@ -149,8 +152,9 @@ private:
 public:
 	UFUNCTION(BlueprintPure, Category = "CropsGimmick|SaveGame")
 	FORCEINLINE FCropsGimmickGrowthData GetCropsGimmickData() const { return CropsGimmickGrowthData; }
+
 	UFUNCTION(BlueprintCallable, Category = "CropsGimmick|LoadGame")
 	void LoadPlantedCropsGimmick(const FCropsGimmickGrowthData& NewCropsGimmickData);
-	
+
 #pragma endregion
 };
