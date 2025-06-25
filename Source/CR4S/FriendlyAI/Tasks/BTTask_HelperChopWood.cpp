@@ -16,74 +16,123 @@ UBTTask_HelperChopWood::UBTTask_HelperChopWood()
 	bNotifyTick = true;	
 }
 
+uint16 UBTTask_HelperChopWood::GetInstanceMemorySize() const
+{
+	return sizeof(FBTChopWoodMemory);
+}
+
 EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	FBTChopWoodMemory* MyMemory = reinterpret_cast<FBTChopWoodMemory*>(NodeMemory);
+	if (!MyMemory) return EBTNodeResult::Failed;
+
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	if (!AICon) return EBTNodeResult::Failed;
+
+	APawn* Pawn = AICon->GetPawn();
+	if (!Pawn) return EBTNodeResult::Failed;
+
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!BB) return EBTNodeResult::Failed;
 
-	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject(ResourceTargetKey.SelectedKeyName));
+	AActor* TargetActor = Cast<AActor>(BB->GetValueAsObject("TargetActor"));
 	if (!TargetActor) return EBTNodeResult::Failed;
 	
 	ATreeGimmick* Tree = Cast<ATreeGimmick>(TargetActor);
 	if (Tree && Tree->IsTrunkDestroyed()) return EBTNodeResult::Failed;
 
-	CachedTarget = TargetActor;
-	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
+	MyMemory->CachedTarget = TargetActor;
+	MyMemory->CachedHelper = Pawn;
 
-	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
-	if (Helper)
-	{
-		CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
-		Helper->SetIsWorking(true);
-	}
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(Pawn);
+	if (!Helper) return EBTNodeResult::Failed;
 
-	if (Helper && TargetActor)
-	{
-		Helper->UpdateEyeBeamWorkTarget(TargetActor);
-	}
+	MyMemory->CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
+	Helper->SetIsWorking(true);
+	Helper->UpdateEyeBeamWorkTarget(TargetActor);
 	
-	return (CachedHelper && CachedTarget) ? EBTNodeResult::InProgress : EBTNodeResult::Failed;
+	return EBTNodeResult::InProgress;
 }
 
 void UBTTask_HelperChopWood::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	if (!CachedTarget || !CachedHelper)
+	FBTChopWoodMemory* MyMemory = reinterpret_cast<FBTChopWoodMemory*>(NodeMemory);
+	if (!MyMemory)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
 
-	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	if (!AICon)
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
+		return;
+	}
+
+	APawn* Pawn = AICon->GetPawn();
+	if (!Pawn)
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
+		return;
+	}
+
+	if (!MyMemory->CachedTarget.IsValid() || !MyMemory->CachedHelper.IsValid())
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
+		return;
+	}
+
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(MyMemory->CachedHelper.Get());
 	if (!Helper)
 	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
 		return;
 	}
-	
-	const float DamageThisFrame = CachedDamagePerSecond * DeltaSeconds;
+
+	AActor* Target = MyMemory->CachedTarget.Get();
+	if (!Target)
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
+		return;
+	}
+
+	const float DamageThisFrame = MyMemory->CachedDamagePerSecond * DeltaSeconds;
 		
-	ATreeGimmick* Tree = Cast<ATreeGimmick>(CachedTarget);
+	ATreeGimmick* Tree = Cast<ATreeGimmick>(Target);
 	if (Tree && Tree->IsTrunkDestroyed())
 	{
-		if (Helper)
-		{
-			Helper->SetIsWorking(false);
-			Helper->StopEyeBeamWork();
-		}
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
 		return;
 	}
 
-	if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed())
+	if (Target->IsActorBeingDestroyed())
 	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Succeeded);
+		return;
+	}
+
+	UGameplayStatics::ApplyDamage(Target, DamageThisFrame, Helper->GetController(), Helper, UDamageType::StaticClass());
+}
+
+void UBTTask_HelperChopWood::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type Result)
+{
+	FBTChopWoodMemory* MyMemory = reinterpret_cast<FBTChopWoodMemory*>(NodeMemory);
+	if (!MyMemory)
+	{
+		FinishLatentTask(OwnerComp, Result);
+		return;
+	}
+
+	if (MyMemory->CachedHelper.IsValid())
+	{
+		ABaseHelperBot* Helper = Cast<ABaseHelperBot>(MyMemory->CachedHelper.Get());
 		if (Helper)
 		{
 			Helper->SetIsWorking(false);
 			Helper->StopEyeBeamWork();
 		}
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-		return;
 	}
-
-	UGameplayStatics::ApplyDamage(CachedTarget, DamageThisFrame, Helper->GetController(), Helper, UDamageType::StaticClass());
+	
+	FinishLatentTask(OwnerComp, Result);
 }
