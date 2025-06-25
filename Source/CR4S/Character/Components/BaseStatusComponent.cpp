@@ -100,7 +100,7 @@ void UBaseStatusComponent::SetHeatThreshold(const float NewValue)
 void UBaseStatusComponent::SetHumidityThreshold(const float NewValue)
 {
 	BaseStatus.HumidityThreshold=NewValue;
-	OnHeatThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
+	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
 }
 
 void UBaseStatusComponent::SetResourceConsumptionAmount(const float NewCost)

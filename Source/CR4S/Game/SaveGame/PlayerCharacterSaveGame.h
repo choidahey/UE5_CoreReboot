@@ -48,7 +48,7 @@ struct CR4S_API FRobotWeaponSaveGame
 	UPROPERTY(VisibleAnywhere, Category = "SaveData")
 	FGameplayTag WeaponTag;
 	UPROPERTY(VisibleAnywhere, Category = "SaveData")
-	int32 CurrentAmmo;
+	int32 CurrentAmmo{0};
 };
 
 USTRUCT(BlueprintType)
