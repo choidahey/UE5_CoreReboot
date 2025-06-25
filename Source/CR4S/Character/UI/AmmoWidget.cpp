@@ -30,7 +30,7 @@ void UAmmoWidget::InitializeWidgetForWeapon(ABaseWeapon* InWeapon, const int32 S
 
 	if (ARangedWeapon* CurrentWeapon=Cast<ARangedWeapon>(InWeapon))
 	{
-		const float InitialPercent=CurrentWeapon->GetCurrentAmmoPercent();
+		const float InitialPercent=CurrentWeapon->GetCurrentAmmoPercentage();
 		UpdateCurrentAmmoWidget(SlotIdx, InitialPercent);
 		CurrentWeapon->OnCurrentAmmoChanged.AddLambda(
 		[WeakThis=TWeakObjectPtr<UAmmoWidget>(this),SlotIdx,this](const float InPercent)

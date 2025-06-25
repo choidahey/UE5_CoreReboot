@@ -30,7 +30,7 @@ public:
 #pragma endregion
 
 #pragma region Get
-	float GetCurrentAmmoPercent() const;
+	float GetCurrentAmmoPercentage() const;
 #pragma endregion
 	
 #pragma region Common
