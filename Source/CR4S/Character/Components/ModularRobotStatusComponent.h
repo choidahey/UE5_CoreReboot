@@ -54,6 +54,9 @@ public:
 	FORCEINLINE float GetCurrentArmWeight() const { return RobotStatus.CurrentArmMountWeight; }
 	
 	FORCEINLINE float GetRecoilModifier() const { return RobotStatus.RecoilModifier; }
+
+	float GetCurrentEnergyPercentage() const;
+	float GetCurrentStunPercentage() const;
 #pragma endregion
 
 #pragma region Set

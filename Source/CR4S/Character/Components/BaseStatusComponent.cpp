@@ -32,11 +32,29 @@ void UBaseStatusComponent::BeginPlay()
 }
 
 
+float UBaseStatusComponent::GetCurrentHPPercentage() const
+{
+	if (BaseStatus.MaxHealth<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(BaseStatus.Health/BaseStatus.MaxHealth,0.0,1);
+}
+
+float UBaseStatusComponent::GetCurrentResourcePercentage() const
+{
+	if (BaseStatus.MaxResource<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(BaseStatus.Resource/BaseStatus.MaxResource,0.0,1);
+}
+
 void UBaseStatusComponent::SetMaxHP(const float NewValue)
 {
 	BaseStatus.MaxHealth = NewValue;
 
-	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
+	const float Percentage=GetCurrentHPPercentage();
 	OnHPChanged.Broadcast(Percentage);
 }
 
@@ -47,7 +65,7 @@ void UBaseStatusComponent::SetCurrentHP(const float NewValue)
 	
 	BaseStatus.Health=ClampedHP;
 	
-	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
+	const float Percentage=GetCurrentHPPercentage();
 	OnHPChanged.Broadcast(Percentage);
 
 	if (!bValueChanged) return;
@@ -61,7 +79,7 @@ void UBaseStatusComponent::SetCurrentHP(const float NewValue)
 void UBaseStatusComponent::SetMaxResource(const float NewValue)
 {
 	BaseStatus.MaxResource = NewValue;
-	const float Percentage = FMath::Clamp(BaseStatus.Resource / BaseStatus.MaxResource, 0.f, 1.f);
+	const float Percentage = GetCurrentResourcePercentage();
 	OnResourceChanged.Broadcast(Percentage);
 }
 
@@ -71,7 +89,7 @@ void UBaseStatusComponent::SetCurrentResource(const float NewValue)
 
 	BaseStatus.Resource = ClampedResource;
 	
-	const float Percentage = FMath::Clamp(BaseStatus.Resource / BaseStatus.MaxResource, 0.f, 1.f);
+	const float Percentage = GetCurrentResourcePercentage();
 	OnResourceChanged.Broadcast(Percentage);
 }
 

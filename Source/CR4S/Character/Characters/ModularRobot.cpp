@@ -578,15 +578,12 @@ void AModularRobot::InitializeWidgets() const
 				if (!CR4S_ENSURE(LogHong1,Status)) return;
 				InGameWidget->BindWidgetsToStatus(Status);
 				InGameWidget->ToggleWidgetMode(true);
-				Status->Refresh();
 
 				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
 				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
-				EnvironmentalStatus->Refresh();
 
 				if (!CR4S_ENSURE(LogHong1,WeaponManager)) return;
 				WeaponManager->BindWidgetWeapon();
-				WeaponManager->RefreshWeaponUI();
 			}
 		}
 	}

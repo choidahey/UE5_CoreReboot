@@ -33,6 +33,8 @@ void UModularRobotStatusComponent::Refresh()
 	AddStun(0);
 	AddCurrentWeight(0);
 	AddMaxWeight(0);
+	AddCurrentArmMountWeight(0);
+	AddMaxArmMountWeight(0);
 }
 
 
@@ -125,10 +127,28 @@ void UModularRobotStatusComponent::TickComponent(float DeltaTime, ELevelTick Tic
 }
 
 
+float UModularRobotStatusComponent::GetCurrentEnergyPercentage() const
+{
+	if (RobotStatus.MaxEnergy<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(RobotStatus.Energy/RobotStatus.MaxEnergy,0,1);
+}
+
+float UModularRobotStatusComponent::GetCurrentStunPercentage() const
+{
+	if (RobotStatus.MaxStun<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(RobotStatus.Stun/RobotStatus.MaxStun,0,1);
+}
+
 void UModularRobotStatusComponent::SetMaxEnergy(const float NewValue)
 {
 	RobotStatus.MaxEnergy=NewValue;
-	const float Percentage = FMath::Clamp(RobotStatus.Energy / RobotStatus.MaxEnergy, 0.f, 1.f);
+	const float Percentage = GetCurrentEnergyPercentage();
 	OnEnergyChanged.Broadcast(Percentage);
 }
 
@@ -139,7 +159,7 @@ void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 	
 	RobotStatus.Energy = ClampedEnergy;
 	
-	const float Percentage = FMath::Clamp(RobotStatus.Energy / RobotStatus.MaxEnergy, 0.f, 1.f);
+	const float Percentage = GetCurrentEnergyPercentage();
 	OnEnergyChanged.Broadcast(Percentage);
 
 	if (!bValueChanged) return;
@@ -164,7 +184,7 @@ void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 void UModularRobotStatusComponent::SetMaxStun(const float NewValue)
 {
 	RobotStatus.MaxStun=NewValue;
-	const float Percentage = FMath::Clamp(RobotStatus.Stun/RobotStatus.MaxStun, 0.f, 1.f);
+	const float Percentage = GetCurrentStunPercentage();
 	OnStunChanged.Broadcast(Percentage);
 }
 
@@ -174,7 +194,7 @@ void UModularRobotStatusComponent::SetCurrentStun(const float NewValue)
 	const bool bValueChanged= !FMath::IsNearlyEqual(RobotStatus.Stun, ClampedStun);
 
 	RobotStatus.Stun = ClampedStun;
-	const float Percentage = FMath::Clamp(RobotStatus.Stun / RobotStatus.MaxStun, 0.f, 1.f);
+	const float Percentage = GetCurrentStunPercentage();
 	OnStunChanged.Broadcast(Percentage);
 
 	if (!bValueChanged) return;

@@ -92,7 +92,9 @@ void UDefaultInGameWidget::BindWidgetsToStatus(UBaseStatusComponent* InStatus)
 	
 	if (UPlayerCharacterStatusComponent* PlayerStatusComp=Cast<UPlayerCharacterStatusComponent>(InStatus))
 	{
-		PlayerStatusComp->OnHungerChanged.AddUObject(this,&UDefaultInGameWidget::UpdateHungerWidget);	
+		PlayerStatusComp->OnHungerChanged.AddUObject(this,&UDefaultInGameWidget::UpdateHungerWidget);
+
+		UpdateHungerWidget(PlayerStatusComp->GetCurrentHungerPercentage());
 	}
 }
 

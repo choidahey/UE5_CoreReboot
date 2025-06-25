@@ -28,6 +28,14 @@ void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotId
 	Super::Initialize(OwnerCharacter, SlotIdx);
 }
 
+float ARangedWeapon::GetCurrentAmmoPercent() const
+{
+	const int32 CurrentAmmo=TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	const int32 MaxAmmo=TypeSpecificInfo.AmmoInfo.MagazineCapacity;
+	const float Percent=FMath::Clamp(CurrentAmmo/MaxAmmo,0.f,1.f);
+	return Percent;
+}
+
 void ARangedWeapon::RefreshUI()
 {
 	AddCurrentAmmo(0);

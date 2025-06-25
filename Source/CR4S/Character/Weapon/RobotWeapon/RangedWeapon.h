@@ -29,6 +29,10 @@ public:
 	virtual void Initialize(AModularRobot* OwnerCharacter, int32 SlotIdx) override;
 #pragma endregion
 
+#pragma region Get
+	float GetCurrentAmmoPercent() const;
+#pragma endregion
+	
 #pragma region Common
 protected:
 	void FireMultiBullet(AActor* HomingTarget=nullptr);

@@ -120,8 +120,6 @@ void APlayerCharacter::InitializeWidgets()
 				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
 				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
 				
-				Status->Refresh();
-				EnvironmentalStatus->Refresh();
 			}
 		}
 	}

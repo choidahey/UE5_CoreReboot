@@ -31,6 +31,8 @@ public:
 	FORCEINLINE float GetMaxHunger() const { return PlayerStatus.MaxHunger; }
 	FORCEINLINE float GetCurrentHunger() const { return PlayerStatus.Hunger; }
 
+	float GetCurrentHungerPercentage() const;
+
 	void SetMaxHunger(const float NewValue);
 	void SetCurrentHunger(const float NewValue);
 

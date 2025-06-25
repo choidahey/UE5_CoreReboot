@@ -28,28 +28,26 @@ void UAmmoWidget::InitializeWidgetForWeapon(ABaseWeapon* InWeapon, const int32 S
 {
 	if (!CR4S_ENSURE(LogHong1,InWeapon)) return;
 
-	const FGameplayTag WeaponTag=InWeapon->GetGameplayTag();
-	float InitialProgress=MaxProgress;
-	if (WeaponTag.MatchesTag(WeaponTags::Melee))
+	if (ARangedWeapon* CurrentWeapon=Cast<ARangedWeapon>(InWeapon))
 	{
-		InitialProgress=0;
-	}
-	AmmoProgressWidgets[SlotIdx]->SetPercent(InitialProgress);
-
-	ARangedWeapon* CurrentWeapon=Cast<ARangedWeapon>(InWeapon);
-	if (!CR4S_ENSURE(LogHong1,CurrentWeapon)) return;
-
-	CurrentWeapon->OnCurrentAmmoChanged.AddLambda(
-	[WeakThis=TWeakObjectPtr<UAmmoWidget>(this),SlotIdx,this](const float InPercent)
-	{
-		if (WeakThis.IsValid())
+		const float InitialPercent=CurrentWeapon->GetCurrentAmmoPercent();
+		UpdateCurrentAmmoWidget(SlotIdx, InitialPercent);
+		CurrentWeapon->OnCurrentAmmoChanged.AddLambda(
+		[WeakThis=TWeakObjectPtr<UAmmoWidget>(this),SlotIdx,this](const float InPercent)
 		{
-			WeakThis->UpdateCurrentAmmoWidget(SlotIdx,InPercent);
-		}
-	});
+			if (WeakThis.IsValid())
+			{
+				WeakThis->UpdateCurrentAmmoWidget(SlotIdx,InPercent);
+			}
+		});
+	}
+	else
+	{
+		UpdateCurrentAmmoWidget(SlotIdx,0);
+	}
 
-	if (!CR4S_ENSURE(LogHong1,CachedWeapons.IsValidIndex(SlotIdx))) return;
 	
+	if (!CR4S_ENSURE(LogHong1,CachedWeapons.IsValidIndex(SlotIdx))) return;
 	CachedWeapons[SlotIdx]=InWeapon;
 }
 

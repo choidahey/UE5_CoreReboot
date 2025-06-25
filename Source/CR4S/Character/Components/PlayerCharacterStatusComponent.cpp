@@ -19,10 +19,19 @@ void UPlayerCharacterStatusComponent::Refresh()
 	AddCurrentHunger(0);
 }
 
+float UPlayerCharacterStatusComponent::GetCurrentHungerPercentage() const
+{
+	if (PlayerStatus.MaxHunger<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(PlayerStatus.Hunger/PlayerStatus.MaxHunger,0,1);
+}
+
 void UPlayerCharacterStatusComponent::SetMaxHunger(const float NewValue)
 {
 	PlayerStatus.MaxHunger = NewValue;
-	const float Percentage = FMath::Clamp(PlayerStatus.Hunger / PlayerStatus.MaxHunger, 0.f, 1.f);
+	const float Percentage = GetCurrentHungerPercentage();
 	OnHungerChanged.Broadcast(Percentage);
 }
 
@@ -32,7 +41,7 @@ void UPlayerCharacterStatusComponent::SetCurrentHunger(const float NewValue)
 	const bool bValueChanged= !FMath::IsNearlyEqual(PlayerStatus.Hunger, ClampedHunger);
 	
 	PlayerStatus.Hunger = ClampedHunger;
-	const float Percentage = FMath::Clamp(PlayerStatus.Hunger / PlayerStatus.MaxHunger, 0.f, 1.f);
+	const float Percentage = GetCurrentHungerPercentage();
 	OnHungerChanged.Broadcast(Percentage);
 
 	if (!bValueChanged) return;
