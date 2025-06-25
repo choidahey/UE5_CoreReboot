@@ -24,11 +24,11 @@ void ASeasonBossMonsterAIController::BeginPlay()
 void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	APawn* OwnerPawn = GetPawn();
-	if (!IsValid(OwnerPawn)) return;
 	
 	if (!IsValid(BlackboardComp)) return;
+
+	APawn* ControlledPawn = GetPawn();
+	if (!IsValid(ControlledPawn)) return;
 	
 	AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(FAIKeys::TargetActor));
 
@@ -38,16 +38,16 @@ void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 	}
 	if (!IsValid(Target))
 	{
-		Target = UGameplayStatics::GetPlayerPawn(OwnerPawn->GetWorld(), 0);
+		Target = UGameplayStatics::GetPlayerPawn(ControlledPawn->GetWorld(), 0);
+	}
+
+	bool isDashing = false;
+	if (BlackboardComp->IsValidKey(BlackboardComp->GetKeyID(TEXT("IsDashing"))))
+	{
+		isDashing = BlackboardComp->GetValueAsBool(TEXT("IsDashing"));
 	}
 	
-	ABaseMonster* OwnerMonster = Cast<ABaseMonster>(OwnerPawn);
-	if (!IsValid(OwnerMonster)) return;
-
-	UMonsterAnimComponent* AnimComp = OwnerMonster->FindComponentByClass<UMonsterAnimComponent>();
-	const bool bIsPlayingAttackMontage = (AnimComp != nullptr) ? AnimComp->IsAnyMontagePlaying() : false;
-
-	if (Target)
+	if (IsValid(Target) && !isDashing)
 	{
 		SetFocus(Target, EAIFocusPriority::Gameplay);
 	}

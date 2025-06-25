@@ -46,7 +46,9 @@ void AFieldActor::Initialize(AActor* OwnerMonster, AActor* Target)
 	{
 		InitialOffset = GetActorLocation() - TargetActor->GetActorLocation();
 	}
-	
+
+	InitialActorScale = GetActorScale3D();
+	ElapsedTime = 0.f;
 	NiagaraComp->Activate(true);
 	
 	if (bIsAttachGround)

@@ -23,7 +23,9 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 	
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
 	if (!IsValid(BB)) return;
-    
+
+	BB->SetValueAsBool(TEXT("IsDashing"), true);
+	
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
 	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
 	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
@@ -42,11 +44,7 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 	
 	StartingLocation = OwnerPawn->GetActorLocation();
 	const FVector SocketLocation = MeshComp->GetSocketLocation(ActorAttachSocketName);
-	// if (DashDistance > 0.0f && TotalDuration > 0.0f)
-	// {
-	// 	BossMoveSpeed = DashDistance / TotalDuration;
-	// }
-	
+
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Cast<AActor>(OwnerPawn);
 	SpawnParams.Instigator = OwnerPawn;
@@ -123,8 +121,7 @@ void UAnimNotifyState_DashSkill::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
 	if (!IsValid(OwnerPawn) || InitialDashDirection.IsNearlyZero()) return;
-
-	// float EffectiveSpeed = (DashDistance > 0.f && Animation) ? (DashDistance / Animation->GetPlayLength()) : BossMoveSpeed;
+	
 	float MoveStep = BossMoveSpeed * FrameDeltaTime;
 	const FVector CurrentLoc = OwnerPawn->GetActorLocation();
 	FVector DesiredLoc = CurrentLoc + InitialDashDirection * MoveStep;
@@ -134,20 +131,32 @@ void UAnimNotifyState_DashSkill::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 
 void UAnimNotifyState_DashSkill::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
+	if (IsValid(OwnerPawn))
+	{
+		AAIController* AIC = Cast<AAIController>(OwnerPawn->GetController());
+		if (IsValid(AIC))
+		{
+			UBlackboardComponent* BB = AIC->GetBlackboardComponent();
+			if (IsValid(BB))
+			{
+				BB->SetValueAsBool(TEXT("IsDashing"), false);
+			}
+		}
+	}
+	
 	CleanupSpawnedActors();
 	InitialDashDirection = FVector::ZeroVector;
 }
 
 void UAnimNotifyState_DashSkill::BeginDestroy()
 {
-	// 객체가 파괴될 때 스폰된 Actor들을 정리
 	CleanupSpawnedActors();
 	Super::BeginDestroy();
 }
 
 void UAnimNotifyState_DashSkill::CleanupSpawnedActors()
 {
-	// 스폰된 Actor 정리
 	if (AActor* Actor = SpawnedActor.Get())
 	{
 		if (IsValid(Actor))
@@ -157,7 +166,6 @@ void UAnimNotifyState_DashSkill::CleanupSpawnedActors()
 		SpawnedActor = nullptr;
 	}
 
-	// 스폰된 Niagara 컴포넌트 정리
 	if (UNiagaraComponent* NiagaraComp = SpawnedNiagaraComp.Get())
 	{
 		if (IsValid(NiagaraComp))

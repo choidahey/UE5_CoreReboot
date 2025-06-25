@@ -1,5 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "AnimNotifyState_DashSkill.generated.h"
 
