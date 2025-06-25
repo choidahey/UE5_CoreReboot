@@ -15,6 +15,8 @@ class CR4S_API AProjectileBomb : public ABaseSkillActor
 public:
 	AProjectileBomb();
 
+	void LaunchProjectile();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -43,8 +45,6 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-	
-	void LaunchProjectile();
 
 	UPROPERTY(VisibleAnywhere, Category = "Boss|Skill")
 	UProjectileMovementComponent* ProjectileMovement;

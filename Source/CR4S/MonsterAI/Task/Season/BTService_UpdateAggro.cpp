@@ -1,28 +1,46 @@
 ﻿#include "BTService_UpdateAggro.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
+#include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
 #include "MonsterAI/Components/MonsterAggroComponent.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 UBTService_UpdateAggro::UBTService_UpdateAggro()
 {
-	NodeName    = TEXT("Update Aggro Target");
+	NodeName = TEXT("Update Aggro Target");
 	bNotifyTick = true;
+	AggroTargetKey.SelectedKeyName = FAIKeys::TargetActor;
 }
 
-void UBTService_UpdateAggro::TickNode(UBehaviorTreeComponent& OwnerComp,
-									  uint8* NodeMemory,
-									  float DeltaSeconds)
+void UBTService_UpdateAggro::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	if (AAIController* AIC = OwnerComp.GetAIOwner())
+	AAIController* AIC = OwnerComp.GetAIOwner();
+	if (!IsValid(AIC)) return;
+
+	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
+	if (!IsValid(BB)) return;
+
+	if (ASeasonBossMonster* Boss = Cast<ASeasonBossMonster>(AIC->GetPawn()))
 	{
-		if (ASeasonBossMonster* Boss = Cast<ASeasonBossMonster>(AIC->GetPawn()))
+		if (Boss->AggroComp)
 		{
-			if (Boss->AggroComp)
+			AActor* CurrentTarget = Cast<AActor>(BB->GetValueAsObject(AggroTargetKey.SelectedKeyName));
+			AActor* HitTarget = Boss->AggroComp->GetCurrentAggroTarget();
+			if (IsValid(HitTarget) && HitTarget != CurrentTarget)
 			{
-				Boss->AggroComp->ApplyToBlackboard(OwnerComp.GetBlackboardComponent(), Boss->AggroTargetKey);
+				BB->SetValueAsObject(AggroTargetKey.SelectedKeyName, HitTarget);
+				return;
+			}
+
+			if (!IsValid(CurrentTarget))
+			{
+				if (AActor* Player = UGameplayStatics::GetPlayerPawn(Boss->GetWorld(), 0))
+				{
+					BB->SetValueAsObject(AggroTargetKey.SelectedKeyName, Player);
+				}
 			}
 		}
 	}

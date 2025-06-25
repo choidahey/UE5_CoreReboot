@@ -5,6 +5,7 @@
 
 #include "ToolInventoryItem.generated.h"
 
+class UBaseStatusComponent;
 class UPlayerCharacterStatusComponent;
 class UPlayerInventoryComponent;
 
@@ -37,8 +38,10 @@ public:
 	FORCEINLINE const FToolItemData& GetToolItemData() const { return ToolItemData; }
 	
 private:
+	UPROPERTY()
+	TObjectPtr<UBaseStatusComponent> StatusComponent;
+	
 	FToolItemData ToolItemData;
-
 	FGameplayTag DefaultTag;
 
 #pragma endregion
