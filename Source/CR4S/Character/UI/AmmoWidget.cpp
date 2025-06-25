@@ -19,6 +19,8 @@ void UAmmoWidget::NativeConstruct()
 	AmmoProgressWidgets.Add(RightArmCurrentAmmo);
 	AmmoProgressWidgets.Add(LeftShoulderCurrentAmmo);
 	AmmoProgressWidgets.Add(RightShoulderCurrentAmmo);
+
+	CachedWeapons.SetNum(4);
 }
 
 
@@ -45,6 +47,25 @@ void UAmmoWidget::InitializeWidgetForWeapon(ABaseWeapon* InWeapon, const int32 S
 			WeakThis->UpdateCurrentAmmoWidget(SlotIdx,InPercent);
 		}
 	});
+
+	if (!CR4S_ENSURE(LogHong1,CachedWeapons.IsValidIndex(SlotIdx))) return;
+	
+	CachedWeapons[SlotIdx]=InWeapon;
+}
+
+void UAmmoWidget::ClearBindingsToWeapon()
+{
+	for (int32 i=0;i<CachedWeapons.Num();i++)
+	{
+		if (CachedWeapons.IsValidIndex(i))
+		{
+			if (ARangedWeapon* RangedWeapon=Cast<ARangedWeapon>(CachedWeapons[i]))
+			{
+				RangedWeapon->OnCurrentAmmoChanged.RemoveAll(this);
+				
+			}
+		}
+	}
 }
 
 void UAmmoWidget::UpdateCurrentAmmoWidget(const int32 SlotIdx, const float Percent)

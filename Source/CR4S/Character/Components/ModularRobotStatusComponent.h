@@ -7,9 +7,12 @@
 #include "Character/Data/ModularRobotStatus.h"
 #include "ModularRobotStatusComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnStunChangedDelegate, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float, Percent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStunChangedDelegate, float, Percent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxWeightChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnArmLoadChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxArmLoadChangedDelegate, float, NewValue);
 
 class AModularRobot;
 class UModularRobotStatusAsset;
@@ -22,11 +25,19 @@ class CR4S_API UModularRobotStatusComponent : public UBaseStatusComponent
 public:
 	UModularRobotStatusComponent();
 
+#pragma region CheckWeight
+	void CheckTotalWeightCapacity();
+	void CheckArmCapacity();
+
+	FORCEINLINE bool IsOverWeighted() const { return bExceedsTotalWeightLimit; }
+	FORCEINLINE bool IsArmOverWeighted() const { return bExceedsArmWeightLimit; }
+#pragma endregion
+	
 #pragma region Refresh
 	virtual void Refresh() override;
 #pragma endregion
 	
-#pragma region Get
+#pragma region Get & Set
 	FORCEINLINE float GetMaxEnergy() const { return RobotStatus.MaxEnergy; }
 	FORCEINLINE float GetCurrentEnergy() const { return RobotStatus.Energy; }
 	FORCEINLINE float GetEnergyConsumptionRate() const { return RobotStatus.EnergyConsumptionAmount; }
@@ -40,6 +51,10 @@ public:
 
 	FORCEINLINE float GetMaxWeight() const { return RobotStatus.MaxWeight; }
 	FORCEINLINE float GetCurrentWeight() const { return RobotStatus.Weight; }
+	FORCEINLINE float GetRecoilModifier() const { return RobotStatus.RecoilModifier; }
+
+	void SetEnergyConsumptionAmount(const float NewAmount);
+	FORCEINLINE void ResetEnergyConsumptionAmount() { RobotStatus.EnergyConsumptionAmount=DefaultRobotStatus.EnergyConsumptionAmount; }
 #pragma endregion
 
 #pragma region Add
@@ -57,6 +72,19 @@ public:
 
 	void AddMaxWeight(const float InAmount);
 	void AddWeight(const float InAmount);
+	void AddMaxArmMountWeight(const float InAmount);
+	void AddCurrentArmMountWeight(const float InAmount);
+#pragma endregion
+
+#pragma region Modifier
+	void ApplyEnergyEfficiency(const float Modifier);
+	void RevertEnergyEfficiency(const float Modifier);
+
+	void ApplyRecoilModifier(const float Modifier);
+	void RevertRecoilModifier(const float Modifier);
+
+	void ApplyMeleeDamageModifier(const float Modifier);
+	void RevertMeleeDamageModifier(const float Modifier);
 #pragma endregion
 	
 #pragma region Hover
@@ -89,7 +117,7 @@ public:
 	void ConsumeEnergyForInterval();
 #pragma endregion
 
-#pragma region Temperatur
+#pragma region Temperature
 	virtual void ApplyHeatDebuff() override;
 	virtual void RemoveHeatDebuff() override;
 
@@ -112,24 +140,39 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
 	uint8 bIsStunned:1 {false};
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
 	uint8 bIsRobotActive:1 {true};
-	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
+	uint8 bExceedsTotalWeightLimit:1 {false};
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
+	uint8 bExceedsArmWeightLimit:1 {false};
 #pragma endregion
 	
 #pragma region Status
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	FModularRobotStats RobotStatus;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	FModularRobotStats DefaultRobotStatus;
 #pragma endregion
 
 #pragma region Delegate
 public:
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnEnergyChangedDelegate OnEnergyChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnStunChangedDelegate OnStunChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnWeightChangedDelegate OnWeightChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnMaxWeightChangedDelegate OnMaxWeightChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnArmLoadChangedDelegate OnArmLoadChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnMaxArmLoadChangedDelegate OnMaxArmLoadChanged;
 #pragma endregion
 
 #pragma region Timer

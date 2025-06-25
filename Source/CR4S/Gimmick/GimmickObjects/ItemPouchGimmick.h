@@ -46,12 +46,17 @@ public:
 private:
 	UFUNCTION()
 	void DestroyEmptyItemPouch(int32 NumOccupiedSlots);
+	UFUNCTION()
+	void UnBoundDelegate();
+	void CloseWidget();
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
 
 	UPROPERTY()
 	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
+
+	bool bIsOpenWidget;
 	
 #pragma endregion
 

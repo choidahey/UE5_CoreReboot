@@ -1,6 +1,7 @@
 ﻿#include "PlayerInventoryComponent.h"
 
 #include "CR4S.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"

@@ -16,12 +16,23 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UModularRobotStatusComponent::CheckTotalWeightCapacity()
+{
+	bExceedsTotalWeightLimit = (RobotStatus.Weight>RobotStatus.MaxWeight) ? true : false;
+}
+
+void UModularRobotStatusComponent::CheckArmCapacity()
+{
+	bExceedsArmWeightLimit = (RobotStatus.CurrentArmMountWeight>RobotStatus.MaxArmMountWeight) ? true : false;
+}
+
 void UModularRobotStatusComponent::Refresh()
 {
 	Super::Refresh();
 	AddEnergy(0);
 	AddStun(0);
 	AddWeight(0);
+	AddMaxWeight(0);
 }
 
 
@@ -71,7 +82,7 @@ void UModularRobotStatusComponent::StopConsumeEnergy()
 
 void UModularRobotStatusComponent::ConsumeEnergyForInterval()
 {
-	AddEnergy(-RobotStatus.EnergyConsumptionAmount);
+	AddEnergy(-(RobotStatus.EnergyConsumptionAmount*RobotStatus.EnergyEfficiency));
 
 	if (RobotStatus.Energy<=KINDA_SMALL_NUMBER&&bIsRobotActive)
 	{
@@ -123,6 +134,11 @@ void UModularRobotStatusComponent::TickComponent(float DeltaTime, ELevelTick Tic
 	// ...
 }
 
+
+void UModularRobotStatusComponent::SetEnergyConsumptionAmount(const float NewAmount)
+{
+	RobotStatus.EnergyConsumptionAmount=NewAmount;
+}
 
 void UModularRobotStatusComponent::AddMaxEnergy(const float InAmount)
 {
@@ -187,23 +203,66 @@ void UModularRobotStatusComponent::AddAttackPowerMultiplier(const float InAmount
 void UModularRobotStatusComponent::AddMaxWeight(const float InAmount)
 {
 	RobotStatus.MaxWeight+=InAmount;
-	const float Percentage=FMath::Clamp(RobotStatus.Weight/RobotStatus.MaxWeight,0.f,1.f);
-	OnWeightChanged.Broadcast(Percentage);
+	OnMaxWeightChanged.Broadcast(RobotStatus.MaxWeight);
+	CheckTotalWeightCapacity();
 }
 
 void UModularRobotStatusComponent::AddWeight(const float InAmount)
 {
-	const float Temp=FMath::Clamp(RobotStatus.Weight+InAmount,0.f,RobotStatus.MaxWeight);
-	RobotStatus.Weight=Temp;
-	const float Percentage=FMath::Clamp(RobotStatus.Weight/RobotStatus.MaxWeight,0.f,1.f);
-	OnWeightChanged.Broadcast(Percentage);
+	RobotStatus.Weight+=InAmount;
+	OnWeightChanged.Broadcast(RobotStatus.Weight);
+	CheckTotalWeightCapacity();
+}
+
+void UModularRobotStatusComponent::AddMaxArmMountWeight(const float InAmount)
+{
+	RobotStatus.MaxArmMountWeight+=InAmount;
+	OnMaxArmLoadChanged.Broadcast(RobotStatus.MaxArmMountWeight);
+	CheckArmCapacity();
+}
+
+void UModularRobotStatusComponent::AddCurrentArmMountWeight(const float InAmount)
+{
+	RobotStatus.CurrentArmMountWeight+=InAmount;
+	OnArmLoadChanged.Broadcast(RobotStatus.CurrentArmMountWeight);
+	CheckArmCapacity();
+}
+
+void UModularRobotStatusComponent::ApplyEnergyEfficiency(const float Modifier)
+{
+	RobotStatus.EnergyEfficiency*=Modifier;
+}
+
+void UModularRobotStatusComponent::RevertEnergyEfficiency(const float Modifier)
+{
+	RobotStatus.EnergyEfficiency/=Modifier;
+}
+
+void UModularRobotStatusComponent::ApplyRecoilModifier(const float Modifier)
+{
+	RobotStatus.RecoilModifier*=Modifier;
+}
+
+void UModularRobotStatusComponent::RevertRecoilModifier(const float Modifier)
+{
+	RobotStatus.RecoilModifier/=Modifier;
+}
+
+void UModularRobotStatusComponent::ApplyMeleeDamageModifier(const float Modifier)
+{
+	RobotStatus.MeleeDamageModifier*=Modifier;
+}
+
+void UModularRobotStatusComponent::RevertMeleeDamageModifier(const float Modifier)
+{
+	RobotStatus.MeleeDamageModifier/=Modifier;
 }
 
 void UModularRobotStatusComponent::StartHover()
 {
 	if (!CR4S_ENSURE(LogHong1,GetWorld() && OwningCharacter)) return;
 
-	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=RobotStatus.HoverResourceCost))
+	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=RobotStatus.HoverCostMultiplier))
 	{
 		OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 		GetWorld()->GetTimerManager().SetTimer(
@@ -226,12 +285,14 @@ void UModularRobotStatusComponent::StopHover()
 
 void UModularRobotStatusComponent::ConsumeResourceForHovering()
 {
-	if (GetCurrentResource()<RobotStatus.HoverResourceCost)
+	const float HoverCost=RobotStatus.HoverCostMultiplier*BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier;
+	if (GetCurrentResource()<HoverCost)
 	{
 		StopHover();
 		return;
 	}
-	AddCurrentResource(-(RobotStatus.HoverResourceCost));
+	
+	AddCurrentResource(-(HoverCost));
 	OnResourceConsumed();
 }
 

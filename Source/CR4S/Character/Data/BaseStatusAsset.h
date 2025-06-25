@@ -42,7 +42,7 @@ public:
 	float HeatDamageAmount{10};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float RollStaminaCost{1000};
+	float ResourceConsumptionAmount{1000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceRegenDelay{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

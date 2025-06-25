@@ -63,14 +63,18 @@ private:
 
 #pragma endregion
 
-#pragma region Grow
+#pragma region Growth
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Growth")
+	void OnPlant();
+	
 	FORCEINLINE float GetCurrentGrowthPercent() const { return CurrentGrowthPercent; }
 	FORCEINLINE bool GetIsHarvestable() const { return bIsHarvestable; }
+
 private:
 	void InitGrowthState();
-	
+
 	UFUNCTION()
 	void Grow(int64 NewPlayTime);
 	void UpdateGrowthStage();
@@ -78,22 +82,22 @@ private:
 	void BindDelegate();
 	void UnBindDelegate();
 
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 GrowthTimeMinutes;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	float ElapsedSeconds;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	float TotalGrowthSeconds;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 MaxStageCount;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 StageDuration;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	int32 CurrentStage;
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	float CurrentGrowthPercent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Grow")
+	UPROPERTY(VisibleAnywhere, Category = "Growth")
 	TArray<TObjectPtr<UStaticMesh>> CropsMeshes;
 
 	int64 PrevPlayTime;
@@ -128,5 +132,5 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 
-#pragma endregion 
+#pragma endregion
 };
