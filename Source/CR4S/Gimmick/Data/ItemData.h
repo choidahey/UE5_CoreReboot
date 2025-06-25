@@ -33,6 +33,8 @@ struct FToolItemData : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "도구 태그"))
 	FGameplayTag ToolTag = FGameplayTag();
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "도구 공격력"))
+	int32 Damage = 0;
 };
 
 USTRUCT(BlueprintType)
