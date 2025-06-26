@@ -25,6 +25,10 @@ class CR4S_API UModularRobotStatusComponent : public UBaseStatusComponent
 public:
 	UModularRobotStatusComponent();
 
+#pragma region Damage
+	virtual void TakeDamage(const float DamageAmount);
+#pragma endregion
+
 #pragma region CheckWeight
 	void CheckTotalWeightCapacity();
 	void CheckArmCapacity();

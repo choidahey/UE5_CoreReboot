@@ -16,6 +16,14 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UModularRobotStatusComponent::TakeDamage(const float DamageAmount)
+{
+	const float ArmorFactor=BaseStatus.Armor*RobotStatus.ArmorMultiplier;
+	const float ComputedDamage = DamageAmount*(1000.f/(1000.f*ArmorFactor));
+	
+	AddCurrentHP(-(ComputedDamage));
+}
+
 void UModularRobotStatusComponent::CheckTotalWeightCapacity()
 {
 	bExceedsTotalWeightLimit = (RobotStatus.Weight>RobotStatus.MaxWeight) ? true : false;
