@@ -144,6 +144,7 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 {
 	FModularRobotSaveGame& RobotData=InSaveData.RobotData;
 
+	UnequipAll();
 
 	SetActorTransform(InSaveData.ActorTransform);
 
@@ -313,6 +314,8 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 
 void AModularRobot::UnequipCoreParts()
 {
+	if (CoreTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -335,6 +338,8 @@ void AModularRobot::UnequipCoreParts()
 
 void AModularRobot::UnequipBodyParts()
 {
+	if (BodyTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -362,6 +367,8 @@ void AModularRobot::UnequipBodyParts()
 
 void AModularRobot::UnequipArmParts()
 {
+	if (ArmTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -384,6 +391,8 @@ void AModularRobot::UnequipArmParts()
 
 void AModularRobot::UnequipLegParts()
 {
+	if (LegTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -413,6 +422,8 @@ void AModularRobot::UnequipLegParts()
 
 void AModularRobot::UnequipBoosterParts()
 {
+	if (BoosterTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -425,6 +436,17 @@ void AModularRobot::UnequipBoosterParts()
 	RobotSettings.BoosterStrength=DefaultSettings.BoosterStrength;
 	RobotSettings.DashCooldown=DefaultSettings.DashCooldown;
 	Status->ResetResourceConsumptionAmount();
+}
+
+void AModularRobot::UnequipAll()
+{
+	UnequipCoreParts();
+	UnequipBodyParts();
+	UnequipArmParts();
+	UnequipLegParts();
+	UnequipBoosterParts();
+
+	WeaponManager->UnequipAllWeapons();
 }
 
 void AModularRobot::TakeStun_Implementation(const float StunAmount)
@@ -673,6 +695,14 @@ void AModularRobot::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->RegisterSavableActor(this);
+		}
+	}
+
 	LoadDataFromDataLoader();
 
 	GetCharacterMovement()->JumpZVelocity=RobotSettings.JumpZVelocity;
@@ -701,6 +731,18 @@ void AModularRobot::BeginPlay()
 	}
 	
 	InitializeWidgets();
+}
+
+void AModularRobot::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->UnregisterSavableActor(this);
+		}
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void AModularRobot::NotifyControllerChanged()

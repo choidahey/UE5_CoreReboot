@@ -225,6 +225,14 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->RegisterSavableActor(this);
+		}
+	}
 	
 	//Binding Delegate Functions and Set up Widget
 	InitializeWidgets();
@@ -236,6 +244,18 @@ void APlayerCharacter::BeginPlay()
 
 	if (!CR4S_ENSURE(LogHong1,Status)) return;
 	Status->OnDeathState.AddUObject(this,&APlayerCharacter::OnDeath);
+}
+
+void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->UnregisterSavableActor(this);
+		}
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
