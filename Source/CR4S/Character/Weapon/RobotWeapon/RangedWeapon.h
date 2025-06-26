@@ -27,6 +27,8 @@ public:
 #pragma region Override
 public:
 	virtual void Initialize(AModularRobot* OwnerCharacter, int32 SlotIdx) override;
+	virtual int32 GetCurrentAmmo() const override;
+	virtual void SetCurrentAmmo(const int32 NewAmount) override;
 #pragma endregion
 
 #pragma region Get
@@ -44,7 +46,6 @@ protected:
 	void StartReload();
 	void FinishReload();
 	void AddCurrentAmmo(const int32 Amount);
-	void SetCurrentAmmo(const int32 NewAmount);
 #pragma endregion
 	
 #pragma region TypeSpecificInfo

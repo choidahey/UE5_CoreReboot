@@ -28,6 +28,11 @@ void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotId
 	Super::Initialize(OwnerCharacter, SlotIdx);
 }
 
+int32 ARangedWeapon::GetCurrentAmmo() const
+{
+	return TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+}
+
 float ARangedWeapon::GetCurrentAmmoPercentage() const
 {
 	if (TypeSpecificInfo.AmmoInfo.MagazineCapacity<=KINDA_SMALL_NUMBER)
