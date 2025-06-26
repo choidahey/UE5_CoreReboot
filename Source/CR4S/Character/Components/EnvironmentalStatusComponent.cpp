@@ -236,6 +236,18 @@ void UEnvironmentalStatusComponent::TickComponent(float DeltaTime, ELevelTick Ti
 	UpdateHumidity(DeltaTime, HumidityChangeSpeed);
 }
 
+void UEnvironmentalStatusComponent::SetCurrentTemperature(const float NewValue)
+{
+	CurrentTemperature = NewValue;
+	OnTemperatureChanged.Broadcast(CurrentTemperature);	
+}
+
+void UEnvironmentalStatusComponent::SetCurrentHumidity(const float NewValue)
+{
+	CurrentHumidity=NewValue;
+	OnHumidityChanged.Broadcast(CurrentHumidity);
+}
+
 float UEnvironmentalStatusComponent::GetBaseTemperatureBySeason(ESeasonType Season) const
 {
 	switch (Season)
