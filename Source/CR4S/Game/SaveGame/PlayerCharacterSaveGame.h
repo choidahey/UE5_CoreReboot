@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "InventorySaveGame.h"
 #include "PlayerCharacterSaveGame.generated.h"
 
 USTRUCT(BlueprintType)
@@ -35,6 +36,11 @@ public:
 	FGameplayTag Gait;
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
 	uint8 bIsRightShoulder:1 {true};
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Inventory")
+	FInventorySaveGame InventorySaveGame;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Inventory")
+	FInventorySaveGame QuickSlotSaveGame;
 };
 
 USTRUCT(BlueprintType)

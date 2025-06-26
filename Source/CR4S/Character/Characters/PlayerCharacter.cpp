@@ -77,6 +77,8 @@ void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
 	PlayerData.Stance=GetStance();
 	PlayerData.Gait=GetGait();
 	PlayerData.bIsRightShoulder=Camera->IsRightShoulder();
+
+	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
 }
 
 void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
@@ -93,6 +95,8 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 	SetDesiredStance(PlayerData.Stance);
 	SetDesiredGait(PlayerData.Gait);
 	Camera->SetRightShoulder(PlayerData.bIsRightShoulder);
+
+	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
 }
 
 void APlayerCharacter::OnDeath()
