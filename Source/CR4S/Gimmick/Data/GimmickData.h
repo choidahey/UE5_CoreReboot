@@ -66,13 +66,21 @@ struct FCropsGimmickData : public FTableRowBase
 	bool bIsDay = false;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "밤 일때 성장 가속", EditCondition = "bUseGrowthBoost"))
 	bool bIsNight = false;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최솟값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최솟값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHeatMinValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최솟값", EditCondition = "bUseGrowthBoost && bUseHeatMinValue"))
 	int32 HeatMinValue = 0;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최댓값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최댓값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHeatMaxValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최댓값", EditCondition = "bUseGrowthBoost && bUseHeatMaxValue"))
 	int32 HeatMaxValue = 0;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최솟값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최솟값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHumidityMinValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최솟값", EditCondition = "bUseGrowthBoost && bUseHumidityMinValue"))
 	int32 HumidityMinValue = 0;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최댓값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최댓값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHumidityMaxValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최댓값", EditCondition = "bUseGrowthBoost && bUseHumidityMaxValue"))
 	int32 HumidityMaxValue = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 배율", ClampMin = "1.0", EditCondition = "bUseGrowthBoost"))
 	float AccelerationMultiplier = 1.f;

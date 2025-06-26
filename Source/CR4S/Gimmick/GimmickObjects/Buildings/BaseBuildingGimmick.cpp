@@ -8,12 +8,13 @@
 
 
 ABaseBuildingGimmick::ABaseBuildingGimmick()
+	: PrevPlayTime(-1)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	SetRootComponent(SceneComponent);
-	
+
 	BuildingDurabilityWidgetComponent
 		= CreateDefaultSubobject<UWidgetComponent>(TEXT("BuildingDurabilityWidgetComponent"));
 	BuildingDurabilityWidgetComponent->SetupAttachment(RootComponent);
@@ -21,7 +22,8 @@ ABaseBuildingGimmick::ABaseBuildingGimmick()
 	Tags.Emplace("House");
 
 	ShakeComponent = CreateDefaultSubobject<UObjectShakeComponent>(TEXT("ShakeComponent"));
-	EnvironmentalStatusComponent = CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatusComponent"));
+	EnvironmentalStatusComponent = CreateDefaultSubobject<UEnvironmentalStatusComponent>(
+		TEXT("EnvironmentalStatusComponent"));
 }
 
 void ABaseBuildingGimmick::BeginPlay()
@@ -36,7 +38,8 @@ void ABaseBuildingGimmick::BeginPlay()
 
 	if (IsValid(BuildingDurabilityWidgetComponent))
 	{
-		BuildingDurabilityWidgetInstance = Cast<UBuildingDurabilityWidget>(BuildingDurabilityWidgetComponent->GetUserWidgetObject());
+		BuildingDurabilityWidgetInstance = Cast<UBuildingDurabilityWidget>(
+			BuildingDurabilityWidgetComponent->GetUserWidgetObject());
 
 		if (IsValid(BuildingDurabilityWidgetInstance))
 		{
@@ -68,7 +71,7 @@ void ABaseBuildingGimmick::InitEnvironmentalStatus(const FBuildingEnvironmentalS
 void ABaseBuildingGimmick::StartBurn()
 {
 	PrevPlayTime = -1;
-	
+
 	UWorldTimeManager* TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
 	if (IsValid(TimeManager) &&
 		!TimeManager->OnWorldTimeUpdated.IsAlreadyBound(this, &ThisClass::UpdateWorldTime))

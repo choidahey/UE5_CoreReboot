@@ -17,13 +17,13 @@ struct FBuildingEnvironmentalStatus
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxTemperature;
+	float MaxTemperature = 30.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MinTemperature;
+	float MinTemperature = -30.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxHumidity;
+	float MaxHumidity = 30.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MinHumidity;
+	float MinHumidity = 0.f;
 };
 
 UCLASS(BlueprintType, Blueprintable)
