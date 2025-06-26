@@ -35,8 +35,8 @@ struct FGimmickInfoData : public FTableRowBase
 	FDataTableRowHandle DetailData = FDataTableRowHandle();
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 엑터 클래스"))
 	TSubclassOf<class ABaseGimmick> GimmickClass = nullptr;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 최대 체력", ClampMin = "0.0"))
-	int32 GimmickMaxHealth = 0.f;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 최대 체력", ClampMin = "0"))
+	int32 GimmickMaxHealth = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "재료 목록"))
 	TArray<FResourceItemData> Resources;
 };
