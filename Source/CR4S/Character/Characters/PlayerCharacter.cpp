@@ -320,11 +320,12 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	
 	SetOverlayMode(AlsOverlayModeTags::Default);
 
+	Interaction->InitComponent();
 	Interaction->StartDetectProcess();
 	
 	InitializeWidgets();
 	Status->SetIsUnPossessed(false);
-	
+
 }
 
 void APlayerCharacter::UnPossessed()
