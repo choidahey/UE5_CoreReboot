@@ -88,6 +88,7 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 	SetActorTransform(InSaveData.ActorTransform);
 	Status->SetCurrentHP(PlayerData.CurrentHP);
 	Status->SetCurrentResource(PlayerData.CurrentResource);
+	Status->OnResourceConsumed();
 	Status->SetCurrentHunger(PlayerData.CurrentHunger);
 	EnvironmentalStatus->SetCurrentTemperature(PlayerData.CurrentTemperature);
 	EnvironmentalStatus->SetCurrentHumidity(PlayerData.CurrentHumidity);

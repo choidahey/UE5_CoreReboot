@@ -150,6 +150,7 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 
 	Status->SetCurrentHP(RobotData.CurrentHP);
 	Status->SetCurrentResource(RobotData.CurrentResource);
+	Status->OnResourceConsumed();
 	Status->SetCurrentEnergy(RobotData.CurrentEnergy);
 	Status->SetCurrentStun(RobotData.CurrentStun);
 

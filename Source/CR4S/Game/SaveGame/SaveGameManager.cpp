@@ -222,14 +222,7 @@ void USaveGameManager::SaveCore(const FString& SlotName)
 
        FSavedActorData ActorDataContainer;
 
-       if (APlayerCharacter* Player=Cast<APlayerCharacter>(SavableActor.GetObject()))
-       {
-           Player->GatherSaveData(ActorDataContainer);
-       }
-       else if (AModularRobot* Robot=Cast<AModularRobot>(SavableActor.GetObject()))
-       {
-           Robot->GatherSaveData(ActorDataContainer);
-       }
+       SavableActor->GatherSaveData(ActorDataContainer);
 
        CoreSave->SavedActorsData.Add(UniqueID, ActorDataContainer);
    }
