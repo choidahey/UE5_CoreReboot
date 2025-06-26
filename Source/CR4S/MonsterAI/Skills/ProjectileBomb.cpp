@@ -1,12 +1,10 @@
 ﻿#include "ProjectileBomb.h"
-
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 #include "FriendlyAI/AnimalMonster.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "MonsterAI/BaseMonster.h"
 
 
@@ -56,17 +54,53 @@ void AProjectileBomb::BeginPlay()
 
 	if (LaunchDelayTime > KINDA_SMALL_NUMBER)
 	{
-		GetWorldTimerManager().SetTimer(
+		if (bHomingActive)
+		{
+			GetWorldTimerManager().SetTimer(
+				HomingTimerHandle,
+				this,
+				&AProjectileBomb::ActivateHoming,
+				LaunchDelayTime,
+				false
+			);
+		}
+		else
+		{
+			GetWorldTimerManager().SetTimer(
 			LaunchTimerHandle,
 			this,
 			&AProjectileBomb::LaunchProjectile,
 			LaunchDelayTime,
 			false
-		);
+			);
+		}
 	}
 	else
 	{
-		LaunchProjectile();
+		bHomingActive ? ActivateHoming() : LaunchProjectile();
+	}
+}
+
+void AProjectileBomb::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!bHomingActive || !HomingTarget)
+		return;
+	
+	const float CurrentDist = FVector::Dist(GetActorLocation(), HomingTarget->GetActorLocation());
+	
+	UE_LOG(LogTemp, Warning, TEXT("[%s] CurrentDist=%.1f cm (Threshold=%.1f)"), *GetName(), CurrentDist, SpawnDistance);
+
+	if (CurrentDist <= SpawnDistance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] SpawnDistance 이내 진입 → 스폰!"), *GetName());
+		if (SpawnActorClass)
+		{
+			const FTransform Tf(GetActorRotation(), GetActorLocation());
+			GetWorld()->SpawnActor<AActor>(SpawnActorClass, Tf);
+		}
+		Destroy();
 	}
 }
 
@@ -98,6 +132,8 @@ void AProjectileBomb::LaunchProjectile()
 float AProjectileBomb::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
                                   AActor* DamageCauser)
 {
+	if (!bCanBeDestroyed) return 0.f;
+
 	TArray<AActor*> OverlappingActors;
 	CollisionComp->GetOverlappingActors(OverlappingActors);
 	if (OverlappingActors.Num() > 0) return 0.f;
@@ -109,7 +145,6 @@ float AProjectileBomb::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 	}
 	
 	CurrentHealth -= ActualDamage;
-	
 	if (CurrentHealth <= 0.f)
 	{
 		Destroy();
@@ -191,5 +226,23 @@ void AProjectileBomb::ApplyPeriodicDamage(AActor* Victim)
 		this,
 		UDamageType::StaticClass()
 	);
+}
+
+void AProjectileBomb::ActivateHoming()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Call ActivateHoming()"), *GetName());
+	
+	if (!ProjectileMovement || !bHomingActive) return;
+
+	AActor* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!IsValid(PlayerPawn)) return;
+
+	HomingTarget = PlayerPawn;
+	ProjectileMovement->bIsHomingProjectile = true;
+	ProjectileMovement->HomingTargetComponent = PlayerPawn->GetRootComponent();
+	ProjectileMovement->HomingAccelerationMagnitude = HomingSpeed;
+	ProjectileMovement->ProjectileGravityScale = 0.1f;
+	
+	ProjectileMovement->Activate(true);
 }
 

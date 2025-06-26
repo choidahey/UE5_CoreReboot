@@ -64,7 +64,7 @@ void UWeaponTraceComponent::SweepAndApplyDamage(AActor* OwningCharacter, const F
 		PreviousTopLocation,
 		CurrentTop,
 		Look.Quaternion(),
-		ECC_Visibility,
+		ECC_GameTraceChannel5,
 		FCollisionShape::MakeBox(BoxHalfSize),
 		QueryParams
 	);

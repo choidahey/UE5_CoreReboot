@@ -62,8 +62,6 @@ void AColdFairyActor::Tick(float DeltaTime)
 
 void AColdFairyActor::OnProjectileStop(const FHitResult& ImpactResult)
 {
-	CR4S_Log(LogDa, Log, TEXT("[%s] OnProjectileStop - Hit: %s"), *MyHeader, *ImpactResult.GetActor()->GetName());
-	
 	StopAndStick(ImpactResult);
 }
 
@@ -75,8 +73,7 @@ void AColdFairyActor::InitialLaunch(AActor* InTarget, int32 InIndex, int32 InTot
 	SpawnOrder = InIndex;
 	TotalCount = InTotalCount;
 
-	// bSequentialLaunch ? HandleSequenceLaunch() : HandleImmediateLaunch();
-	bSequentialLaunch ? HandleSequenceLaunch() : Launch();
+	bSequentialLaunch ? HandleSequenceLaunch() : HandleImmediateLaunch();
 }
 
 void AColdFairyActor::HandleSequenceLaunch()
@@ -101,6 +98,8 @@ void AColdFairyActor::HandleSequenceLaunch()
 
 void AColdFairyActor::HandleImmediateLaunch() const
 {
+	if (bHasLaunched) return;
+	
 	TArray<AActor*> SpawnedActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AColdFairyActor::StaticClass(), SpawnedActors);
 
@@ -108,16 +107,39 @@ void AColdFairyActor::HandleImmediateLaunch() const
 	for (AActor* Actor : SpawnedActors)
 	{
 		AColdFairyActor* CF = Cast<AColdFairyActor>(Actor);
-		if (CF && CF->GetOwner() == GetOwner())
+		if (CF && CF->GetOwner() == GetOwner() && !CF->bHasLaunched)
 			FairyActors.Add(CF);
 	}
     	
 	if (FairyActors.Num() < TotalCount) return;
+	float DelayTime = FairyActors.Last()->LaunchDelay;
     	
-	for (AColdFairyActor* FairyActor : FairyActors)
+	if (DelayTime <= KINDA_SMALL_NUMBER)
 	{
-		if (IsValid(FairyActor))
-			FairyActor->Launch();
+		for (AColdFairyActor* FairyActor : FairyActors)
+		{
+			if (IsValid(FairyActor))
+				FairyActor->Launch();
+		}
+	}
+	else
+	{
+		FTimerDelegate LaunchAllDelegate;
+		LaunchAllDelegate.BindLambda([FairyActors]()
+		{
+			for (AColdFairyActor* FairyActor : FairyActors)
+			{
+				if (IsValid(FairyActor))
+					FairyActor->Launch();
+			}
+		});
+		
+		GetWorld()->GetTimerManager().SetTimer(
+		FairyActors.Last()->LaunchTimerHandle,
+			LaunchAllDelegate,
+			DelayTime,
+			false
+		);
 	}
 }
 
@@ -130,7 +152,14 @@ void AColdFairyActor::StopAndStick(const FHitResult& HitResult, AActor* HitActor
 	ProjectileMovementComp->bIsHomingProjectile = false;
 	ProjectileMovementComp->Velocity = FVector::ZeroVector;
 	
-	SetActorLocation(HitResult.ImpactPoint);
+	if (IsValid(HitComp) && HitComp != CollisionComp)
+	{
+		AttachToComponent(HitComp, FAttachmentTransformRules::KeepWorldTransform);
+	}
+	else if (IsValid(HitActor) && HitComp != CollisionComp)
+	{
+		AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
+	}
 	
 	if (IsValid(CollisionComp) && CollisionComp->IsRegistered())
 	{
@@ -138,24 +167,8 @@ void AColdFairyActor::StopAndStick(const FHitResult& HitResult, AActor* HitActor
 		CollisionComp->SetGenerateOverlapEvents(false);
 	}
 	
-	if (IsValid(HitComp))
-	{
-		CollisionComp->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		CollisionComp->AttachToComponent(HitComp,FAttachmentTransformRules::KeepWorldTransform);
-	}
-	else if (IsValid(HitActor))
-	{
-		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		AttachToActor(HitActor, FAttachmentTransformRules::KeepWorldTransform);
-	}
-	
 	FTimerDelegate DestroyDelegate;
-	DestroyDelegate.BindLambda([this]() 
-	{ 
-		CR4S_Log(LogDa, Log, TEXT("[%s] LifeTime expired, destroying actor"), *MyHeader);
-		Destroy(); 
-	});
-	
+	DestroyDelegate.BindLambda([this]() { Destroy(); });
 	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, DestroyDelegate, LifeTime, false);
 }
 
@@ -166,32 +179,44 @@ void AColdFairyActor::Launch()
 	if (bHasLaunched) return;
 
 	bHasLaunched = true;
+	SetActorTickEnabled(false);
 	
 	if (!ProjectileMovementComp->IsActive())
 		ProjectileMovementComp->Activate(true);
-	
-	ProjectileMovementComp->bIsHomingProjectile = true;
-	ProjectileMovementComp->ProjectileGravityScale = 0.3f; 
-	ProjectileMovementComp->HomingAccelerationMagnitude = 2000.f;
-	ProjectileMovementComp->HomingTargetComponent = TargetActor->GetRootComponent();
-	
-	FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	if (Direction.IsNearlyZero())
-	{
-		CR4S_Log(LogDa, Warning, TEXT("[%s][LaunchSelf] Direction is nearly zero. Aborting."), *GetName());
-		return;
-	}
 
-	FRotator NewRot = Direction.Rotation();
-	SetActorRotation(NewRot);
-	ProjectileMovementComp->Velocity = Direction * ProjectileMovementComp->InitialSpeed;
+	FVector Direction;
+	if (IsValid(TargetActor))
+	{
+		Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	}
+	else
+	{
+		Direction = GetActorForwardVector().GetSafeNormal();
+	}
 	
-	CR4S_Log(LogDa, Log,
-		TEXT("[%s] Launch: Homeing activated → Target=%s, InitialDir=%s"),
-		*MyHeader,
-		*TargetActor->GetName(),
-		*Direction.ToString()
-	);
+	SetActorRotation(Direction.Rotation());
+
+	ProjectileMovementComp->InitialSpeed = Speed;
+	ProjectileMovementComp->MaxSpeed = MaxSpeed;
+	
+	if (bUseHoming)
+	{
+		ProjectileMovementComp->ProjectileGravityScale = GravityScale;
+		ProjectileMovementComp->bIsHomingProjectile = bUseHoming;
+		ProjectileMovementComp->HomingAccelerationMagnitude = HomingAcceleration ;
+		ProjectileMovementComp->HomingTargetComponent = TargetActor->GetRootComponent();
+		ProjectileMovementComp->bRotationFollowsVelocity = true;
+	}
+	else
+	{
+		ProjectileMovementComp->ProjectileGravityScale = 0.1f;
+		ProjectileMovementComp->bIsHomingProjectile = false;
+		ProjectileMovementComp->HomingAccelerationMagnitude = 2000.f;
+		ProjectileMovementComp->HomingTargetComponent = nullptr;
+		ProjectileMovementComp->bRotationFollowsVelocity = true; 
+	}
+	ProjectileMovementComp->Velocity = Direction * Speed;
+	ProjectileMovementComp->UpdateComponentVelocity();
 }
 
 void AColdFairyActor::OnOverlap(
@@ -202,8 +227,30 @@ void AColdFairyActor::OnOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
+	if (!OtherActor || !OtherComp) return;
+	if (OtherActor->IsA<AColdFairyActor>() || OtherActor->IsA(ABaseSkillActor::StaticClass())) return;
+	if (OtherActor && OtherActor == GetInstigator()) return;
+	
 	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
 	StopAndStick(SweepResult, OtherActor, OtherComp);
 }
 
+void AColdFairyActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (GetWorld())
+	{
+		if (GetWorld()->GetTimerManager().IsTimerActive(LaunchTimerHandle))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(LaunchTimerHandle);
+		}
+        
+		if (GetWorld()->GetTimerManager().IsTimerActive(DestroyTimerHandle))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(DestroyTimerHandle);
+		}
+	}
+	
+	Super::EndPlay(EndPlayReason);
+}
+ 

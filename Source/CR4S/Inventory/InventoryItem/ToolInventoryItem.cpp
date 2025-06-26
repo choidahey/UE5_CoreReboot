@@ -28,6 +28,11 @@ void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 	{
 		ToolItemData = *FindItemData;
 	}
+
+	if (IsValid(OwnerPlayer))
+	{
+		StatusComponent = OwnerPlayer->FindComponentByClass<UBaseStatusComponent>();
+	}
 }
 
 void UToolInventoryItem::UseItem(const int32 Index)
@@ -39,8 +44,6 @@ void UToolInventoryItem::UseItem(const int32 Index)
 		return;
 	}
 
-	CR4S_Log(LogInventory, Warning, TEXT("Before: %s"), *OwnerPlayer->GetOverlayMode().ToString());
-
 	if (OwnerPlayer->GetOverlayMode() == ToolItemData.ToolTag)
 	{
 		UnEquipItem();
@@ -49,8 +52,6 @@ void UToolInventoryItem::UseItem(const int32 Index)
 	{
 		EquipItem();
 	}
-
-	CR4S_Log(LogInventory, Warning, TEXT("After: %s"), *OwnerPlayer->GetOverlayMode().ToString());
 }
 
 void UToolInventoryItem::EquipItem() const
@@ -60,6 +61,12 @@ void UToolInventoryItem::EquipItem() const
 	{
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
 		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
+
+		if (IsValid(StatusComponent))
+		{
+			StatusComponent->AddAttackPower(ToolItemData.Damage);
+			CR4S_Log(LogInventory, Warning, TEXT("AttackPower: %.f"), StatusComponent->GetAttackPower());
+		}
 	}
 }
 
@@ -70,5 +77,11 @@ void UToolInventoryItem::UnEquipItem() const
 	{
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
+
+		if (IsValid(StatusComponent))
+		{
+			StatusComponent->AddAttackPower(-ToolItemData.Damage);
+			CR4S_Log(LogInventory, Warning, TEXT("AttackPower: %.f"), StatusComponent->GetAttackPower());
+		}
 	}
 }

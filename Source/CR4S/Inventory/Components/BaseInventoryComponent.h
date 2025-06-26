@@ -42,7 +42,7 @@ public:
 	UBaseInventoryComponent();
 
 	virtual void BeginPlay() override;
-
+ 
 #pragma endregion
 
 #pragma region Initialize

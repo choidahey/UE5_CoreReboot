@@ -41,7 +41,7 @@ public:
 	void SetInputEnable(const bool bEnableInput) const;
 	void SetMovementInputEnable(const bool bEnableMovementInput) const;
 #pragma endregion
-	
+
 #pragma region PartsEquip
 	UFUNCTION(BlueprintCallable)
 	void EquipCoreParts(const FGameplayTag& Tag);
@@ -67,27 +67,29 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetLegManagerEnabled(const bool bIsEnabled);
 #pragma endregion
-	
+
 #pragma region Stun
 	virtual void TakeStun_Implementation(const float StunAmount) override;
 #pragma endregion
-	
+
 #pragma region Get
 	FORCEINLINE APlayerCharacter* GetMountedCharacter() const { return MountedCharacter; }
 	FORCEINLINE bool IsRobotActive() const { return Status->IsRobotActive(); }
 	FORCEINLINE float GetRecoilModifier() const { return Status->GetRecoilModifier(); }
 	FORCEINLINE UModularRobotStatusComponent* GetStatusComponent() const { return Status; }
+	FORCEINLINE URobotWeaponComponent* GetWeaponComponent() const { return WeaponManager; }
+	FORCEINLINE bool EquippedBodyParts() const { return BodyTag != FGameplayTag::EmptyTag;}
 #pragma endregion
 
 #pragma region Death
 	void OnDeath();
 #pragma endregion
-	
+
 #pragma region Load Data
 	UDataLoaderSubsystem* GetDataLoaderSubsystem() const;
 	void LoadDataFromDataLoader();
 #pragma endregion
-	
+
 #pragma region Mount
 	UFUNCTION(BlueprintCallable)
 	void MountRobot(AActor* InActor);
@@ -101,12 +103,15 @@ public:
 	void InitializeWidgets() const;
 	void DisconnectWidgets() const;
 #pragma endregion
-	
+
 #pragma region OverrideFunctions
+
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	                         class AController* EventInstigator, AActor* DamageCauser) override;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void NotifyControllerChanged() override;
@@ -115,6 +120,7 @@ protected:
 #pragma endregion
 
 #pragma region MoveFunctions
+
 protected:
 	UFUNCTION()
 	void Input_Move(const FInputActionValue& Value);
@@ -135,6 +141,7 @@ protected:
 #pragma endregion
 
 #pragma region InputActions
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputMappingContext> MovementMappingContext;
@@ -150,7 +157,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> DashAction;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> Attack1Action;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IMC | Movement", Meta = (DisplayThumbnail = false))
@@ -167,6 +174,7 @@ protected:
 #pragma endregion
 
 #pragma region Settings
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
 	FRobotSettings RobotSettings;
@@ -174,8 +182,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
 	FRobotSettings DefaultSettings;
 #pragma endregion
-	
+
 #pragma region Components
+
 private:
 	// === Components ===
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -203,12 +212,13 @@ private:
 #pragma endregion
 
 #pragma region Cached
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<APlayerCharacter> MountedCharacter;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FTimerHandle DashCooldownTimerHandle;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FGameplayTag CoreTag;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -219,11 +229,11 @@ protected:
 	FGameplayTag LegTag;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FGameplayTag BoosterTag;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bIsDashing:1 {false};
+	uint8 bIsDashing : 1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bIsHovering:1 {false};
+	uint8 bIsHovering : 1 {false};
 #pragma endregion
 
 #pragma region Hover
@@ -233,7 +243,6 @@ protected:
 
 #pragma region DebugOption
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
-	uint8 bIsDebugMode:1 {false};
+	uint8 bIsDebugMode : 1 {false};
 #pragma endregion
 };
-

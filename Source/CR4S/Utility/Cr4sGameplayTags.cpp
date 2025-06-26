@@ -94,3 +94,10 @@ namespace LegTags
 	UE_DEFINE_GAMEPLAY_TAG(QuadrupedalHeavy, FName(TEXT("RobotParts.Leg.Quadrupedal.Heavy")));
 	UE_DEFINE_GAMEPLAY_TAG(ReverseBipedalStandard, FName(TEXT("RobotParts.Leg.ReverseBipedal.Standard")));
 }
+
+namespace ItemTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(Tools, FName(TEXT("Item.Tools")));
+	UE_DEFINE_GAMEPLAY_TAG(Consumable, FName(TEXT("Item.Consumable")));
+	UE_DEFINE_GAMEPLAY_TAG(HelperBot, FName(TEXT("Item.HelperBot")));
+}
