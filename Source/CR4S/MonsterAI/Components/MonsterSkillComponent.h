@@ -9,6 +9,8 @@ class USkillDataSubsystem;
 class UPrimitiveComponent;
 class AHiemsIceSpike;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSkillTriggered, int32 /*SkillIndex*/);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterSkillComponent : public UActorComponent
 {
@@ -54,6 +56,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Monster|Skill")
 	int32 CurrentSkillIndex = INDEX_NONE;
 
+	FOnSkillTriggered OnSkillTriggered;
+
 #pragma endregion
 
 #pragma region Helpers
@@ -81,7 +85,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void SetAttackCollisionEnabled(bool bEnable, int32 InSkillIndex);
+	void SetAttackCollisionEnabled(bool bEnable);
 
 	UFUNCTION()
 	void OnAttackHit(
@@ -92,9 +96,6 @@ public:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
-	TArray<TObjectPtr<UPrimitiveComponent>> WeaponColliders;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
 	TArray<TObjectPtr<UPrimitiveComponent>> BodyColliders;
