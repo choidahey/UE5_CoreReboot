@@ -20,6 +20,17 @@ void UInventoryContainerWidget::NativeConstruct()
 	SetIsFocusable(true);
 }
 
+void UInventoryContainerWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
+	{
+		SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+		CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Close!"));
+	}
+}
+
 void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
                                            UPlayerInventoryComponent* InPlayerInventoryComponent)
 {
@@ -77,6 +88,8 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	{
 		return;
 	}
+	
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Open!"));
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
@@ -187,8 +200,6 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	OtherInventoryComponent = nullptr;
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
-
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
 }
 
 void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)

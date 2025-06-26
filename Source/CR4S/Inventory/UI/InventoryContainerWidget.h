@@ -24,11 +24,17 @@ class CR4S_API UInventoryContainerWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-#pragma region Initalize
+#pragma region UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	
+#pragma endregion 
+	
+#pragma region Initalize
 
+public:
 	void InitWidget(ASurvivalHUD* InSurvivalHUD, UPlayerInventoryComponent* InPlayerInventoryComponent);
 
 	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent() const { return PlayerInventoryComponent; }
