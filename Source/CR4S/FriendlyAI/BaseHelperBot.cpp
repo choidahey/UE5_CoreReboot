@@ -25,6 +25,7 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Game/SaveGame/HelperBotSaveGame.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -449,10 +450,9 @@ void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
 	if (bIsFromInventory)
 	{
 		CurrentHealth = PickUpData.CurrentHealth;
-		BotName = PickUpData.BotName;
 		if (InteractableComp)
 		{
-			InteractableComp->SetInteractionText(FText::FromString(BotName));
+			InteractableComp->SetInteractionText(PickUpData.BotName);
 		}
 	}
 }
@@ -580,3 +580,41 @@ bool ABaseHelperBot::RepairBot(APlayerCharacter* Player)
 	return true;
 }
 #pragma endregion
+
+FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const
+{
+	FHelperBotSaveGame Data;
+	Data.BotName         = FText::FromString(BotName);
+	Data.CurrentHealth   = CurrentHealth;
+	Data.CurrentLocation = GetActorLocation();
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		uint8 StateValue = BotAI->GetBlackboardComponent()->GetValueAsEnum(TEXT("HelperBotState"));
+		Data.CurrentState = static_cast<EHelperBotState>(StateValue);
+	}
+	if (InventoryComponent)
+	{
+		Data.InventoryData = InventoryComponent->GetInventorySaveGame();
+	}
+	return Data;
+}
+
+void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
+{
+	BotName = Data.BotName.ToString();
+	CurrentHealth = Data.CurrentHealth;
+	SetActorLocation(Data.CurrentLocation);
+	
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		BotAI->SetBotState(Data.CurrentState);
+		BotAI->GetBlackboardComponent()->SetValueAsEnum(
+			TEXT("HelperBotState"),
+			static_cast<uint8>(Data.CurrentState)
+		);
+	}
+	if (InventoryComponent)
+	{
+		InventoryComponent->LoadInventorySaveGame(Data.InventoryData);
+	}
+}

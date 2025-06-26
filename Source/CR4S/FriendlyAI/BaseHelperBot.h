@@ -268,4 +268,11 @@ private:
 	FTimerHandle FadeTimerHandle;
 	void UpdateFadeOut();
 #pragma endregion
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FHelperBotSaveGame GetHelperBotSaveData() const;
+
+	UFUNCTION(BlueprintCallable)
+	void LoadHelperBotSaveData(const FHelperBotSaveGame& Data);
 };
