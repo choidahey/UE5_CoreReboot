@@ -310,7 +310,7 @@ void UHelperBotStateManagerWidget::PickUp()
 				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
 				{
 					FHelperPickUpData PickUpData;
-					PickUpData.BotName = Bot->GetBotName();
+					PickUpData.BotName = FText::FromString(Bot->GetBotName());
 					PickUpData.CurrentHealth = Bot->GetCurrentHealth();
 					InvComp->AddHelperBotItem(TEXT("HelperBot"), 1, PickUpData);
 				}
