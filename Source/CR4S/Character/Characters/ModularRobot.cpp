@@ -963,3 +963,9 @@ float AModularRobot::TakeDamage(float DamageAmount, struct FDamageEvent const& D
 	Status->TakeDamage(DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
+
+void AModularRobot::Destroyed()
+{
+	WeaponManager->UnequipAllWeapons();
+	Super::Destroyed();
+}

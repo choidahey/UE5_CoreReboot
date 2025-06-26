@@ -226,6 +226,16 @@ float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
+void APlayerCharacter::Destroyed()
+{
+	if (CurrentTool)
+	{
+		CurrentTool->Destroy();
+		CurrentTool=nullptr;
+	}
+	Super::Destroyed();
+}
+
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
