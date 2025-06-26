@@ -16,9 +16,16 @@ void UAnimNotifyState_ColdFairyAttack::NotifyBegin(USkeletalMeshComponent* MeshC
 {
     if (!IsValid(MeshComp->GetWorld())
         || !IsValid(MeshComp)
-        || !IsValid(SpawnActorClass)
+        || SpawnActorClass.IsNull()
         || !IsValid(Animation)
         || NumSpawnActor <= 0) return;
+
+    UClass* PreloadedClass = SpawnActorClass.LoadSynchronous();
+    if (!IsValid(PreloadedClass))
+    {
+        CR4S_Log(LogDa, Warning, TEXT("[%s] Fail to load ColdFairyActor Class"), *GetClass()->GetName());
+        return;
+    }
     
     APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
     if (!CR4S_VALIDATE(LogDa, IsValid(OwnerPawn))) return;
@@ -30,20 +37,16 @@ void UAnimNotifyState_ColdFairyAttack::NotifyBegin(USkeletalMeshComponent* MeshC
     if (!CR4S_VALIDATE(LogDa, IsValid(BBComp))) return;
     
     CurrentSpawnIndex = 0;
-    SpawnedFairies.Empty();
 
-    MeshComp->GetWorld()->GetTimerManager().SetTimer(
-        SpawnTimerHandle,
-        FTimerDelegate::CreateUObject(
-            this,
-            &UAnimNotifyState_ColdFairyAttack::SpawnOne,
-            MeshComp,
-            Cast<AAIController>(Cast<APawn>(MeshComp->GetOwner())->GetController()),
-            Cast<AAIController>(Cast<APawn>(MeshComp->GetOwner())->GetController())->GetBlackboardComponent()
-        ),
-        Interval,
-        true
+    FTimerDelegate Delegate = FTimerDelegate::CreateUObject(
+        this,
+        &UAnimNotifyState_ColdFairyAttack::SpawnOne,
+        MeshComp,
+        AIC,
+        BBComp
     );
+
+    MeshComp->GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, Delegate, Interval, true);
 }
 
 void UAnimNotifyState_ColdFairyAttack::SpawnOne(
@@ -51,7 +54,24 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
     AAIController* AIC,
     UBlackboardComponent* BB)
 {
-    if (!MeshComp || !SpawnActorClass) return;
+    if (SpawnActorClass.IsNull()) return;
+
+    UClass* ActorClass = SpawnActorClass.LoadSynchronous();
+    if (!IsValid(ActorClass))
+    {
+        if (MeshComp && MeshComp->GetWorld())
+        {
+            MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+        }
+        return;
+    }
+    
+    if (!IsValid(MeshComp) || !IsValid(BB))
+    {
+        if (MeshComp && MeshComp->GetWorld())
+            MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+        return;
+    }
 
     APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
     if (!OwnerPawn) return;
@@ -89,15 +109,14 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
         Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
         
         AActor* SpawnActor = MeshComp->GetWorld()->SpawnActor<AActor>(
-            SpawnActorClass,
+            ActorClass,
             SpawnLoc,
             SpawnRot,
             Params
         );
-
+        
         if (AColdFairyActor* FairyActor = Cast<AColdFairyActor>(SpawnActor))
         {
-            SpawnedFairies.Add(FairyActor);
             FairyActor->InitialLaunch(Target, CurrentSpawnIndex, NumSpawnActor);
         }
         else
@@ -113,8 +132,10 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
     }
 }
 
-void UAnimNotifyState_ColdFairyAttack::NotifyEnd(
-    USkeletalMeshComponent* MeshComp,
-    UAnimSequenceBase* Animation)
+void UAnimNotifyState_ColdFairyAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+    if (MeshComp && MeshComp->GetWorld())
+    {
+        MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+    }
 }

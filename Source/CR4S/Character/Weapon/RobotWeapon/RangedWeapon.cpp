@@ -85,7 +85,7 @@ bool ARangedWeapon::GetAimHitResult(FHitResult& OutHitResult) const
 		OutHitResult,
 		WorldOrigin,
 		TraceEnd,
-		ECC_Camera,
+		ECC_GameTraceChannel5,
 		Params
 	);
 	if (!bHit)

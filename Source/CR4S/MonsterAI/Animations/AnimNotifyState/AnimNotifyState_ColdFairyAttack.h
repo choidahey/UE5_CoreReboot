@@ -18,7 +18,7 @@ public:
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
-	TSubclassOf<AActor> SpawnActorClass;
+	TSoftClassPtr<AActor> SpawnActorClass;
 	
 	UPROPERTY(EditAnywhere, Category = "Boss|Attack")
 	int32 NumSpawnActor = 10;
@@ -34,9 +34,7 @@ public:
 
 private:
 	void SpawnOne(USkeletalMeshComponent* MeshComp, AAIController* AIC, UBlackboardComponent* BB);
-
-	UPROPERTY()
-	TArray<AColdFairyActor*> SpawnedFairies;
+	
 	FTimerHandle SpawnTimerHandle;
 	int32 CurrentSpawnIndex = 0;
 

@@ -168,17 +168,17 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 		return;
 	}
 
+	if (OnInventoryClose.IsBound())
+	{
+		OnInventoryClose.Broadcast();
+	}
+
 	InventoryContainerWidgetInstance->CloseInventoryWidget();
 
 	InteractionComponent = OwnerActor->FindComponentByClass<UInteractionComponent>();
 	if (IsValid(InteractionComponent))
 	{
 		InteractionComponent->StartDetectProcess();
-	}
-
-	if (OnInventoryClose.IsBound())
-	{
-		OnInventoryClose.Broadcast();
 	}
 }
 

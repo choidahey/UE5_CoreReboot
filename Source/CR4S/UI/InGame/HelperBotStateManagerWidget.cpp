@@ -11,6 +11,7 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIController* InController, EHelperBotState InPreviousState)
 {
@@ -45,6 +46,8 @@ void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIControll
 				                                       &UHelperBotStateManagerWidget::UpdateLookAtPlayer, 0.02f, true);
 			}
 		}
+		UpdateHealthDisplay();
+		UpdateRepairButtonState();
 	}
 }
 
@@ -67,6 +70,8 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 	if (ChangeNameButton) ChangeNameButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::ChangeNameButtonClicked);
 	if (BotNameEditBox) BotNameEditBox->OnTextCommitted.AddDynamic(this, &UHelperBotStateManagerWidget::OnNameEditCommitted);
 	if (PickUpButton) PickUpButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::PickUp);
+	if (RepairBotButton) RepairBotButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::RepairBot);
+
 		
 	GetWorld()->GetTimerManager().SetTimer(DistanceCheckTimer, this, 
 		&UHelperBotStateManagerWidget::CheckPlayerDistance, 0.5f, true);
@@ -280,6 +285,28 @@ void UHelperBotStateManagerWidget::PickUp()
 		{
 			if (APlayerCharacter* PC = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
 			{
+				if (UBaseInventoryComponent* BotInventory = Bot->FindComponentByClass<UBaseInventoryComponent>())
+				{
+					if (UPlayerInventoryComponent* PlayerInventory = PC->FindComponentByClass<UPlayerInventoryComponent>())
+					{
+						TMap<FName, int32> ItemsToTransfer;
+						const TArray<TObjectPtr<UBaseInventoryItem>>& BotItems = BotInventory->GetInventoryItems();
+						
+						for (const UBaseInventoryItem* Item : BotItems)
+						{
+							if (IsValid(Item))
+							{
+								FName ItemRowName = Item->GetInventoryItemData()->RowName;
+								int32 ItemCount = Item->GetCurrentStackCount();
+								ItemsToTransfer.FindOrAdd(ItemRowName) += ItemCount;
+							}
+						}
+						
+						PlayerInventory->AddItems(ItemsToTransfer);
+					}
+				}
+				
+				Bot->StartFadeOut();
 				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
 				{
 					FHelperPickUpData PickUpData;
@@ -288,8 +315,56 @@ void UHelperBotStateManagerWidget::PickUp()
 					InvComp->AddHelperBotItem(TEXT("HelperBot"), 1, PickUpData);
 				}
 			}
-			Bot->Destroy();
 		}
 	}
 	CloseWidgetAndResetInput();
+}
+
+void UHelperBotStateManagerWidget::RepairBot()
+{
+	if (!HelperBot)
+	{
+		return;
+	}
+	
+	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	if (!Player)
+	{
+		return;
+	}
+	
+	if (HelperBot->RepairBot(Player))
+	{
+		UpdateHealthDisplay();
+		UpdateRepairButtonState();
+	}
+}
+
+void UHelperBotStateManagerWidget::UpdateRepairButtonState()
+{
+	if (!RepairBotButton || !HelperBot)
+	{
+		return;
+	}
+	
+	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	bool bCanRepair = HelperBot->CanRepair(Player);
+	
+	RepairBotButton->SetIsEnabled(bCanRepair);
+}
+
+void UHelperBotStateManagerWidget::UpdateHealthDisplay()
+{
+	if (!HelperBot)
+	{
+		return;
+	}
+   
+	if (HealthText)
+	{
+		FString HealthString = FString::Printf(TEXT("%d / %d"), 
+			(int32)HelperBot->GetCurrentHealth(), 
+			(int32)HelperBot->GetMaxHealth());
+		HealthText->SetText(FText::FromString(HealthString));
+	}
 }

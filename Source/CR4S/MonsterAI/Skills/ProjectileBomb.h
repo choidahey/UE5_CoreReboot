@@ -15,8 +15,11 @@ class CR4S_API AProjectileBomb : public ABaseSkillActor
 public:
 	AProjectileBomb();
 
+	void LaunchProjectile();
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 	virtual float TakeDamage(
 		float DamageAmount,
@@ -42,20 +45,9 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-	
-	void LaunchProjectile();
 
 	UPROPERTY(VisibleAnywhere, Category = "Boss|Skill")
 	UProjectileMovementComponent* ProjectileMovement;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
-	UNiagaraSystem* ExplosionEffect;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
-	FVector ExplosionScale = FVector(1.f, 1.f, 1.f);
-	
-	UPROPERTY(VisibleAnywhere, Category="Boss|Skills")
-    USphereComponent* ExplosionOverlapComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float ActorLifeTime = 1.f;
@@ -65,6 +57,30 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Boss|Skill", meta=(AllowPrivateAccess="true", ClampMin="0.0", ClampMax="90.0"))
 	float LaunchPitchAngle = 45.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	bool bCanBeDestroyed = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	bool bHomingActive = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill", meta=(ClampMin="0.0"))
+	float HomingSpeed = 1200.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill", meta=(ClampMin="0.0"))
+	float SpawnDistance = 200.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	TSubclassOf<AActor> SpawnActorClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	UNiagaraSystem* ExplosionEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
+	FVector ExplosionScale = FVector(1.f, 1.f, 1.f);
+	
+	UPROPERTY(VisibleAnywhere, Category="Boss|Skills")
+    USphereComponent* ExplosionOverlapComp;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	float ExplosionRadius = 300.f;
@@ -81,9 +97,14 @@ protected:
 
 private:
 	void ApplyPeriodicDamage(AActor* Victim);
+	void ActivateHoming();
 	
 	UPROPERTY()
 	TMap<AActor*, FTimerHandle> OverlapDamageTimers;
 
+	UPROPERTY()
+	TObjectPtr<AActor> HomingTarget;
+	
 	FTimerHandle LaunchTimerHandle;
+	FTimerHandle HomingTimerHandle;
 };

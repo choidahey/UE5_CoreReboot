@@ -13,6 +13,7 @@ UBTTask_PlayAttackMontage::UBTTask_PlayAttackMontage()
 {
 	NodeName = TEXT("PlayAttackMontage");
 	SkillIndexKey.SelectedKeyName = FAIKeys::SkillIndex;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

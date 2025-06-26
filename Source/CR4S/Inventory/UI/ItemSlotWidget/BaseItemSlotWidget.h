@@ -91,7 +91,7 @@ private:
 #pragma region Item
 
 public:
-	void SetItem(UBaseInventoryItem* InItem);
+	virtual void SetItem(UBaseInventoryItem* InItem);
 
 	FORCEINLINE UBaseInventoryItem* GetCurrentItem() const { return CurrentItem; }
 
