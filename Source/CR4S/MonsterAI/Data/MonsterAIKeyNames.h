@@ -41,8 +41,9 @@ struct FSeasonBossAIKeys : public FAIKeys
 	static const FName CurrentSkillRange;
 	static const FName MeleeOptimalDistance;
 	static const FName RangedOptimalDistance;
-	static const FName bIsInSkillRange;
-	static const FName AggroTarget;
-	
-	
+	static const FName TeleportLocation;
+	static const FName SelectedComboKey;
+	static const FName SpecialPatternKey;
+	static const FName isDashing;
+	static const FName CurrentPhase;
 };

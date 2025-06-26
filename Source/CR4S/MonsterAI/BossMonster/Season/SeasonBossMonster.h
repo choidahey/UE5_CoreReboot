@@ -23,6 +23,12 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void HandleDeath() override;
 
+#pragma region State Mamaging
+protected:
+	UFUNCTION()
+	void HandlePhaseChanged(EBossPhase NewPhase);
+
+#pragma endregion
 #pragma region Opening Pattern
 protected:
 	void SpawnOpeningPattern();  // Template Method

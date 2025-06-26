@@ -1,14 +1,19 @@
 #include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
+#include "AIController.h"
 #include "CR4S.h"
 #include "NavigationInvokerComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Game/System/EnvironmentalModifierVolume.h"
 #include "Game/System/EnvironmentManager.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterAggroComponent.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
+#include "MonsterAI/Components/MonsterAttributeComponent.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 ASeasonBossMonster::ASeasonBossMonster()
@@ -24,6 +29,12 @@ void ASeasonBossMonster::BeginPlay()
 {
    Super::BeginPlay();
 
+   if (UMonsterStateComponent* StateComp = FindComponentByClass<UMonsterStateComponent>())
+   {
+      StateComp->SetPhase(EBossPhase::Normal);
+      StateComp->OnPhaseChanged.AddUniqueDynamic(this, &ASeasonBossMonster::HandlePhaseChanged);
+   }
+   
    SpawnOpeningPattern();
 }
 
@@ -58,6 +69,37 @@ void ASeasonBossMonster::HandleDeath()
       SpawnedNiagaraComp->DestroyComponent();
       SpawnedNiagaraComp = nullptr;
    }
+}
+
+void ASeasonBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
+{
+   if (AAIController* AI = Cast<AAIController>(GetController()))
+   {
+      if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+      {
+         BB->SetValueAsEnum(FSeasonBossAIKeys::CurrentPhase, static_cast<int32>(NewPhase));
+      }
+   }
+
+   if (!AttributeComponent || !StateComponent) return;
+
+   if (NewPhase == EBossPhase::Normal)
+   {
+      AttributeComponent->InitializeMonsterAttribute(MonsterID);
+   }
+   else
+   {
+      const float BaseSpeed = AttributeComponent->GetMonsterAttribute().MoveSpeed;
+      const float SpeedMultiplier = StateComponent->GetCurrentSpeedMultiplier();
+
+      if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+      {
+         MoveComp->MaxWalkSpeed = BaseSpeed * SpeedMultiplier;
+      }
+   }
+
+   CR4S_Log(LogMonster, Log, TEXT("[%s] HandlePhaseChanged : Current phase changed to %s"), *GetClass()->GetName(),
+      *UEnum::GetDisplayValueAsText(NewPhase).ToString());
 }
 
 void ASeasonBossMonster::SpawnOpeningPattern()
