@@ -12,10 +12,7 @@ struct CR4S_API FPlayerCharacterSaveGame
 	GENERATED_BODY()
 public:
 	FPlayerCharacterSaveGame() {}
-
 	
-	UPROPERTY(VisibleAnywhere, Category = "SaveData | Transform")
-	FTransform CharacterTransform;
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
 	float CurrentHP{0};
@@ -59,9 +56,6 @@ public:
 	FModularRobotSaveGame() {}
 	
 
-	UPROPERTY(VisibleAnywhere, Category = "SaveData | Transform")
-	FTransform RobotTransform;
-
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
 	float CurrentHP{0};
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
@@ -88,7 +82,7 @@ public:
 	FGameplayTag BoosterTag;
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Weapons")
-	TArray<FGameplayTag> EquippedWeapons;
+	TArray<FRobotWeaponSaveGame> EquippedWeapons;
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Mount")
 	uint8 bWasPlayerMounted:1 {false};
