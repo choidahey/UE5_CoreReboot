@@ -5,6 +5,26 @@
 #include "Sound/SoundClass.h"
 #include "AudioManager.generated.h"
 
+USTRUCT(BlueprintType)
+struct FSoundClassVolume //Multiplier
+{
+	GENERATED_BODY()
+
+	float Master = 1.0f;
+	float BGM = 1.0f;
+	float SFX = 1.0f;
+};
+
+UENUM(BlueprintType)
+enum class EConcurrencyType : uint8
+{
+	UI         UMETA(DisplayName = "UI"),			// eg. button click, button hover
+	Impact     UMETA(DisplayName = "Impact"),	    // eg. explosion
+	AI         UMETA(DisplayName = "AI"),			// eg. AI voice, Monster cry
+	Repetition UMETA(DisplayName = "Repetition"),	// eg. footsteps, gun shot
+	Default    UMETA(DisplayName = "Default")
+};
+
 UCLASS()
 class CR4S_API UAudioManager : public UGameInstanceSubsystem
 {
@@ -14,32 +34,39 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	FORCEINLINE float GetMasterVolume() const { return MasterVolume; }
-	FORCEINLINE float GetBGMVolume() const { return BGMVolume; }
-	FORCEINLINE float GetSFXVolume() const { return SFXVolume; }
+	FORCEINLINE float GetMasterVolume() const { return GameSoundVolume.Master; }
+	FORCEINLINE float GetBGMVolume() const { return GameSoundVolume.BGM; }
+	FORCEINLINE float GetSFXVolume() const { return GameSoundVolume.SFX; }
 
 	void SetMasterVolume(float Volume);
 	void SetBGMVolume(float Volume);
 	void SetSFXVolume(float Volume);
 
-	void SaveVolumeSettings();
+	//void SaveVolumeSettings();
 	void LoadVolumeSettings();
 
 #pragma region Play Sound Functions
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void Play2DSound(USoundBase* Sound, float VolumeMultiplier = 1.0f, float PitchMultiplier = 1.0f, float StartTime = 0.0f);
-
+	// Plays Background Music //
+	// Before playing a new BGM, it fades out and stops the BGM that has been playing
 	UFUNCTION(BlueprintCallable)
 	UAudioComponent* PlayBGM(USoundBase* BGM);
 
+	// Plays Sound Effect in a 3D Space//
+	UFUNCTION(BlueprintCallable)
+	UAudioComponent* PlaySFX(USoundBase* SFX, FVector Location, EConcurrencyType SoundType, float Pitch = 1.0f, float StartTime = 0.0f);
+
+	// XXX Do not use XXX //
+	UFUNCTION(BlueprintCallable)
+	void Play2DSound(USoundBase* Sound, float VolumeMultiplier = 1.0f, float PitchMultiplier = 1.0f, float StartTime = 0.0f);
+
+	// Stops Current BGM that is beeing played //
 	UFUNCTION(BlueprintCallable)
 	void StopBGM();
 
+
 protected:
-
-
 
 	UPROPERTY()
 	UAudioComponent* CurrentBGMComponent;
@@ -47,6 +74,7 @@ protected:
 
 #pragma endregion 
 
+#pragma region Sound Classes and Mix
 protected:
 	UPROPERTY()
 	USoundMix* MasterSoundMix;
@@ -58,11 +86,27 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "SoundClass")
 	USoundClass* SFXClass;
 
-private:
+#pragma endregion 
 
-	float MasterVolume = 1.0f;
-	float BGMVolume = 1.0f;
-	float SFXVolume = 1.0f;
+#pragma region Concurrencies
+	UPROPERTY()
+	USoundConcurrency* BGMConcurrency;
+	UPROPERTY()
+	USoundConcurrency* UIConcurrency;
+	UPROPERTY()
+	USoundConcurrency* ImpactConcurrency;
+	UPROPERTY()
+	USoundConcurrency* AIConcurrency;
+	UPROPERTY()
+	USoundConcurrency* RepetitionConcurrency;
+
+#pragma endregion 
+
+private:
+	UFUNCTION(BlueprintCallable)
+	USoundConcurrency* GetConcurrencyByType(EConcurrencyType SoundType) const;
+
+	FSoundClassVolume GameSoundVolume;
 
 	bool bMixPushed = false;
 };
