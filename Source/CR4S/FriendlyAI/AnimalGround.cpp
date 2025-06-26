@@ -5,6 +5,7 @@
 #include "Controller/AnimalAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Utility/CombatStatics.h"
 
 AAnimalGround::AAnimalGround()
 {
@@ -132,6 +133,8 @@ void AAnimalGround::PerformMeleeAttack()
 
 	float Damage = GetCurrentStats().AttackDamage;
 	UGameplayStatics::ApplyDamage(CurrentTarget, Damage, GetController(), this, nullptr);
+
+	UCombatStatics::ApplyStun(CurrentTarget, GetCurrentStats().StunAmount);
 }
 
 void AAnimalGround::PerformChargeAttack()

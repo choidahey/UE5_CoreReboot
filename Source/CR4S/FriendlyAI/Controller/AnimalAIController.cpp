@@ -160,7 +160,7 @@ void AAnimalAIController::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
     ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn());
-    if (!Animal || !Animal->bStatsReady || Animal->CurrentState == EAnimalState::Dead)
+    if (!Animal || !Animal->bStatsReady || Animal->CurrentState == EAnimalState::Dead || Animal->CurrentState == EAnimalState::Stun)
     {
         return;
     }
