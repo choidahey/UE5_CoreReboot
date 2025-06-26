@@ -160,6 +160,8 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	bIsOpen = false;
 
 	UWidgetBlueprintLibrary::CancelDragDrop();
+
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
 	
 	ChangeWidgetOrder(0);
 
@@ -193,7 +195,6 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
 	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Close!"));
 }
 

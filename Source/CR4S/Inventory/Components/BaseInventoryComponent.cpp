@@ -8,6 +8,7 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
 #include "Inventory/InventoryItem/HelperBotInventoryItem.h"
+#include "Inventory/InventoryItem/RobotPartsInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Utility/Cr4sGameplayTags.h"
 
@@ -259,6 +260,11 @@ UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplay
 	if (ItemTags.HasTag(ItemTags::HelperBot))
 	{
 		return NewObject<UHelperBotInventoryItem>(this);
+	}
+
+	if (ItemTags.HasTag(ItemTags::RobotParts) || ItemTags.HasTag(ItemTags::Weapon))
+	{
+		return NewObject<URobotPartsInventoryItem>(this);
 	}
 
 	return NewObject<UBaseInventoryItem>(this);
