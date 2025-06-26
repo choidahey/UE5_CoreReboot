@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
-#include "Character/Data/RobotPartsData.h"
 #include "Character/Data/RobotSettings.h"
+#include "Game/Interface/SavableActor.h"
+#include "Game/SaveGame/CoreSaveGame.h"
 #include "GameFramework/Character.h"
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class USaveGame;
 class UTimelineComponent;
 class UDataLoaderSubsystem;
 struct FGameplayTag;
@@ -29,13 +31,20 @@ class UCameraComponent;
 struct FInputActionValue;
 
 UCLASS()
-class CR4S_API AModularRobot : public ACharacter, public IStunnableInterface
+class CR4S_API AModularRobot : public ACharacter, public IStunnableInterface, public ISavableActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	AModularRobot();
+
+#pragma region Save/Load
+	virtual FName GetUniqueSaveID() override;
+	virtual void SetUniqueSaveID(FName NewID) override;
+	virtual void GatherSaveData(FSavedActorData& OutSaveData) override;
+	virtual void ApplySaveData(FSavedActorData& InSaveData) override;
+#pragma endregion
 
 #pragma region InputEnable
 	void SetInputEnable(const bool bEnableInput) const;
@@ -53,6 +62,7 @@ public:
 	void EquipLegParts(const FGameplayTag& Tag);
 	UFUNCTION(BlueprintCallable)
 	void EquipBoosterParts(const FGameplayTag& Tag);
+	
 	UFUNCTION(BlueprintCallable)
 	void UnequipCoreParts();
 	UFUNCTION(BlueprintCallable)
@@ -63,6 +73,8 @@ public:
 	void UnequipLegParts();
 	UFUNCTION(BlueprintCallable)
 	void UnequipBoosterParts();
+
+	void UnequipAll();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetLegManagerEnabled(const bool bIsEnabled);
@@ -114,6 +126,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void NotifyControllerChanged() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
@@ -234,6 +247,9 @@ protected:
 	uint8 bIsDashing : 1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsHovering : 1 {false};
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
+	FName UniqueSaveID;
 #pragma endregion
 
 #pragma region Hover

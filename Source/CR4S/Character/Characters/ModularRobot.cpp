@@ -19,6 +19,7 @@
 #include "Character/Components/RobotInputBufferComponent.h"
 #include "Character/Data/RobotPartsData.h"
 #include "Components/TimelineComponent.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -100,6 +101,67 @@ AModularRobot::AModularRobot()
 	EnvironmentalStatus=CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 
 	HoverTimeLine=CreateDefaultSubobject<UTimelineComponent>(TEXT("HoverTimeLine"));
+}
+
+FName AModularRobot::GetUniqueSaveID()
+{
+	return UniqueSaveID;
+}
+
+void AModularRobot::SetUniqueSaveID(FName NewID)
+{
+	UniqueSaveID=NewID;
+}
+
+void AModularRobot::GatherSaveData(FSavedActorData& OutSaveData)
+{
+	OutSaveData.ActorType=ESavedActorType::ModularRobot;
+	
+	FModularRobotSaveGame& RobotData=OutSaveData.RobotData;
+	
+	OutSaveData.ActorTransform=GetActorTransform();
+	
+	RobotData.CurrentHP=Status->GetCurrentHP();
+	RobotData.CurrentResource=Status->GetCurrentResource();
+	RobotData.CurrentEnergy=Status->GetCurrentEnergy();
+	RobotData.CurrentStun=Status->GetCurrentStun();
+	
+	RobotData.CurrentTemperature=EnvironmentalStatus->GetCurrentTemperature();
+	RobotData.CurrentHumidity=EnvironmentalStatus->GetCurrentHumidity();
+
+	RobotData.CoreTag=CoreTag;
+	RobotData.BodyTag=BodyTag;
+	RobotData.ArmTag=ArmTag;
+	RobotData.LegTag=LegTag;
+	RobotData.BoosterTag=BoosterTag;
+
+	WeaponManager->GatherWeaponSaveData(RobotData.EquippedWeapons);
+
+	RobotData.bWasPlayerMounted= MountedCharacter ? true : false;
+}
+
+void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
+{
+	FModularRobotSaveGame& RobotData=InSaveData.RobotData;
+
+
+	SetActorTransform(InSaveData.ActorTransform);
+
+	Status->SetCurrentHP(RobotData.CurrentHP);
+	Status->SetCurrentResource(RobotData.CurrentResource);
+	Status->SetCurrentEnergy(RobotData.CurrentEnergy);
+	Status->SetCurrentStun(RobotData.CurrentStun);
+
+	EnvironmentalStatus->SetCurrentTemperature(RobotData.CurrentTemperature);
+	EnvironmentalStatus->SetCurrentHumidity(RobotData.CurrentHumidity);
+
+	EquipCoreParts(RobotData.CoreTag);
+	EquipBodyParts(RobotData.BodyTag);
+	EquipArmParts(RobotData.ArmTag);
+	EquipLegParts(RobotData.LegTag);
+	EquipBoosterParts(RobotData.BoosterTag);
+
+	WeaponManager->ApplyWeaponSaveData(RobotData.EquippedWeapons);
 }
 
 void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)

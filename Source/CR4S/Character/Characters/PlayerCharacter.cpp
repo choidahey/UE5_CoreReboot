@@ -16,13 +16,11 @@
 #include "Utility/AlsVector.h"
 #include "NavigationInvokerComponent.h"
 #include "Character/Components/PlayerInputBufferComponent.h"
-#include "Character/Components/PlayerInputBufferComponent.h"
 #include "Character/Components/WeaponTraceComponent.h"
 #include "Character/Weapon/BaseTool.h"
 #include "Character/Weapon/PlayerTool.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
-#include "Tests/AutomationCommon.h"
-#include "UI/InGame/CharacterEnvironmentStatusWidget.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -53,6 +51,50 @@ APlayerCharacter::APlayerCharacter()
 	PlayerInventory = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventory"));
 }
 
+FName APlayerCharacter::GetUniqueSaveID()
+{
+	return UniqueSaveID;
+}
+
+void APlayerCharacter::SetUniqueSaveID(FName NewID)
+{
+	UniqueSaveID=NewID;
+}
+
+void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
+{
+	OutSaveData.ActorType=ESavedActorType::PlayerCharacter;
+	
+	FPlayerCharacterSaveGame& PlayerData=OutSaveData.PlayerCharacterData;
+	
+	OutSaveData.ActorTransform=GetActorTransform();
+	PlayerData.CurrentHP=Status->GetCurrentHP();
+	PlayerData.CurrentResource=Status->GetCurrentResource();
+	PlayerData.CurrentHunger=Status->GetCurrentHunger();
+	PlayerData.CurrentTemperature=EnvironmentalStatus->GetCurrentTemperature();
+	PlayerData.CurrentHumidity=EnvironmentalStatus->GetCurrentHumidity();
+	PlayerData.EquippedToolTag= CurrentTool ? CurrentTool->GetToolGameplayTag() : FGameplayTag::EmptyTag;
+	PlayerData.Stance=GetStance();
+	PlayerData.Gait=GetGait();
+	PlayerData.bIsRightShoulder=Camera->IsRightShoulder();
+}
+
+void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
+{
+	FPlayerCharacterSaveGame& PlayerData=InSaveData.PlayerCharacterData;
+
+	SetActorTransform(InSaveData.ActorTransform);
+	Status->SetCurrentHP(PlayerData.CurrentHP);
+	Status->SetCurrentResource(PlayerData.CurrentResource);
+	Status->SetCurrentHunger(PlayerData.CurrentHunger);
+	EnvironmentalStatus->SetCurrentTemperature(PlayerData.CurrentTemperature);
+	EnvironmentalStatus->SetCurrentHumidity(PlayerData.CurrentHumidity);
+	SetCurrentToolByTag(PlayerData.EquippedToolTag);
+	SetDesiredStance(PlayerData.Stance);
+	SetDesiredGait(PlayerData.Gait);
+	Camera->SetRightShoulder(PlayerData.bIsRightShoulder);
+}
+
 void APlayerCharacter::OnDeath()
 {
 	SetOverlayMode(AlsOverlayModeTags::Default);
@@ -69,7 +111,7 @@ void APlayerCharacter::OnDeath()
 
 void APlayerCharacter::SetCurrentToolByTag(const FGameplayTag& ToolTag)
 {
-	if (!CurrentTool||CurrentTool->GetGameplayTag().MatchesTagExact(ToolTag)) return;
+	if (!CurrentTool||CurrentTool->GetToolGameplayTag().MatchesTagExact(ToolTag)) return;
 	
 	CurrentTool->SetGameplayTag(ToolTag);
 	
@@ -86,6 +128,7 @@ void APlayerCharacter::InitializeCurrentTool()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Instigator=this;
 	SpawnParams.Owner=this;
+	
 	APlayerTool* NewTool=GetWorld()->SpawnActor<APlayerTool>(SpawnParams);
 	const FAttachmentTransformRules AttachRules(
 		EAttachmentRule::SnapToTarget,
@@ -104,7 +147,7 @@ void APlayerCharacter::InitializeCurrentTool()
 	CurrentTool->Initialize(this);
 }
 
-void APlayerCharacter::InitializeWidgets()
+void APlayerCharacter::InitializeWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -125,7 +168,7 @@ void APlayerCharacter::InitializeWidgets()
 	}
 }
 
-void APlayerCharacter::DisconnectWidgets()
+void APlayerCharacter::DisconnectWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
