@@ -8,6 +8,7 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
 #include "Inventory/InventoryItem/HelperBotInventoryItem.h"
+#include "Inventory/InventoryItem/RobotPartsInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Utility/Cr4sGameplayTags.h"
 
@@ -261,6 +262,11 @@ UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplay
 		return NewObject<UHelperBotInventoryItem>(this);
 	}
 
+	if (ItemTags.HasTag(ItemTags::RobotParts) || ItemTags.HasTag(ItemTags::Weapon))
+	{
+		return NewObject<URobotPartsInventoryItem>(this);
+	}
+
 	return NewObject<UBaseInventoryItem>(this);
 }
 
@@ -296,19 +302,9 @@ void UBaseInventoryComponent::LoadInventorySaveGame(const FInventorySaveGame& Sa
 	for (const FInventoryItemSaveGame& SaveItemData : ItemSaveGame)
 	{
 		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
-		UBaseInventoryItem* Item = nullptr;
-		switch (SaveItemData.InventoryItemData.ItemType) {
-		case EInventoryItemType::General:
-			Item = NewObject<UBaseInventoryItem>(this);
-			break;
-		case EInventoryItemType::Consumable:
-			Item = NewObject<UConsumableInventoryItem>(this);
-			break;
-		case EInventoryItemType::HelperBot:
-			Item = NewObject<UHelperBotInventoryItem>(this);
-			break;
-		}
-		
+
+		const FGameplayTagContainer& Tags = SaveItemData.InventoryItemData.ItemInfoData.ItemTags;
+		UBaseInventoryItem* Item = CreateInventoryItem(Tags);
 		Item->LoadInventoryItemSaveData(this, SaveItemData);
 		InventoryItems[Index] = Item;
 

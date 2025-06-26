@@ -76,3 +76,12 @@ struct FHelperBotItemData : public FTableRowBase
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "스폰 오프셋", ToolTip = "X: OffsetFoward, Z: OffsetUp"))
 	FVector SpawnOffset = FVector(0.f, 0.f, 0.f);
 };
+
+USTRUCT(BlueprintType)
+struct FRobotPartsInfoFormatData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "출력 서식", MultiLine = "true"))
+	FText FormatPattern;
+};

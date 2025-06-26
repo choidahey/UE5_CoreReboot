@@ -132,6 +132,7 @@ public:
 	
 	FORCEINLINE void SetIsFromInventory(bool bFromInventory) { bIsFromInventory = bFromInventory; }
 
+	FORCEINLINE bool InitPickData() const { return PickUpData.bIsInit; }
 	void SetPickUpData(const FHelperPickUpData& InPickUpData);
 	
 #pragma endregion

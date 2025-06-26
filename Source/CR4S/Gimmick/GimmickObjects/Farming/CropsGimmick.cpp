@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
+#include "Game/SaveGame/GimmickSaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Gimmick/Data/GimmickData.h"
@@ -52,6 +53,12 @@ void ACropsGimmick::BeginPlay()
 	}
 
 	InitGrowthState();
+}
+
+FGimmickSaveGameData ACropsGimmick::GetGimmickSaveGameData_Implementation(bool& bSuccess)
+{
+	bSuccess = false;
+	return bIsPlanted ? FGimmickSaveGameData() : Super::GetGimmickSaveGameData_Implementation(bSuccess);
 }
 
 void ACropsGimmick::OnGimmickInteracted(AActor* Interactor)
