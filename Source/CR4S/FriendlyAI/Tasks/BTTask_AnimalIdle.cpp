@@ -1,5 +1,3 @@
-// BTTask_AnimalIdle.cpp
-
 #include "BTTask_AnimalIdle.h"
 #include "AIController.h"
 #include "GameFramework/Character.h"
@@ -9,6 +7,7 @@ UBTTask_AnimalIdle::UBTTask_AnimalIdle()
 {
     NodeName = TEXT("Animal Idle");
     bNotifyTaskFinished = true;
+    bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_AnimalIdle::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -64,10 +63,7 @@ void UBTTask_AnimalIdle::OnIdleMontageFinished(UAnimMontage* Montage, bool bInte
 {
     if (CachedOwnerComp)
     {
-        CachedOwnerComp->OnTaskFinished(
-            this,
-            bInterrupted ? EBTNodeResult::Aborted : EBTNodeResult::Succeeded
-        );
+        FinishLatentTask(*CachedOwnerComp, bInterrupted ? EBTNodeResult::Aborted : EBTNodeResult::Succeeded);
     }
 
     if (AnimalAnimInst)

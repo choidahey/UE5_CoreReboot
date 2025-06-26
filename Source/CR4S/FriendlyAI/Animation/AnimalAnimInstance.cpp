@@ -75,17 +75,31 @@ void UAnimalAnimInstance::AnimNotify_AnimalRanged()
 
 bool UAnimalAnimInstance::PlayRandomIdleMontage()
 {
-	if (IdleMontages.Num() == 0) return false;
+	if (Montage_IsPlaying(nullptr))
+	{
+		Montage_Stop(0.2f);
+	}
+    
+	if (IdleMontages.Num() == 0) 
+	{
+		return false;
+	}
 
 	int32 Index = UKismetMathLibrary::RandomIntegerInRange(0, IdleMontages.Num() - 1);
 	UAnimMontage* Chosen = IdleMontages[Index];
-	if (!Chosen) return false;
+
+	if (!Chosen) 
+	{
+		return false;
+	}
 
 	float Duration = Montage_Play(Chosen);
+    
 	if (Duration > 0.f)
 	{
 		FOnMontageEnded EndDelegate;
-		EndDelegate.BindUFunction(this, TEXT("HandleMontageEnded"));
+		EndDelegate.BindUObject(this, &UAnimalAnimInstance::HandleMontageEnded);
+        
 		Montage_SetEndDelegate(EndDelegate, Chosen);
 		return true;
 	}
@@ -93,6 +107,6 @@ bool UAnimalAnimInstance::PlayRandomIdleMontage()
 }
 
 void UAnimalAnimInstance::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
+{          
 	OnIdleMontageEnded.Broadcast(Montage, bInterrupted);
 }
