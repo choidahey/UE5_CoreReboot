@@ -5,6 +5,7 @@
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "CropsGimmick.generated.h"
 
+class AEnvironmentManager;
 class UEnvironmentalStatusComponent;
 class UInteractableComponent;
 
@@ -107,6 +108,8 @@ public:
 private:
 	void InitGrowthState();
 
+	float GetCalculatedSeconds();
+	
 	UFUNCTION()
 	void Grow(int64 NewPlayTime);
 	void UpdateGrowthStage();
@@ -144,9 +147,33 @@ public:
 #pragma region EnvironmentalStatus
 
 private:
-	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
-	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+	UFUNCTION()
+	void HandleTemperatureBreach(int32 BreachCode);
+	UFUNCTION()
+	void HandleHumidityBreach(int32 BreachCode);
+	UFUNCTION()
+	void HandleTemperatureNormalized();
+	UFUNCTION()
+	void HandleHumidityNormalized();
 
+	void InitEnvironmentalStatus() const;
+	void BindEnvStatusDelegate();
+	void CheckIsDay(bool& bSuccess, bool& bIsDay) const;
+	void CheckAcceleration();
+
+	
+	UPROPERTY(VisibleDefaultsOnly, Category = "EnvironmentalStatus|Components")
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
+	UPROPERTY()
+	TObjectPtr<AEnvironmentManager> EnvironmentManager;
+
+	UPROPERTY(VisibleAnywhere, Category = "EnvironmentalStatus")
+	float HeatSlowdownMultiplier;
+	UPROPERTY(VisibleAnywhere, Category = "EnvironmentalStatus")
+	float HumiditySlowdownMultiplier;
+	UPROPERTY(VisibleAnywhere, Category = "EnvironmentalStatus")
+	float AccelerationMultiplier;
+	
 #pragma endregion
 
 #pragma region Save & Load
