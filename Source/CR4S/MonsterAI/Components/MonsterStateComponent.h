@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "CR4S/MonsterAI/Data/MonsterEnum.h"
+#include "MonsterAI/Data/MonsterEnum.h"
+#include "MonsterAI/Data/BossPhaseDataAsset.h"
 #include "MonsterStateComponent.generated.h"
 
 struct FMonsterAttributeRow;
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMonsterStateChanged, EMonsterState, PreviousState, EMonsterState,
-                                             NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMonsterStateChanged, EMonsterState, PreviousState, EMonsterState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EBossPhase, NewPhase);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -66,14 +66,29 @@ private:
 #pragma region Boss Phase
 
 public:
-	UPROPERTY(BlueprintReadOnly)
-	EBossPhase CurrentPhase = EBossPhase::Normal;
+	UFUNCTION()
+	void CheckPhaseTransition(float CurrentHP, float MaxHP);
 
 	void SetPhase(EBossPhase NewPhase);
-	EBossPhase GetCurrentPhase() const { return CurrentPhase; }
+	FORCEINLINE EBossPhase GetCurrentPhase() const { return CurrentPhase; }
+	FORCEINLINE float GetCurrentSpeedMultiplier() const { return CurrentSpeedMultiplier; }
+	FORCEINLINE float GetCurrentDamageMultiplier() const { return CurrentDamageMultiplier; }
+
+	UPROPERTY(EditAnywhere, Category = "Phase")
+	TObjectPtr<UBossPhaseDataAsset> PhaseDataAsset;
 
 	UPROPERTY(BlueprintAssignable, Category = "Monster|State")
 	FOnPhaseChanged OnPhaseChanged;
+
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	EBossPhase CurrentPhase = EBossPhase::Normal;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Phase")
+	float CurrentSpeedMultiplier = 1.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Phase")
+	float CurrentDamageMultiplier = 1.0f;
 
 #pragma endregion
 
