@@ -4,6 +4,8 @@
 #include "Game/SaveGame/C4MetaSaveGame.h"
 #include "SaveGameManager.generated.h"
 
+class USpawnActorClassConfig;
+class ISavableActor;
 class UC4MetaSaveGame;
 class UWorldSaveGame;
 class USettingsSaveGame;
@@ -25,15 +27,24 @@ public:
 
 #pragma endregion
 
+#pragma region Utilities
+    void RegisterSavableActor(TScriptInterface<ISavableActor> SavableActor);
+    void UnregisterSavableActor(TScriptInterface<ISavableActor> SavableActor);
 
+    FName GenerateUniqueID();
+#pragma endregion
+    
 #pragma region Public API - Save / Load
 public:
     void SaveAll(const FString& SlotName);
+    UFUNCTION(BlueprintCallable)
     void PreloadSaveData(const FString& SlotName);
     void ApplyAll();
+    UFUNCTION(BlueprintCallable)
     void ApplyCoreData();
     void ApplyWorldData();
 
+    UFUNCTION(BlueprintCallable)
     void SaveCore(const FString& SlotName);
     void SaveWorld(const FString& SlotName);
 
@@ -60,6 +71,12 @@ public:
 
 protected:
 
+    UPROPERTY()
+    TObjectPtr<USpawnActorClassConfig> SpawnClassDataAsset;
+    
+    UPROPERTY()
+    TArray<TScriptInterface<ISavableActor>> SavableActors;
+    
     UPROPERTY()
     TObjectPtr<UC4MetaSaveGame> MetaSave;
     UPROPERTY()

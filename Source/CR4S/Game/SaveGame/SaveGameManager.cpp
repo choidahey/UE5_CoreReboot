@@ -52,6 +52,7 @@ void USaveGameManager::SaveAll(const FString& SlotName)
 
 void USaveGameManager::PreloadSaveData(const FString& SlotName)
 {
+    
     if (UGameplayStatics::DoesSaveGameExist(SlotName + "_Core", 0))
     {
         CoreSave = Cast<UCoreSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_Core", 0));
@@ -138,6 +139,7 @@ void USaveGameManager::DeleteSaveGame(const FString& SlotName)
 	}
 }
 
+
 FSaveSlotMetaData USaveGameManager::GetSaveMetaDataByIndex(int32 Index) const
 {
     if (!MetaSave) return FSaveSlotMetaData();
@@ -149,6 +151,35 @@ FSaveSlotMetaData USaveGameManager::GetSaveMetaDataByIndex(int32 Index) const
     }
 
     return FSaveSlotMetaData();
+}
+
+void USaveGameManager::RegisterSavableActor(TScriptInterface<ISavableActor> SavableActor)
+{
+    if (SavableActor)
+    {
+        SavableActors.AddUnique(SavableActor);
+    }
+}
+
+void USaveGameManager::UnregisterSavableActor(TScriptInterface<ISavableActor> SavableActor)
+{
+    if (SavableActor)
+    {
+        SavableActors.Remove(SavableActor);
+    }
+}
+
+FName USaveGameManager::GenerateUniqueID()
+{
+    if (!CoreSave)
+    {
+        CoreSave=NewObject<UCoreSaveGame>();
+    }
+
+    const int32 IDNumber=CoreSave->NextUniqueID;
+    CoreSave->NextUniqueID++;
+
+    return FName(*FString::Printf(TEXT("UniqueID_%d"),IDNumber));
 }
 
 void USaveGameManager::CreateSlot(const FString& SlotName)
@@ -181,24 +212,42 @@ void USaveGameManager::DeleteSlot(const FString& SlotName)
 void USaveGameManager::SaveCore(const FString& SlotName)
 {
     CR4S_Log(LogSave, Log, TEXT("Called with SlotName: %s"), *SlotName);
-
-    CoreSave = NewObject<UCoreSaveGame>();
-
-    if (!CR4S_VALIDATE(LogSave, CoreSave)) return;
-
-    if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
+    if (!CoreSave)
     {
-        CoreSave->PlayerLocation = Player->GetActorLocation();
-        CoreSave->PlayerRotation = Player->GetActorRotation();
-    }
-    else
-    {
-        CR4S_Log(LogSave, Warning, TEXT("PlayerCharacter not found"));
+        CoreSave = NewObject<UCoreSaveGame>();
     }
 
+    CoreSave->SavedActorsData.Empty();
+
+   for (const TScriptInterface<ISavableActor>& SavableActor : SavableActors)
+   {
+       if (!SavableActor) return;
+
+       FName UniqueID=SavableActor->GetUniqueSaveID();
+       if (UniqueID.IsNone())
+       {
+           UniqueID=GenerateUniqueID();
+           SavableActor->SetUniqueSaveID(UniqueID);
+       }
+
+       FSavedActorData ActorDataContainer;
+
+       if (APlayerCharacter* Player=Cast<APlayerCharacter>(SavableActor.GetObject()))
+       {
+           Player->GatherSaveData(ActorDataContainer);
+       }
+       else if (AModularRobot* Robot=Cast<AModularRobot>(SavableActor.GetObject()))
+       {
+           Robot->GatherSaveData(ActorDataContainer);
+       }
+
+       CoreSave->SavedActorsData.Add(UniqueID, ActorDataContainer);
+   }
+
+    
     const FString FullSlotName = SlotName + TEXT("_Core");
     const bool bSuccess = UGameplayStatics::SaveGameToSlot(CoreSave, FullSlotName, 0);
-
+    
     if (bSuccess)
     {
         CR4S_Log(LogSave, Log, TEXT("Successfully saved to slot: %s"), *FullSlotName);
@@ -260,6 +309,7 @@ void USaveGameManager::SaveWorld(const FString& SlotName)
 
 bool USaveGameManager::IsNewGame() const
 {
+    CR4S_SIMPLE_SCOPE_LOG;
     const UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
     if (!GameInstance)
     {
@@ -278,6 +328,7 @@ bool USaveGameManager::IsNewGame() const
 
 void USaveGameManager::ApplyAll()
 {
+    CR4S_SIMPLE_SCOPE_LOG;
     if (!CR4S_VALIDATE(LogSave, CoreSave)) return;
     if (!CR4S_VALIDATE(LogSave, WorldSave)) return;
 
@@ -287,15 +338,63 @@ void USaveGameManager::ApplyAll()
 
 void USaveGameManager::ApplyCoreData()
 {
-    ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0);
+    if (!CR4S_ENSURE(LogHong1,CoreSave && SpawnClassDataAsset)) return;
+    
+    for (int32 i=SavableActors.Num()-1;i>=0;i--)
+    {
+        if (AActor* ActorToDestroy=Cast<AActor>(SavableActors[i].GetObject()))
+        {
+            ActorToDestroy->Destroy();
+        }
+    }
 
-    if (!CR4S_VALIDATE(LogSave, Player))
-        return;
+    SavableActors.Empty();
 
-    Player->SetActorLocation(CoreSave->PlayerLocation);
-    Player->SetActorRotation(CoreSave->PlayerRotation);
+    for (auto& Pair : CoreSave->SavedActorsData)
+    {
+        const FName& ActorID=Pair.Key;
+        FSavedActorData& SavedData = Pair.Value;
 
-    CR4S_Log(LogSave, Log, TEXT("Player Location Applied: %s"), *CoreSave->PlayerLocation.ToString());
+        UClass* ActorClassToSpawn = nullptr;
+        AActor* NewSpawnedActor = nullptr;
+        
+        switch (SavedData.ActorType)
+        {
+        case ESavedActorType::PlayerCharacter:
+            ActorClassToSpawn = SpawnClassDataAsset->PlayerCharacterClass;
+            break;
+        case ESavedActorType::ModularRobot:
+            ActorClassToSpawn = SpawnClassDataAsset->ModularRobotClass;
+            break;
+        default:
+            continue; // 타입이 없으면 건너뛰기
+        }
+
+        if (ActorClassToSpawn)
+        {
+            UE_LOG(LogHong1, Log, TEXT("Spawn Actor: %s"), *ActorClassToSpawn->GetName());
+            NewSpawnedActor = GetWorld()->SpawnActor<AActor>(ActorClassToSpawn);
+        }
+
+        if (NewSpawnedActor)
+        {
+            if (ISavableActor* Savable = Cast<ISavableActor>(NewSpawnedActor))
+            {
+                Savable->SetUniqueSaveID(ActorID);
+                Savable->ApplySaveData(SavedData);
+
+                if (APlayerCharacter* NewPlayer = Cast<APlayerCharacter>(NewSpawnedActor))
+                {
+                    if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+                    {
+                        UE_LOG(LogHong1, Log, TEXT("Possess Player"));
+                        PC->Possess(NewPlayer);
+                    }
+                }
+            }
+        }
+    }
+    
 }
 
 void USaveGameManager::ApplyWorldData()
