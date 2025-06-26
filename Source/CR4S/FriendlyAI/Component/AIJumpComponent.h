@@ -94,8 +94,8 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     
     UFUNCTION(BlueprintCallable, Category = "AI Jump")
-    void ActivateJumpComponent();
-
+    void ActivateJumpComponent(float InTargetReachDistance = 10.0f);
+    
     UFUNCTION(BlueprintCallable, Category = "AI Jump")
     void DeactivateJumpComponent();
 

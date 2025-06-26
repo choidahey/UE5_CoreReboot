@@ -46,11 +46,20 @@ ABaseAnimal::ABaseAnimal()
 
     NavInvokerComponent = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvokerComponent"));
     NavInvokerComponent->SetGenerationRadii(2000.0f, 2500.0f);
+
+    InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+    InteractableComponent->SetActive(false);
 }
 
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
+    
+    if (InteractableComponent)
+    {
+        InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ABaseAnimal::OnInteract);
+    }
+    
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
         C->SetAnimalState(EAnimalState::Patrol);
