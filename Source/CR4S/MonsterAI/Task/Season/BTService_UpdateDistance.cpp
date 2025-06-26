@@ -1,11 +1,11 @@
-﻿#include "BTService_UpdateDistanceToTarget.h"
+﻿#include "BTService_UpdateDistance.h"
 #include "AIController.h"
 #include "CR4S.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
-UBTService_UpdateDistanceToTarget::UBTService_UpdateDistanceToTarget()
+UBTService_UpdateDistance::UBTService_UpdateDistance()
 {
 	NodeName = TEXT("Update Distance");
 	bNotifyTick = true;
@@ -14,7 +14,7 @@ UBTService_UpdateDistanceToTarget::UBTService_UpdateDistanceToTarget()
 	TargetActorKey.SelectedKeyName = FAIKeys::TargetActor;
 }
 
-void UBTService_UpdateDistanceToTarget::TickNode(
+void UBTService_UpdateDistance::TickNode(
 	UBehaviorTreeComponent& OwnerComp,
 	uint8* NodeMemory,
 	float DeltaSeconds)
@@ -50,9 +50,6 @@ void UBTService_UpdateDistanceToTarget::TickNode(
 
 	float CurrentDistance = BB->GetValueAsFloat(CurrentDistanceKey.SelectedKeyName);
 	float SkillRange = BB->GetValueAsFloat(CurrentSkillRangeKey.SelectedKeyName);
-	
-	bool bInRange = (CurrentDistance <= SkillRange);
-	BB->SetValueAsBool(FSeasonBossAIKeys::bIsInSkillRange, bInRange);
 
 	if (bShowDebugInfo)
 	{

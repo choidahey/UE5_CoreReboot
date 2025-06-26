@@ -25,9 +25,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector NearestHouseActorKey;
 
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector CurrentHP;
-
 private:
 	float CurrentHPValue = 0.f;
 };
