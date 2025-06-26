@@ -89,7 +89,7 @@ private:
 #pragma region Save & Load
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|SaveGame")
+	UFUNCTION(BlueprintPure, Category = "PlayerInventoryComponent|SaveGame")
 	void GetPlayerInventorySaveGame(FInventorySaveGame& OutPlayerInventorySaveGame, FInventorySaveGame& OutQuickSlotSaveGame);
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|LoadGame")
 	void LoadPlayerInventorySaveGame(const FInventorySaveGame& PlayerInventorySaveGame, const FInventorySaveGame& QuickSlotSaveGame);

@@ -23,12 +23,19 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData) override;
 	
 #pragma endregion
 	
 #pragma region UDestructibleComponent
 
 public:
+	UFUNCTION(BlueprintPure, Category = "DestructibleComponent|Health")
+	void GetGimmickHealthData(bool& bOutSuccess, float& OutCurrentHealth, float& OutMaxHealth) const;
+	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Health")
+	void SetGimmickHealthData(const float NewCurrentHealth, const float NewMaxHealth);
+	
 	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
 	
 protected:

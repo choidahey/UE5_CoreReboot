@@ -1,6 +1,7 @@
 ﻿#include "InventoryContainerWidget.h"
 
 #include "CR4S.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
 #include "Gimmick/UI/CompostBinWidget.h"
 #include "Gimmick/UI/HelperBotWorkshop/HelperBotWorkshopWidget.h"
@@ -77,6 +78,8 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	{
 		return;
 	}
+	
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Open!"));
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
@@ -156,6 +159,8 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	bIsOpen = false;
 
+	UWidgetBlueprintLibrary::CancelDragDrop();
+	
 	ChangeWidgetOrder(0);
 
 	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChange.IsBound())
@@ -189,6 +194,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Close!"));
 }
 
 void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)
