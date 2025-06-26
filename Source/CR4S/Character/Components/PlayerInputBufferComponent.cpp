@@ -44,7 +44,7 @@ void UPlayerInputBufferComponent::ExecuteInputQueue() const
 	case EInputType::None:
 		break;
 	case EInputType::Attack:
-		if (!CR4S_ENSURE(LogHong1,CurrentTool)) return;
+		if (CurrentTool) return;
 		CurrentTool->OnAttack();
 		break;
 	default:
