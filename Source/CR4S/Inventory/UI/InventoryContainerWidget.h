@@ -28,7 +28,6 @@ class CR4S_API UInventoryContainerWidget : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
-	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
 #pragma endregion 
 	

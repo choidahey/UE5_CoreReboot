@@ -176,7 +176,13 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 void UBaseItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-
+	
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
+		!InventoryContainerWidget->IsOpen())
+	{
+		return;
+	}
+	
 	if (IsValid(HoverImage))
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Visible);

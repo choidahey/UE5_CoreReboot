@@ -45,6 +45,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual FGimmickSaveGameData GetGimmickSaveGameData_Implementation(bool& bSuccess) override;
+
 #pragma endregion
 
 #pragma region UInteractableComponent

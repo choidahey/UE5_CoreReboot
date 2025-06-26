@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "InventorySaveGame.h"
 #include "GameFramework/Actor.h"
 #include "GimmickSaveGame.generated.h"
 
@@ -13,6 +14,8 @@ struct FGimmickSaveGameData
 	TSubclassOf<AActor> GimmickClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|SaveGame")
 	FTransform Transform;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|SaveGame")
+	FInventorySaveGame InventorySaveGame;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|SaveGame")
 	TArray<FString> SaveValues;
 };

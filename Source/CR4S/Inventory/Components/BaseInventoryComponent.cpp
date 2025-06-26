@@ -296,19 +296,9 @@ void UBaseInventoryComponent::LoadInventorySaveGame(const FInventorySaveGame& Sa
 	for (const FInventoryItemSaveGame& SaveItemData : ItemSaveGame)
 	{
 		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
-		UBaseInventoryItem* Item = nullptr;
-		switch (SaveItemData.InventoryItemData.ItemType) {
-		case EInventoryItemType::General:
-			Item = NewObject<UBaseInventoryItem>(this);
-			break;
-		case EInventoryItemType::Consumable:
-			Item = NewObject<UConsumableInventoryItem>(this);
-			break;
-		case EInventoryItemType::HelperBot:
-			Item = NewObject<UHelperBotInventoryItem>(this);
-			break;
-		}
-		
+
+		const FGameplayTagContainer& Tags = SaveItemData.InventoryItemData.ItemInfoData.ItemTags;
+		UBaseInventoryItem* Item = CreateInventoryItem(Tags);
 		Item->LoadInventoryItemSaveData(this, SaveItemData);
 		InventoryItems[Index] = Item;
 

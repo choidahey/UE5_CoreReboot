@@ -73,9 +73,10 @@ void UToolInventoryItem::EquipItem() const
 void UToolInventoryItem::UnEquipItem() const
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
-		IsValid(PlayerInventoryComponent))
+		IsValid(PlayerInventoryComponent) &&
+		PlayerInventoryComponent->GetHeldToolTag() != FGameplayTag::EmptyTag)
 	{
-		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
+		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag::EmptyTag);
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
 
 		if (IsValid(StatusComponent))

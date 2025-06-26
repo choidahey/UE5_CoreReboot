@@ -80,6 +80,12 @@ FGimmickSaveGameData ABaseGimmick::GetGimmickSaveGameData_Implementation(bool& b
 	GimmickSaveGameData.GimmickClass = GetClass();
 	GimmickSaveGameData.Transform = GetTransform();
 
+	UBaseInventoryComponent* InventoryComponent = FindComponentByClass<UBaseInventoryComponent>();
+	if (IsValid(InventoryComponent))
+	{
+		GimmickSaveGameData.InventorySaveGame = InventoryComponent->GetInventorySaveGame();
+	}
+
 	bSuccess = true;
 
 	return GimmickSaveGameData;
@@ -88,18 +94,24 @@ FGimmickSaveGameData ABaseGimmick::GetGimmickSaveGameData_Implementation(bool& b
 void ABaseGimmick::LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData)
 {
 	SetActorTransform(GimmickSaveGameData.Transform);
+
+	UBaseInventoryComponent* InventoryComponent = FindComponentByClass<UBaseInventoryComponent>();
+	if (IsValid(InventoryComponent))
+	{
+		InventoryComponent->LoadInventorySaveGame(GimmickSaveGameData.InventorySaveGame);
+	}
 }
 
 void ABaseGimmick::GimmickDestroy()
 {
 	if (IsValid(ObjectPoolComponent))
 	{
-		CR4S_Log(LogGimmick, Warning, TEXT("Gimmick return to pool"));
+		// CR4S_Log(LogGimmick, Warning, TEXT("Gimmick return to pool"));
 		ObjectPoolComponent->HandleReturnToPool();
 	}
 	else
 	{
-		CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is destroyed"));
+		// CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is destroyed"));
 		Destroy();
 	}
 }

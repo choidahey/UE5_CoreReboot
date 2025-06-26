@@ -1,6 +1,7 @@
 ﻿#include "InventoryContainerWidget.h"
 
 #include "CR4S.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
 #include "Gimmick/UI/CompostBinWidget.h"
 #include "Gimmick/UI/HelperBotWorkshop/HelperBotWorkshopWidget.h"
@@ -18,17 +19,6 @@ void UInventoryContainerWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	SetIsFocusable(true);
-}
-
-void UInventoryContainerWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
-{
-	Super::NativeOnMouseLeave(InMouseEvent);
-
-	if (CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
-	{
-		SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
-		CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Close!"));
-	}
 }
 
 void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
@@ -169,6 +159,8 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	bIsOpen = false;
 
+	UWidgetBlueprintLibrary::CancelDragDrop();
+	
 	ChangeWidgetOrder(0);
 
 	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChange.IsBound())
@@ -200,6 +192,9 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	OtherInventoryComponent = nullptr;
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
+
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Close!"));
 }
 
 void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)

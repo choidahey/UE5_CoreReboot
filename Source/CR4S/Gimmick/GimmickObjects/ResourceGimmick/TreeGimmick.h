@@ -5,6 +5,7 @@
 
 #include "TreeGimmick.generated.h"
 
+class UWorldTimeManager;
 class UDestructibleComponent;
 
 UCLASS(BlueprintType)
@@ -33,6 +34,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "TreeGimmick|Destroy")
 	void RemoveTrunk() const;
+	UFUNCTION(BlueprintCallable, Category = "TreeGimmick|Respawn")
+	void RespawnTrunk();
 	
 	UFUNCTION(BlueprintPure, Category = "TreeGimmick|Destroy")
 	FORCEINLINE bool IsTrunkDestroyed() const { return bIsTrunkDestroyed; }
@@ -62,6 +65,7 @@ private:
 	
 	FTimerHandle RemoveTrunkTimerHandle;
 	
+	float TrunkHealth;
 
 #pragma endregion
 	

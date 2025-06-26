@@ -34,6 +34,7 @@ void ADestructibleGimmick::BeginPlay()
 				FindGimmickInfoData(GetGimmickDataRowName()))
 			{
 				DestructibleComponent->SetMaxHealth(GimmickInfoData->GimmickMaxHealth);
+				DestructibleComponent->SetCurrentHealth(GimmickInfoData->GimmickMaxHealth);
 			}
 		}
 	}
@@ -68,6 +69,29 @@ void ADestructibleGimmick::LoadGimmickSaveGameData_Implementation(const FGimmick
 	if (IsValid(ShakeComponent))
 	{
 		ShakeComponent->SetOriginalLocation(GetActorLocation());
+	}
+}
+
+void ADestructibleGimmick::GetGimmickHealthData(bool& bOutSuccess, float& OutCurrentHealth, float& OutMaxHealth) const
+{
+	if (IsValid(DestructibleComponent))
+	{
+		bOutSuccess = true;
+		OutCurrentHealth = DestructibleComponent->GetCurrentHealth();
+		OutMaxHealth = DestructibleComponent->GetMaxHealth();
+	}
+	else
+	{
+		bOutSuccess = false;
+	}
+}
+
+void ADestructibleGimmick::SetGimmickHealthData(const float NewCurrentHealth, const float NewMaxHealth)
+{
+	if (IsValid(DestructibleComponent))
+	{
+		DestructibleComponent->SetMaxHealth(NewMaxHealth);
+		DestructibleComponent->SetCurrentHealth(NewCurrentHealth);
 	}
 }
 
