@@ -9,10 +9,25 @@
 #include "Game/SaveGame/CoreSaveGame.h"
 //#include "Game/SaveGame/BuildingSaveGame.h"
 
+
 #include "Game/GameInstance/C4GameInstance.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/Character.h"
 #include "CR4S.h"
+#include "SpawnActorClassConfig.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Character/Characters/PlayerCharacter.h"
+#include "DeveloperSettings/CR4SDataTableSettings.h"
+#include "Game/Interface/SavableActor.h"
+
+void USaveGameManager::Initialize(FSubsystemCollectionBase& Collection)
+{
+    Super::Initialize(Collection);
+
+    if (const UCR4SDataTableSettings* Settings=GetDefault<UCR4SDataTableSettings>())
+    {
+        SpawnClassDataAsset=Cast<USpawnActorClassConfig>(Settings->GetDataAssetByName(TEXT("SpawnClassDataAsset")));
+    }
+}
 
 void USaveGameManager::SaveAll(const FString& SlotName)
 {

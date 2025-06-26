@@ -13,7 +13,10 @@ UCLASS()
 class CR4S_API USaveGameManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
-
+    
+public:
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    
 #pragma region Getters and Setters
 public:
     FORCEINLINE TObjectPtr<UC4MetaSaveGame> GetMetaSave() const { return MetaSave; }
