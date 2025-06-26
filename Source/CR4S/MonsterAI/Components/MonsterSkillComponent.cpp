@@ -118,8 +118,6 @@ void UMonsterSkillComponent::UseSkill(int32 Index)
 		Skill.Cooldown,
 		false
 	);
-
-	OnSkillTriggered.Broadcast(Index);
 }
 
 bool UMonsterSkillComponent::IsSkillReady(int32 Index) const

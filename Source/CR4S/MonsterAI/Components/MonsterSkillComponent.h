@@ -9,8 +9,6 @@ class USkillDataSubsystem;
 class UPrimitiveComponent;
 class AHiemsIceSpike;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSkillTriggered, int32 /*SkillIndex*/);
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterSkillComponent : public UActorComponent
 {
@@ -55,8 +53,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Monster|Skill")
 	int32 CurrentSkillIndex = INDEX_NONE;
-
-	FOnSkillTriggered OnSkillTriggered;
 
 #pragma endregion
 
