@@ -88,8 +88,7 @@ public:
 	FGameplayTag BoosterTag;
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Weapons")
-	TArray<FRobotWeaponSaveGame> EquippedWeapons;
-	
+	TArray<FGameplayTag> EquippedWeapons;
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Mount")
 	uint8 bWasPlayerMounted:1 {false};
