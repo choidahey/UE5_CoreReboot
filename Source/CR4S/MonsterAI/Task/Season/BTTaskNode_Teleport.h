@@ -43,7 +43,8 @@ public:
 
 private:
 	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result);
-	
+	void CleanupTeleport();
+
 	UPROPERTY()
 	TObjectPtr<UBehaviorTreeComponent> CachedOwnerComp;
 	UPROPERTY()

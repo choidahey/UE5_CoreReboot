@@ -81,7 +81,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void SetAttackCollisionEnabled(bool bEnable, int32 InSkillIndex);
+	void SetAttackCollisionEnabled(bool bEnable);
 
 	UFUNCTION()
 	void OnAttackHit(
@@ -92,9 +92,6 @@ public:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
-	TArray<TObjectPtr<UPrimitiveComponent>> WeaponColliders;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
 	TArray<TObjectPtr<UPrimitiveComponent>> BodyColliders;

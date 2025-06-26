@@ -6,6 +6,7 @@
 
 class UNiagaraSystem;
 class UNiagaraComponent;
+class AWeaponActor;
 
 UCLASS()
 class CR4S_API AKamishForestBoss : public ARegionBossMonster
@@ -26,6 +27,9 @@ protected:
 	
 public:
 	void SetWeaponLandingLocation(FVector Location);
+
+	UPROPERTY()
+	TArray<TObjectPtr<AWeaponActor>> WeaponActors;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Weapon")

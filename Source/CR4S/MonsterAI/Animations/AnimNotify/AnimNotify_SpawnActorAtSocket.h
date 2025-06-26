@@ -31,6 +31,21 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Skill", meta = (EditCondition = "!bSpawnAllAtOnce", ClampMin = "0.01"))
 	float SpawnInterval = 0.2f;
 
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	FVector SpawnOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	FRotator AdditionalRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	FVector SpawnScale = FVector(1.f, 1.f, 1.f);
+
+	UPROPERTY(EditAnywhere, Category = "Skill|Projectile")
+	float LaunchSpeed = 1000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Skill|Projectile")
+	float TravelDistance = 3000.f;
+
 private:
 	void SpawnSkillActor(USkeletalMeshComponent* MeshComp, AActor* Owner);
 

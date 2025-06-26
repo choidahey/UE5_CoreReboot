@@ -9,7 +9,7 @@
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
 	: InventoryContainerWidgetOrder(20),
-	  HeldToolTag(FGameplayTag())
+	  HeldToolTag(FGameplayTag::EmptyTag)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 

@@ -82,6 +82,26 @@ void UMonsterStateComponent::ForceInterrupt()
 	SetState(EMonsterState::Idle);
 }
 
+void UMonsterStateComponent::CheckPhaseTransition(float CurrentHP, float MaxHP)
+{
+	if (!PhaseDataAsset) return;
+
+	const float Ratio = CurrentHP / MaxHP;
+
+	for (const FPhaseTransitionCondition& Condition : PhaseDataAsset->PhaseConditions)
+	{
+		if (Condition.TargetPhase <= CurrentPhase) continue;
+		if (Ratio <= Condition.HPThresholdRatio)
+		{
+			CurrentSpeedMultiplier = Condition.SpeedMultiplier;
+			CurrentDamageMultiplier = Condition.DamageMultiplier;
+
+			SetPhase(Condition.TargetPhase);
+			break;
+		}
+	}
+}
+
 void UMonsterStateComponent::SetPhase(EBossPhase NewPhase)
 {
 	if (CurrentPhase == NewPhase) return;

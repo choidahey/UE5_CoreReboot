@@ -40,9 +40,13 @@ struct CR4S_API FHelperPickUpData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float CurrentHealth = 0.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsInit = false;
+
 	FHelperPickUpData()
 	{
 		BotName = TEXT("");
 		CurrentHealth = 0.0f;
+		bIsInit = false;
 	}
 };

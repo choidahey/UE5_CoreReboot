@@ -20,9 +20,9 @@ public:
 	UMonsterAggroComponent();
 
 	void AddDamageAggro(AActor* Instigator, float Damage);
-	AActor* GetCurrentAggroTarget() const { return CurrentTarget.Get(); }
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void ApplyToBlackboard(class UBlackboardComponent* BB, const struct FBlackboardKeySelector& KeySelector) const;
+	
+	AActor* GetCurrentAggroTarget() const { return CurrentTarget.Get(); }
 
 protected:
 	virtual void BeginPlay() override;
@@ -38,8 +38,8 @@ protected:
 
 private:
 	void RecalculateAggro();
-	
-	TMap<TObjectPtr<AActor>, FAggroInfo> AggroTable;
+
 	UPROPERTY()
 	TObjectPtr<AActor> CurrentTarget;
+	TMap<TObjectPtr<AActor>, FAggroInfo> AggroTable;
 };

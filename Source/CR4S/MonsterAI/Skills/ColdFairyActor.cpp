@@ -184,8 +184,15 @@ void AColdFairyActor::Launch()
 	if (!ProjectileMovementComp->IsActive())
 		ProjectileMovementComp->Activate(true);
 
-	FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-	if (Direction.IsNearlyZero()) return;
+	FVector Direction;
+	if (IsValid(TargetActor))
+	{
+		Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	}
+	else
+	{
+		Direction = GetActorForwardVector().GetSafeNormal();
+	}
 	
 	SetActorRotation(Direction.Rotation());
 

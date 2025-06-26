@@ -5,14 +5,6 @@
 
 #include "InventoryItemData.generated.h"
 
-UENUM(BlueprintType)
-enum class EInventoryItemType : uint8
-{
-	General UMETA(DisplayName = "일반 아이템"),
-	Consumable UMETA(DisplayName = "소모 아이템"),
-	HelperBot UMETA(DisplayName = "자동화 로봇 아이템")
-};
-
 USTRUCT(BlueprintType)
 struct FInventoryItemData
 {
@@ -30,9 +22,7 @@ struct FInventoryItemData
 		  ItemInfoData(InItemInfoData)
 	{
 	}
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EInventoryItemType ItemType = EInventoryItemType::General;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 SlotIndex = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

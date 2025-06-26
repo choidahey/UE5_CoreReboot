@@ -129,9 +129,19 @@ void ABaseHelperBot::LoadStats()
 				JumpComp->UpdateOwnerStats();
 			}
 
-			if (!bIsFromInventory)
+			if (!PickUpData.bIsInit)
 			{
 				CurrentHealth = CurrentStats.MaxHealth;
+				PickUpData.bIsInit = true;
+			}
+			else
+			{
+				CurrentHealth = PickUpData.CurrentHealth;
+				BotName = PickUpData.BotName;
+			}
+
+			if (IsValid(InteractableComp))
+			{
 				InteractableComp->SetInteractionText(FText::FromString(BotName));
 			}
 
@@ -445,16 +455,6 @@ void ABaseHelperBot::SetBotName(const FString& NewName)
 void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
 { 
 	PickUpData = InPickUpData;
-	
-	if (bIsFromInventory)
-	{
-		CurrentHealth = PickUpData.CurrentHealth;
-		BotName = PickUpData.BotName;
-		if (InteractableComp)
-		{
-			InteractableComp->SetInteractionText(FText::FromString(BotName));
-		}
-	}
 }
 
 #pragma region FadeEffect

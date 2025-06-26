@@ -15,6 +15,8 @@ class CR4S_API AProjectileBomb : public ABaseSkillActor
 public:
 	AProjectileBomb();
 
+	void LaunchProjectile();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -23,16 +25,14 @@ protected:
 		float DamageAmount,
 		FDamageEvent const& DamageEvent,
 		AController* EventInstigator,
-		AActor* DamageCauser
-	) override;
+		AActor* DamageCauser) override;
 	
 	virtual void OnHit(
 		UPrimitiveComponent* HitComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		FVector NormalImpulse,
-		const FHitResult& Hit
-	) override;
+		const FHitResult& Hit) override;
 
 	UFUNCTION()
 	void OnExplosionOverlap(
@@ -41,10 +41,7 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
-		const FHitResult& SweepResult
-	);
-	
-	void LaunchProjectile();
+		const FHitResult& SweepResult);
 
 	UPROPERTY(VisibleAnywhere, Category = "Boss|Skill")
 	UProjectileMovementComponent* ProjectileMovement;
@@ -57,6 +54,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Boss|Skill", meta=(AllowPrivateAccess="true", ClampMin="0.0", ClampMax="90.0"))
 	float LaunchPitchAngle = 45.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Boss|Skill", meta=(ClampMin="0.0"))
+	float GravityScale = 0.1f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill")
 	bool bCanBeDestroyed = true;
@@ -66,6 +66,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill", meta=(ClampMin="0.0"))
 	float HomingSpeed = 1200.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill", meta=(ClampMin="0.0"))
+	float MaxHomingSpeed = 1200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Skill", meta=(ClampMin="0.0"))
 	float SpawnDistance = 200.f;
