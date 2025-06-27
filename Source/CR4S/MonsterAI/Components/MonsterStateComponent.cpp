@@ -47,7 +47,6 @@ void UMonsterStateComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		float CurrentRecoveryRate = FMath::Lerp(StunRecoveryMin, StunRecoveryMax, RecoveryAlpha);
 		
 		CurrentStun = FMath::Clamp(CurrentStun - CurrentRecoveryRate * DeltaTime, 0.f, MaxStun);
-		CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f"), CurrentStun);
 	}
 }
 
@@ -115,7 +114,7 @@ void UMonsterStateComponent::AddStun(float StunAmount)
 	if (bIsStunned) return;
 	
 	CurrentStun = FMath::Clamp(CurrentStun + StunAmount, 0.f, MaxStun);
-	CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
+	CR4S_Log(LogMonster, Log, TEXT("[Stun] Add Stun - CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
 
 	bCanRecover = false;
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryDelayTimerHandle);
@@ -168,7 +167,7 @@ void UMonsterStateComponent::RemoveStunDebuff()
 		if (UCharacterMovementComponent* Movement = Owner->GetCharacterMovement())
 			Movement->SetMovementMode(EMovementMode::MOVE_Walking);
 
-	CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
+	CR4S_Log(LogMonster, Log, TEXT("[Stun] Clear Stun - CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
 }
 
 void UMonsterStateComponent::InitializeStunData(const FMonsterAttributeRow& Data)

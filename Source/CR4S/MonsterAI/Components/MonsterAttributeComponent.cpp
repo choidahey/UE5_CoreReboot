@@ -76,4 +76,10 @@ bool UMonsterAttributeComponent::IsDead() const
 	return CurrentHP <= 0.0f;
 }
 
+void UMonsterAttributeComponent::SetCurrentHP(const float NewHealth)
+{
+	const float Delta = NewHealth - CurrentHP;
+	ChangeHP(Delta);
+}
+
 

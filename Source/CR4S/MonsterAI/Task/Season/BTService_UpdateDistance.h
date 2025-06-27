@@ -2,15 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTService.h"
-#include "BTService_UpdateDistanceToTarget.generated.h"
+#include "BTService_UpdateDistance.generated.h"
 
 UCLASS()
-class CR4S_API UBTService_UpdateDistanceToTarget : public UBTService
+class CR4S_API UBTService_UpdateDistance : public UBTService
 {
 	GENERATED_BODY()
 
 public:
-	UBTService_UpdateDistanceToTarget();
+	UBTService_UpdateDistance();
 
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
