@@ -23,19 +23,26 @@ public:
 	ABaseWeapon();
 
 	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
+	
 	FORCEINLINE float GetWeaponWeight() const { return BaseInfo.Weight; }
 	
 	virtual void Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx);
 #pragma region Attack
 public:
+	virtual int32 GetCurrentAmmo() const;
+	virtual void SetCurrentAmmo(const int32 NewAmmo);
+	
 	virtual float ComputeFinalDamage() override;
 	virtual void OnAttack() override;
 	virtual void StopAttack();
 protected:
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
+	
 	void ApplySelfStun() const;
 	void RemoveSelfStun() const;
+
+	void SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const;
 #pragma endregion
 
 	

@@ -28,7 +28,7 @@ public:
 	virtual void Refresh();
 #pragma endregion
 
-#pragma region Get & Set
+#pragma region Get 
 	FORCEINLINE float GetMaxHP() const { return BaseStatus.MaxHealth; }
 	FORCEINLINE float GetCurrentHP() const { return BaseStatus.Health; }
 	
@@ -42,6 +42,24 @@ public:
 	FORCEINLINE float GetHeatThreshold() const { return BaseStatus.HeatThreshold; }
 	FORCEINLINE float GetHumidityThreshold() const { return BaseStatus.HumidityThreshold; }
 
+	float GetCurrentHPPercentage() const;
+	float GetCurrentResourcePercentage() const;
+#pragma endregion
+	
+#pragma region Set & Reset
+	void SetMaxHP(const float NewValue);
+	void SetCurrentHP(const float NewValue);
+	
+	void SetMaxResource(const float NewValue);
+	void SetCurrentResource(const float NewValue);
+	
+	void SetArmor(const float NewValue);
+	void SetAttackPower(const float NewValue);
+	
+	void SetColdThreshold(const float NewValue);
+	void SetHeatThreshold(const float NewValue);
+	void SetHumidityThreshold(const float NewValue);
+	
 	void SetResourceConsumptionAmount(const float NewCost);
 	FORCEINLINE void ResetResourceConsumptionAmount() { BaseStatus.ResourceConsumptionAmount = DefaultBaseStatus.ResourceConsumptionAmount; }
 	

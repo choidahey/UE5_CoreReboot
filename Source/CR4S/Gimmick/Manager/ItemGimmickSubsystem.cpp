@@ -22,12 +22,11 @@ bool UItemGimmickSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 	{
 		return false;
 	}
-
-	// if (!CR4S_VALIDATE(LogGimmick, World->GetName() == TEXT("SurvivalLevel")) &&
-	// 	!CR4S_VALIDATE(LogGimmick, World->GetName() == TEXT("GimmickTestMap")))
-	// {
-	// 	return false;
-	// }
+	
+	if (World->GetName().Contains("MenuLevel"))
+	{
+		return false;
+	}
 
 	CR4S_Log(LogGimmick, Warning, TEXT("Create ItemGimmickSubsystem for %s"), *World->GetName());
 	return true;

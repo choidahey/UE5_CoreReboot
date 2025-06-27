@@ -44,15 +44,16 @@ void AMudField::SpawnMud()
 	Params.Owner = Cast<AActor>(GetOwner());
 	Params.Instigator = GetInstigator();
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	const FVector Origin = GetActorLocation();
+	
+	const float RandomZOffset = FMath::FRandRange(MinSpawnZOffset, MaxSpawnZOffset);
+	const FVector SpawnLocation = GetActorLocation() + FVector(0.f, 0.f, RandomZOffset);
 	const FRotator SpawnRot = FRotator::ZeroRotator;
 
 	if (SpawnCount > 0)
 	{
 		for (int32 i = 0; i < SpawnCount; ++i)
 		{
-			AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(MudActorClass, Origin, SpawnRot, Params);
+			AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(MudActorClass, SpawnLocation, SpawnRot, Params);
 			if (!SpawnActor) continue;
 			
 			if (AProjectileBomb* Bomb = Cast<AProjectileBomb>(SpawnActor))
@@ -62,12 +63,11 @@ void AMudField::SpawnMud()
 			}
 			else if (ARotatingProjectile* Proj = Cast<ARotatingProjectile>(SpawnActor))
 			{
-				constexpr float Speed = 1000.f;
+				constexpr float Speed = 1.f;
 				Proj->SetBossActor(GetOwner(), NAME_None);
 				
 				const FVector2D Rand2D = FMath::RandPointInCircle(300.f);
-				const float     RandZ   = FMath::FRandRange(MinSpawnZOffset, MaxSpawnZOffset);
-				const FVector   TargetLoc = Origin + FVector(Rand2D.X, Rand2D.Y, RandZ);
+				const FVector TargetLoc = GetActorLocation() + FVector(Rand2D.X, Rand2D.Y, RandomZOffset);
 				
 				Proj->LaunchProjectile(TargetLoc, Speed);
 			}

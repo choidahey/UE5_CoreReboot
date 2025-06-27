@@ -31,13 +31,20 @@ public:
 	FORCEINLINE float GetMaxHunger() const { return PlayerStatus.MaxHunger; }
 	FORCEINLINE float GetCurrentHunger() const { return PlayerStatus.Hunger; }
 
+	float GetCurrentHungerPercentage() const;
+
+	void SetMaxHunger(const float NewValue);
+	void SetCurrentHunger(const float NewValue);
+
 	FORCEINLINE void SetIsUnPossessed(const bool bIsMounted) { bIsUnPossessed = bIsMounted; } 
 #pragma endregion
 
-#pragma region Hunger
+#pragma region Add
 	void AddMaxHunger(const float InAmount);
 	void AddCurrentHunger(const float InAmount);
+#pragma endregion
 
+#pragma region HungerDebuff
 	UFUNCTION()
 	void ApplyHungerDebuff();
 	UFUNCTION()

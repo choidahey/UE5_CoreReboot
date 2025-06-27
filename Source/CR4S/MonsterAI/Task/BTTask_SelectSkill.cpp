@@ -28,7 +28,7 @@ EBTNodeResult::Type UBTTask_SelectSkill::ExecuteTask(UBehaviorTreeComponent& Own
 
 	if (SelectedSkillIndex == INDEX_NONE) return EBTNodeResult::Failed;
 	const ESkillAttackType SelectedAttackType = SkillComp->GetSkillData(SelectedSkillIndex).AttackType;
-
+	
 	CachedBlackboard->SetValueAsInt(SkillIndex.SelectedKeyName, SelectedSkillIndex);
 	CachedBlackboard->SetValueAsEnum(FRegionBossAIKeys::AttackType, static_cast<uint8>(SelectedAttackType));
 

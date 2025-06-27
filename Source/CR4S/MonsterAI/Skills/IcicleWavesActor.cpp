@@ -4,13 +4,10 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 
-void AIcicleWavesActor::InitIcicleWaves(
-	int32 SpawnCount,
-	float BaseDistance,
-	float DistanceStep,
-	float Interval,
-	bool bForwardIn)
+void AIcicleWavesActor::InitIcicleWaves(int32 SpawnCount, float BaseDistance, float DistanceStep, float Interval, bool bForwardIn)
 {
+	if (SpawnCount <= 0) return;
+	
 	ACharacter* BossChar = Cast<ACharacter>(GetOwner());
 	if (BossChar)
 	{

@@ -1,4 +1,6 @@
 #include "ObjectPoolComponent.h"
+
+#include "Character/Weapon/Bullet/BaseBullet.h"
 #include "Game/System/ProjectilePoolSubsystem.h"
 
 UObjectPoolComponent::UObjectPoolComponent()
@@ -31,6 +33,14 @@ void UObjectPoolComponent::OnSpawnFromPool()
 void UObjectPoolComponent::OnReturnToPool()
 {
 	OnReturnToPoolDelegate.Broadcast();
+	
+	GetWorld()->GetTimerManager().ClearTimer(ReturnTimerHandle);
+
+	if (ABaseBullet* Bullet = Cast<ABaseBullet>(GetOwner()))
+	{
+		Bullet->Deactivate();
+	}
+
 	GetOwner()->SetActorHiddenInGame(true);
 	GetOwner()->SetActorEnableCollision(false);
 }
