@@ -3,8 +3,8 @@
 #include "CR4S.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
+#include "Game/System/AudioManager.h"
 #include "Gimmick/UI/CompostBinWidget.h"
-#include "Gimmick/UI/HelperBotWorkshop/HelperBotWorkshopWidget.h"
 #include "Inventory/OpenWidgetType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
@@ -35,9 +35,7 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(HelperBotWorkshopWidget)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)))
 	{
 		return;
 	}
@@ -57,16 +55,13 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
 	RobotWorkshopWidget->InitWidget(SurvivalHUD, false);
-	HelperBotWorkshopWidget->InitWidget(PlayerInventoryComponent);
-
+	
 	InitToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
 	InitToggleWidget(StorageInventoryWidget);
 	InitToggleWidget(PlanterBoxInventoryWidget);
-	InitToggleWidget(CompostBinWidget);
 	InitToggleWidget(CraftingContainerWidget);
 	InitToggleWidget(RobotWorkshopWidget);
-	InitToggleWidget(HelperBotWorkshopWidget);
 }
 
 void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCraftingWidget,
@@ -78,8 +73,10 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	{
 		return;
 	}
-	
+
 	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Open!"));
+
+	PlaySound(OpenSound);
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
@@ -161,8 +158,10 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	UWidgetBlueprintLibrary::CancelDragDrop();
 
+	PlaySound(CloseSound);
+
 	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
-	
+
 	ChangeWidgetOrder(0);
 
 	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChange.IsBound())
@@ -250,6 +249,24 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 	}
 
 	return TargetWidget;
+}
+
+void UInventoryContainerWidget::PlaySound2D(USoundBase* Sound,
+                                            const float VolumeMultiplier,
+                                            const float PitchMultiplier,
+                                            const float StartTime) const
+{
+	const UGameInstance* GameInstance = GetGameInstance();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(GameInstance)))
+	{
+		return;
+	}
+
+	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+	if (IsValid(AudioManager))
+	{
+		AudioManager->Play2DSound(Sound, VolumeMultiplier, PitchMultiplier, StartTime);
+	}
 }
 
 FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)

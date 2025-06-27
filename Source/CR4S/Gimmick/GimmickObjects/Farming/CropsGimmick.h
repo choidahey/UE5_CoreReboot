@@ -176,6 +176,14 @@ private:
 	
 #pragma endregion
 
+#pragma region Sound
+
+private:
+	UPROPERTY()
+	TObjectPtr<USoundBase> HarvestSound; 
+	
+#pragma endregion 
+
 #pragma region Save & Load
 
 public:

@@ -1,9 +1,12 @@
 ﻿#include "ItemPouchGimmick.h"
 
 #include "CR4S.h"
+#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "Game/SaveGame/GimmickSaveGame.h"
+#include "Game/System/AudioManager.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Gimmick/Data/GimmickData.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "Inventory/OpenWidgetType.h"
@@ -48,6 +51,11 @@ void AItemPouchGimmick::BeginPlay()
 			TimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::UpdateWorldTime);
 		}
 	}
+
+	if (const FGimmickInfoData* GimmickInfoData = GetGimmickInfoData())
+	{
+		InteractSound = GimmickInfoData->InteractSound;
+	}
 }
 
 FGimmickSaveGameData AItemPouchGimmick::GetGimmickSaveGameData_Implementation(bool& bSuccess)
@@ -83,6 +91,8 @@ void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 
 	if (IsValid(PlayerInventoryComponent))
 	{
+		PlaySFX(InteractSound, GetActorLocation(), EConcurrencyType::Default);
+		
 		InventoryComponent->OnOccupiedSlotsChange.AddUniqueDynamic(this, &ThisClass::DestroyEmptyItemPouch);
 
 		InventoryComponent->SetMaxInventorySize(InventoryComponent->GetUseSlotCount());

@@ -73,6 +73,16 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UObjectShakeComponent> ShakeComponent;
 	
-#pragma endregion 
+#pragma endregion
+
+#pragma region Sound
+
+private:
+	UPROPERTY()
+	TObjectPtr<USoundBase> TakeDamageSound;
+	UPROPERTY()
+	TObjectPtr<USoundBase> DestroySound;
+	
+#pragma endregion
 	
 };
