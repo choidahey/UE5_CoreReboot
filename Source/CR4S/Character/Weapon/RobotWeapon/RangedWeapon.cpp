@@ -307,7 +307,7 @@ void ARangedWeapon::PlayMuzzleSFX(const FName& MuzzleSocketName) const
 				Audio->PlaySFX(
 					TypeSpecificInfo.MuzzleSound,
 					MuzzleLocation,
-					EConcurrencyType::Impact
+					EConcurrencyType::Repetition
 				);
 			}
 		}
