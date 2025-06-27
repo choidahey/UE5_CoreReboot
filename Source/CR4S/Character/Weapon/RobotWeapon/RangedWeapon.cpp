@@ -168,6 +168,7 @@ void ARangedWeapon::StartReload()
 	bIsReloading=true;
 	bCanAttack=false;
 
+	OnStartReload.Broadcast(TypeSpecificInfo.AmmoInfo.ReloadTime);
 	GetWorld()->GetTimerManager().SetTimer(
 		ReloadTimerHandle,
 		this,

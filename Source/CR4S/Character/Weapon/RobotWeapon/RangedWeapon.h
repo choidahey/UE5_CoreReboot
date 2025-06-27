@@ -9,6 +9,7 @@
 
 class UObjectPoolComponent;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float InPercent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStartReload, const float Duration);
 
 struct FRangedWeaponData;
 class ABaseBullet;
@@ -64,6 +65,7 @@ protected:
 #pragma region Delegate
 public:
 	FOnCurrentAmmoChanged OnCurrentAmmoChanged;
+	FOnStartReload OnStartReload;
 #pragma endregion
 };
 

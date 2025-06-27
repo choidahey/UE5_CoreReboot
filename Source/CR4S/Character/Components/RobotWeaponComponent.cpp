@@ -192,7 +192,7 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 		if (!CR4S_ENSURE(LogHong1,Status)) return;
 
 		const float WeaponWeight=NewWeapon->GetWeaponWeight();
-		Status->AddWeight(WeaponWeight);
+		Status->AddCurrentWeight(WeaponWeight);
 		Status->AddCurrentArmMountWeight(WeaponWeight);
 	}
 }
@@ -205,7 +205,7 @@ void URobotWeaponComponent::UnequipWeapon(const int32 SlotIdx)
 	if (!CR4S_ENSURE(LogHong1,Status)) return;
 
 	const float WeaponWeight=Weapons[SlotIdx]->GetWeaponWeight();
-	Status->AddWeight(-(WeaponWeight));
+	Status->AddCurrentWeight(-(WeaponWeight));
 	Status->AddCurrentArmMountWeight(-(WeaponWeight));
 	Weapons[SlotIdx]->Destroy();
 	Weapons[SlotIdx]=nullptr;
