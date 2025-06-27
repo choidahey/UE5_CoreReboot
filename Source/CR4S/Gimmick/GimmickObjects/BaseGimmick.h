@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseGimmick.generated.h"
 
+enum class EConcurrencyType : uint8;
 struct FGimmickSaveGameData;
 class UObjectPoolComponent;
 class UItemGimmickSubsystem;
@@ -66,6 +67,13 @@ private:
 	FDataTableRowHandle GimmickData;
 
 #pragma endregion
+
+#pragma region Sound
+
+protected:
+	void PlaySFX(USoundBase* SFX, const FVector& Location, EConcurrencyType SoundType, float Pitch = 1.f, float StartTime = 0.f) const;
+	
+#pragma endregion 
 
 #pragma region Save & Load
 

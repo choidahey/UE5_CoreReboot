@@ -2,6 +2,7 @@
 
 #include "BaseDestructObject.h"
 #include "CR4S.h"
+#include "Game/System/AudioManager.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 #include "Gimmick/Components/ObjectShakeComponent.h"
 #include "Gimmick/Data/GimmickData.h"
@@ -35,6 +36,9 @@ void ADestructibleGimmick::BeginPlay()
 			{
 				DestructibleComponent->SetMaxHealth(GimmickInfoData->GimmickMaxHealth);
 				DestructibleComponent->SetCurrentHealth(GimmickInfoData->GimmickMaxHealth);
+
+				TakeDamageSound = GimmickInfoData->TakeDamageSound;
+				DestroySound = GimmickInfoData->DestroySound;
 			}
 		}
 	}
@@ -98,6 +102,8 @@ void ADestructibleGimmick::SetGimmickHealthData(const float NewCurrentHealth, co
 void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount,
                                                const float CurrentHealth)
 {
+	PlaySFX(TakeDamageSound, GetActorLocation(), EConcurrencyType::Default);
+	
 	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
 	         CurrentHealth);
 
@@ -109,6 +115,8 @@ void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float
 
 void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
+	PlaySFX(DestroySound, GetActorLocation(), EConcurrencyType::Default);
+	
 	GetResources(DamageCauser);
 
 	Destroy();
