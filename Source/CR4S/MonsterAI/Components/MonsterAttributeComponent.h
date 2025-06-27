@@ -35,7 +35,7 @@ public:
 	FOnMonsterDeath OnDeath;
 
 	FORCEINLINE float GetCurrentHP() const { return CurrentHP; }
-	FORCEINLINE void SetCurrentHP(const float NewHealth) { CurrentHP = NewHealth; }
+	FORCEINLINE void SetCurrentHP(const float NewHealth);
 	FORCEINLINE void RecoverToFull() { CurrentHP = CurrentAttribute.MaxHP; }
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
@@ -54,7 +54,6 @@ protected:
 
 private:
 	void ChangeHP(float Delta);
-
 	FString MyHeader;
 	
 };
