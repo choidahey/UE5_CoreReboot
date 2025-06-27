@@ -34,8 +34,11 @@ public:
 protected:
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
+	
 	void ApplySelfStun() const;
 	void RemoveSelfStun() const;
+
+	void SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const;
 #pragma endregion
 
 	

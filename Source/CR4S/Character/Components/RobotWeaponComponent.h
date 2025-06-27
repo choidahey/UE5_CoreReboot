@@ -22,6 +22,11 @@ class CR4S_API URobotWeaponComponent : public UActorComponent
 
 public:
 	URobotWeaponComponent();
+
+#pragma region Check
+	ABaseWeapon* GetWeaponByIndex(const int32 SlotIdx);
+	FORCEINLINE void SetIsDuringAttackAction(const bool bIsAttacking) { bIsDuringAttackAction= bIsAttacking; }
+#pragma endregion
 	
 #pragma region Attack
 public:
@@ -73,6 +78,9 @@ protected:
 	//Left, Right Arm (0,1), Left, Right Shoulder(2,3)	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
 	TArray<TObjectPtr<ABaseWeapon>> Weapons;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsDuringAttackAction:1 {false};
 
 #pragma endregion
 

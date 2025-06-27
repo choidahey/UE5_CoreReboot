@@ -24,6 +24,14 @@ URobotWeaponComponent::URobotWeaponComponent()
 	WeaponSettings.AttachSocketNames.Init(FName(),4);
 }
 
+ABaseWeapon* URobotWeaponComponent::GetWeaponByIndex(const int32 SlotIdx)
+{
+	if (!Weapons.IsValidIndex(SlotIdx)) return nullptr;
+	return Weapons[SlotIdx];
+}
+
+
+
 void URobotWeaponComponent::Input_OnAttackLeftArm()
 {
 	TryAttackBySlot(0,EInputType::RobotAttack1);

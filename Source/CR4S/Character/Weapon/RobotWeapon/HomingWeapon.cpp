@@ -52,6 +52,7 @@ void AHomingWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotId
 
 void AHomingWeapon::StopAttack()
 {
+	Super::StopAttack();
 	if (!bIsAttackButtonHeldDown) return;
 
 	bIsAttackButtonHeldDown=false;
@@ -67,7 +68,6 @@ void AHomingWeapon::StopAttack()
 	
 	bIsLockedOn = false;
 	TrackingTarget=nullptr;
-	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned
