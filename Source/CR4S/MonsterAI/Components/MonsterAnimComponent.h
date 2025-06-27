@@ -31,13 +31,16 @@ protected:
 	TObjectPtr<UAnimMontage> CombatMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
+	TObjectPtr<UAnimMontage> BerserkMontage;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
 	TObjectPtr<UAnimMontage> DeathMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
 	TObjectPtr<UAnimMontage> StunnedMontage;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
-	TObjectPtr<UAnimMontage> HitReactMontage;
+	// UPROPERTY(EditDefaultsOnly, Category = "Monster|Montage")
+	// TObjectPtr<UAnimMontage> HitReactMontage;
 
 #pragma endregion
 
@@ -58,9 +61,10 @@ public:
 
 	/* Explicit Play Calls */
 	void PlayCombatMontage();
+	void PlayBerserkMontage();
 	void PlayDeathMontage();
 	void PlayStunnedMontage();
-	void PlayHitReactMontage();
+	// void PlayHitReactMontage();
 	
 	UPROPERTY(BlueprintAssignable, Category = "Animation")
 	FOnAnimMontageEndedSignature OnMontageEndedNotify;

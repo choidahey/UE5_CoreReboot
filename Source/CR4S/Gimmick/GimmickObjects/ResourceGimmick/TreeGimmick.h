@@ -61,6 +61,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
 	float RemoveTrunkDelay;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy|Sound")
+	TObjectPtr<USoundBase> TrunkDestroySound;
+
 	FTransform OriginTrunkTransform;
 	
 	FTimerHandle RemoveTrunkTimerHandle;

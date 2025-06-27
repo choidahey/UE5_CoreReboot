@@ -301,11 +301,18 @@ bool USaveGameManager::IsNewGame() const
     }
 
     const bool bIsExistingSlot = MetaSave && MetaSave->SaveSlots.Contains(GameInstance->CurrentSlotName);
+    const FString SlotName = GameInstance->CurrentSlotName;
+    const bool bHasCore = UGameplayStatics::DoesSaveGameExist(SlotName + TEXT("_Core"), 0);
+    const bool bHasWorld = UGameplayStatics::DoesSaveGameExist(SlotName + TEXT("_World"), 0);
+    const bool bIsNew = !(bHasCore && bHasWorld);
 
-    CR4S_Log(LogSave, Log, TEXT("CurrentSlotName: %s, IsNewGame: %s"),
-        *GameInstance->CurrentSlotName, bIsExistingSlot ? TEXT("false") : TEXT("true"));
+    CR4S_Log(LogSave, Log, TEXT("SlotName: %s, HasCore: %s, HasWorld: %s, IsNewGame: %s"),
+        *SlotName,
+        bHasCore ? TEXT("true") : TEXT("false"),
+        bHasWorld ? TEXT("true") : TEXT("false"),
+        bIsNew ? TEXT("true") : TEXT("false"));
 
-    return !bIsExistingSlot;
+    return bIsNew;
 }
 
 

@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "FriendlyAI/Component/ObjectPoolComponent.h"
 #include "Game/SaveGame/GimmickSaveGame.h"
+#include "Game/System/AudioManager.h"
 #include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
@@ -51,7 +52,7 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 	}
 
 	TMap<FName, int32> Resources;
-	
+
 	if (const FGimmickInfoData* GimmickInfoData = ItemGimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
 	{
 		for (const auto& [RowName, MinCount, MaxCount] : GimmickInfoData->Resources)
@@ -67,11 +68,28 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(InventorySystem)))
 	{
 		ItemGimmickSubsystem->SpawnItemPouch(this, Resources);
-		
+
 		return;
 	}
 
 	InventorySystem->AddItems(Resources);
+}
+
+void ABaseGimmick::PlaySFX(USoundBase* SFX, const FVector& Location, const EConcurrencyType SoundType,
+                             const float Pitch,
+                             const float StartTime) const
+{
+	const UGameInstance* GameInstance = GetGameInstance();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(GameInstance)))
+	{
+		return;
+	}
+
+	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+	if (IsValid(AudioManager))
+	{
+		AudioManager->PlaySFX(SFX, Location, SoundType, Pitch, StartTime);
+	}
 }
 
 FGimmickSaveGameData ABaseGimmick::GetGimmickSaveGameData_Implementation(bool& bSuccess)

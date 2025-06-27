@@ -12,4 +12,7 @@ class CR4S_API UC4GameInstance : public UGameInstance
 public:
 	UPROPERTY(BlueprintReadWrite)
 	FString CurrentSlotName;
+
+	UPROPERTY()
+	bool bHasShownIntro = false;
 };

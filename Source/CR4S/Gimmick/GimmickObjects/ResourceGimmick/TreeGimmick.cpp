@@ -1,5 +1,6 @@
 ﻿#include "TreeGimmick.h"
 
+#include "Game/System/AudioManager.h"
 #include "Gimmick/Components/DestructibleComponent.h"
 
 ATreeGimmick::ATreeGimmick()
@@ -62,6 +63,8 @@ void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 	{
 		return;
 	}
+
+	PlaySFX(TrunkDestroySound, GetActorLocation(), EConcurrencyType::Default);
 
 	TrunkMeshComponent->SetSimulatePhysics(true);
 
