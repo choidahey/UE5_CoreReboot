@@ -4,6 +4,9 @@
 #include "Components/ActorComponent.h"
 #include "ObjectPoolComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSpawnFromPoolDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReturnToPoolDelegate);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UObjectPoolComponent : public UActorComponent
 {
@@ -34,6 +37,12 @@ public:
 
 	void HandleReturnToPool();
 
+	UPROPERTY(BlueprintAssignable)
+	FOnSpawnFromPoolDelegate OnSpawnFromPoolDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnReturnToPoolDelegate OnReturnToPoolDelegate;
+	
 private:
 	bool bIsBeingInitialized = false;
 	
