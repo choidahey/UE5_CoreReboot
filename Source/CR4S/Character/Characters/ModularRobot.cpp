@@ -311,6 +311,13 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 	
 	BoosterTag=Tag;
 
+
+	RobotSettings.DashEffect=BoosterInfo.DashEffect;
+	RobotSettings.DashSound=BoosterInfo.DashSound;
+	RobotSettings.HoverEffect=BoosterInfo.HoverEffect;
+	RobotSettings.HoverSound=BoosterInfo.HoverSound;
+	RobotSettings.BoosterSocketName=BoosterInfo.BoosterSocketName;
+	
 	RobotSettings.BoosterStrength=BoosterInfo.BoosterStrength;
 	RobotSettings.DashCooldown=BoosterInfo.DashCooldown;
 	Status->SetResourceConsumptionAmount(BoosterInfo.ResourceConsumption);
@@ -436,6 +443,12 @@ void AModularRobot::UnequipBoosterParts()
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
 
 	BoosterTag=FGameplayTag::EmptyTag;
+
+	RobotSettings.DashEffect=nullptr;
+	RobotSettings.DashSound=nullptr;
+	RobotSettings.HoverEffect=nullptr;
+	RobotSettings.HoverSound=nullptr;
+	RobotSettings.BoosterSocketName=FName();
 
 	RobotSettings.BoosterStrength=DefaultSettings.BoosterStrength;
 	RobotSettings.DashCooldown=DefaultSettings.DashCooldown;
@@ -891,7 +904,30 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	{
 		DashPower+=RobotSettings.LegStrength;
 	}
-	
+
+	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
+	if (RobotSettings.DashEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			RobotSettings.DashEffect,
+			BoosterLocation
+		);
+	}
+	if (RobotSettings.DashSound)
+	{
+		if (UGameInstance* GI=GetGameInstance())
+		{
+			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			{
+				Audio->PlaySFX(
+					RobotSettings.DashSound,
+					BoosterLocation,
+					EConcurrencyType::Impact
+				);
+			}
+		}
+	}
 
 	const float WeightBasedDivisor=Status->GetCurrentWeight()*RobotSettings.WeightFactor;
 	const float FinalVelocityAmount=DashPower/WeightBasedDivisor;

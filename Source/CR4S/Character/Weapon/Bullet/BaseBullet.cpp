@@ -5,10 +5,12 @@
 
 #include "CR4S.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Data/WeaponData.h"
 #include "Components/BoxComponent.h"
 #include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/System/AudioManager.h"
 #include "Game/System/ProjectilePoolSubsystem.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -145,25 +147,29 @@ void ABaseBullet::OnOverlapBegin(
 	}
 	if (BulletInfo.ImpactParticle)
 	{
-		UParticleSystemComponent* PSC=UGameplayStatics::SpawnEmitterAtLocation(
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
 			BulletInfo.ImpactParticle,
 			OverlapLocation,
-			FRotator::ZeroRotator,
-			true
+			FRotator::ZeroRotator
 		);
-		if (!CR4S_ENSURE(LogHong1,PSC)) return;
-		PSC->bAutoDestroy=true;
 	}
 	if (BulletInfo.ImpactSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(
-			this,
-			BulletInfo.ImpactSound,
-			OverlapLocation,
-			1.0f,
-			1.0f
-		);
+		if (BulletInfo.ImpactSound)
+		{
+			if (UGameInstance* GI=GetGameInstance())
+			{
+				if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+				{
+					Audio->PlaySFX(
+						BulletInfo.ImpactSound,
+						OverlapLocation,
+						EConcurrencyType::Impact
+					);
+				}
+			}
+		}
 	}
 	UCombatStatics::ApplyStun(OtherActor,BulletInfo.StunAmount);
 
