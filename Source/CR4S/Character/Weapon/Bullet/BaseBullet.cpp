@@ -82,7 +82,7 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AA
 	}
 }
 
-void ABaseBullet::Deactivate() const
+void ABaseBullet::Deactivate()
 {
 	if (CollisionComponent)
 	{
@@ -99,6 +99,7 @@ void ABaseBullet::Deactivate() const
 void ABaseBullet::BeginPlay()
 {
 	Super::BeginPlay();
+	PoolComponent->OnReturnToPoolDelegate.AddUniqueDynamic(this,&ABaseBullet::Deactivate);
 }
 
 void ABaseBullet::OnOverlapBegin(
