@@ -96,16 +96,6 @@ USettingsSaveGame* USaveGameManager::LoadSettings()
     {
         SettingsSave = Cast<USettingsSaveGame>(UGameplayStatics::LoadGameFromSlot(SettingsSlotName, 0));
 
-        if (SettingsSave)
-        {
-            if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
-            {
-                AudioManager->SetMasterVolume(SettingsSave->MasterVolume);
-                AudioManager->SetBGMVolume(SettingsSave->BGMVolume);
-                AudioManager->SetSFXVolume(SettingsSave->SFXVolume);
-            }
-		}
-
         return SettingsSave;
     }
 

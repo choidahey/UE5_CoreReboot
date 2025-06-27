@@ -13,8 +13,8 @@ AProjectileBomb::AProjectileBomb()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
-	SetRootComponent(CollisionComp);
-	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComp->SetupAttachment(RootComp);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
@@ -23,29 +23,29 @@ AProjectileBomb::AProjectileBomb()
 	CollisionComp->SetNotifyRigidBodyCollision(true);
 	CollisionComp->OnComponentHit.AddDynamic(this, &AProjectileBomb::OnHit);
 
-	NiagaraComp->SetupAttachment(CollisionComp);
-	StaticMesh->SetupAttachment(CollisionComp);
+	NiagaraComp->SetupAttachment(RootComp);
+	StaticMesh->SetupAttachment(RootComp);
 	
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovement->UpdatedComponent = CollisionComp;
+	ProjectileMovement->UpdatedComponent = RootComp;
 	ProjectileMovement->InitialSpeed = 1200.f;
 	ProjectileMovement->MaxSpeed = 1200.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->ProjectileGravityScale = 1.0f;
 	ProjectileMovement->bAutoActivate = false;
+	ProjectileMovement->PrimaryComponentTick.bCanEverTick = true;
+	ProjectileMovement->PrimaryComponentTick.bStartWithTickEnabled = true;
+	ProjectileMovement->SetComponentTickEnabled(true);
+	ProjectileMovement->bUpdateOnlyIfRendered = false;
 
 	ExplosionOverlapComp = CreateDefaultSubobject<USphereComponent>(TEXT("ExplosionOverlapComp"));
 	ExplosionOverlapComp->SetupAttachment(CollisionComp);
 	ExplosionOverlapComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	ExplosionOverlapComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	ExplosionOverlapComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	ExplosionOverlapComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	ExplosionOverlapComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	ExplosionOverlapComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	ExplosionOverlapComp->SetGenerateOverlapEvents(false);
 	ExplosionOverlapComp->OnComponentBeginOverlap.AddDynamic(this, &AProjectileBomb::OnExplosionOverlap);
 	
-	ExplosionRadius = 200.f;
-	ExplosionDamage = Damage;
+	InitialLifeSpan = ActorLifeTime;
 }
 
 void AProjectileBomb::BeginPlay()
@@ -85,21 +85,18 @@ void AProjectileBomb::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bHomingActive || !HomingTarget)
-		return;
+	if (!bHomingActive || !IsValid(HomingTarget)) return;
+	if (!IsValid(SpawnActorClass)) return;
 	
 	const float CurrentDist = FVector::Dist(GetActorLocation(), HomingTarget->GetActorLocation());
-	
-	UE_LOG(LogTemp, Warning, TEXT("[%s] CurrentDist=%.1f cm (Threshold=%.1f)"), *GetName(), CurrentDist, SpawnDistance);
-
 	if (CurrentDist <= SpawnDistance)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] SpawnDistance 이내 진입 → 스폰!"), *GetName());
 		if (SpawnActorClass)
 		{
 			const FTransform Tf(GetActorRotation(), GetActorLocation());
 			GetWorld()->SpawnActor<AActor>(SpawnActorClass, Tf);
 		}
+		
 		Destroy();
 	}
 }
@@ -125,7 +122,22 @@ void AProjectileBomb::LaunchProjectile()
 	const FVector LaunchVel = LaunchDir * ProjectileMovement->InitialSpeed;
 	
 	ProjectileMovement->Velocity = LaunchVel;
-	ProjectileMovement->bShouldBounce = false;
+	ProjectileMovement->ProjectileGravityScale = GravityScale;
+	ProjectileMovement->Activate(true);
+}
+
+void AProjectileBomb::ActivateHoming()
+{
+	if (!ProjectileMovement || !bHomingActive) return;
+
+	AActor* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!IsValid(PlayerPawn)) return;
+
+	HomingTarget = PlayerPawn;
+	ProjectileMovement->bIsHomingProjectile = true;
+	ProjectileMovement->HomingTargetComponent = PlayerPawn->GetRootComponent();
+	ProjectileMovement->HomingAccelerationMagnitude = HomingSpeed;
+	ProjectileMovement->ProjectileGravityScale = GravityScale;
 	ProjectileMovement->Activate(true);
 }
 
@@ -227,22 +239,3 @@ void AProjectileBomb::ApplyPeriodicDamage(AActor* Victim)
 		UDamageType::StaticClass()
 	);
 }
-
-void AProjectileBomb::ActivateHoming()
-{
-	UE_LOG(LogTemp, Warning, TEXT("[%s] Call ActivateHoming()"), *GetName());
-	
-	if (!ProjectileMovement || !bHomingActive) return;
-
-	AActor* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!IsValid(PlayerPawn)) return;
-
-	HomingTarget = PlayerPawn;
-	ProjectileMovement->bIsHomingProjectile = true;
-	ProjectileMovement->HomingTargetComponent = PlayerPawn->GetRootComponent();
-	ProjectileMovement->HomingAccelerationMagnitude = HomingSpeed;
-	ProjectileMovement->ProjectileGravityScale = 0.1f;
-	
-	ProjectileMovement->Activate(true);
-}
-

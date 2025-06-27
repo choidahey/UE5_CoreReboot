@@ -4,6 +4,7 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UToolInventoryItem::UToolInventoryItem()
 {
@@ -17,6 +18,12 @@ void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
+	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (IsValid(Pawn))
+	{
+		PlayerInventoryComponent = Pawn->FindComponentByClass<UPlayerInventoryComponent>();
+	}
+	
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;
 	if (!CR4S_VALIDATE(LogInventory, IsValid(DataTable)))
 	{
@@ -73,9 +80,10 @@ void UToolInventoryItem::EquipItem() const
 void UToolInventoryItem::UnEquipItem() const
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
-		IsValid(PlayerInventoryComponent))
+		IsValid(PlayerInventoryComponent) &&
+		PlayerInventoryComponent->GetHeldToolTag() != FGameplayTag::EmptyTag)
 	{
-		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
+		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag::EmptyTag);
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
 
 		if (IsValid(StatusComponent))

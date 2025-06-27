@@ -16,21 +16,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	TSubclassOf<AActor> IcicleWaveActorClass;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditInstanceOnly, Category = "Boss|Skill", meta=(ClampMin="1"))
 	int32 SpawnCount = 3;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditInstanceOnly, Category = "Boss|Skill")
 	float BaseDistance = 500.f;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditInstanceOnly, Category = "Boss|Skill")
 	float DistanceStep = 400.f;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditInstanceOnly, Category = "Boss|Skill")
 	float SpawnInterval = 1.f;
 
-	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
+	UPROPERTY(EditInstanceOnly, Category = "Boss|Skill")
 	bool bForward = true;
-
-private:
-	FString MyHeader = TEXT("Nofity_IcicleWaves");
 };

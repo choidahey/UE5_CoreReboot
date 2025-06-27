@@ -1,6 +1,7 @@
 ﻿#include "ItemPouchGimmick.h"
 
 #include "CR4S.h"
+#include "Game/SaveGame/GimmickSaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
@@ -49,6 +50,18 @@ void AItemPouchGimmick::BeginPlay()
 	}
 }
 
+FGimmickSaveGameData AItemPouchGimmick::GetGimmickSaveGameData_Implementation(bool& bSuccess)
+{
+	FGimmickSaveGameData SaveGame = Super::GetGimmickSaveGameData_Implementation(bSuccess); 
+
+	if (bSuccess && IsValid(GimmickMeshComponent))
+	{
+		SaveGame.Transform = GimmickMeshComponent->GetComponentTransform();
+	}
+	
+	return SaveGame;
+}
+
 void AItemPouchGimmick::OnGimmickInteracted(AActor* Interactor)
 {
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(Interactor)) ||
@@ -93,7 +106,7 @@ void AItemPouchGimmick::InitItemPouch(const AActor* SourceActor, const TMap<FNam
 
 void AItemPouchGimmick::LaunchItemPouch(const AActor* SourceActor) const
 {
-	if (IsValid(SourceActor))
+	if (IsValid(SourceActor) && IsValid(GimmickMeshComponent))
 	{
 		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GimmickMeshComponent->SetSimulatePhysics(true);
@@ -131,6 +144,18 @@ void AItemPouchGimmick::UpdateWorldTime(const int64 NewPlayTime)
 	}
 }
 
+void AItemPouchGimmick::LoadItemPouchData(const float NewElapsedSeconds)
+{
+	if (IsValid(GimmickMeshComponent))
+	{
+		ElapsedSeconds = NewElapsedSeconds;
+		PrevPlayTime = -1;
+
+		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GimmickMeshComponent->SetSimulatePhysics(true);
+	}
+}
+
 void AItemPouchGimmick::DestroyEmptyItemPouch(const int32 NumOccupiedSlots)
 {
 	if (NumOccupiedSlots == 0)
@@ -143,6 +168,8 @@ void AItemPouchGimmick::DestroyEmptyItemPouch(const int32 NumOccupiedSlots)
 
 void AItemPouchGimmick::UnBoundDelegate()
 {
+	bIsOpenWidget = false;
+	
 	if (IsValid(PlayerInventoryComponent) &&
 		PlayerInventoryComponent->OnInventoryClose.IsAlreadyBound(this, &ThisClass::UnBoundDelegate))
 	{
@@ -157,6 +184,7 @@ void AItemPouchGimmick::CloseWidget()
 	if (bIsOpenWidget && IsValid(PlayerInventoryComponent))
 	{
 		PlayerInventoryComponent->CloseInventoryWidget();
+		PlayerInventoryComponent = nullptr;
 	}
 
 	bIsOpenWidget = false;

@@ -3,11 +3,11 @@
 #include "Gimmick/Components/DestructibleComponent.h"
 
 ATreeGimmick::ATreeGimmick()
-	: bIsDestroyed(false),
-	  bIsTrunkDestroyed(false),
+	: bIsTrunkDestroyed(false),
 	  StumpHealth(50.f),
 	  ImpulseStrength(100.f),
-	  RemoveTrunkDelay(5.f)
+	  RemoveTrunkDelay(5.f),
+	  TrunkHealth(0.f)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -24,6 +24,11 @@ void ATreeGimmick::BeginPlay()
 	if (IsValid(TrunkMeshComponent))
 	{
 		OriginTrunkTransform = TrunkMeshComponent->GetRelativeTransform();
+	}
+
+	if (IsValid(DestructibleComponent))
+	{
+		TrunkHealth = DestructibleComponent->GetMaxHealth();
 	}
 }
 
@@ -47,6 +52,17 @@ void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 {
 	bIsTrunkDestroyed = true;
 
+	if (IsValid(DestructibleComponent))
+	{
+		DestructibleComponent->SetMaxHealth(StumpHealth);
+		DestructibleComponent->SetCurrentHealth(StumpHealth);
+	}
+
+	if (!IsValid(TrunkMeshComponent))
+	{
+		return;
+	}
+
 	TrunkMeshComponent->SetSimulatePhysics(true);
 
 	FVector Direction = GetActorLocation() - DamageCauser->GetActorLocation();
@@ -56,8 +72,6 @@ void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 	const float Strength = TrunkMeshComponent->GetMass() * ImpulseStrength;
 
 	TrunkMeshComponent->AddImpulse(Direction * Strength);
-
-	DestructibleComponent->SetMaxHealth(StumpHealth);
 
 	GetWorldTimerManager().SetTimer(
 		RemoveTrunkTimerHandle,
@@ -70,8 +84,31 @@ void ATreeGimmick::HandleDestroyTrunk(const AActor* DamageCauser)
 
 void ATreeGimmick::RemoveTrunk() const
 {
+	if (!IsValid(TrunkMeshComponent))
+	{
+		return;
+	}
+
 	TrunkMeshComponent->SetSimulatePhysics(false);
 	TrunkMeshComponent->SetVisibility(false);
 	TrunkMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	TrunkMeshComponent->SetRelativeTransform(OriginTrunkTransform);
+}
+
+void ATreeGimmick::RespawnTrunk()
+{
+	if (IsValid(DestructibleComponent))
+	{
+		DestructibleComponent->SetMaxHealth(TrunkHealth);
+		DestructibleComponent->SetCurrentHealth(TrunkHealth);
+	}
+
+	if (!IsValid(TrunkMeshComponent))
+	{
+		return;
+	}
+
+	bIsTrunkDestroyed = false;
+	TrunkMeshComponent->SetVisibility(true);
+	TrunkMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }

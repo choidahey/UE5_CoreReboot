@@ -1,6 +1,7 @@
 #include "MonsterAI/Animations/AnimNotify/AnimNotify_SpawnActorDelay.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "AIController.h"
+#include "CR4S.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
@@ -10,29 +11,35 @@
 
 void UAnimNotify_SpawnActorDelay::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!IsValid(MeshComp->GetWorld())
-		|| !IsValid(MeshComp)
+	if (!IsValid(MeshComp)
+		|| !IsValid(MeshComp->GetWorld())
 		|| !IsValid(SpawnActorClass)
 		|| !IsValid(Animation)) return;
 	
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
-	if (!OwnerPawn || !SpawnActorClass)
+	if (!IsValid(OwnerPawn) || !IsValid(SpawnActorClass))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] Invalid OwnerPawn or SpawnActorClass"), *GetClass()->GetName());
+		CR4S_Log(LogDa, Warning, TEXT("[%s] Invalid OwnerPawn or SpawnActorClass"), *GetClass()->GetName());
 		return;
 	}
 	
 	AAIController* AIC = Cast<AAIController>(OwnerPawn->GetController());
+	if (!IsValid(AIC)) return;
+	
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
-	if (!AIC || !BB) return;
+	if (!IsValid(BB)) return;
 
-	TargetActor = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
-	TargetActor = TargetActor ? TargetActor : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-	TargetActor = TargetActor ? TargetActor : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+	AActor* TargetPtr = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+	if (!IsValid(TargetPtr))
+		TargetPtr = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+	if (!IsValid(TargetPtr))
+		TargetPtr = UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+	if (!IsValid(TargetPtr))
+		return;
 
-	FVector CenterLoc = TargetActor->GetActorLocation();
+	FVector CenterLoc = TargetPtr->GetActorLocation();
 	float HalfHeight = 0.f;
-	if (ACharacter* Char = Cast<ACharacter>(TargetActor))
+	if (ACharacter* Char = Cast<ACharacter>(TargetPtr))
 	{
 		if (UCapsuleComponent* Cap = Char->GetCapsuleComponent())
 		{
@@ -50,7 +57,7 @@ void UAnimNotify_SpawnActorDelay::Notify(USkeletalMeshComponent* MeshComp, UAnim
 	FCollisionQueryParams CollisionParam;
 	CollisionParam.AddIgnoredActor(OwnerPawn);
 
-	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd,ECC_Visibility, CollisionParam))
+	if (MeshComp->GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd,ECC_Visibility, CollisionParam))
 	{
 		float OffsetLoc = SpawnLocation.Z - Hit.Location.Z;
 		if (!FMath::IsNearlyZero(OffsetLoc, 1.0f))
@@ -59,35 +66,39 @@ void UAnimNotify_SpawnActorDelay::Notify(USkeletalMeshComponent* MeshComp, UAnim
 		}
 	}
 
-	const FVector SavedLocation = SpawnLocation;
-	FTimerDelegate Del;
-	Del.BindLambda([OwnerPawn, this, SavedLocation]()
-	{
-		if (!IsValid(OwnerPawn) || !SpawnActorClass) return;
-		
-		FActorSpawnParameters Params;
-		Params.Owner = OwnerPawn;
-		Params.Instigator = OwnerPawn;
-		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	APawn* PawnPtr = OwnerPawn;
+	AActor* TargetActorPtr = TargetPtr;
+	TSubclassOf<AActor> SpawnClass = SpawnActorClass;
+	FVector SpawnPosition = SpawnLocation;
+	float DelayTime = SpawnDelayTime;
+	
+	FTimerHandle TempHandle;
+	FTimerDelegate CreateDelegate = FTimerDelegate::CreateLambda(
+		[PawnPtr, SpawnClass, TargetActorPtr, SpawnPosition]()
+		{
+			if (!IsValid(PawnPtr) || SpawnClass == nullptr)
+				return;
 
-		AActor* NewActor = OwnerPawn->GetWorld()->SpawnActor<AActor>(
-			SpawnActorClass,
-			SavedLocation,
-			FRotator::ZeroRotator,
-			Params);
-		
-		// if (AIceSpike* Spike = Cast<AIceSpike>(NewActor))
-		// 	Spike->Launch();
-		if (AFieldActor* FieldActor = Cast<AFieldActor>(NewActor))
-			FieldActor->Initialize(OwnerPawn, TargetActor);
-	});
+			FActorSpawnParameters ParamsSP;
+			ParamsSP.Owner = PawnPtr;
+			ParamsSP.Instigator= PawnPtr;
+			ParamsSP.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+			AActor* NewActor = PawnPtr->GetWorld()->SpawnActor<AActor>(
+				SpawnClass,
+				SpawnPosition,
+				FRotator::ZeroRotator,
+				ParamsSP
+			);
+			if (!IsValid(NewActor))
+				return;
+			
+			if (AFieldActor* Field = Cast<AFieldActor>(NewActor))
+			{
+				Field->Initialize(PawnPtr, TargetActorPtr);
+			}
+		}
+	);
 
-	MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
-	MeshComp->GetWorld()->GetTimerManager().SetTimer(
-		SpawnTimerHandle,
-		Del,
-		SpawnDelayTime,
-		false
-		);
+	MeshComp->GetWorld()->GetTimerManager().SetTimer(TempHandle, CreateDelegate, DelayTime, false);
 }

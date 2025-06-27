@@ -81,6 +81,7 @@ public:
 	
 private:
 	void UpdateCurrentWeightColor(bool bIsArmWeight) const;
+	void UpdateButtonColor() const;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> CreateModeButton;
@@ -107,9 +108,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "RobotInventoryWidget")
 	FText AssemblyModeText;
 
-	UPROPERTY(EditDefaultsOnly, Category = "WeightTextColor")
+	UPROPERTY(EditDefaultsOnly, Category = "Color")
+	FLinearColor CurrentModeButtonColor = FLinearColor::Green;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Color")
 	FLinearColor DefaultColor = FLinearColor::White;
-	UPROPERTY(EditDefaultsOnly, Category = "WeightTextColor")
+	UPROPERTY(EditDefaultsOnly, Category = "Color")
 	FLinearColor OverColor = FLinearColor::Red;
 
 	int32 CurrentWeight = 0;

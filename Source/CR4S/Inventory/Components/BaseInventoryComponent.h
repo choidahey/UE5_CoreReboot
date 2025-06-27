@@ -182,7 +182,7 @@ private:
 #pragma region Save & Load
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "InventorySystem|SaveData")
+	UFUNCTION(BlueprintPure, Category = "InventorySystem|SaveData")
 	virtual FInventorySaveGame GetInventorySaveGame();
 	UFUNCTION(BlueprintCallable, Category = "InventorySystem|LoadData")
 	virtual void LoadInventorySaveGame(const FInventorySaveGame& SaveGameData);
