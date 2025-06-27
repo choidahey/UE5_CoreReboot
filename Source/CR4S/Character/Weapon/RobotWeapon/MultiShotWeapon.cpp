@@ -34,6 +34,15 @@ void AMultiShotWeapon::OnAttack()
 	Super::OnAttack();
 }
 
+void AMultiShotWeapon::StopAttack()
+{
+	Super::StopAttack();
+	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	{
+		StartReload();
+	}
+}
+
 // Called when the game starts or when spawned
 void AMultiShotWeapon::BeginPlay()
 {

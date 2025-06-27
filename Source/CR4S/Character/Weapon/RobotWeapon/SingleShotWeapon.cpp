@@ -48,6 +48,15 @@ void ASingleShotWeapon::OnAttack()
 	Super::OnAttack();
 }
 
+void ASingleShotWeapon::StopAttack()
+{
+	Super::StopAttack();
+	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	{
+		StartReload();
+	}
+}
+
 // Called when the game starts or when spawned
 void ASingleShotWeapon::BeginPlay()
 {
