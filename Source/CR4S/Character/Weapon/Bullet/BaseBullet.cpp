@@ -78,7 +78,20 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AA
 		{
 			CollisionComponent->IgnoreActorWhenMoving(OwnerActor,true);
 		}
-		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this,&ABaseBullet::OnOverlapBegin);
+		CollisionComponent->OnComponentBeginOverlap.AddUniqueDynamic(this,&ABaseBullet::OnOverlapBegin);
+	}
+}
+
+void ABaseBullet::Deactivate() const
+{
+	if (CollisionComponent)
+	{
+		CollisionComponent->OnComponentBeginOverlap.RemoveAll(this);
+	}
+	if (ProjectileMovementComponent)
+	{
+		ProjectileMovementComponent->Deactivate();
+		ProjectileMovementComponent->Velocity=FVector::ZeroVector;
 	}
 }
 
