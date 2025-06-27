@@ -87,7 +87,7 @@ void ASeasonBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
    {
       AttributeComponent->InitializeMonsterAttribute(MonsterID);
    }
-   else
+   else if (NewPhase == EBossPhase::Berserk)
    {
       const float BaseSpeed = AttributeComponent->GetMonsterAttribute().MoveSpeed;
       const float SpeedMultiplier = StateComponent->GetCurrentSpeedMultiplier();

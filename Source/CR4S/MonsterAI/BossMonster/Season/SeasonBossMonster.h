@@ -29,6 +29,7 @@ protected:
 	void HandlePhaseChanged(EBossPhase NewPhase);
 
 #pragma endregion
+	
 #pragma region Opening Pattern
 protected:
 	void SpawnOpeningPattern();  // Template Method

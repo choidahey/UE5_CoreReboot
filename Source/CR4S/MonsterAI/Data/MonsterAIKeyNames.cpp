@@ -37,5 +37,6 @@ const FName FSeasonBossAIKeys::RangedOptimalDistance = TEXT("RangedOptimalDistan
 const FName FSeasonBossAIKeys::TeleportLocation = TEXT("TeleportLocation");
 const FName FSeasonBossAIKeys::SelectedComboKey = TEXT("SelectedComboKey");
 const FName FSeasonBossAIKeys::SpecialPatternKey = TEXT("SpecialPatternKey");
-const FName FSeasonBossAIKeys::isDashing = TEXT("isDashing");
+const FName FSeasonBossAIKeys::bIsDashing = TEXT("bIsDashing");
 const FName FSeasonBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
+const FName FSeasonBossAIKeys::bIsPlayedBerserkAnim = TEXT("bIsPlayedBerserkAnim");

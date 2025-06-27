@@ -44,6 +44,7 @@ struct FSeasonBossAIKeys : public FAIKeys
 	static const FName TeleportLocation;
 	static const FName SelectedComboKey;
 	static const FName SpecialPatternKey;
-	static const FName isDashing;
+	static const FName bIsDashing;
 	static const FName CurrentPhase;
+	static const FName bIsPlayedBerserkAnim;
 };
