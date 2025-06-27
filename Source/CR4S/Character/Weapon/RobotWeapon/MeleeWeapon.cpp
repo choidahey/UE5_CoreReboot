@@ -11,11 +11,36 @@ AMeleeWeapon::AMeleeWeapon()
 
 void AMeleeWeapon::OnAttack()
 {
-	AModularRobot* Robot=GetTypedOuter<AModularRobot>();
-	if (!CR4S_ENSURE(LogHong1,Robot)||!CR4S_ENSURE(LogHong1,BaseInfo.AttackMontage)) return;
-	Robot->PlayAnimMontage(BaseInfo.AttackMontage);
+	if (!bCanAttack) return;
 	
-	Super::OnAttack();
+	ApplySelfStun();
+	AttackPressTime=GetWorld()->GetTimeSeconds();
+}
+
+void AMeleeWeapon::StopAttack()
+{
+	AModularRobot* Robot = GetTypedOuter<AModularRobot>();
+	if (!CR4S_ENSURE(LogHong1, Robot)) return;
+
+	const float ElapsedTime = GetWorld()->GetTimeSeconds() - AttackPressTime;
+
+	UAnimMontage* MontageToPlay = nullptr;
+
+	if (ElapsedTime >= TypeSpecificInfo.ChargeAttackTimeThreshold)
+	{
+		MontageToPlay = TypeSpecificInfo.ChargeAttackMontage;
+	}
+	else
+	{
+		MontageToPlay = BaseInfo.AttackMontage;
+	}
+
+	if (MontageToPlay)
+	{
+		Robot->PlayAnimMontage(MontageToPlay);
+	}
+	StartAttackCooldown();
+	RemoveSelfStun();
 }
 
 void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
