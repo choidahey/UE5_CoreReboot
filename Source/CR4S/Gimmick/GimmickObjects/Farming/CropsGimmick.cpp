@@ -1,4 +1,4 @@
-﻿PRAGMA_DISABLE_OPTIMIZATION
+﻿UE_DISABLE_OPTIMIZATION
 
 #include "CropsGimmick.h"
 
@@ -392,3 +392,5 @@ void ACropsGimmick::LoadPlantedCropsGimmick(const FCropsGimmickGrowthData& NewCr
 
 	UpdateGrowthStage();
 }
+
+UE_ENABLE_OPTIMIZATION
