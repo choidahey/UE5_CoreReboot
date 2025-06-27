@@ -35,15 +35,26 @@ void ASingleShotWeapon::OnAttack()
 	{
 		return;
 	}
+
+	PlayMuzzleVFX(TypeSpecificInfo.MuzzleSocketName);
+	PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
 	
 	const FRotator SpawnRotation=ShootDirection.Rotation();
-	
 	FireBullet(MuzzleLocation,SpawnRotation);
 	
 	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
 	Super::OnAttack();
+}
+
+void ASingleShotWeapon::StopAttack()
+{
+	Super::StopAttack();
+	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	{
+		StartReload();
+	}
 }
 
 // Called when the game starts or when spawned

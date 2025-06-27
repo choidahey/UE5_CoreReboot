@@ -25,7 +25,8 @@ public:
 
 public:
 	virtual void Initialize(const FBulletInfo& InData, const float InDamage, AActor* HomingTarget=nullptr);
-	void Deactivate() const;
+	UFUNCTION()
+	void Deactivate();
 	
 	virtual void Tick(float DeltaTime) override;
 protected:

@@ -11,6 +11,7 @@
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class UWeaponTraceComponent;
 class USaveGame;
 class UTimelineComponent;
 class UDataLoaderSubsystem;
@@ -46,6 +47,11 @@ public:
 	virtual void ApplySaveData(FSavedActorData& InSaveData) override;
 #pragma endregion
 
+#pragma region Effects
+	UFUNCTION()
+	void HandleHoverEffects();
+#pragma endregion
+	
 #pragma region InputEnable
 	void SetInputEnable(const bool bEnableInput) const;
 	void SetMovementInputEnable(const bool bEnableMovementInput) const;
@@ -207,6 +213,8 @@ private:
 	TObjectPtr<UCameraComponent> FollowCamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UModularRobotStatusComponent> Status;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWeaponTraceComponent> WeaponTrace;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<URobotWeaponComponent> WeaponManager;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))

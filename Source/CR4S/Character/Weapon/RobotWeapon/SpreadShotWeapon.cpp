@@ -35,6 +35,9 @@ void ASpreadShotWeapon::OnAttack()
 	{
 		return;
 	}
+
+	PlayMuzzleVFX(TypeSpecificInfo.MuzzleSocketName);
+	PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
 	
 	const float SpreadHalfAngleRad=FMath::DegreesToRadians(TypeSpecificInfo.SpreadShotInfo.SpreadAngle*0.5f);
 	for (int32 i=0;i<TypeSpecificInfo.SpreadShotInfo.BulletPerShot;++i)
@@ -45,10 +48,20 @@ void ASpreadShotWeapon::OnAttack()
 
 		FireBullet(MuzzleLocation,SpawnRotation);
 	}
+	
 	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
 	Super::OnAttack();
+}
+
+void ASpreadShotWeapon::StopAttack()
+{
+	Super::StopAttack();
+	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	{
+		StartReload();
+	}
 }
 
 // Called when the game starts or when spawned

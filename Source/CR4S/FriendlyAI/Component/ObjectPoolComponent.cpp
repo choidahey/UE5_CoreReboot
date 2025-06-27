@@ -36,11 +36,6 @@ void UObjectPoolComponent::OnReturnToPool()
 	
 	GetWorld()->GetTimerManager().ClearTimer(ReturnTimerHandle);
 
-	if (ABaseBullet* Bullet = Cast<ABaseBullet>(GetOwner()))
-	{
-		Bullet->Deactivate();
-	}
-
 	GetOwner()->SetActorHiddenInGame(true);
 	GetOwner()->SetActorEnableCollision(false);
 }

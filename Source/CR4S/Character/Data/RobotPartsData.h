@@ -8,6 +8,7 @@
 #include "RobotPartsData.generated.h"
 
 
+class UNiagaraSystem;
 struct FMeleeWeaponInfo;
 struct FGameplayTag;
 
@@ -124,6 +125,19 @@ public:
 	float ResourceConsumption{2000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DashCooldown{1};
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> DashEffect;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> DashSound;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> HoverEffect;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> HoverSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName BoosterSocketName{};
 };
 
 UCLASS()

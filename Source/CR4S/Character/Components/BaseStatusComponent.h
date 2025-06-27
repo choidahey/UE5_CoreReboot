@@ -24,6 +24,10 @@ public:
 	// Sets default values for this component's properties
 	UBaseStatusComponent();
 
+#pragma region Damage
+	virtual void TakeDamage(const float DamageAmount);
+#pragma endregion
+	
 #pragma region Refresh
 	virtual void Refresh();
 #pragma endregion
