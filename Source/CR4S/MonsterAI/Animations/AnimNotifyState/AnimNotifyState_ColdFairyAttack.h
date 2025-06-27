@@ -37,6 +37,4 @@ private:
 	
 	FTimerHandle SpawnTimerHandle;
 	int32 CurrentSpawnIndex = 0;
-
-	FString MyHeader = TEXT("NotifyState_ColdFairyAttack");
 };

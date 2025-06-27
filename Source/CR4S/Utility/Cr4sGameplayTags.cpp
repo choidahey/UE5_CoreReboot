@@ -100,4 +100,6 @@ namespace ItemTags
 	UE_DEFINE_GAMEPLAY_TAG(Tools, FName(TEXT("Item.Tools")));
 	UE_DEFINE_GAMEPLAY_TAG(Consumable, FName(TEXT("Item.Consumable")));
 	UE_DEFINE_GAMEPLAY_TAG(HelperBot, FName(TEXT("Item.HelperBot")));
+	UE_DEFINE_GAMEPLAY_TAG(RobotParts, FName(TEXT("RobotParts")));
+	UE_DEFINE_GAMEPLAY_TAG(Weapon, FName(TEXT("Weapon")));
 }

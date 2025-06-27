@@ -14,8 +14,8 @@
 
 void UAnimNotifyState_ColdFairyAttack::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
-    if (!IsValid(MeshComp->GetWorld())
-        || !IsValid(MeshComp)
+    if (!IsValid(MeshComp)
+        || !IsValid(MeshComp->GetWorld())
         || SpawnActorClass.IsNull()
         || !IsValid(Animation)
         || NumSpawnActor <= 0) return;
@@ -38,14 +38,26 @@ void UAnimNotifyState_ColdFairyAttack::NotifyBegin(USkeletalMeshComponent* MeshC
     
     CurrentSpawnIndex = 0;
 
-    FTimerDelegate Delegate = FTimerDelegate::CreateUObject(
-        this,
-        &UAnimNotifyState_ColdFairyAttack::SpawnOne,
-        MeshComp,
-        AIC,
-        BBComp
+    TWeakObjectPtr<USkeletalMeshComponent> WeakMeshComp = MeshComp;
+    TWeakObjectPtr<AAIController> WeakAIC = AIC;
+    TWeakObjectPtr<UBlackboardComponent> WeakBB = BBComp;
+    
+    FTimerDelegate Delegate = FTimerDelegate::CreateLambda(
+        [this, WeakMeshComp, WeakAIC, WeakBB]()
+        {
+            if (!WeakMeshComp.IsValid() || !WeakAIC.IsValid() || !WeakBB.IsValid())
+            {
+                if (WeakMeshComp.IsValid() && WeakMeshComp->GetWorld())
+                {
+                    WeakMeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+                }
+                return;
+            }
+            
+            SpawnOne(WeakMeshComp.Get(),WeakAIC.Get(), WeakBB.Get());
+        }
     );
-
+    
     MeshComp->GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, Delegate, Interval, true);
 }
 
@@ -60,9 +72,7 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
     if (!IsValid(ActorClass))
     {
         if (MeshComp && MeshComp->GetWorld())
-        {
             MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
-        }
         return;
     }
     
@@ -74,14 +84,22 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
     }
 
     APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
-    if (!OwnerPawn) return;
+    if (!IsValid(OwnerPawn))
+    {
+        if (MeshComp && MeshComp->GetWorld())
+            MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+        return;
+    }
 
     int32 i = CurrentSpawnIndex;
     if (i < NumSpawnActor)
     {
-        AActor* Target = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
-        Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(TEXT("NearestHouseActor")));
-        Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+        AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+        if (!Target)
+            Target = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+        if (!Target)
+            Target = UGameplayStatics::GetPlayerPawn(OwnerPawn->GetWorld(), 0);
+        if (!Target) return;
 
         FVector BaseLoc = Target->GetActorLocation();
         if (ACharacter* Char = Cast<ACharacter>(Target))
@@ -121,7 +139,7 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
         }
         else
         {
-            CR4S_Log(LogDa, Warning, TEXT("[%s] SpawnOne FAILED idx=%d"), *MyHeader, i);
+            CR4S_Log(LogDa, Warning, TEXT("[%s] SpawnOne FAILED idx=%d"), *GetClass()->GetName(), i);
         }
 
         CurrentSpawnIndex++;
@@ -134,7 +152,7 @@ void UAnimNotifyState_ColdFairyAttack::SpawnOne(
 
 void UAnimNotifyState_ColdFairyAttack::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    if (MeshComp && MeshComp->GetWorld())
+    if (IsValid(MeshComp) && MeshComp->GetWorld())
     {
         MeshComp->GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
     }

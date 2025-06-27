@@ -12,8 +12,6 @@ void UHelperBotInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInve
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
-	InventoryItemData.ItemType = EInventoryItemType::HelperBot;
-
 	BotNameText = LOCTEXT("BotNameText", "이름");
 	HPText = LOCTEXT("HPText", "체력");
 }
@@ -60,8 +58,10 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 
 	if (IsValid(HelperBot))
 	{
-		HelperBot->SetIsFromInventory(true);
-		HelperBot->SetPickUpData(GetHelperBotData());
+		if (HelperBot->InitPickData())
+		{
+			HelperBot->SetPickUpData(GetHelperBotData());
+		}
 
 		InventoryComponent->RemoveItemByIndex(Index, 1);
 	}
@@ -78,7 +78,7 @@ void UHelperBotInventoryItem::SetHelperBotData(const FHelperPickUpData& NewHelpe
 	const FText NewDescription = FText::Format(
 		LOCTEXT("ItemDescriptionFormat", "{0}: {1}\n{2}: {3}"),
 		BotNameText,
-		FText::FromString(HelperBotData.BotName),
+		HelperBotData.BotName,
 		HPText,
 		FText::AsNumber(HelperBotData.CurrentHealth)
 	);
@@ -89,7 +89,6 @@ void UHelperBotInventoryItem::SetHelperBotData(const FHelperPickUpData& NewHelpe
 FInventoryItemSaveGame UHelperBotInventoryItem::GetInventoryItemSaveData()
 {
 	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
-	ItemSaveGame.InventoryItemData.ItemType = EInventoryItemType::HelperBot;
 	ItemSaveGame.HelperBotItemData = HelperBotData;
 
 	return ItemSaveGame;

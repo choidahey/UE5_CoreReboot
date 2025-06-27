@@ -3,6 +3,8 @@
 #include "Components/CapsuleComponent.h"
 #include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Region/KamishForestBoss.h"
 
@@ -21,6 +23,10 @@ ARotatingProjectile::ARotatingProjectile()
 	LandingTrigger->SetupAttachment(RootComp);
 	LandingTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	LandingTrigger->SetGenerateOverlapEvents(false);
+
+	//TrailEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailEffect"));
+	//TrailEffectComp->SetupAttachment(StaticMesh);
+	//TrailEffectComp->SetAutoActivate(false);
 }
 
 void ARotatingProjectile::BeginPlay()
@@ -95,6 +101,25 @@ void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, floa
 
 	CollisionComp->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnOverlap);
 	LandingTrigger->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnLandingDetected);
+
+	//if (TrailEffect && TrailEffectComp)
+	//{
+	//	TrailEffectComp->SetAsset(TrailEffect);
+	//	TrailEffectComp->Activate(true);
+	//}
+
+	if (TrailEffect && !TrailEffectComp)
+	{
+		TrailEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailEffect,
+			StaticMesh,
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
+	}
 }
 
 FVector ARotatingProjectile::ComputeParabolicVelocity(const FVector& Start, const FVector& Target, float Speed) const
@@ -164,6 +189,12 @@ void ARotatingProjectile::HandleLanding()
 
 	bHasLanded = true;
 	MoveSpeed = 0.f;
+
+	if (TrailEffectComp && TrailEffectComp->IsActive())
+	{
+		// TrailEffectComp->Deactivate();
+		TrailEffectComp->DestroyComponent();
+	}
 
 	if (AKamishForestBoss* Boss = Cast<AKamishForestBoss>(GetOwner()))
 	{

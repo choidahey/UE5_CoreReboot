@@ -97,7 +97,7 @@ protected:
 	float CurrentHealth = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString BotName = TEXT("AutoBot");
+	FText BotName;
 
 private:
 	FHelperPickUpData PickUpData;
@@ -121,17 +121,18 @@ public:
 	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
 	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
-	FORCEINLINE FString GetBotName() const { return BotName; }
+	FORCEINLINE FText GetBotName() const { return BotName; }
 	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
 	
 	FHelperPickUpData GetHelperBotData() const { return PickUpData; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
-	void SetBotName(const FString& NewName);
+	void SetBotName(const FText& NewName);
 	
 	FORCEINLINE void SetIsFromInventory(bool bFromInventory) { bIsFromInventory = bFromInventory; }
 
+	FORCEINLINE bool InitPickData() const { return PickUpData.bIsInit; }
 	void SetPickUpData(const FHelperPickUpData& InPickUpData);
 	
 #pragma endregion
@@ -268,4 +269,11 @@ private:
 	FTimerHandle FadeTimerHandle;
 	void UpdateFadeOut();
 #pragma endregion
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FHelperBotSaveGame GetHelperBotSaveData() const;
+
+	UFUNCTION(BlueprintCallable)
+	void LoadHelperBotSaveData(const FHelperBotSaveGame& Data);
 };

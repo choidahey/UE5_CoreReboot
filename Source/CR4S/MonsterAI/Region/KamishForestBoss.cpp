@@ -2,6 +2,7 @@
 #include "MonsterAI/Components/MonsterAnimComponent.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
+#include "MonsterAI/Skills/WeaponActor.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -78,10 +79,12 @@ void AKamishForestBoss::AttachWeaponActor()
 		if (LeftWeapon)
 		{
 			LeftWeapon->AttachToComponent(SeletalMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AxeWeapon_L"));
+			WeaponActors.Add(Cast<AWeaponActor>(LeftWeapon));
 		}
 		if (RightWeapon)
 		{
 			RightWeapon->AttachToComponent(SeletalMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AxeWeapon_R"));
+			WeaponActors.Add(Cast<AWeaponActor>(RightWeapon));
 		}
 	}
 }

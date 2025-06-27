@@ -21,8 +21,6 @@ void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInv
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
-	InventoryItemData.ItemType = EInventoryItemType::Consumable;
-
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;
 	if (!CR4S_VALIDATE(LogInventory, IsValid(DataTable)))
 	{
@@ -55,8 +53,7 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 {
 	Super::UseItem(Index);
 
-	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)) ||
-		!CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)))
 	{
 		return;
 	}
@@ -291,8 +288,6 @@ FInventoryItemSaveGame UConsumableInventoryItem::GetInventoryItemSaveData()
 	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
 
 	ItemSaveGame.InventoryItemData.ItemInfoData.Description = DefaultDescription;
-
-	ItemSaveGame.InventoryItemData.ItemType = EInventoryItemType::Consumable;
 	ItemSaveGame.FreshnessInfo = FreshnessInfo;
 
 	return ItemSaveGame;

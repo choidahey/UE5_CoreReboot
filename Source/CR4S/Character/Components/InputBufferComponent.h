@@ -34,7 +34,7 @@ public:
 	virtual void ExecuteInputQueue() const;
 	void SetInputEnable(const bool Enable);
 	void SetInputQueue(const EInputType Input);
-	bool CheckInputQueue(const EInputType Input);
+	virtual bool CheckInputQueue(const EInputType Input);
 	void ClearInputQueue();
 #pragma endregion
 	

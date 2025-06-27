@@ -126,11 +126,11 @@ void UAIJumpComponent::ExecuteMovement()
     float CheckDistance = TargetReachDistance;
     if (CurrentTargetActor && CurrentTargetActor->IsA<APawn>())
     {
-        CheckDistance = 300.0f;
+        CheckDistance = 10.0f;
     }
     else
     {
-        CheckDistance = 1000.0f;
+        CheckDistance = 10.0f;
     }
 
     if (FVector::Dist(CharacterLocation, CurrentTarget.Location) <= CheckDistance)
@@ -678,14 +678,6 @@ bool UAIJumpComponent::HasReachedTarget()
     }
    
     float CheckDistance = TargetReachDistance;
-    if (CurrentTargetActor->IsA<APawn>())
-    {
-        CheckDistance = 300.0f;
-    }
-    else
-    {
-        CheckDistance = 1000.0f;
-    }
       
     float Distance = FVector::Dist(OwnerCharacter->GetActorLocation(), CurrentTargetActor->GetActorLocation());
     // UE_LOG(LogTemp, Warning, TEXT("HasReachedTarget: Distance=%.2f, CheckDistance=%.2f, Target=%s"), 
@@ -702,10 +694,11 @@ bool UAIJumpComponent::HasReachedTarget()
 
 #pragma endregion
 
-void UAIJumpComponent::ActivateJumpComponent()
+void UAIJumpComponent::ActivateJumpComponent(float InTargetReachDistance)
 {
     SetComponentTickEnabled(true);
     bIsComponentActive = true;
+    TargetReachDistance = InTargetReachDistance;
     ResetJumpState();
 }
 

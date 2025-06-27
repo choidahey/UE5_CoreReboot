@@ -5,6 +5,7 @@
 
 #include "TreeGimmick.generated.h"
 
+class UWorldTimeManager;
 class UDestructibleComponent;
 
 UCLASS(BlueprintType)
@@ -31,16 +32,19 @@ protected:
 #pragma region Destroy
 
 public:
-	void HandleDestroyTrunk(const AActor* DamageCauser);
-
-	FORCEINLINE bool IsDestroyed() const { return bIsDestroyed; }
+	UFUNCTION(BlueprintCallable, Category = "TreeGimmick|Destroy")
+	void RemoveTrunk() const;
+	UFUNCTION(BlueprintCallable, Category = "TreeGimmick|Respawn")
+	void RespawnTrunk();
+	
+	UFUNCTION(BlueprintPure, Category = "TreeGimmick|Destroy")
 	FORCEINLINE bool IsTrunkDestroyed() const { return bIsTrunkDestroyed; }
+	UFUNCTION(BlueprintCallable, Category = "TreeGimmick|Destroy")
+	FORCEINLINE void SetIsTrunkDestroyed(const bool bNewIsTrunkDestroyed) { bIsTrunkDestroyed = bNewIsTrunkDestroyed; }
+	
+	void HandleDestroyTrunk(const AActor* DamageCauser);
 	
 private:
-	void RemoveTrunk() const;
-
-	UPROPERTY(VisibleAnywhere, Category = "Destroy")
-	bool bIsDestroyed;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UStaticMeshComponent> TrunkMeshComponent;
@@ -57,10 +61,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
 	float RemoveTrunkDelay;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy|Sound")
+	TObjectPtr<USoundBase> TrunkDestroySound;
+
 	FTransform OriginTrunkTransform;
 	
 	FTimerHandle RemoveTrunkTimerHandle;
 	
+	float TrunkHealth;
 
 #pragma endregion
 	

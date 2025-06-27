@@ -25,8 +25,8 @@ public class CR4S : ModuleRules
 			"Niagara",
 			"GameplayTags",
 			"AIModule",
-      "OnlineSubsystem",
-      "OnlineSubsystemSteam"
+			"OnlineSubsystem",
+			"OnlineSubsystemSteam"
 		});
 
     PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });

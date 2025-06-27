@@ -11,21 +11,26 @@
 
 void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!IsValid(MeshComp->GetWorld())
-		|| !IsValid(MeshComp)
+	if (!IsValid(MeshComp)
+		|| !IsValid(MeshComp->GetWorld())
 		|| !IsValid(SpawnFieldActorClass)
 		|| !IsValid(Animation)) return;
 
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
-	if (!OwnerPawn) return;
+	if (!IsValid(OwnerPawn)) return;
 
 	AAIController* AIC = Cast<AAIController>(OwnerPawn->GetController());
+	if (!IsValid(AIC)) return;
+	
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
-	if (!AIC || !BB) return;
+	if (!IsValid(BB)) return;
     
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
-	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
-	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (!IsValid(Target))
+		Target = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+	if (!IsValid(Target))
+		Target = UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+	if (!IsValid(Target)) return;
 	
 	FVector SpawnLocation = OwnerPawn->GetActorLocation();
 	FVector FinalOffset = FVector::ZeroVector;
@@ -60,7 +65,7 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 		SpawnRotation,
 		SpawnParams
 	);
-	if (!SpawnActor) return;
+	if (!IsValid(SpawnActor)) return;
 	
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{

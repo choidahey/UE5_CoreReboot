@@ -35,8 +35,14 @@ struct FGimmickInfoData : public FTableRowBase
 	FDataTableRowHandle DetailData = FDataTableRowHandle();
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 엑터 클래스"))
 	TSubclassOf<class ABaseGimmick> GimmickClass = nullptr;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 최대 체력", ClampMin = "0.0"))
-	int32 GimmickMaxHealth = 0.f;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 최대 체력", ClampMin = "0"))
+	int32 GimmickMaxHealth = 0;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "상호작용 효과음"))
+	TObjectPtr<USoundBase> InteractSound;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "피격 효과음"))
+	TObjectPtr<USoundBase> TakeDamageSound;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "파괴 효과음"))
+	TObjectPtr<USoundBase> DestroySound;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "재료 목록"))
 	TArray<FResourceItemData> Resources;
 };
@@ -66,13 +72,21 @@ struct FCropsGimmickData : public FTableRowBase
 	bool bIsDay = false;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "밤 일때 성장 가속", EditCondition = "bUseGrowthBoost"))
 	bool bIsNight = false;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최솟값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최솟값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHeatMinValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최솟값", EditCondition = "bUseGrowthBoost && bUseHeatMinValue"))
 	int32 HeatMinValue = 0;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최댓값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최댓값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHeatMaxValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 온도 최댓값", EditCondition = "bUseGrowthBoost && bUseHeatMaxValue"))
 	int32 HeatMaxValue = 0;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최솟값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최솟값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHumidityMinValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최솟값", EditCondition = "bUseGrowthBoost && bUseHumidityMinValue"))
 	int32 HumidityMinValue = 0;
-	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최댓값", EditCondition = "bUseGrowthBoost"))
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최댓값 사용", EditCondition = "bUseGrowthBoost"))
+	bool bUseHumidityMaxValue = false;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 습도 최댓값", EditCondition = "bUseGrowthBoost && bUseHumidityMaxValue"))
 	int32 HumidityMaxValue = 0;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "성장 가속 배율", ClampMin = "1.0", EditCondition = "bUseGrowthBoost"))
 	float AccelerationMultiplier = 1.f;

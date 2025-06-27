@@ -144,6 +144,8 @@ void URobotInventoryWidget::ChangeMode(const ERobotWorkshopMode NewRobotWorkshop
 
 	RobotWorkshopMode = NewRobotWorkshopMode;
 
+	UpdateButtonColor();
+
 	CloseCraftingWidget();
 	CloseRecipeSelectWidget();
 
@@ -243,4 +245,17 @@ void URobotInventoryWidget::UpdateCurrentWeightColor(const bool bIsArmWeight) co
 			CurrentWeightText->SetColorAndOpacity(CurrentWeight <= MaxWeight ? DefaultColor : OverColor);
 		}		
 	}
+}
+
+void URobotInventoryWidget::UpdateButtonColor() const
+{
+	if (!IsValid(CreateModeButton) || !IsValid(AssemblyModeButton))
+	{
+		return;
+	}
+	
+	const bool bIsCreateMode = RobotWorkshopMode == ERobotWorkshopMode::Create;
+
+	CreateModeButton->SetBackgroundColor(bIsCreateMode ? CurrentModeButtonColor : FLinearColor::White);
+	AssemblyModeButton->SetBackgroundColor(bIsCreateMode ? FLinearColor::White : CurrentModeButtonColor);
 }
