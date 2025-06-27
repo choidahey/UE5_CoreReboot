@@ -64,10 +64,7 @@ void APlayerTool::OnAttack()
 
 float APlayerTool::ComputeFinalDamage()
 {
-	UPlayerCharacterStatusComponent* StatusComp=OwningCharacter->FindComponentByClass<UPlayerCharacterStatusComponent>();
-	if (!CR4S_ENSURE(LogHong1,StatusComp)) return 0;
-
-	return StatusComp->GetAttackPower();
+	return PlayerToolInfo.AttackPower;
 }
 
 // Called when the game starts or when spawned

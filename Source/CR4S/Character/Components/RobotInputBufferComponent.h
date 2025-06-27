@@ -24,6 +24,7 @@ public:
 #pragma region Override
 public:
 	virtual void ExecuteInputQueue() const override;
+	virtual bool CheckInputQueue(const EInputType Input) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 protected:

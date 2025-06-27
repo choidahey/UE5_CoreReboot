@@ -8,8 +8,6 @@
 AAnimalFlying::AAnimalFlying()
 {
 	//FlyingComp = CreateDefaultSubobject<UFlyingMovementComponent>(TEXT("FlyingMovementComponent"));
-	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
-	InteractableComponent->SetActive(false);
 
 	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
@@ -19,11 +17,6 @@ AAnimalFlying::AAnimalFlying()
 void AAnimalFlying::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (InteractableComponent)
-	{
-		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ABaseAnimal::OnInteract);
-	}
 
 	if (AAIController* AIController = Cast<AAIController>(GetController()))
 	{

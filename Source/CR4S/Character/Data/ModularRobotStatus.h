@@ -36,8 +36,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Stun{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float StunResistance{0};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunDuration{1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

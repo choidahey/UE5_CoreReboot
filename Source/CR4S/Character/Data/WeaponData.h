@@ -64,6 +64,10 @@ struct CR4S_API FMeleeWeaponInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UAnimMontage> ChargeAttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChargeAttackTimeThreshold{0.5};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxCombo{1};
@@ -187,6 +191,8 @@ public:
 	TObjectPtr<UStaticMesh> StaticMesh{nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UAnimMontage> AttackMontage{nullptr};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackPower{100};
 };
 
 UCLASS(BlueprintType)

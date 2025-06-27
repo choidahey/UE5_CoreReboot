@@ -42,6 +42,14 @@ void UAnimalRangedAttackComponent::FireProjectile()
 	AAnimalProjectile* Projectile = Cast<AAnimalProjectile>(SpawnedActor);
 	if (!Projectile) return;
 
+	Projectile->SetOwner(OwnerAnimal);
+
+	if (OwnerAnimal && OwnerAnimal->bStatsReady)
+	{
+		float Damage = OwnerAnimal->GetCurrentStats().AttackDamage * DamageMultiplier;
+		Projectile->SetProjectileDamage(Damage);
+	}
+	
 	if (auto PoolComp = Projectile->FindComponentByClass<UObjectPoolComponent>())
 	{
 		PoolComp->ReturnToPoolAfter(ProjectileLifetime);
