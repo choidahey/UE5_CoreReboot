@@ -19,7 +19,7 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 void UModularRobotStatusComponent::TakeDamage(const float DamageAmount)
 {
 	const float ArmorFactor=BaseStatus.Armor*RobotStatus.ArmorMultiplier;
-	const float ComputedDamage = DamageAmount*(1000.f/(1000.f*ArmorFactor));
+	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant/(BaseStatus.ArmorConstant*ArmorFactor));
 	
 	AddCurrentHP(-(ComputedDamage));
 }

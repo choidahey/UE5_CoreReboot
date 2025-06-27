@@ -26,7 +26,7 @@ public:
 	UModularRobotStatusComponent();
 
 #pragma region Damage
-	virtual void TakeDamage(const float DamageAmount);
+	virtual void TakeDamage(const float DamageAmount) override;
 #pragma endregion
 
 #pragma region CheckWeight
