@@ -23,10 +23,10 @@ public:
 #pragma endregion
 
 #pragma region Initialize
-	
-private:
+public:
 	void InitComponent();
 	
+private:
 	UPROPERTY()
 	TObjectPtr<APlayerController> OwnerPlayerController;
 

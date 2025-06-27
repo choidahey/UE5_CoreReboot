@@ -187,6 +187,8 @@ public:
 	TObjectPtr<UStaticMesh> StaticMesh{nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UAnimMontage> AttackMontage{nullptr};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackPower{100};
 };
 
 UCLASS(BlueprintType)

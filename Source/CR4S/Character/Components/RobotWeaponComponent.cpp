@@ -24,6 +24,40 @@ URobotWeaponComponent::URobotWeaponComponent()
 	WeaponSettings.AttachSocketNames.Init(FName(),4);
 }
 
+void URobotWeaponComponent::GatherWeaponSaveData(TArray<FRobotWeaponSaveGame>& OutWeaponData) const
+{
+	OutWeaponData.Empty();
+	for (ABaseWeapon* Weapon:Weapons)
+	{
+		if (IsValid(Weapon))
+		{
+			OutWeaponData.Add(FRobotWeaponSaveGame(Weapon->GetToolGameplayTag(),Weapon->GetCurrentAmmo()));
+		}
+		else
+		{
+			OutWeaponData.Add(FRobotWeaponSaveGame());
+		}
+	}
+}
+
+void URobotWeaponComponent::ApplyWeaponSaveData(TArray<FRobotWeaponSaveGame>& InWeaponData)
+{
+	for (int32 i=0;i<InWeaponData.Num();i++)
+	{
+		const FRobotWeaponSaveGame& WeaponData = InWeaponData[i];
+
+		if (WeaponData.WeaponTag.IsValid())
+		{
+			EquipWeaponByTag(WeaponData.WeaponTag,i);
+			if (Weapons.IsValidIndex(i) && IsValid(Weapons[i]))
+			{
+				Weapons[i]->SetCurrentAmmo(WeaponData.CurrentAmmo);
+			}
+		}
+	}
+}
+
+
 void URobotWeaponComponent::Input_OnAttackLeftArm()
 {
 	TryAttackBySlot(0,EInputType::RobotAttack1);
@@ -150,7 +184,7 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 		if (!CR4S_ENSURE(LogHong1,Status)) return;
 
 		const float WeaponWeight=NewWeapon->GetWeaponWeight();
-		Status->AddWeight(WeaponWeight);
+		Status->AddCurrentWeight(WeaponWeight);
 		Status->AddCurrentArmMountWeight(WeaponWeight);
 	}
 }
@@ -163,10 +197,18 @@ void URobotWeaponComponent::UnequipWeapon(const int32 SlotIdx)
 	if (!CR4S_ENSURE(LogHong1,Status)) return;
 
 	const float WeaponWeight=Weapons[SlotIdx]->GetWeaponWeight();
-	Status->AddWeight(-(WeaponWeight));
+	Status->AddCurrentWeight(-(WeaponWeight));
 	Status->AddCurrentArmMountWeight(-(WeaponWeight));
 	Weapons[SlotIdx]->Destroy();
 	Weapons[SlotIdx]=nullptr;
+}
+
+void URobotWeaponComponent::UnequipAllWeapons()
+{
+	for (int32 i=0;i<Weapons.Num();i++)
+	{
+		UnequipWeapon(i);
+	}
 }
 
 void URobotWeaponComponent::BindWidgetWeapon()
