@@ -354,6 +354,7 @@ void UModularRobotStatusComponent::StartHover()
 
 	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=RobotStatus.HoverCostMultiplier))
 	{
+		ConsumeResourceForHovering();
 		OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 		GetWorld()->GetTimerManager().SetTimer(
 			HoverTimerHandle,
