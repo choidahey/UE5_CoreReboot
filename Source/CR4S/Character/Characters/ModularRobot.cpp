@@ -277,9 +277,9 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 	Status->AddArmor(LegInfo.Armor);
 	Status->AddMaxStun(LegInfo.MaxStun);
 	Status->AddCurrentWeight(LegInfo.Weight);
-	RobotSettings.MaxWalkSpeed=LegInfo.MaxWalkSpeed;
 	RobotSettings.LegStrength=LegInfo.LegStrength;
 	GetCharacterMovement()->SetWalkableFloorAngle(LegInfo.MaxSlopeAngle);
+	GetCharacterMovement()->MaxWalkSpeed=LegInfo.MaxWalkSpeed;
 	Status->ApplyEnergyEfficiency(LegInfo.EnergyEfficiency);
 	
 	if (!CR4S_ENSURE(LogHong1,LegInfo.SkeletalMesh)) return;

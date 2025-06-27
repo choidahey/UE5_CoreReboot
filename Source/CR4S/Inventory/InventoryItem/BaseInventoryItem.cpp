@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Game/SaveGame/InventorySaveGame.h"
+#include "Game/System/AudioManager.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
@@ -59,10 +60,23 @@ void UBaseInventoryItem::UpdateInventoryItem(UBaseInventoryComponent* NewInvento
 
 void UBaseInventoryItem::UseItem(const int32 Index)
 {
-	USoundBase* UseSound = InventoryItemData.ItemInfoData.UseSound;
-	if (IsValid(UseSound))
+	if (!IsValid(OwnerPlayer))
 	{
-		UGameplayStatics::PlaySound2D(GetWorld(), UseSound);
+		return;
+	}
+
+	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(GameInstance)))
+	{
+		return;
+	}
+
+	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+	if (IsValid(AudioManager))
+	{
+		AudioManager->PlaySFX(InventoryItemData.ItemInfoData.UseSound,
+		                      OwnerPlayer->GetActorLocation(),
+		                      EConcurrencyType::Default);
 	}
 }
 

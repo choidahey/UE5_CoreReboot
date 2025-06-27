@@ -14,7 +14,7 @@ UBTService_SelectAttackType::UBTService_SelectAttackType()
 	CurrentDistanceKey.SelectedKeyName = FSeasonBossAIKeys::CurrentDistance;
 	MeleeOptimalDistanceKey.SelectedKeyName = FSeasonBossAIKeys::MeleeOptimalDistance;
 	RangedOptimalDistanceKey.SelectedKeyName = FSeasonBossAIKeys::RangedOptimalDistance;
-	CurrentPhaseKey.SelectedKeyName = NAME_None;  // 이건 아직 키 추가 안함
+	CurrentPhaseKey.SelectedKeyName = NAME_None;
 }
 
 void UBTService_SelectAttackType::TickNode(

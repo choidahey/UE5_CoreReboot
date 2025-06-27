@@ -3,31 +3,8 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "NiagaraSystem.h"
+#include "CR4S/Utility/NiagaraParamHelper.h"
 #include "AnimNotify_PlayNiagaraCustom.generated.h"
-
-USTRUCT(BlueprintType)
-struct FNiagaraFloatParam
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	FName ParamName;
-
-	UPROPERTY(EditAnywhere)
-	float Value;
-};
-
-USTRUCT(BlueprintType)
-struct FNiagaraVectorParam
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	FName ParamName;
-
-	UPROPERTY(EditAnywhere)
-	FVector Value;
-};
 
 UCLASS()
 class CR4S_API UAnimNotify_PlayNiagaraCustom : public UAnimNotify
@@ -57,10 +34,7 @@ public:
 	bool bSnapToGround = false;
 
 	UPROPERTY(EditAnywhere, Category = "Niagara|Parameters")
-	TArray<FNiagaraFloatParam> FloatParameters;
-
-	UPROPERTY(EditAnywhere, Category = "Niagara|Parameters")
-	TArray<FNiagaraVectorParam> VectorParameters;
+	FNiagaraParamSet NotifyEffectParams;
 
 	UPROPERTY(EditAnywhere, Category = "Niagara|Ground")
 	float GroundTraceDistance = 3000.f;

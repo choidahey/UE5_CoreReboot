@@ -2,6 +2,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "CR4S/Utility/NiagaraParamHelper.h"
 #include "CR4S.h"
 
 void UAnimNotify_PlayNiagaraCustom::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
@@ -72,14 +73,6 @@ void UAnimNotify_PlayNiagaraCustom::Notify(USkeletalMeshComponent* MeshComp, UAn
 	// Adjust User Parameters
 	if (NiagaraComp)
 	{
-		for (const FNiagaraFloatParam& Param : FloatParameters)
-		{
-			NiagaraComp->SetVariableFloat(Param.ParamName, Param.Value);
-		}
-
-		for (const FNiagaraVectorParam& Param : VectorParameters)
-		{
-			NiagaraComp->SetVariableVec3(Param.ParamName, Param.Value);
-		}
+		UNiagaraParamUtils::ApplyParams(NiagaraComp, NotifyEffectParams);
 	}
 }
