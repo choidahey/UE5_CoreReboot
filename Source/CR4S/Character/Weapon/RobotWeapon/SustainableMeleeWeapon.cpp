@@ -28,7 +28,7 @@ void ASustainableMeleeWeapon::StopAttack()
 
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter
 		&& BaseInfo.AttackMontages.IsValidIndex(bIsRightHand)
-		&& !BaseInfo.AttackMontages[bIsRightHand]))
+		&& BaseInfo.AttackMontages[bIsRightHand]))
 	{
 		return;
 	}

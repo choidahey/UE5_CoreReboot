@@ -9,6 +9,7 @@
 #include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
+#include "Character/AnimNotify/WeaponTrace.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/RobotWeaponComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -17,6 +18,7 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Character/Components/RobotInputBufferComponent.h"
+#include "Character/Components/WeaponTraceComponent.h"
 #include "Character/Data/RobotPartsData.h"
 #include "Components/TimelineComponent.h"
 #include "Game/SaveGame/SaveGameManager.h"
@@ -88,7 +90,8 @@ AModularRobot::AModularRobot()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	Status=CreateDefaultSubobject<UModularRobotStatusComponent>(TEXT("Status"));
-	
+
+	WeaponTrace=CreateDefaultSubobject<UWeaponTraceComponent>(TEXT("WeaponTrace"));
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 

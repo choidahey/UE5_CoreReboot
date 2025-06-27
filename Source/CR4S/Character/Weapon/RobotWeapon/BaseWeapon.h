@@ -23,10 +23,11 @@ public:
 	ABaseWeapon();
 
 	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
-	
 	FORCEINLINE float GetWeaponWeight() const { return BaseInfo.Weight; }
+	FORCEINLINE virtual UMeshComponent* GetToolMeshComponent() override { return StaticMeshComp; }
 	
 	virtual void Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx);
+	
 #pragma region Attack
 public:
 	virtual int32 GetCurrentAmmo() const;

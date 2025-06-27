@@ -11,6 +11,7 @@
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class UWeaponTraceComponent;
 class USaveGame;
 class UTimelineComponent;
 class UDataLoaderSubsystem;
@@ -207,6 +208,8 @@ private:
 	TObjectPtr<UCameraComponent> FollowCamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UModularRobotStatusComponent> Status;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWeaponTraceComponent> WeaponTrace;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<URobotWeaponComponent> WeaponManager;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
