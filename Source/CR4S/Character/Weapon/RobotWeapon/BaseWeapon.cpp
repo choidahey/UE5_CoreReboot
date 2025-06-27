@@ -11,8 +11,9 @@ ABaseWeapon::ABaseWeapon()
 {
 	SceneComp=CreateDefaultSubobject<USceneComponent>(FName("Root"));
 	RootComponent=SceneComp;
-	SkeletalMeshComp=CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
-	SkeletalMeshComp->SetupAttachment(RootComponent);
+	StaticMeshComp=CreateDefaultSubobject<UStaticMeshComponent>("SkeletalMesh");
+	StaticMeshComp->SetupAttachment(RootComponent);
+	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 float ABaseWeapon::ComputeFinalDamage()
@@ -69,7 +70,7 @@ void ABaseWeapon::RemoveSelfStun() const
 	}
 }
 
-void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
+void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	OwningCharacter=OwnerCharacter;
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
@@ -78,7 +79,9 @@ void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 	if (!CR4S_ENSURE(LogHong1,CurrentBuffer)) return;
 	
 	InputBuffer=CurrentBuffer;
-	//SkeletalMeshComp->SetSkeletalMesh(BaseInfo.SkeletalMesh);
+	const int32 LeftRightIndex=SlotIdx%2; // 0:Left, 1: Right
+	if (!BaseInfo.SkeletalMeshs.IsValidIndex(LeftRightIndex) || BaseInfo.SkeletalMeshs[LeftRightIndex])
+	StaticMeshComp->SetStaticMesh(BaseInfo.SkeletalMeshs[LeftRightIndex]);
 }
 
 

@@ -3,23 +3,20 @@
 #include "BaseDestructObject.h"
 #include "CR4S.h"
 #include "Gimmick/Components/DestructibleComponent.h"
+#include "Gimmick/Components/ObjectShakeComponent.h"
 #include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
 	: DestroyDelay(1.f),
-	  ToolBonusDamageMultiplier(2.f),
-	  bCanShake(true),
-	  ShakeDuration(0.5f),
-	  ShakeInterval(0.02f),
-	  ShakeIntensity(2.5f),
-	  OriginalLocation(FVector::ZeroVector),
-	  ElapsedTime(0.f)
+	  ToolBonusDamageMultiplier(2.f)
+	  
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
+	ShakeComponent = CreateDefaultSubobject<UObjectShakeComponent>(TEXT("ShakeComponent"));
 }
 
 void ADestructibleGimmick::BeginPlay()
@@ -37,11 +34,10 @@ void ADestructibleGimmick::BeginPlay()
 				FindGimmickInfoData(GetGimmickDataRowName()))
 			{
 				DestructibleComponent->SetMaxHealth(GimmickInfoData->GimmickMaxHealth);
+				DestructibleComponent->SetCurrentHealth(GimmickInfoData->GimmickMaxHealth);
 			}
 		}
 	}
-
-	OriginalLocation = GetActorLocation();
 }
 
 float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -66,15 +62,48 @@ float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageE
 	return Damage;
 }
 
+void ADestructibleGimmick::LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData)
+{
+	Super::LoadGimmickSaveGameData_Implementation(GimmickSaveGameData);
+
+	if (IsValid(ShakeComponent))
+	{
+		ShakeComponent->SetOriginalLocation(GetActorLocation());
+	}
+}
+
+void ADestructibleGimmick::GetGimmickHealthData(bool& bOutSuccess, float& OutCurrentHealth, float& OutMaxHealth) const
+{
+	if (IsValid(DestructibleComponent))
+	{
+		bOutSuccess = true;
+		OutCurrentHealth = DestructibleComponent->GetCurrentHealth();
+		OutMaxHealth = DestructibleComponent->GetMaxHealth();
+	}
+	else
+	{
+		bOutSuccess = false;
+	}
+}
+
+void ADestructibleGimmick::SetGimmickHealthData(const float NewCurrentHealth, const float NewMaxHealth)
+{
+	if (IsValid(DestructibleComponent))
+	{
+		DestructibleComponent->SetMaxHealth(NewMaxHealth);
+		DestructibleComponent->SetCurrentHealth(NewCurrentHealth);
+	}
+}
+
 void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount,
                                                const float CurrentHealth)
 {
 	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
 	         CurrentHealth);
 
-	if (bCanShake)
+	if (IsValid(ShakeComponent))
 	{
-		StartShake();
+		ShakeComponent->Shake();
 	}
 }
 
@@ -99,38 +128,4 @@ void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 		                                            SpawnTransform,
 		                                            SpawnParameters);
 	}
-}
-
-void ADestructibleGimmick::StartShake()
-{
-	GetWorldTimerManager().SetTimer(
-		ShakeTimerHandle,
-		this,
-		&ThisClass::PerformShake,
-		ShakeInterval,
-		true
-	);
-}
-
-void ADestructibleGimmick::PerformShake()
-{
-	ElapsedTime += ShakeInterval;
-
-	if (ElapsedTime >= ShakeDuration)
-	{
-		StopShake();
-		return;
-	}
-
-	const FVector RandomOffset = FMath::VRand() * ShakeIntensity;
-
-	SetActorLocation(OriginalLocation + RandomOffset, false, nullptr, ETeleportType::TeleportPhysics);
-}
-
-void ADestructibleGimmick::StopShake()
-{
-	ElapsedTime = 0.f;
-	GetWorldTimerManager().ClearTimer(ShakeTimerHandle);
-
-	SetActorLocation(OriginalLocation, false, nullptr, ETeleportType::TeleportPhysics);
 }

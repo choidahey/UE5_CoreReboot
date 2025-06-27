@@ -42,7 +42,7 @@ public:
 	UBaseInventoryComponent();
 
 	virtual void BeginPlay() override;
-
+ 
 #pragma endregion
 
 #pragma region Initialize
@@ -60,7 +60,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr);
 	virtual FAddItemResult AddHelperBotItem(FName RowName, int32 Count, const FHelperPickUpData& HelperBotData);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	virtual int32 RemoveItemByRowName(const FName RowName, const int32 Count);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
@@ -101,14 +101,20 @@ public:
 	FORCEINLINE void SetMaxInventorySize(const int32 InMaxInventorySlot) { MaxInventorySize = InMaxInventorySlot; }
 	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex)
 	{
-		OccupiedSlots.Add(SlotIndex);
-		OnOccupiedSlotsChange.ExecuteIfBound(OccupiedSlots.Num());
+		OccupiedSlots.Emplace(SlotIndex);
+		if (OnOccupiedSlotsChange.IsBound())
+		{
+			OnOccupiedSlotsChange.Broadcast(OccupiedSlots.Num());
+		}
 	}
 
 	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex)
 	{
 		OccupiedSlots.Remove(SlotIndex);
-		OnOccupiedSlotsChange.ExecuteIfBound(OccupiedSlots.Num());
+		if (OnOccupiedSlotsChange.IsBound())
+		{
+			OnOccupiedSlotsChange.Broadcast(OccupiedSlots.Num());
+		}
 	}
 
 	int32 GetUseSlotCount();
@@ -176,15 +182,15 @@ private:
 #pragma region Save & Load
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "InventorySystem|SaveData")
+	UFUNCTION(BlueprintPure, Category = "InventorySystem|SaveData")
 	virtual FInventorySaveGame GetInventorySaveGame();
 	UFUNCTION(BlueprintCallable, Category = "InventorySystem|LoadData")
 	virtual void LoadInventorySaveGame(const FInventorySaveGame& SaveGameData);
 
 private:
 	void ClearInventoryItems();
-	
-#pragma endregion 
+
+#pragma endregion
 
 #pragma region Delegate
 
@@ -194,7 +200,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegate")
 	FOnItemSlotChange OnItemSlotChange;
 
-	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnOccupiedSlotsChanged, const int32, NumOccupiedSlots);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOccupiedSlotsChanged, const int32, NumOccupiedSlots);
 
 	FOnOccupiedSlotsChanged OnOccupiedSlotsChange;
 

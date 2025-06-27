@@ -10,6 +10,7 @@
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
 #include "Utility/CombatStatics.h"
+#include "CR4S.h"
 
 ABaseSkillActor::ABaseSkillActor()
 {
@@ -36,11 +37,13 @@ void ABaseSkillActor::BeginPlay()
 
 void ABaseSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
 
 void ABaseSkillActor::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
 
@@ -92,6 +95,21 @@ void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 			Damage *= StunDamageMultiplier;
 
 		UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+
+#if WITH_EDITOR
+		const FString AttackerName = GetOwner() ? GetOwner()->GetName() : TEXT("UnknownOwner");
+		const FString SkillName = GetName();
+		const FString VictimName = Target->GetName();
+
+		UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s ¡æ Damage: %.1f, Stun: %.1f"),
+			*AttackerName,
+			*SkillName,
+			*VictimName,
+			Damage,
+			StunGaugeAmount
+		);
+#endif
+
 	}
 
 	if (Target->GetClass()->ImplementsInterface(UStunnableInterface::StaticClass()))
@@ -118,4 +136,3 @@ void ABaseSkillActor::PlaySoundAtLocation(const FVector& Location)
 		UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
 	}
 }
-

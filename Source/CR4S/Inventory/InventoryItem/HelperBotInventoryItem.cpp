@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "FriendlyAI/BaseHelperBot.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 
 #define LOCTEXT_NAMESPACE "HelperBotInventoryItem"
 
@@ -10,8 +11,6 @@ void UHelperBotInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInve
                                                 const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
-
-	InventoryItemData.ItemType = EInventoryItemType::HelperBot;
 
 	BotNameText = LOCTEXT("BotNameText", "이름");
 	HPText = LOCTEXT("HPText", "체력");
@@ -59,8 +58,10 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 
 	if (IsValid(HelperBot))
 	{
-		HelperBot->SetIsFromInventory(true);
-		HelperBot->SetPickUpData(GetHelperBotData());
+		if (HelperBot->InitPickData())
+		{
+			HelperBot->SetPickUpData(GetHelperBotData());
+		}
 
 		InventoryComponent->RemoveItemByIndex(Index, 1);
 	}
@@ -88,7 +89,6 @@ void UHelperBotInventoryItem::SetHelperBotData(const FHelperPickUpData& NewHelpe
 FInventoryItemSaveGame UHelperBotInventoryItem::GetInventoryItemSaveData()
 {
 	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
-	ItemSaveGame.InventoryItemData.ItemType = EInventoryItemType::HelperBot;
 	ItemSaveGame.HelperBotItemData = HelperBotData;
 
 	return ItemSaveGame;

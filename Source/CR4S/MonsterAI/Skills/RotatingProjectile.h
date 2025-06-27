@@ -95,4 +95,13 @@ private:
 
 	FString MyHeader;
 
+#pragma region Trail Effect
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Trail")
+	TObjectPtr<UNiagaraSystem> TrailEffect = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UNiagaraComponent> TrailEffectComp = nullptr;
+
+#pragma endregion
+
 };

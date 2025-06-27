@@ -34,5 +34,7 @@ struct FHelperBotStatsRow : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HarvestDuration = 0.f;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<FName, int32> RepairRequiredItems;
 };

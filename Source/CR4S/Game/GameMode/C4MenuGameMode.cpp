@@ -56,5 +56,5 @@ void AC4MenuGameMode::OpenSurvivalLevel(int32 SlotIndex)
 
 void AC4MenuGameMode::LoadSurvivalLevel()
 {
-    UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
+    UGameplayStatics::OpenLevel(this, FName("MainMap"));
 }

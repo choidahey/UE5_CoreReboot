@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 
@@ -19,8 +20,6 @@ void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInv
                                                  const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
-
-	InventoryItemData.ItemType = EInventoryItemType::Consumable;
 
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;
 	if (!CR4S_VALIDATE(LogInventory, IsValid(DataTable)))
@@ -290,8 +289,6 @@ FInventoryItemSaveGame UConsumableInventoryItem::GetInventoryItemSaveData()
 	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
 
 	ItemSaveGame.InventoryItemData.ItemInfoData.Description = DefaultDescription;
-
-	ItemSaveGame.InventoryItemData.ItemType = EInventoryItemType::Consumable;
 	ItemSaveGame.FreshnessInfo = FreshnessInfo;
 
 	return ItemSaveGame;

@@ -30,7 +30,7 @@ public:
 	FName AttachBoneName = TEXT("spine_01");
 	
 	UPROPERTY(EditAnywhere, Category="Teleport")
-	float AcceptanceRadius = 15.f;
+	float AcceptanceRadius = 20.f;
 	
 	UPROPERTY(EditAnywhere, Category="Teleport")
 	float TeleportSpeed = 5000.f;
@@ -43,7 +43,8 @@ public:
 
 private:
 	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result);
-	
+	void CleanupTeleport();
+
 	UPROPERTY()
 	TObjectPtr<UBehaviorTreeComponent> CachedOwnerComp;
 	UPROPERTY()
@@ -56,7 +57,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> BodyEffectComp  = nullptr;
 	
-	EMovementMode OriginalMovementMode = EMovementMode::MOVE_Walking;
+	EMovementMode OriginalMovementMode = MOVE_Walking;
 	FAIRequestID TeleportRequestID;
 	
 	float OriginalMaxSpeed = 600.f;

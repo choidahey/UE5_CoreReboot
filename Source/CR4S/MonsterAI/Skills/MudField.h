@@ -18,9 +18,6 @@ class CR4S_API AMudField : public ABaseSkillActor
 public:	
 	AMudField();
 
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Boss|Skill")
-	// UNiagaraComponent* NiagaraComp;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Boss|Skill")
 	TSubclassOf<AActor> MudActorClass;
 

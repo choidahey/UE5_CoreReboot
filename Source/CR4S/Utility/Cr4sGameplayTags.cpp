@@ -42,5 +42,64 @@ namespace OverlayMode
 	UE_DEFINE_GAMEPLAY_TAG(Mounted,FName(TEXT("Als.OverlayMode.Mounted")));
 }
 
+namespace RobotParts
+{
+	UE_DEFINE_GAMEPLAY_TAG(Core,FName(TEXT("RobotParts.Core")));
+	UE_DEFINE_GAMEPLAY_TAG(Body,FName(TEXT("RobotParts.Body")));
+	UE_DEFINE_GAMEPLAY_TAG(Arm,FName(TEXT("RobotParts.Arm")));
+	UE_DEFINE_GAMEPLAY_TAG(Booster,FName(TEXT("RobotParts.Booster")));
+	UE_DEFINE_GAMEPLAY_TAG(Leg,FName(TEXT("RobotParts.Leg")));
+}
 
+namespace ArmTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(BalanceHeavy, FName(TEXT("RobotParts.Arm.Balance.Heavy")));
+	UE_DEFINE_GAMEPLAY_TAG(MeleeLight, FName(TEXT("RobotParts.Arm.Melee.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(RangedStandard, FName(TEXT("RobotParts.Arm.Ranged.Standard")));
+}
 
+namespace BodyTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(BalanceLight, FName(TEXT("RobotParts.Body.Balance.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(HumidityStandard, FName(TEXT("RobotParts.Body.Humidity.Standard")));
+	UE_DEFINE_GAMEPLAY_TAG(TemperatureStandard, FName(TEXT("RobotParts.Body.Temperature.Standard")));
+	UE_DEFINE_GAMEPLAY_TAG(BalanceHeavy, FName(TEXT("RobotParts.Body.Balance.Heavy")));
+}
+
+namespace BoosterTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(Cyclic, FName(TEXT("RobotParts.Booster.Cyclic")));
+	UE_DEFINE_GAMEPLAY_TAG(HighPower, FName(TEXT("RobotParts.Booster.HighPower")));
+	UE_DEFINE_GAMEPLAY_TAG(LongRanged, FName(TEXT("RobotParts.Booster.LongRanged")));
+	UE_DEFINE_GAMEPLAY_TAG(Recovery, FName(TEXT("RobotParts.Booster.Recovery")));
+	UE_DEFINE_GAMEPLAY_TAG(Standard, FName(TEXT("RobotParts.Booster.Standard")));
+	UE_DEFINE_GAMEPLAY_TAG(Sustained, FName(TEXT("RobotParts.Booster.Sustained")));
+}
+
+namespace CoreTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(Tier1, FName(TEXT("RobotParts.Core.Tier1")));
+	UE_DEFINE_GAMEPLAY_TAG(Tier2, FName(TEXT("RobotParts.Core.Tier2")));
+	UE_DEFINE_GAMEPLAY_TAG(Tier3, FName(TEXT("RobotParts.Core.Tier3")));
+	UE_DEFINE_GAMEPLAY_TAG(Tier4, FName(TEXT("RobotParts.Core.Tier4")));
+}
+
+namespace LegTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(Quadrupedal, FName(TEXT("RobotParts.Leg.Quadrupedal")));
+	
+	UE_DEFINE_GAMEPLAY_TAG(QuadrupedalLight, FName(TEXT("RobotParts.Leg.Quadrupedal.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(BipedalStandard, FName(TEXT("RobotParts.Leg.Bipedal.Standard")));
+	UE_DEFINE_GAMEPLAY_TAG(ReverseBipedalLight, FName(TEXT("RobotParts.Leg.ReverseBipedal.Light")));
+	UE_DEFINE_GAMEPLAY_TAG(QuadrupedalHeavy, FName(TEXT("RobotParts.Leg.Quadrupedal.Heavy")));
+	UE_DEFINE_GAMEPLAY_TAG(ReverseBipedalStandard, FName(TEXT("RobotParts.Leg.ReverseBipedal.Standard")));
+}
+
+namespace ItemTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(Tools, FName(TEXT("Item.Tools")));
+	UE_DEFINE_GAMEPLAY_TAG(Consumable, FName(TEXT("Item.Consumable")));
+	UE_DEFINE_GAMEPLAY_TAG(HelperBot, FName(TEXT("Item.HelperBot")));
+	UE_DEFINE_GAMEPLAY_TAG(RobotParts, FName(TEXT("RobotParts")));
+	UE_DEFINE_GAMEPLAY_TAG(Weapon, FName(TEXT("Weapon")));
+}

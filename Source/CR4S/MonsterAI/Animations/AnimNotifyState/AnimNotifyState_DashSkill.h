@@ -1,5 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "AnimNotifyState_DashSkill.generated.h"
 
@@ -23,6 +24,9 @@ public:
 	
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp,
 						   UAnimSequenceBase* Animation) override;
+
+protected:
+	void CleanupSpawnedActors();
 
 #pragma region Use Spawn Actor
 protected:
@@ -76,11 +80,8 @@ protected:
 #pragma endregion Dash Option
 
 private:
-	UPROPERTY()
-	AActor* SpawnedActor = nullptr;
-
-	UPROPERTY()
-	UNiagaraComponent* SpawnedNiagaraComp = nullptr;
+	TWeakObjectPtr<AActor> SpawnedActor;
+	TWeakObjectPtr<UNiagaraComponent> SpawnedNiagaraComp;
 	
 	FVector TargetActorLocation = FVector::ZeroVector;
 	FVector StartingLocation = FVector::ZeroVector;

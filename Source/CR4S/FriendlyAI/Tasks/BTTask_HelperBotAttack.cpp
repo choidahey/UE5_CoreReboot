@@ -14,86 +14,129 @@ UBTTask_HelperBotAttack::UBTTask_HelperBotAttack()
 	bNotifyTick = true;
 }
 
+uint16 UBTTask_HelperBotAttack::GetInstanceMemorySize() const
+{
+	return sizeof(FBTAttackMemory);
+}
+
 EBTNodeResult::Type UBTTask_HelperBotAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	FBTAttackMemory* MyMemory = reinterpret_cast<FBTAttackMemory*>(NodeMemory);
+	if (!MyMemory) return EBTNodeResult::Failed;
+
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	if (!AICon) return EBTNodeResult::Failed;
+
+	APawn* Pawn = AICon->GetPawn();
+	if (!Pawn) return EBTNodeResult::Failed;
+
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (!BB) return EBTNodeResult::Failed;
 
-	CachedHelper = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
-	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	MyMemory->CachedHelper = Pawn;
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(Pawn);
 	if (!Helper) return EBTNodeResult::Failed;
 
 	AActor* TargetEnemy = FindNearestEnemy(Helper);
 	if (!TargetEnemy) return EBTNodeResult::Failed;
 
 	BB->SetValueAsObject(TEXT("AttackTarget"), TargetEnemy);
-	CachedTarget = TargetEnemy;
+	MyMemory->CachedTarget = TargetEnemy;
 	
-	CachedDamagePerSecond = Helper->GetAttackPerSecond();
+	MyMemory->CachedDamagePerSecond = Helper->GetAttackPerSecond();
 	Helper->SetIsWorking(true);
 	Helper->UpdateEyeBeamWorkTarget(TargetEnemy);
 	
-	AttackTimer = 0.f;
+	MyMemory->AttackTimer = 0.f;
 	
 	return EBTNodeResult::InProgress;
 }
 
 void UBTTask_HelperBotAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	if (!CachedHelper)
+	FBTAttackMemory* MyMemory = reinterpret_cast<FBTAttackMemory*>(NodeMemory);
+	if (!MyMemory)
 	{
-		CleanupAndFinish(OwnerComp, EBTNodeResult::Failed);
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
 		return;
 	}
 
-	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	AAIController* AICon = OwnerComp.GetAIOwner();
+	if (!AICon)
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
+		return;
+	}
+
+	APawn* Pawn = AICon->GetPawn();
+	if (!Pawn)
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
+		return;
+	}
+
+	if (!MyMemory->CachedHelper.IsValid())
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
+		return;
+	}
+
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(MyMemory->CachedHelper.Get());
 	if (!Helper)
 	{
-		CleanupAndFinish(OwnerComp, EBTNodeResult::Failed);
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Failed);
 		return;
 	}
 
-	if (CachedTarget && IsValid(CachedTarget))
+	if (MyMemory->CachedTarget.IsValid())
 	{
-		FVector Direction = (CachedTarget->GetActorLocation() - Helper->GetActorLocation()).GetSafeNormal();
+		AActor* Target = MyMemory->CachedTarget.Get();
+		FVector Direction = (Target->GetActorLocation() - Helper->GetActorLocation()).GetSafeNormal();
 		FRotator LookRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 		Helper->SetActorRotation(LookRotation);
 
-		Helper->UpdateEyeBeamWorkTarget(CachedTarget);
+		Helper->UpdateEyeBeamWorkTarget(Target);
 	}
 	
-	AttackTimer += DeltaSeconds;
+	MyMemory->AttackTimer += DeltaSeconds;
 
-	if (AttackTimer >= MaxAttackDuration)
+	if (MyMemory->AttackTimer >= MaxAttackDuration)
 	{
-		CleanupAndFinish(OwnerComp, EBTNodeResult::Succeeded);
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Succeeded);
 		return;
 	}
 	
-	AAnimalMonster* Monster = Cast<AAnimalMonster>(CachedTarget);
-	ASeasonBossMonster* Boss = Cast<ASeasonBossMonster>(CachedTarget);
-	if (!IsValid(CachedTarget) || CachedTarget->IsActorBeingDestroyed() || 
+	if (!MyMemory->CachedTarget.IsValid())
+	{
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Succeeded);
+		return;
+	}
+
+	AActor* Target = MyMemory->CachedTarget.Get();
+	AAnimalMonster* Monster = Cast<AAnimalMonster>(Target);
+	ASeasonBossMonster* Boss = Cast<ASeasonBossMonster>(Target);
+	if (Target->IsActorBeingDestroyed() || 
 		(Monster && Monster->CurrentState == EAnimalState::Dead) ||
-		(Boss && Boss->IsDead())) 
+		(Boss && Boss->IsDead()))
 	{
-		CleanupAndFinish(OwnerComp, EBTNodeResult::Succeeded);
+		CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Succeeded);
 		return;
 	}
 	
-	if (CachedTarget)
+	if (MyMemory->CachedTarget.IsValid())
 	{
-		float DistanceToTarget = FVector::Dist(Helper->GetActorLocation(), CachedTarget->GetActorLocation());
+		float DistanceToTarget = FVector::Dist(Helper->GetActorLocation(), Target->GetActorLocation());
 		if (DistanceToTarget > AttackRange)
 		{
-			CleanupAndFinish(OwnerComp, EBTNodeResult::Succeeded);
+			CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Succeeded);
 			return;
 		}
 	}
 	
-	if (CachedTarget)
+	if (MyMemory->CachedTarget.IsValid())
 	{
-		const float DamageThisFrame = CachedDamagePerSecond * DeltaSeconds;
-		UGameplayStatics::ApplyDamage(CachedTarget, DamageThisFrame, Helper->GetController(), Helper, UDamageType::StaticClass());
+		const float DamageThisFrame = MyMemory->CachedDamagePerSecond * DeltaSeconds;
+		UGameplayStatics::ApplyDamage(MyMemory->CachedTarget.Get(), DamageThisFrame, Helper->GetController(), Helper, UDamageType::StaticClass());
 	}
 }
 
@@ -136,9 +179,16 @@ AActor* UBTTask_HelperBotAttack::FindNearestEnemy(APawn* Helper)
 	return NearestEnemy;
 }
 
-void UBTTask_HelperBotAttack::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp, EBTNodeResult::Type Result)
+void UBTTask_HelperBotAttack::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type Result)
 {
-	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(CachedHelper);
+	FBTAttackMemory* MyMemory = reinterpret_cast<FBTAttackMemory*>(NodeMemory);
+	if (!MyMemory)
+	{
+		FinishLatentTask(OwnerComp, Result);
+		return;
+	}
+
+	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(MyMemory->CachedHelper.Get());
 	if (Helper)
 	{
 		Helper->SetIsWorking(false);

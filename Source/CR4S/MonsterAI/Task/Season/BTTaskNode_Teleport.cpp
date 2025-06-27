@@ -1,5 +1,6 @@
 #include "BTTaskNode_Teleport.h"
 #include "AIController.h"
+#include "CR4S.h"
 #include "NiagaraComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -60,9 +61,9 @@ EBTNodeResult::Type UBTTaskNode_Teleport::ExecuteTask(
     {
         CachedMeshComp->SetVisibility(false, true);
     }
-    
+
     if (UCapsuleComponent* CapsuleComp = CachedPawn->FindComponentByClass<UCapsuleComponent>())
-        CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+        CapsuleComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
     
     if (TrailEffectTemplate && CachedMeshComp)
     {
@@ -98,11 +99,18 @@ EBTNodeResult::Type UBTTaskNode_Teleport::ExecuteTask(
     {
         PathFollowComp->OnRequestFinished.RemoveAll(this);
         
-        // MoveToLocation 결과 확인
         EPathFollowingRequestResult::Type MoveResult = AIC->MoveToLocation(Dest, AcceptanceRadius, false);
+        
         if (MoveResult == EPathFollowingRequestResult::Failed)
         {
+            CleanupTeleport();
             return EBTNodeResult::Failed;
+        }
+        else if (MoveResult == EPathFollowingRequestResult::AlreadyAtGoal)
+        {
+            CleanupTeleport();
+            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+            return EBTNodeResult::Succeeded;
         }
         
         TeleportRequestID = PathFollowComp->GetCurrentRequestId();
@@ -110,6 +118,7 @@ EBTNodeResult::Type UBTTaskNode_Teleport::ExecuteTask(
     }
     else
     {
+        CleanupTeleport();
         return EBTNodeResult::Failed;
     }
 
@@ -120,78 +129,50 @@ EBTNodeResult::Type UBTTaskNode_Teleport::AbortTask(
     UBehaviorTreeComponent& OwnerComp,
     uint8* NodeMemory)
 {
+    CleanupTeleport();
+    return EBTNodeResult::Aborted;
+}
+
+void UBTTaskNode_Teleport::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
+{
+    if (!IsValid(CachedOwnerComp)) return;
+    
+    CleanupTeleport();
+    FinishLatentTask(*CachedOwnerComp.Get(), EBTNodeResult::Succeeded);
+}
+
+void UBTTaskNode_Teleport::CleanupTeleport()
+{
     if (IsValid(CachedPawn))
     {
         if (AAIController* AIC = Cast<AAIController>(CachedPawn->GetController()))
         {
-            if (UPathFollowingComponent* PathFollowComp = AIC->GetPathFollowingComponent())
-                PathFollowComp->OnRequestFinished.RemoveAll(this);
+            if (UPathFollowingComponent* PathFollow = AIC->GetPathFollowingComponent())
+                PathFollow->OnRequestFinished.RemoveAll(this);
         }
+    }
 
+    if (IsValid(CachedPawn))
+    {
         if (UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(CachedPawn->GetMovementComponent()))
         {
             MoveComp->StopMovementImmediately();
-            MoveComp->SetMovementMode(OriginalMovementMode);
+            MoveComp->SetMovementMode(MOVE_Walking);
             if (OriginalMovementMode == MOVE_Walking)
                 MoveComp->MaxWalkSpeed = OriginalMaxSpeed;
             else
                 MoveComp->MaxFlySpeed = OriginalMaxSpeed;
             MoveComp->MaxAcceleration = OriginalAcceleration;
         }
-
-        if (IsValid(CachedMeshComp))
-        {
-            CachedMeshComp->SetVisibility(true, true);
-        }
-        
-        if (UCapsuleComponent* CapsuleComp = CachedPawn->FindComponentByClass<UCapsuleComponent>())
-            CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
     }
-    
-    if (TrailEffectComp)
-    {
-        TrailEffectComp->DestroyComponent();
-        TrailEffectComp = nullptr;
-    }
-    if (BodyEffectComp)
-    {
-        BodyEffectComp->DestroyComponent();
-        BodyEffectComp = nullptr;
-    }
-    
 
-    return EBTNodeResult::Aborted;
-}
+    if (IsValid(CachedMeshComp))
+        CachedMeshComp->SetVisibility(true, true);
 
-void UBTTaskNode_Teleport::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{
-    if (RequestID != TeleportRequestID) return;
-    
     if (IsValid(CachedPawn))
     {
-        if (AAIController* AIC = Cast<AAIController>(CachedPawn->GetController()))
-        {
-            if (UPathFollowingComponent* PathFollowComp = AIC->GetPathFollowingComponent())
-                PathFollowComp->OnRequestFinished.RemoveAll(this);
-        }
-        
-        if (UCharacterMovementComponent* MoveComp = Cast<UCharacterMovementComponent>(CachedPawn->GetMovementComponent()))
-        {
-            MoveComp->StopMovementImmediately();
-            MoveComp->SetMovementMode(OriginalMovementMode);
-            if (OriginalMovementMode == MOVE_Walking)
-                MoveComp->MaxWalkSpeed = OriginalMaxSpeed;
-            else
-                MoveComp->MaxFlySpeed  = OriginalMaxSpeed;
-            MoveComp->MaxAcceleration = OriginalAcceleration;
-        }
-        
-        if (IsValid(CachedMeshComp))
-        {
-            CachedMeshComp->SetVisibility(true, true);
-        }
-        if (UCapsuleComponent* CapsuleComp = CachedPawn->FindComponentByClass<UCapsuleComponent>())
-            CapsuleComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+        if (auto* Capsule = CachedPawn->FindComponentByClass<UCapsuleComponent>())
+            Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
     }
     
     if (IsValid(TrailEffectComp))
@@ -203,10 +184,5 @@ void UBTTaskNode_Teleport::OnMoveCompleted(FAIRequestID RequestID, const FPathFo
     {
         BodyEffectComp->DestroyComponent();
         BodyEffectComp = nullptr;
-    }
-    
-    if (IsValid(CachedOwnerComp))
-    {
-        FinishLatentTask(*CachedOwnerComp.Get(), EBTNodeResult::Succeeded);
     }
 }

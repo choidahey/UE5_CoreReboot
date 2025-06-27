@@ -1,6 +1,7 @@
 ﻿#include "PlayerInventoryComponent.h"
 
 #include "CR4S.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
@@ -8,7 +9,7 @@
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
 	: InventoryContainerWidgetOrder(20),
-	  HeldToolTag(FGameplayTag())
+	  HeldToolTag(FGameplayTag::EmptyTag)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -167,17 +168,17 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 		return;
 	}
 
+	if (OnInventoryClose.IsBound())
+	{
+		OnInventoryClose.Broadcast();
+	}
+
 	InventoryContainerWidgetInstance->CloseInventoryWidget();
 
 	InteractionComponent = OwnerActor->FindComponentByClass<UInteractionComponent>();
 	if (IsValid(InteractionComponent))
 	{
 		InteractionComponent->StartDetectProcess();
-	}
-
-	if (OnInventoryClose.IsBound())
-	{
-		OnInventoryClose.Broadcast();
 	}
 }
 
