@@ -56,11 +56,13 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
 	TObjectPtr<URobotInputBufferComponent> InputBuffer;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
 	uint8 bCanAttack:1 {true};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
+	uint8 bIsRightHand:1 {false};
 
 	FTimerHandle AttackCooldownTimerHandler;	
 #pragma endregion

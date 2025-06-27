@@ -47,7 +47,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<UStaticMesh>> SkeletalMeshs {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimMontage> AttackMontage;
+	TArray<TObjectPtr<UAnimMontage>> AttackMontages {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DamageMultiplier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

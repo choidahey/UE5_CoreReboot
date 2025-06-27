@@ -37,7 +37,10 @@ void AChargableMeleeWeapon::StopAttack()
 	}
 	else
 	{
-		MontageToPlay = BaseInfo.AttackMontage;
+		if (BaseInfo.AttackMontages.IsValidIndex(bIsRightHand) && BaseInfo.AttackMontages[bIsRightHand])
+		{
+			MontageToPlay = BaseInfo.AttackMontages[bIsRightHand];
+		}
 	}
 
 	if (MontageToPlay)
