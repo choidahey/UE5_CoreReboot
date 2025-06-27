@@ -40,6 +40,8 @@ public:
 	FORCEINLINE float GetMaxHumidity() const { return MaxHumidity; }
 	FORCEINLINE float GetMinHumidity() const { return MinHumidity; }
 
+	void SetCurrentTemperature(const float NewValue);
+	void SetCurrentHumidity(const float NewValue);
 	FORCEINLINE void SetMaxTemperature(float Value) { MaxTemperature = Value; }
 	FORCEINLINE void SetMinTemperature(float Value) { MinTemperature = Value; }
 	FORCEINLINE void SetMaxHumidity(float Value) { MaxHumidity = Value; }

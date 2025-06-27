@@ -19,6 +19,7 @@
 #include "Character/Components/RobotInputBufferComponent.h"
 #include "Character/Data/RobotPartsData.h"
 #include "Components/TimelineComponent.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -102,6 +103,69 @@ AModularRobot::AModularRobot()
 	HoverTimeLine=CreateDefaultSubobject<UTimelineComponent>(TEXT("HoverTimeLine"));
 }
 
+FName AModularRobot::GetUniqueSaveID()
+{
+	return UniqueSaveID;
+}
+
+void AModularRobot::SetUniqueSaveID(FName NewID)
+{
+	UniqueSaveID=NewID;
+}
+
+void AModularRobot::GatherSaveData(FSavedActorData& OutSaveData)
+{
+	OutSaveData.ActorType=ESavedActorType::ModularRobot;
+	
+	FModularRobotSaveGame& RobotData=OutSaveData.RobotData;
+	
+	OutSaveData.ActorTransform=GetActorTransform();
+	
+	RobotData.CurrentHP=Status->GetCurrentHP();
+	RobotData.CurrentResource=Status->GetCurrentResource();
+	RobotData.CurrentEnergy=Status->GetCurrentEnergy();
+	RobotData.CurrentStun=Status->GetCurrentStun();
+	
+	RobotData.CurrentTemperature=EnvironmentalStatus->GetCurrentTemperature();
+	RobotData.CurrentHumidity=EnvironmentalStatus->GetCurrentHumidity();
+
+	RobotData.CoreTag=CoreTag;
+	RobotData.BodyTag=BodyTag;
+	RobotData.ArmTag=ArmTag;
+	RobotData.LegTag=LegTag;
+	RobotData.BoosterTag=BoosterTag;
+
+	WeaponManager->GatherWeaponSaveData(RobotData.EquippedWeapons);
+
+	RobotData.bWasPlayerMounted= MountedCharacter ? true : false;
+}
+
+void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
+{
+	FModularRobotSaveGame& RobotData=InSaveData.RobotData;
+
+	UnequipAll();
+
+	SetActorTransform(InSaveData.ActorTransform);
+
+	Status->SetCurrentHP(RobotData.CurrentHP);
+	Status->SetCurrentResource(RobotData.CurrentResource);
+	Status->OnResourceConsumed();
+	Status->SetCurrentEnergy(RobotData.CurrentEnergy);
+	Status->SetCurrentStun(RobotData.CurrentStun);
+
+	EnvironmentalStatus->SetCurrentTemperature(RobotData.CurrentTemperature);
+	EnvironmentalStatus->SetCurrentHumidity(RobotData.CurrentHumidity);
+
+	EquipCoreParts(RobotData.CoreTag);
+	EquipBodyParts(RobotData.BodyTag);
+	EquipArmParts(RobotData.ArmTag);
+	EquipLegParts(RobotData.LegTag);
+	EquipBoosterParts(RobotData.BoosterTag);
+
+	WeaponManager->ApplyWeaponSaveData(RobotData.EquippedWeapons);
+}
+
 void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
 {
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
@@ -149,7 +213,7 @@ void AModularRobot::EquipBodyParts(const FGameplayTag& Tag)
 	Status->AddCurrentHP(BodyInfo.MaxHealth);
 	Status->AddArmor(BodyInfo.Armor);
 	Status->AddMaxStun(BodyInfo.MaxStun);
-	Status->AddWeight(BodyInfo.Weight);
+	Status->AddCurrentWeight(BodyInfo.Weight);
 	Status->ApplyEnergyEfficiency(BodyInfo.EnergyEfficiency);
 	Status->ApplyResourceRegenModifier(BodyInfo.ResourceRegenModifier);
 	Status->SetResourceRegenDelay(BodyInfo.ResourceRegenDelay);
@@ -181,7 +245,7 @@ void AModularRobot::EquipArmParts(const FGameplayTag& Tag)
 	Status->AddMaxHP(ArmInfo.MaxHealth);
 	Status->AddCurrentHP(ArmInfo.MaxHealth);
 	Status->AddArmor(ArmInfo.Armor);
-	Status->AddWeight(ArmInfo.Weight);
+	Status->AddCurrentWeight(ArmInfo.Weight);
 	Status->AddMaxArmMountWeight(ArmInfo.MaxArmLoad);
 	Status->ApplyRecoilModifier(ArmInfo.RecoilModifier);
 	Status->ApplyMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
@@ -212,7 +276,7 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 	Status->AddCurrentHP(LegInfo.MaxHealth);
 	Status->AddArmor(LegInfo.Armor);
 	Status->AddMaxStun(LegInfo.MaxStun);
-	Status->AddWeight(LegInfo.Weight);
+	Status->AddCurrentWeight(LegInfo.Weight);
 	RobotSettings.MaxWalkSpeed=LegInfo.MaxWalkSpeed;
 	RobotSettings.LegStrength=LegInfo.LegStrength;
 	GetCharacterMovement()->SetWalkableFloorAngle(LegInfo.MaxSlopeAngle);
@@ -251,6 +315,8 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 
 void AModularRobot::UnequipCoreParts()
 {
+	if (CoreTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -273,6 +339,8 @@ void AModularRobot::UnequipCoreParts()
 
 void AModularRobot::UnequipBodyParts()
 {
+	if (BodyTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -288,7 +356,7 @@ void AModularRobot::UnequipBodyParts()
 	Status->AddCurrentHP(-(BodyInfo.MaxHealth));
 	Status->AddArmor(-(BodyInfo.Armor));
 	Status->AddMaxStun(-(BodyInfo.MaxStun));
-	Status->AddWeight(-(BodyInfo.Weight));
+	Status->AddCurrentWeight(-(BodyInfo.Weight));
 	Status->RevertEnergyEfficiency(BodyInfo.EnergyEfficiency);
 	Status->RevertResourceRegenModifier(BodyInfo.ResourceRegenModifier);
 	Status->ResetResourceRegenDelay();
@@ -300,6 +368,8 @@ void AModularRobot::UnequipBodyParts()
 
 void AModularRobot::UnequipArmParts()
 {
+	if (ArmTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -314,7 +384,7 @@ void AModularRobot::UnequipArmParts()
 	Status->AddMaxHP(-(ArmInfo.MaxHealth));
 	Status->AddCurrentHP(-(ArmInfo.MaxHealth));
 	Status->AddArmor(-(ArmInfo.Armor));
-	Status->AddWeight(-(ArmInfo.Weight));
+	Status->AddCurrentWeight(-(ArmInfo.Weight));
 	Status->AddMaxArmMountWeight(-(ArmInfo.MaxArmLoad));
 	Status->RevertRecoilModifier(ArmInfo.RecoilModifier);
 	Status->RevertMeleeDamageModifier(ArmInfo.MeleeDamageModifier);
@@ -322,6 +392,8 @@ void AModularRobot::UnequipArmParts()
 
 void AModularRobot::UnequipLegParts()
 {
+	if (LegTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -341,7 +413,7 @@ void AModularRobot::UnequipLegParts()
 	Status->AddCurrentHP(-(LegInfo.MaxHealth));
 	Status->AddArmor(-(LegInfo.Armor));
 	Status->AddMaxStun(-(LegInfo.MaxStun));
-	Status->AddWeight(-(LegInfo.Weight));
+	Status->AddCurrentWeight(-(LegInfo.Weight));
 	Status->AddMaxWeight(-(LegInfo.MaxTotalWeight));
 	RobotSettings.MaxWalkSpeed=DefaultSettings.MaxWalkSpeed;
 	RobotSettings.LegStrength=DefaultSettings.LegStrength;
@@ -351,6 +423,8 @@ void AModularRobot::UnequipLegParts()
 
 void AModularRobot::UnequipBoosterParts()
 {
+	if (BoosterTag==FGameplayTag::EmptyTag) return;
+	
 	UDataLoaderSubsystem* Loader=GetDataLoaderSubsystem();
 	if (!CR4S_ENSURE(LogHong1,Loader)) return;
 
@@ -363,6 +437,17 @@ void AModularRobot::UnequipBoosterParts()
 	RobotSettings.BoosterStrength=DefaultSettings.BoosterStrength;
 	RobotSettings.DashCooldown=DefaultSettings.DashCooldown;
 	Status->ResetResourceConsumptionAmount();
+}
+
+void AModularRobot::UnequipAll()
+{
+	UnequipCoreParts();
+	UnequipBodyParts();
+	UnequipArmParts();
+	UnequipLegParts();
+	UnequipBoosterParts();
+
+	WeaponManager->UnequipAllWeapons();
 }
 
 void AModularRobot::TakeStun_Implementation(const float StunAmount)
@@ -578,15 +663,12 @@ void AModularRobot::InitializeWidgets() const
 				if (!CR4S_ENSURE(LogHong1,Status)) return;
 				InGameWidget->BindWidgetsToStatus(Status);
 				InGameWidget->ToggleWidgetMode(true);
-				Status->Refresh();
 
 				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
 				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
-				EnvironmentalStatus->Refresh();
 
 				if (!CR4S_ENSURE(LogHong1,WeaponManager)) return;
 				WeaponManager->BindWidgetWeapon();
-				WeaponManager->RefreshWeaponUI();
 			}
 		}
 	}
@@ -613,6 +695,14 @@ void AModularRobot::DisconnectWidgets() const
 void AModularRobot::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->RegisterSavableActor(this);
+		}
+	}
 
 	LoadDataFromDataLoader();
 
@@ -642,6 +732,18 @@ void AModularRobot::BeginPlay()
 	}
 	
 	InitializeWidgets();
+}
+
+void AModularRobot::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->UnregisterSavableActor(this);
+		}
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void AModularRobot::NotifyControllerChanged()
@@ -859,6 +961,12 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 float AModularRobot::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	Status->AddCurrentHP(-DamageAmount);
+	Status->TakeDamage(DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void AModularRobot::Destroyed()
+{
+	WeaponManager->UnequipAllWeapons();
+	Super::Destroyed();
 }
