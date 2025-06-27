@@ -46,11 +46,6 @@ void UToolInventoryItem::UseItem(const int32 Index)
 {
 	Super::UseItem(Index);
 
-	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
-	{
-		return;
-	}
-
 	if (OwnerPlayer->GetOverlayMode() == ToolItemData.ToolTag)
 	{
 		UnEquipItem();

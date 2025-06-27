@@ -8,6 +8,7 @@ class UEmptySlotWidget;
 class USaveSlotWidget;
 class UConfirmWidget;
 class USaveGameManager;
+class UMainMenuWidget;
 
 UCLASS()
 class CR4S_API UGameSaveWidget : public UUserWidget
@@ -19,7 +20,7 @@ public:
 	void OpenWindow();
 
 	UPROPERTY()
-	TObjectPtr<UUserWidget> ParentWidgetRef;
+	TObjectPtr<UMainMenuWidget> MainMenuWidgetRef;
 
 protected:
 

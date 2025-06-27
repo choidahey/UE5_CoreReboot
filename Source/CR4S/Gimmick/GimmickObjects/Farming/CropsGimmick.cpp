@@ -1,11 +1,10 @@
-﻿UE_DISABLE_OPTIMIZATION
-
-#include "CropsGimmick.h"
+﻿#include "CropsGimmick.h"
 
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Game/SaveGame/GimmickSaveGame.h"
+#include "Game/System/AudioManager.h"
 #include "Game/System/EnvironmentManager.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
@@ -55,6 +54,8 @@ void ACropsGimmick::BeginPlay()
 				= DataTable->FindRow<FCropsGimmickData>(RowName, TEXT("CropsGimmickData")))
 			{
 				CropsGimmickGrowthData.CropsGimmickData = *Data;
+				
+				HarvestSound = GimmickInfoData->InteractSound;
 			}
 		}
 	}
@@ -117,6 +118,8 @@ void ACropsGimmick::UpdateInteractionText() const
 
 void ACropsGimmick::Harvest(const AActor* Interactor)
 {
+	PlaySFX(HarvestSound, GetActorLocation(), EConcurrencyType::Default);
+	
 	if (OnHarvest.IsBound())
 	{
 		OnHarvest.Broadcast();
@@ -392,5 +395,3 @@ void ACropsGimmick::LoadPlantedCropsGimmick(const FCropsGimmickGrowthData& NewCr
 
 	UpdateGrowthStage();
 }
-
-UE_ENABLE_OPTIMIZATION

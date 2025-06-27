@@ -8,6 +8,8 @@ class ACharacter;
 class UCharacterMovementComponent;
 class ABaseAnimal;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnIdleMontageEnded, UAnimMontage*, Montage, bool, bInterrupted);
+
 UCLASS()
 class CR4S_API UAnimalAnimInstance : public UAnimInstance
 {
@@ -48,4 +50,20 @@ protected:
 
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	uint8 bIsFalling : 1;
+
+#pragma region Idle RandomAnim
+public:
+	UFUNCTION(BlueprintCallable, Category="Idle")
+	bool PlayRandomIdleMontage();
+
+	UFUNCTION()
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Idle")
+	TArray<UAnimMontage*> IdleMontages;
+	
+	UPROPERTY(BlueprintAssignable, Category="Idle")
+	FOnIdleMontageEnded OnIdleMontageEnded;
+#pragma endregion
 };

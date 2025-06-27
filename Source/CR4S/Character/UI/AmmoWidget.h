@@ -27,6 +27,11 @@ public:
 
 #pragma region UpdateWidget
 	void UpdateCurrentAmmoWidget(const int32 SlotIdx, const float Percent);
+
+	UFUNCTION()
+	void UpdateAmmoWidgetDuringReloading(const int32 SlotIdx, const float ReloadDuration);
+	UFUNCTION()
+	void TickReloadProgress(int32 SlotIdx);
 #pragma endregion
 
 #pragma region Widgets
@@ -52,5 +57,15 @@ protected:
 #pragma region Cached
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Cached")
 	TArray<TObjectPtr<ABaseWeapon>> CachedWeapons;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Timer")
+	TArray<FTimerHandle> ReloadTimerHandles;
+
+	struct FReloadProgressData
+	{
+		float StartTime=0.f;
+		float Duration=0.f;
+	};
+	TArray<FReloadProgressData> ReloadData;
 #pragma endregion
 };

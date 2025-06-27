@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "AlsCharacter.h"
-#include "AnimNodes/AnimNode_RandomPlayer.h"
+#include "Game/Interface/SavableActor.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Character/Data/PlayerCharacterSettingsDataAsset.h"
+#include "Game/SaveGame/CoreSaveGame.h"
 #include "PlayerCharacter.generated.h"
 
+class USaveGame;
 class UPlayerInventoryComponent;
 struct FPlayerCharacterSettings;
 class UInputBufferComponent;
@@ -26,7 +28,7 @@ class UEnvironmentalStatusComponent;
 class UGridDetectionComponent;
 
 UCLASS(AutoExpandCategories = ("Settings|Player Character"))
-class CR4S_API APlayerCharacter : public AAlsCharacter
+class CR4S_API APlayerCharacter : public AAlsCharacter, public ISavableActor
 {
 	GENERATED_BODY()
 
@@ -34,6 +36,13 @@ public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
 
+#pragma region Save/Load
+	virtual FName GetUniqueSaveID() override;
+	virtual void SetUniqueSaveID(FName NewID) override;
+	virtual void GatherSaveData(FSavedActorData& OutSaveData) override;
+	virtual void ApplySaveData(FSavedActorData& InSaveData) override;
+#pragma endregion
+	
 #pragma region Death
 	void OnDeath();
 #pragma endregion
@@ -46,8 +55,8 @@ public:
 #pragma endregion
 	
 #pragma region Widget
-	void InitializeWidgets();
-	void DisconnectWidgets();
+	void InitializeWidgets() const;
+	void DisconnectWidgets() const;
 #pragma endregion
 	
 #pragma region Overrides
@@ -56,7 +65,9 @@ public:
 	virtual void NotifyControllerChanged() override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 protected:
+	virtual void Destroyed() override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void CalcCamera(float DeltaTime, FMinimalViewInfo& ViewInfo) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -204,10 +215,13 @@ protected:
 
 #pragma endregion
 
-#pragma region Tool
+#pragma region Cached
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tool")
 	TObjectPtr<APlayerTool> CurrentTool;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
+	FName UniqueSaveID;
 #pragma endregion
 	
 };

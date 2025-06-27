@@ -6,6 +6,8 @@
 #include "RewindData.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/Bullet/BaseBullet.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
 #include "Utility/DataLoaderSubsystem.h"
 
 ARangedWeapon::ARangedWeapon()
@@ -26,6 +28,93 @@ void ARangedWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotId
 		return;
 	}
 	Super::Initialize(OwnerCharacter, SlotIdx);
+}
+
+int32 ARangedWeapon::GetCurrentAmmo() const
+{
+	return TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+}
+
+float ARangedWeapon::GetCurrentAmmoPercentage() const
+{
+	if (TypeSpecificInfo.AmmoInfo.MagazineCapacity<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	const int32 MaxAmmo=TypeSpecificInfo.AmmoInfo.MagazineCapacity;
+	const int32 CurrentAmmo=TypeSpecificInfo.AmmoInfo.CurrentAmmo;
+	const float Percent=FMath::Clamp(CurrentAmmo/MaxAmmo,0.f,1.f);
+	return Percent;
+}
+
+void ARangedWeapon::StartSequentialFire(AActor* HomingTarget)
+{
+	GetWorld()->GetTimerManager().ClearTimer(SequentialFireTimerHandle);
+
+	CurrentHomingTarget=HomingTarget;
+	const bool bIsMultiShot=!TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames.IsEmpty();
+	
+	if (bIsMultiShot)
+	{
+		ShotsRemainingInSequence=TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames.Num();
+		MuzzleIndexInSequence=0;
+	}
+	else
+	{
+		ShotsRemainingInSequence=TypeSpecificInfo.BurstShotInfo.ShotsPerBurst;
+		MuzzleIndexInSequence=0;
+	}
+
+	if (ShotsRemainingInSequence<=0) return;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		SequentialFireTimerHandle,
+		this,
+		&ARangedWeapon::FireNextShotInSequence,
+		TypeSpecificInfo.BurstShotInfo.TimeBetweenShots,
+		true
+	);
+}
+
+void ARangedWeapon::FireNextShotInSequence()
+{
+	if (ShotsRemainingInSequence<=0 || GetCurrentAmmo()<=0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SequentialFireTimerHandle);
+		if (GetCurrentAmmo()<=0)
+		{
+			StartReload();
+		}
+		return;
+	}
+
+	const bool bIsMultiShot=!TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames.IsEmpty();
+	FName MuzzleName;
+	
+	if (bIsMultiShot)
+	{
+		MuzzleName=TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames[MuzzleIndexInSequence++];
+	}
+	else
+	{
+		MuzzleName=TypeSpecificInfo.MuzzleSocketName;
+	}
+
+	FHitResult HitResult;
+	if (!GetAimHitResult(HitResult)) return;
+
+	const FVector MuzzleLocation=GetMuzzleLocation(MuzzleName);
+	const FVector ShootDirection = (HitResult.ImpactPoint-MuzzleLocation).GetSafeNormal();
+
+	if (!ShootDirection.IsNearlyZero() && TypeSpecificInfo.ProjectileClass)
+	{
+		const FRotator SpawnRotation=ShootDirection.Rotation();
+		FireBullet(MuzzleLocation, SpawnRotation, CurrentHomingTarget.Get());
+		AddCurrentAmmo(-1);
+		ApplyRecoil();
+	}
+
+	--ShotsRemainingInSequence;
 }
 
 void ARangedWeapon::RefreshUI()
@@ -105,22 +194,25 @@ FVector ARangedWeapon::GetMuzzleLocation(const FName& SocketName) const
 
 void ARangedWeapon::FireBullet(const FVector& MuzzleLocation, const FRotator& SpawnRotation, AActor* HomingTarget)
 {
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Instigator=OwningCharacter;
-	SpawnParams.Owner=OwningCharacter;
-
-	ABaseBullet* NewProjectile=GetWorld()->SpawnActor<ABaseBullet>(
+	UWorld* World = GetWorld();
+	if (!World) return;
+	
+	UProjectilePoolSubsystem* PoolSubsystem = World->GetSubsystem<UProjectilePoolSubsystem>();
+	if (!PoolSubsystem) return;
+	
+	AActor* NewProjectile = PoolSubsystem->SpawnFromPool(
 		TypeSpecificInfo.ProjectileClass,
 		MuzzleLocation,
-		SpawnRotation,
-		SpawnParams
+		SpawnRotation
 	);
 
-	if (NewProjectile)
-	{
-		const float FinalDamage=ComputeFinalDamage();
-		NewProjectile->Initialize(TypeSpecificInfo.BulletInfo,FinalDamage,HomingTarget);
-	}
+	ABaseBullet* Projectile = Cast<ABaseBullet>(NewProjectile);
+	if (!CR4S_ENSURE(LogHong1,Projectile)) return;
+	
+	Projectile->SetInstigator(OwningCharacter);
+	Projectile->SetOwner(OwningCharacter);
+	const float FinalDamage=ComputeFinalDamage();
+	Projectile->Initialize(TypeSpecificInfo.BulletInfo,FinalDamage,HomingTarget);
 }
 
 void ARangedWeapon::ApplyRecoil() const
@@ -146,6 +238,7 @@ void ARangedWeapon::StartReload()
 	bIsReloading=true;
 	bCanAttack=false;
 
+	OnStartReload.Broadcast(TypeSpecificInfo.AmmoInfo.ReloadTime);
 	GetWorld()->GetTimerManager().SetTimer(
 		ReloadTimerHandle,
 		this,

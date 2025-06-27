@@ -1,4 +1,5 @@
 #include "UI/MainMenu/GameSaveWidget.h"
+#include "UI/MainMenu/MainMenuWidget.h"
 #include "UI/Common/ButtonWidget.h"
 #include "UI/MainMenu/EmptySlotWidget.h"
 #include "UI/Common/ConfirmWidget.h"
@@ -50,6 +51,7 @@ void UGameSaveWidget::OpenWindow()
 
 void UGameSaveWidget::HandleCloseWindow()
 {
+	MainMenuWidgetRef->ShowMenuButtons();
 	SetVisibility(ESlateVisibility::Hidden);
 }
 

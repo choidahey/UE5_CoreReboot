@@ -78,7 +78,7 @@ void UHelperBotInventoryItem::SetHelperBotData(const FHelperPickUpData& NewHelpe
 	const FText NewDescription = FText::Format(
 		LOCTEXT("ItemDescriptionFormat", "{0}: {1}\n{2}: {3}"),
 		BotNameText,
-		FText::FromString(HelperBotData.BotName),
+		HelperBotData.BotName,
 		HPText,
 		FText::AsNumber(HelperBotData.CurrentHealth)
 	);

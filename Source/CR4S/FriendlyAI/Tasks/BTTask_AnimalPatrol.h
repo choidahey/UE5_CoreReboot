@@ -14,22 +14,34 @@ public:
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
 	virtual uint16 GetInstanceMemorySize() const override;
 
 protected:
-	UPROPERTY(EditAnywhere)
-	float PatrolRadius = 2000.0f;
+	UPROPERTY()
+	float PatrolRadius = 2000.f;
 
-	UPROPERTY(EditAnywhere)
-	float AcceptanceRadius = 100.0f;
+	UPROPERTY()
+	float AcceptanceRadius = 200.f;
 
-	UPROPERTY(EditAnywhere)
-	float MaxWaitTime = 5.0f;
+	UPROPERTY()
+	float MaxWaitTime = 10.f;
+
+	UPROPERTY()
+	float DecelerationDistance = 300.f;
+
+	UPROPERTY()
+	float SpeedInterpSpeed = 3.f;
 
 private:
 	struct FPatrolMemory
 	{
 		FVector PatrolDestination;
-		float Elapsed = 0.f;
+		float TotalDistance = 0.f;
+		float CurrentSpeed = 0.f;
+		float ElapsedTime = 0.f;
+		uint8 Pattern = 0;
+		bool bSwitched = false;
 	};
 };

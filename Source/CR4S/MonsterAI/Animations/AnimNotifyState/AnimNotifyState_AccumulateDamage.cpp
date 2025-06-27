@@ -26,10 +26,10 @@ void UAnimNotifyState_AccumulateDamage::NotifyEnd(USkeletalMeshComponent* MeshCo
 				UE_LOG(LogTemp, Log, TEXT("[AccumulateDamage] End - Playing Montage."));
 
 				AnimInst->Montage_Stop(0.2f);
-				if (UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>())
-				{
-					AnimComp->PlayHitReactMontage();
-				}
+				// if (UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>())
+				// {
+				// 	AnimComp->PlayHitReactMontage();
+				// }
 			}
 		}
 		else

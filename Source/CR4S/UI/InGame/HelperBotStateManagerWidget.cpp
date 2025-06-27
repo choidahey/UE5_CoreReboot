@@ -23,10 +23,10 @@ void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIControll
 		
 		if (HelperBot)
 		{
-			if (BotNameText) BotNameText->SetText(FText::FromString(HelperBot->GetBotName()));
+			if (BotNameText) BotNameText->SetText(HelperBot->GetBotName());
 			if (BotNameEditBox) 
 			{
-				BotNameEditBox->SetText(FText::FromString(HelperBot->GetBotName()));
+				BotNameEditBox->SetText(HelperBot->GetBotName());
 				BotNameEditBox->SetIsReadOnly(true);
 				BotNameEditBox->SetVisibility(ESlateVisibility::Collapsed);
 			}
@@ -249,12 +249,13 @@ void UHelperBotStateManagerWidget::ChangeNameButtonClicked()
 	}
 	else
 	{
-		FString NewName = BotNameEditBox->GetText().ToString();
-		
-		if (NewName.Len() >= 2 && NewName.Len() <= 8)
+		FText NewName = BotNameEditBox->GetText();
+		FString NameString = NewName.ToString();
+
+		if (NameString.Len() >= 2 && NameString.Len() <= 8)
 		{
 			HelperBot->SetBotName(NewName);
-			BotNameText->SetText(FText::FromString(NewName));
+			BotNameText->SetText(NewName);
 			
 			bIsEditingName = false;
 			BotNameText->SetVisibility(ESlateVisibility::Visible);
@@ -263,7 +264,7 @@ void UHelperBotStateManagerWidget::ChangeNameButtonClicked()
 		}
 		else
 		{
-			BotNameEditBox->SetText(FText::FromString(HelperBot->GetBotName()));
+			BotNameEditBox->SetText(HelperBot->GetBotName());
 		}
 	}
 }
