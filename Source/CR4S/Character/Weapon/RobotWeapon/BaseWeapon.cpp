@@ -6,6 +6,7 @@
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Components/RobotInputBufferComponent.h"
+#include "Character/Components/RobotWeaponComponent.h"
 
 ABaseWeapon::ABaseWeapon()
 {
@@ -29,11 +30,13 @@ float ABaseWeapon::ComputeFinalDamage()
 void ABaseWeapon::OnAttack()
 {
 	ApplySelfStun();
+	SetWeaponManagerIsDuringAttackAction(true);
 }
 
 void ABaseWeapon::StopAttack()
 {
 	RemoveSelfStun();
+	SetWeaponManagerIsDuringAttackAction(false);
 }
 
 void ABaseWeapon::StartAttackCooldown()
@@ -67,6 +70,14 @@ void ABaseWeapon::RemoveSelfStun() const
 	if (BaseInfo.bHasSelfStun)
 	{
 		InputBuffer->SetInputEnable(true);
+	}
+}
+
+void ABaseWeapon::SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const
+{
+	if (URobotWeaponComponent* WeaponManager=GetTypedOuter<URobotWeaponComponent>())
+	{
+		WeaponManager->SetIsDuringAttackAction(bIsAttacking);
 	}
 }
 

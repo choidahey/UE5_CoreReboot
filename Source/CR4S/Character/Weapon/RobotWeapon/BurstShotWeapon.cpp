@@ -27,15 +27,8 @@ void ABurstShotWeapon::OnAttack()
 	
 	StartAttackCooldown();
 
-	BurstShotsRemaining=TypeSpecificInfo.BurstShotInfo.ShotsPerBurst;
+	StartSequentialFire();
 
-	GetWorld()->GetTimerManager().SetTimer(
-		BurstTimerHandle,
-		this,
-		&ABurstShotWeapon::FireBurstShot,
-		TypeSpecificInfo.BurstShotInfo.TimeBetweenShots,
-		true
-	);
 	Super::OnAttack();
 }
 
@@ -44,39 +37,6 @@ void ABurstShotWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
-}
-
-void ABurstShotWeapon::FireBurstShot()
-{
-	if (BurstShotsRemaining<=0 || TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
-	{
-		GetWorld()->GetTimerManager().ClearTimer(BurstTimerHandle);
-		if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
-		{
-			StartReload();
-		}
-		return;
-	}
-
-	FHitResult HitResult;
-	if (!GetAimHitResult(HitResult)) return;
-	
-	const FVector MuzzleLocation=GetMuzzleLocation(TypeSpecificInfo.MuzzleSocketName);
-	const FVector ShootDirection= (HitResult.ImpactPoint-MuzzleLocation).GetSafeNormal();
-	if (!CR4S_ENSURE(LogHong1,!ShootDirection.IsNearlyZero()
-		&& TypeSpecificInfo.ProjectileClass))
-	{
-		GetWorld()->GetTimerManager().ClearTimer(BurstTimerHandle);
-		return;
-	}
-
-	const FRotator SpawnRotation=ShootDirection.Rotation();
-	
-	FireBullet(MuzzleLocation,SpawnRotation);
-	
-	AddCurrentAmmo(-1);
-	--BurstShotsRemaining;
-	ApplyRecoil();
 }
 
 // Called every frame
