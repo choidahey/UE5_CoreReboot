@@ -95,4 +95,14 @@ void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 	StaticMeshComp->SetStaticMesh(BaseInfo.SkeletalMeshs[LeftRightIndex]);
 }
 
+int32 ABaseWeapon::GetCurrentAmmo() const
+{
+	return 0;
+}
+
+void ABaseWeapon::SetCurrentAmmo(const int32 NewAmmo)
+{
+}
+
+
 

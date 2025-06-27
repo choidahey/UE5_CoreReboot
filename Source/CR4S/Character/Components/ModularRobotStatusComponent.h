@@ -25,6 +25,10 @@ class CR4S_API UModularRobotStatusComponent : public UBaseStatusComponent
 public:
 	UModularRobotStatusComponent();
 
+#pragma region Damage
+	virtual void TakeDamage(const float DamageAmount);
+#pragma endregion
+
 #pragma region CheckWeight
 	void CheckTotalWeightCapacity();
 	void CheckArmCapacity();
@@ -37,14 +41,13 @@ public:
 	virtual void Refresh() override;
 #pragma endregion
 	
-#pragma region Get & Set
+#pragma region Get
 	FORCEINLINE float GetMaxEnergy() const { return RobotStatus.MaxEnergy; }
 	FORCEINLINE float GetCurrentEnergy() const { return RobotStatus.Energy; }
 	FORCEINLINE float GetEnergyConsumptionRate() const { return RobotStatus.EnergyConsumptionAmount; }
 
 	FORCEINLINE float GetMaxStun() const { return RobotStatus.MaxStun; }
 	FORCEINLINE float GetCurrentStun() const { return RobotStatus.Stun; }
-	FORCEINLINE float GetStunResistance() const { return RobotStatus.StunResistance; }
 
 	FORCEINLINE float GetArmorMultiplier() const { return RobotStatus.ArmorMultiplier; }
 	FORCEINLINE float GetAttackPowerMultiplier() const { return RobotStatus.AttackPowerMultiplier; }
@@ -56,7 +59,26 @@ public:
 	
 	FORCEINLINE float GetRecoilModifier() const { return RobotStatus.RecoilModifier; }
 
-	void SetEnergyConsumptionAmount(const float NewAmount);
+	float GetCurrentEnergyPercentage() const;
+	float GetCurrentStunPercentage() const;
+#pragma endregion
+
+#pragma region Set
+	void SetMaxEnergy(const float NewValue);
+	void SetCurrentEnergy(const float NewValue);
+
+	void SetMaxStun(const float NewValue);
+	void SetCurrentStun(const float NewValue);
+
+	void SetArmorMultiplier(const float NewValue);
+	void SetAttackPowerMultiplier(const float NewValue);
+
+	void SetMaxWeight(const float NewValue);
+	void SetCurrentWeight(const float NewValue);
+	void SetMaxArmMountWeight(const float NewValue);
+	void SetCurrentArmMountWeight(const float NewValue);
+	
+	void SetEnergyConsumptionAmount(const float NewValue);
 	FORCEINLINE void ResetEnergyConsumptionAmount() { RobotStatus.EnergyConsumptionAmount=DefaultRobotStatus.EnergyConsumptionAmount; }
 #pragma endregion
 
@@ -68,13 +90,12 @@ public:
 	void AddMaxStun(const float InAmount);
 	UFUNCTION(BlueprintCallable)
 	void AddStun(const float InAmount);
-	void AddStunResistance(const float InAmount);
 
 	void AddArmorMultiplier(const float InAmount);
 	void AddAttackPowerMultiplier(const float InAmount);
 
 	void AddMaxWeight(const float InAmount);
-	void AddWeight(const float InAmount);
+	void AddCurrentWeight(const float InAmount);
 	void AddMaxArmMountWeight(const float InAmount);
 	void AddCurrentArmMountWeight(const float InAmount);
 #pragma endregion

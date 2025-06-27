@@ -8,6 +8,7 @@
 #include "RobotWeaponComponent.generated.h"
 
 
+struct FRobotWeaponSaveGame;
 class URobotInputBufferComponent;
 class UInputBufferComponent;
 class ABaseWeapon;
@@ -22,6 +23,11 @@ class CR4S_API URobotWeaponComponent : public UActorComponent
 
 public:
 	URobotWeaponComponent();
+
+#pragma region Save/Load
+	void GatherWeaponSaveData(TArray<FRobotWeaponSaveGame>& OutWeaponData) const;
+	void ApplyWeaponSaveData(TArray<FRobotWeaponSaveGame>& InWeaponData);
+#pragma endregion
 
 #pragma region Check
 	ABaseWeapon* GetWeaponByIndex(const int32 SlotIdx);
@@ -55,9 +61,12 @@ public:
 #pragma region EquipWeapon
 public:
 	void RefreshWeaponUI();
+	
 	UFUNCTION(BlueprintCallable)
 	void EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx);
 	void UnequipWeapon(const int32 SlotIdx);
+	void UnequipAllWeapons();
+	
 	void BindWidgetWeapon();
 	bool IsArmSlot(const int32 SlotIdx) const;
 #pragma endregion
