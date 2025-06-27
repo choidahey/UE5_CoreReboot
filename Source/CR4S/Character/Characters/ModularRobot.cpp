@@ -177,10 +177,14 @@ void AModularRobot::HandleHoverEffects()
 	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
 	if (RobotSettings.HoverEffect)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
+		UNiagaraFunctionLibrary::SpawnSystemAttached(
 			RobotSettings.HoverEffect,
-			BoosterLocation
+			GetMesh(),
+			RobotSettings.BoosterSocketName,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget,
+			true
 		);
 	}
 	if (RobotSettings.DashSound)
@@ -939,10 +943,14 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
 	if (RobotSettings.DashEffect)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
+		UNiagaraFunctionLibrary::SpawnSystemAttached(
 			RobotSettings.DashEffect,
-			BoosterLocation
+			GetMesh(),
+			RobotSettings.BoosterSocketName,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget,
+			true
 		);
 	}
 	if (RobotSettings.DashSound)
