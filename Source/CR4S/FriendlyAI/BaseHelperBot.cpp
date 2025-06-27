@@ -25,6 +25,7 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Game/SaveGame/HelperBotSaveGame.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -91,7 +92,7 @@ void ABaseHelperBot::BeginPlay()
 	{
 		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
 		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
-		InteractableComp->SetInteractionText(FText::FromString(BotName));
+		InteractableComp->SetInteractionText(BotName);
 	}
 	
 	if (IsValid(InfoWidgetComponent))
@@ -142,7 +143,7 @@ void ABaseHelperBot::LoadStats()
 
 			if (IsValid(InteractableComp))
 			{
-				InteractableComp->SetInteractionText(FText::FromString(BotName));
+				InteractableComp->SetInteractionText(BotName);
 			}
 
 		});
@@ -439,15 +440,15 @@ void ABaseHelperBot::StartDeathSequence()
 	}
 }
 
-void ABaseHelperBot::SetBotName(const FString& NewName)
+void ABaseHelperBot::SetBotName(const FText& NewName)
 {
-	if (NewName.Len() >= 2 && NewName.Len() <= 8)
+	FString NameString = NewName.ToString();
+	if (NameString.Len() >= 2 && NameString.Len() <= 8)
 	{
 		BotName = NewName;
-		
 		if (InteractableComp)
 		{
-			InteractableComp->SetInteractionText(FText::FromString(BotName));
+			InteractableComp->SetInteractionText(BotName);
 		}
 	}
 }
@@ -580,3 +581,41 @@ bool ABaseHelperBot::RepairBot(APlayerCharacter* Player)
 	return true;
 }
 #pragma endregion
+
+FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const
+{
+	FHelperBotSaveGame Data;
+	Data.BotName         = BotName;
+	Data.CurrentHealth   = CurrentHealth;
+	Data.CurrentLocation = GetActorLocation();
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		uint8 StateValue = BotAI->GetBlackboardComponent()->GetValueAsEnum(TEXT("HelperBotState"));
+		Data.CurrentState = static_cast<EHelperBotState>(StateValue);
+	}
+	if (InventoryComponent)
+	{
+		Data.InventoryData = InventoryComponent->GetInventorySaveGame();
+	}
+	return Data;
+}
+
+void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
+{
+	BotName = Data.BotName;
+	CurrentHealth = Data.CurrentHealth;
+	SetActorLocation(Data.CurrentLocation);
+	
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		BotAI->SetBotState(Data.CurrentState);
+		BotAI->GetBlackboardComponent()->SetValueAsEnum(
+			TEXT("HelperBotState"),
+			static_cast<uint8>(Data.CurrentState)
+		);
+	}
+	if (InventoryComponent)
+	{
+		InventoryComponent->LoadInventorySaveGame(Data.InventoryData);
+	}
+}

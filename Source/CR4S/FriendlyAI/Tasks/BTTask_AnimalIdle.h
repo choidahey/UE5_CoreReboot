@@ -13,20 +13,17 @@ public:
 	UBTTask_AnimalIdle();
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-	virtual uint16 GetInstanceMemorySize() const override;
-
-protected:
-	UPROPERTY(EditAnywhere)
-	float MinIdleTime = 1.0f;
-
-	UPROPERTY(EditAnywhere)
-	float MaxIdleTime = 3.0f;
+	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 private:
-	struct FIdleMemory
-	{
-		float WaitTime = 0.f;
-		float Elapsed = 0.f;
-	};
+	UPROPERTY()
+	class UAnimalAnimInstance* AnimalAnimInst;
+	
+	UBehaviorTreeComponent* CachedOwnerComp;
+
+	UPROPERTY()
+	UAnimMontage* CurrentMontage;
+
+	UFUNCTION()
+	void OnIdleMontageFinished(UAnimMontage* Montage, bool bInterrupted);
 };

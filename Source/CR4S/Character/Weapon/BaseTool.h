@@ -21,7 +21,7 @@ public:
 	virtual AActor* GetToolOwner() const;
 	virtual UMeshComponent* GetToolMeshComponent();
 	virtual FVector GetSocketLocationByName(const FName SocketName);
-	FORCEINLINE FGameplayTag GetGameplayTag() const { return ToolTag; }
+	FORCEINLINE FGameplayTag GetToolGameplayTag() const { return ToolTag; }
 	virtual void SetGameplayTag(const FGameplayTag GameplayTag);
 
 #pragma endregion

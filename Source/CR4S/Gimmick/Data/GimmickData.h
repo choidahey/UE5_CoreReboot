@@ -37,6 +37,12 @@ struct FGimmickInfoData : public FTableRowBase
 	TSubclassOf<class ABaseGimmick> GimmickClass = nullptr;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 최대 체력", ClampMin = "0"))
 	int32 GimmickMaxHealth = 0;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "상호작용 효과음"))
+	TObjectPtr<USoundBase> InteractSound;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "피격 효과음"))
+	TObjectPtr<USoundBase> TakeDamageSound;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "파괴 효과음"))
+	TObjectPtr<USoundBase> DestroySound;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "재료 목록"))
 	TArray<FResourceItemData> Resources;
 };

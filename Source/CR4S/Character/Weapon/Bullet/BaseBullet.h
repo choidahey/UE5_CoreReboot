@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseBullet.generated.h"
 
+class UObjectPoolComponent;
 struct FBulletData;
 class UBoxComponent;
 class UNiagaraComponent;
@@ -24,7 +25,8 @@ public:
 
 public:
 	virtual void Initialize(const FBulletInfo& InData, const float InDamage, AActor* HomingTarget=nullptr);
-public:
+	void Deactivate() const;
+	
 	virtual void Tick(float DeltaTime) override;
 protected:
 	virtual void BeginPlay() override;
@@ -50,6 +52,9 @@ protected:
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Components")
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovementComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	TObjectPtr<UObjectPoolComponent> PoolComponent;
+
 #pragma endregion
 
 #pragma region Properties

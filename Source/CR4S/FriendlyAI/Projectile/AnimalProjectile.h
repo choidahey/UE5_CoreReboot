@@ -6,6 +6,8 @@
 #include "AnimalProjectile.generated.h"
 
 class UObjectPoolComponent;
+class UCapsuleComponent;
+class UNiagaraComponent;
 
 UCLASS()
 class CR4S_API AAnimalProjectile : public AActor
@@ -14,12 +16,20 @@ class CR4S_API AAnimalProjectile : public AActor
 
 public:
 	AAnimalProjectile();
+	virtual void BeginPlay() override;
+	void SetProjectileDamage(float InDamage) { Damage = InDamage; }
 
 protected:
 	UFUNCTION()
-	void OnProjectileHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
-						 UPrimitiveComponent* OtherComp, FVector NormalImpulse,
-						 const FHitResult& Hit);
+	virtual void OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+										UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+										bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void ResetProjectile();
+
+	UFUNCTION()
+	void OnNiagaraFinished(UNiagaraComponent* PSystem);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -33,6 +43,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UObjectPoolComponent* PoolComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UCapsuleComponent* CapsuleCollision;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UNiagaraComponent* HitEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Damage;

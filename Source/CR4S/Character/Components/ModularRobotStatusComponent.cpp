@@ -16,6 +16,14 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UModularRobotStatusComponent::TakeDamage(const float DamageAmount)
+{
+	const float ArmorFactor=BaseStatus.Armor*RobotStatus.ArmorMultiplier;
+	const float ComputedDamage = DamageAmount*(1000.f/(1000.f*ArmorFactor));
+	
+	AddCurrentHP(-(ComputedDamage));
+}
+
 void UModularRobotStatusComponent::CheckTotalWeightCapacity()
 {
 	bExceedsTotalWeightLimit = (RobotStatus.Weight>RobotStatus.MaxWeight) ? true : false;
@@ -31,8 +39,10 @@ void UModularRobotStatusComponent::Refresh()
 	Super::Refresh();
 	AddEnergy(0);
 	AddStun(0);
-	AddWeight(0);
+	AddCurrentWeight(0);
 	AddMaxWeight(0);
+	AddCurrentArmMountWeight(0);
+	AddMaxArmMountWeight(0);
 }
 
 
@@ -54,7 +64,7 @@ void UModularRobotStatusComponent::RemoveStunDebuff()
 {
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
 
-	AddStun(-RobotStatus.MaxStun);
+	SetCurrentStun(0);
 	OwningCharacter->SetInputEnable(true);
 	bIsStunned=false;
 }
@@ -83,16 +93,6 @@ void UModularRobotStatusComponent::StopConsumeEnergy()
 void UModularRobotStatusComponent::ConsumeEnergyForInterval()
 {
 	AddEnergy(-(RobotStatus.EnergyConsumptionAmount*RobotStatus.EnergyEfficiency));
-
-	if (RobotStatus.Energy<=KINDA_SMALL_NUMBER&&bIsRobotActive)
-	{
-		bIsRobotActive=false;
-		StopConsumeEnergy();
-	}
-	else if (RobotStatus.Energy>=KINDA_SMALL_NUMBER&&!bIsRobotActive)
-	{
-		bIsRobotActive=true;
-	}
 }
 
 void UModularRobotStatusComponent::ApplyHeatDebuff()
@@ -135,45 +135,85 @@ void UModularRobotStatusComponent::TickComponent(float DeltaTime, ELevelTick Tic
 }
 
 
-void UModularRobotStatusComponent::SetEnergyConsumptionAmount(const float NewAmount)
+float UModularRobotStatusComponent::GetCurrentEnergyPercentage() const
 {
-	RobotStatus.EnergyConsumptionAmount=NewAmount;
-}
-
-void UModularRobotStatusComponent::AddMaxEnergy(const float InAmount)
-{
-	RobotStatus.MaxEnergy+=InAmount;
-	const float Percentage=FMath::Clamp(RobotStatus.Energy/RobotStatus.MaxEnergy,0.f,1.f);
-	OnEnergyChanged.Broadcast(Percentage);
-}
-
-void UModularRobotStatusComponent::AddEnergy(const float InAmount)
-{
-	const float Temp=FMath::Clamp(RobotStatus.Energy+InAmount,0.f,RobotStatus.MaxEnergy);
-	RobotStatus.Energy=Temp;
-	const float Percentage=FMath::Clamp(RobotStatus.Energy/RobotStatus.MaxEnergy,0.f,1.f);
-	OnEnergyChanged.Broadcast(Percentage);
-}
-
-void UModularRobotStatusComponent::AddMaxStun(const float InAmount)
-{
-	RobotStatus.MaxStun+=InAmount;
-	const float Percentage=FMath::Clamp(RobotStatus.Stun/RobotStatus.MaxStun,0.f,1.f);
-	OnStunChanged.Broadcast(Percentage);
-}
-
-void UModularRobotStatusComponent::AddStun(const float InAmount)
-{
-	const float Temp=FMath::Clamp(RobotStatus.Stun+InAmount,0.f,RobotStatus.MaxStun);
-	RobotStatus.Stun=Temp;
-	const float Percentage=FMath::Clamp(RobotStatus.Stun/RobotStatus.MaxStun,0.f,1.f);
-	OnStunChanged.Broadcast(Percentage);
-	if (Percentage>=1&&!bIsStunned)
+	if (RobotStatus.MaxEnergy<=KINDA_SMALL_NUMBER)
 	{
-		if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+		return 0;
+	}
+	return FMath::Clamp(RobotStatus.Energy/RobotStatus.MaxEnergy,0,1);
+}
 
-		bIsStunned=true;
+float UModularRobotStatusComponent::GetCurrentStunPercentage() const
+{
+	if (RobotStatus.MaxStun<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(RobotStatus.Stun/RobotStatus.MaxStun,0,1);
+}
+
+void UModularRobotStatusComponent::SetMaxEnergy(const float NewValue)
+{
+	RobotStatus.MaxEnergy=NewValue;
+	const float Percentage = GetCurrentEnergyPercentage();
+	OnEnergyChanged.Broadcast(Percentage);
+}
+
+void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
+{
+	const float ClampedEnergy = FMath::Clamp(NewValue, 0.f, RobotStatus.MaxEnergy);
+	const bool bValueChanged= !FMath::IsNearlyEqual(RobotStatus.Energy, ClampedEnergy);
+	
+	RobotStatus.Energy = ClampedEnergy;
+	
+	const float Percentage = GetCurrentEnergyPercentage();
+	OnEnergyChanged.Broadcast(Percentage);
+
+	if (!bValueChanged) return;
+	
+	if (RobotStatus.Energy <= KINDA_SMALL_NUMBER)
+	{
+		if (bIsRobotActive)
+		{
+			bIsRobotActive = false;
+			StopConsumeEnergy();
+		}
+	}
+	else
+	{
+		if (!bIsRobotActive)
+		{
+			bIsRobotActive = true;
+		}
+	}
+}
+
+void UModularRobotStatusComponent::SetMaxStun(const float NewValue)
+{
+	RobotStatus.MaxStun=NewValue;
+	const float Percentage = GetCurrentStunPercentage();
+	OnStunChanged.Broadcast(Percentage);
+}
+
+void UModularRobotStatusComponent::SetCurrentStun(const float NewValue)
+{
+	const float ClampedStun = FMath::Clamp(NewValue, 0.f, RobotStatus.MaxStun);
+	const bool bValueChanged= !FMath::IsNearlyEqual(RobotStatus.Stun, ClampedStun);
+
+	RobotStatus.Stun = ClampedStun;
+	const float Percentage = GetCurrentStunPercentage();
+	OnStunChanged.Broadcast(Percentage);
+
+	if (!bValueChanged) return;
+
+	if (Percentage >= 1.f && !bIsStunned)
+	{
+		if (!CR4S_ENSURE(LogHong1, GetWorld() && OwningCharacter)) return;
+		
+		bIsStunned = true;
 		OwningCharacter->SetInputEnable(false);
+		
 		GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
 		GetWorld()->GetTimerManager().SetTimer(
 			StunTimerHandle,
@@ -185,47 +225,97 @@ void UModularRobotStatusComponent::AddStun(const float InAmount)
 	}
 }
 
-void UModularRobotStatusComponent::AddStunResistance(const float InAmount)
+void UModularRobotStatusComponent::SetArmorMultiplier(const float NewValue)
 {
-	RobotStatus.StunResistance+=InAmount;
+	RobotStatus.ArmorMultiplier=NewValue;
 }
 
-void UModularRobotStatusComponent::AddArmorMultiplier(const float InAmount)
+void UModularRobotStatusComponent::SetAttackPowerMultiplier(const float NewValue)
 {
-	RobotStatus.ArmorMultiplier+=InAmount;
+	RobotStatus.AttackPowerMultiplier=NewValue;
 }
 
-void UModularRobotStatusComponent::AddAttackPowerMultiplier(const float InAmount)
+void UModularRobotStatusComponent::SetMaxWeight(const float NewValue)
 {
-	RobotStatus.AttackPowerMultiplier+=InAmount;
-}
-
-void UModularRobotStatusComponent::AddMaxWeight(const float InAmount)
-{
-	RobotStatus.MaxWeight+=InAmount;
+	RobotStatus.MaxWeight=NewValue;
 	OnMaxWeightChanged.Broadcast(RobotStatus.MaxWeight);
 	CheckTotalWeightCapacity();
 }
 
-void UModularRobotStatusComponent::AddWeight(const float InAmount)
+void UModularRobotStatusComponent::SetCurrentWeight(const float NewValue)
 {
-	RobotStatus.Weight+=InAmount;
+	RobotStatus.Weight=NewValue;
 	OnWeightChanged.Broadcast(RobotStatus.Weight);
 	CheckTotalWeightCapacity();
 }
 
-void UModularRobotStatusComponent::AddMaxArmMountWeight(const float InAmount)
+void UModularRobotStatusComponent::SetMaxArmMountWeight(const float NewValue)
 {
-	RobotStatus.MaxArmMountWeight+=InAmount;
+	RobotStatus.MaxArmMountWeight=NewValue;
 	OnMaxArmLoadChanged.Broadcast(RobotStatus.MaxArmMountWeight);
 	CheckArmCapacity();
 }
 
-void UModularRobotStatusComponent::AddCurrentArmMountWeight(const float InAmount)
+void UModularRobotStatusComponent::SetCurrentArmMountWeight(const float NewValue)
 {
-	RobotStatus.CurrentArmMountWeight+=InAmount;
+	RobotStatus.CurrentArmMountWeight=NewValue;
 	OnArmLoadChanged.Broadcast(RobotStatus.CurrentArmMountWeight);
 	CheckArmCapacity();
+}
+
+void UModularRobotStatusComponent::SetEnergyConsumptionAmount(const float NewValue)
+{
+	RobotStatus.EnergyConsumptionAmount=NewValue;
+}
+
+void UModularRobotStatusComponent::AddMaxEnergy(const float InAmount)
+{
+	SetMaxEnergy(RobotStatus.MaxEnergy+InAmount);
+}
+
+void UModularRobotStatusComponent::AddEnergy(const float InAmount)
+{
+	SetCurrentEnergy(RobotStatus.Energy+InAmount);
+}
+
+void UModularRobotStatusComponent::AddMaxStun(const float InAmount)
+{
+	SetMaxStun(RobotStatus.MaxStun+InAmount);
+}
+
+void UModularRobotStatusComponent::AddStun(const float InAmount)
+{
+	SetCurrentStun(RobotStatus.Stun+InAmount);
+}
+
+void UModularRobotStatusComponent::AddArmorMultiplier(const float InAmount)
+{
+	SetArmorMultiplier(RobotStatus.ArmorMultiplier+InAmount);
+}
+
+void UModularRobotStatusComponent::AddAttackPowerMultiplier(const float InAmount)
+{
+	SetAttackPowerMultiplier(RobotStatus.AttackPowerMultiplier+InAmount);
+}
+
+void UModularRobotStatusComponent::AddMaxWeight(const float InAmount)
+{
+	SetMaxWeight(RobotStatus.MaxWeight+InAmount);
+}
+
+void UModularRobotStatusComponent::AddCurrentWeight(const float InAmount)
+{
+	SetCurrentWeight(RobotStatus.Weight+InAmount);
+}
+
+void UModularRobotStatusComponent::AddMaxArmMountWeight(const float InAmount)
+{
+	SetMaxArmMountWeight(RobotStatus.MaxArmMountWeight+InAmount);
+}
+
+void UModularRobotStatusComponent::AddCurrentArmMountWeight(const float InAmount)
+{
+	SetCurrentArmMountWeight(RobotStatus.CurrentArmMountWeight+InAmount);
 }
 
 void UModularRobotStatusComponent::ApplyEnergyEfficiency(const float Modifier)

@@ -11,6 +11,7 @@
 #include "FriendlyAI/BaseHelperBot.h"
 #include "FriendlyAI/Component/AIJumpComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Utility/CombatStatics.h"
 
 #pragma region AActor Override
 AAnimalMonster::AAnimalMonster()
@@ -124,6 +125,8 @@ void AAnimalMonster::PerformMeleeAttack()
     }
     
     ApplyDamageToTarget(CurrentTarget);
+
+    UCombatStatics::ApplyStun(CurrentTarget, GetCurrentStats().StunAmount);
 }
 
 void AAnimalMonster::PerformChargeAttack()

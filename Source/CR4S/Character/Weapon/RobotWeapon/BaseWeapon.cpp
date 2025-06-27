@@ -6,6 +6,7 @@
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Components/RobotInputBufferComponent.h"
+#include "Character/Components/RobotWeaponComponent.h"
 
 ABaseWeapon::ABaseWeapon()
 {
@@ -29,11 +30,13 @@ float ABaseWeapon::ComputeFinalDamage()
 void ABaseWeapon::OnAttack()
 {
 	ApplySelfStun();
+	SetWeaponManagerIsDuringAttackAction(true);
 }
 
 void ABaseWeapon::StopAttack()
 {
 	RemoveSelfStun();
+	SetWeaponManagerIsDuringAttackAction(false);
 }
 
 void ABaseWeapon::StartAttackCooldown()
@@ -70,6 +73,14 @@ void ABaseWeapon::RemoveSelfStun() const
 	}
 }
 
+void ABaseWeapon::SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const
+{
+	if (URobotWeaponComponent* WeaponManager=GetTypedOuter<URobotWeaponComponent>())
+	{
+		WeaponManager->SetIsDuringAttackAction(bIsAttacking);
+	}
+}
+
 void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	OwningCharacter=OwnerCharacter;
@@ -83,5 +94,15 @@ void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 	if (!BaseInfo.SkeletalMeshs.IsValidIndex(LeftRightIndex) || BaseInfo.SkeletalMeshs[LeftRightIndex])
 	StaticMeshComp->SetStaticMesh(BaseInfo.SkeletalMeshs[LeftRightIndex]);
 }
+
+int32 ABaseWeapon::GetCurrentAmmo() const
+{
+	return 0;
+}
+
+void ABaseWeapon::SetCurrentAmmo(const int32 NewAmmo)
+{
+}
+
 
 
