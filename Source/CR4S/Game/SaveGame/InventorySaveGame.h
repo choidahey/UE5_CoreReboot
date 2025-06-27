@@ -22,7 +22,7 @@ struct FInventoryItemSaveGame
 		  Count(NewCount)
 	{
 	}
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FInventoryItemData InventoryItemData;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

@@ -28,6 +28,8 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Shake")
 	void Shake();
+
+	FORCEINLINE void SetOriginalLocation(const FVector& NewOrigin) { OriginalLocation = NewOrigin; }
 	
 private:
 	void StartShake();

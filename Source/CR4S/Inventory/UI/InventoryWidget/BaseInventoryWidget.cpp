@@ -32,7 +32,9 @@ void UBaseInventoryWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
-	if (CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)))
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
+		!InventoryContainerWidget->IsOpen())
 	{
 		PlayerController->SetInputMode(FInputModeUIOnly()
 		                               .SetWidgetToFocus(this->TakeWidget())

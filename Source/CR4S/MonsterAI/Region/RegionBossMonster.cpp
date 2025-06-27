@@ -10,6 +10,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NavigationInvokerComponent.h"
+#include "CR4S.h"
 
 ARegionBossMonster::ARegionBossMonster()
 	: MyHeader(TEXT("RegionBossMonster"))
@@ -166,6 +167,7 @@ void ARegionBossMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterS
 	case EMonsterState::Combat:
 		SetCombatStartLocation();
 		ShowCombatRange();
+		AttributeComponent->InitializeMonsterAttribute(MonsterID);
 		break;
 	case EMonsterState::Return:
 		if (Previous == EMonsterState::Combat)
@@ -187,7 +189,29 @@ void ARegionBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
 	{
 		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
 		{
-			BB->SetValueAsEnum(TEXT("CurrentPhase"), static_cast<int32>(NewPhase));
+			BB->SetValueAsEnum(FRegionBossAIKeys::CurrentPhase, static_cast<int32>(NewPhase));
+			BB->SetValueAsInt(FRegionBossAIKeys::CurrentPatternID, 0);
+			BB->SetValueAsInt(FRegionBossAIKeys::PatternStepIndex, 0);
 		}
 	}
+
+	if (!AttributeComponent || !StateComponent) return;
+
+	if (NewPhase == EBossPhase::Normal)
+	{
+		AttributeComponent->InitializeMonsterAttribute(MonsterID);
+	}
+	else
+	{
+		const float BaseSpeed = AttributeComponent->GetMonsterAttribute().MoveSpeed;
+		const float SpeedMultiplier = StateComponent->GetCurrentSpeedMultiplier();
+
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->MaxWalkSpeed = BaseSpeed * SpeedMultiplier;
+		}
+	}
+
+	UE_LOG(LogMonster, Log, TEXT("[%s] HandlePhaseChanged : Current phase changed to %s"), *MyHeader,
+		*UEnum::GetDisplayValueAsText(NewPhase).ToString());
 }

@@ -23,8 +23,7 @@ public:
 	virtual void NotifyEnd(
 		USkeletalMeshComponent* MeshComp,
 		UAnimSequenceBase* Animation) override;
-
-	/* Spawn MudField */ 
+	
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	TSubclassOf<AActor> MudFieldClass;
 
@@ -33,19 +32,16 @@ public:
 	UPROPERTY(EditAnywhere, Category="MudAmbust")
 	float TraceDownDistance = 1000.f;
 
-protected:
-	UPROPERTY()
-	AActor* TargetActor;
-	FVector StartLocation;
-	FVector TargetLocation;
-
 private:
-	bool bIsTriggeredReverse = false;
-	float Duration;
-	float ElapsedTime;
-
+	TWeakObjectPtr<AActor> TargetActor;
+	TWeakObjectPtr<AActor> SpawnedMudField;
 	FTimerHandle RiseTimerHandle;
 
-	UPROPERTY()
-	AActor* SpawnedMudField;
+	bool bIsTriggeredReverse = false;
+	
+	FVector StartLocation;
+	FVector TargetLocation;
+	
+	float Duration;
+	float ElapsedTime;
 };

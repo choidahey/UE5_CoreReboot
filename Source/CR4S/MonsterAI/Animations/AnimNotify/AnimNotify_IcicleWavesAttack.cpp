@@ -6,13 +6,13 @@
 
 void UAnimNotify_IcicleWavesAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-    if (!IsValid(MeshComp->GetWorld())
-        || !IsValid(MeshComp)
+    if (!IsValid(MeshComp)
+        || !IsValid(MeshComp->GetWorld())
         || !IsValid(IcicleWaveActorClass)
         || !IsValid(Animation)) return;
 
     ACharacter* OwnerChar = Cast<ACharacter>(MeshComp->GetOwner());
-    if (!OwnerChar) return;
+    if (!IsValid(OwnerChar)) return;
 
     FActorSpawnParameters SpawnParams;
     SpawnParams.Owner = OwnerChar;

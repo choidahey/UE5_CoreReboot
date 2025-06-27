@@ -24,8 +24,6 @@ public:
 	
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp,
 						   UAnimSequenceBase* Animation) override;
-	
-	virtual void BeginDestroy() override;
 
 protected:
 	void CleanupSpawnedActors();

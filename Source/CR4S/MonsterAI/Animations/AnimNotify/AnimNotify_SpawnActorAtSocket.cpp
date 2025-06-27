@@ -4,6 +4,7 @@
 #include "MonsterAI/Skills/BreathActor.h"
 #include "MonsterAI/Skills/RollingActor.h"
 #include "MonsterAI/Skills/FallingBombActor.h"
+#include "MonsterAI/Skills/ProjectileSlashActor.h"
 
 void UAnimNotify_SpawnActorAtSocket::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -41,19 +42,14 @@ void UAnimNotify_SpawnActorAtSocket::SpawnSkillActor(USkeletalMeshComponent* Mes
 	UWorld* World = Owner->GetWorld();
 	if (!World) return;
 
-	FVector SpawnLocation = FVector::ZeroVector;
-	FRotator SpawnRotation = FRotator::ZeroRotator;
-
+	FTransform BaseTransform = MeshComp->GetComponentTransform();
 	if (SocketName != NAME_None && MeshComp->DoesSocketExist(SocketName))
 	{
-		SpawnLocation = MeshComp->GetSocketLocation(SocketName);
-		SpawnRotation = MeshComp->GetSocketRotation(SocketName);
+		BaseTransform = MeshComp->GetSocketTransform(SocketName, RTS_World);
 	}
-	else
-	{
-		SpawnLocation = MeshComp->GetComponentLocation();
-		SpawnRotation = MeshComp->GetComponentRotation();
-	}
+
+	const FVector SpawnLocation = BaseTransform.TransformPosition(SpawnOffset);
+	const FRotator SpawnRotation = (BaseTransform.GetRotation().Rotator() + AdditionalRotation);
 
 	FActorSpawnParameters Params;
 	Params.Owner = Owner;
@@ -62,6 +58,9 @@ void UAnimNotify_SpawnActorAtSocket::SpawnSkillActor(USkeletalMeshComponent* Mes
 
 	AActor* SkillActor = World->SpawnActor<AActor>(SkillActorClass, SpawnLocation, SpawnRotation, Params);
 	if (!SkillActor) return;
+
+	SkillActor->SetActorScale3D(SpawnScale);
+	SkillActor->SetActorRotation(SpawnRotation);
 
 	if (MeshComp->DoesSocketExist(SocketName))
 	{
@@ -92,5 +91,9 @@ void UAnimNotify_SpawnActorAtSocket::SpawnSkillActor(USkeletalMeshComponent* Mes
 	{
 		APawn* TargetPawn = UGameplayStatics::GetPlayerPawn(Owner, 0);
 		Bomb->Initialize(Owner, TargetPawn);
+	}
+	else if (AProjectileSlashActor* Slash = Cast<AProjectileSlashActor>(SkillActor))
+	{
+		Slash->InitializeMovement(LaunchSpeed, TravelDistance, SpawnLocation);
 	}
 }

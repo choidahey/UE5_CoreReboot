@@ -20,6 +20,8 @@ void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 {
 	UpdateInventoryItem(NewInventoryComponent);
 
+	PlayerInventoryComponent = nullptr;
+
 	if (IsValid(InventoryComponent))
 	{
 		PlayerInventoryComponent = Cast<UPlayerInventoryComponent>(InventoryComponent);
