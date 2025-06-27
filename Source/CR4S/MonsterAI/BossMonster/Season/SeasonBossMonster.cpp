@@ -46,11 +46,22 @@ float ASeasonBossMonster::TakeDamage(
    AActor* DamageCauser)
 {
    float Actual = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-   if (AggroComp && DamageCauser)
+   
+   AActor* AggroInstigator = nullptr;
+   if (EventInstigator && EventInstigator->GetPawn())
    {
-      AggroComp->AddDamageAggro(DamageCauser, Actual);
+      AggroInstigator = EventInstigator->GetPawn();
    }
+   else if (DamageCauser)
+   {
+      AggroInstigator = DamageCauser;
+   }
+
+   if (AggroComp && AggroInstigator)
+   {
+      AggroComp->AddDamageAggro(AggroInstigator, Actual);
+   }
+   
    return Actual;
 }
 
