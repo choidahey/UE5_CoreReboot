@@ -81,10 +81,8 @@ void AHomingWeapon::FireHomingBullet()
 {
 	if (!TrackingTarget.IsValid()) return;
 
-	FireMultiBullet(TrackingTarget.Get());
-
-	AddCurrentAmmo(-1);
-	ApplyRecoil();
+	StartSequentialFire(TrackingTarget.Get());
+	
 	StartAttackCooldown();
 }
 

@@ -47,6 +47,76 @@ float ARangedWeapon::GetCurrentAmmoPercentage() const
 	return Percent;
 }
 
+void ARangedWeapon::StartSequentialFire(AActor* HomingTarget)
+{
+	GetWorld()->GetTimerManager().ClearTimer(SequentialFireTimerHandle);
+
+	CurrentHomingTarget=HomingTarget;
+	const bool bIsMultiShot=!TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames.IsEmpty();
+	
+	if (bIsMultiShot)
+	{
+		ShotsRemainingInSequence=TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames.Num();
+		MuzzleIndexInSequence=0;
+	}
+	else
+	{
+		ShotsRemainingInSequence=TypeSpecificInfo.BurstShotInfo.ShotsPerBurst;
+		MuzzleIndexInSequence=0;
+	}
+
+	if (ShotsRemainingInSequence<=0) return;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		SequentialFireTimerHandle,
+		this,
+		&ARangedWeapon::FireNextShotInSequence,
+		TypeSpecificInfo.BurstShotInfo.TimeBetweenShots,
+		true
+	);
+}
+
+void ARangedWeapon::FireNextShotInSequence()
+{
+	if (ShotsRemainingInSequence<=0 || GetCurrentAmmo()<=0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SequentialFireTimerHandle);
+		if (GetCurrentAmmo()<=0)
+		{
+			StartReload();
+		}
+		return;
+	}
+
+	const bool bIsMultiShot=!TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames.IsEmpty();
+	FName MuzzleName;
+	
+	if (bIsMultiShot)
+	{
+		MuzzleName=TypeSpecificInfo.MultiShotInfo.MuzzleSocketNames[MuzzleIndexInSequence++];
+	}
+	else
+	{
+		MuzzleName=TypeSpecificInfo.MuzzleSocketName;
+	}
+
+	FHitResult HitResult;
+	if (!GetAimHitResult(HitResult)) return;
+
+	const FVector MuzzleLocation=GetMuzzleLocation(MuzzleName);
+	const FVector ShootDirection = (HitResult.ImpactPoint-MuzzleLocation).GetSafeNormal();
+
+	if (!ShootDirection.IsNearlyZero() && TypeSpecificInfo.ProjectileClass)
+	{
+		const FRotator SpawnRotation=ShootDirection.Rotation();
+		FireBullet(MuzzleLocation, SpawnRotation, CurrentHomingTarget.Get());
+		AddCurrentAmmo(-1);
+		ApplyRecoil();
+	}
+
+	--ShotsRemainingInSequence;
+}
+
 void ARangedWeapon::RefreshUI()
 {
 	AddCurrentAmmo(0);
