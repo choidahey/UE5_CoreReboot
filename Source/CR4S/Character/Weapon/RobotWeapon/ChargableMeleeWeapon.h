@@ -4,24 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "MeleeWeapon.h"
-#include "SustainedMeleeWeapon.generated.h"
+#include "ChargableMeleeWeapon.generated.h"
 
 UCLASS()
-class CR4S_API ASustainedMeleeWeapon : public AMeleeWeapon
+class CR4S_API AChargableMeleeWeapon : public AMeleeWeapon
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	ASustainedMeleeWeapon();
+	AChargableMeleeWeapon();
 
-#pragma region Attack
-	virtual void OnAttack() override;;
-	virtual void StopAttack() override;
-#pragma endregion
-	
 #pragma region Override
 public:
+	virtual void OnAttack() override;
+	virtual void StopAttack() override;
 	virtual void Tick(float DeltaTime) override;
 protected:
 	virtual void BeginPlay() override;

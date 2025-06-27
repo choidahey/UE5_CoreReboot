@@ -1,32 +1,30 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SustainedMeleeWeapon.h"
+#include "SustainableMeleeWeapon.h"
 
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
 
 
 // Sets default values
-ASustainedMeleeWeapon::ASustainedMeleeWeapon()
+ASustainableMeleeWeapon::ASustainableMeleeWeapon()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void ASustainedMeleeWeapon::OnAttack()
+void ASustainableMeleeWeapon::OnAttack()
 {
 	if (!bCanAttack || !OwningCharacter || !BaseInfo.AttackMontage) return;
-	ApplySelfStun();
-
 	
 	OwningCharacter->PlayAnimMontage(BaseInfo.AttackMontage);
+	Super::OnAttack();
 }
 
-void ASustainedMeleeWeapon::StopAttack()
+void ASustainableMeleeWeapon::StopAttack()
 {
-	RemoveSelfStun();
-	StartAttackCooldown();
+	Super::StopAttack();
 
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter && !BaseInfo.AttackMontage)) return;
 
@@ -34,14 +32,14 @@ void ASustainedMeleeWeapon::StopAttack()
 }
 
 // Called when the game starts or when spawned
-void ASustainedMeleeWeapon::BeginPlay()
+void ASustainableMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void ASustainedMeleeWeapon::Tick(float DeltaTime)
+void ASustainableMeleeWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
