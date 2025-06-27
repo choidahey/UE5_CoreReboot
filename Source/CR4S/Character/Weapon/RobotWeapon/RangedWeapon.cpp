@@ -6,6 +6,8 @@
 #include "RewindData.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/Bullet/BaseBullet.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
 #include "Utility/DataLoaderSubsystem.h"
 
 ARangedWeapon::ARangedWeapon()
@@ -105,22 +107,25 @@ FVector ARangedWeapon::GetMuzzleLocation(const FName& SocketName) const
 
 void ARangedWeapon::FireBullet(const FVector& MuzzleLocation, const FRotator& SpawnRotation, AActor* HomingTarget)
 {
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Instigator=OwningCharacter;
-	SpawnParams.Owner=OwningCharacter;
-
-	ABaseBullet* NewProjectile=GetWorld()->SpawnActor<ABaseBullet>(
+	UWorld* World = GetWorld();
+	if (!World) return;
+	
+	UProjectilePoolSubsystem* PoolSubsystem = World->GetSubsystem<UProjectilePoolSubsystem>();
+	if (!PoolSubsystem) return;
+	
+	AActor* NewProjectile = PoolSubsystem->SpawnFromPool(
 		TypeSpecificInfo.ProjectileClass,
 		MuzzleLocation,
-		SpawnRotation,
-		SpawnParams
+		SpawnRotation
 	);
 
-	if (NewProjectile)
-	{
-		const float FinalDamage=ComputeFinalDamage();
-		NewProjectile->Initialize(TypeSpecificInfo.BulletInfo,FinalDamage,HomingTarget);
-	}
+	ABaseBullet* Projectile = Cast<ABaseBullet>(NewProjectile);
+	if (!CR4S_ENSURE(LogHong1,Projectile)) return;
+	
+	Projectile->SetInstigator(OwningCharacter);
+	Projectile->SetOwner(OwningCharacter);
+	const float FinalDamage=ComputeFinalDamage();
+	Projectile->Initialize(TypeSpecificInfo.BulletInfo,FinalDamage,HomingTarget);
 }
 
 void ARangedWeapon::ApplyRecoil() const

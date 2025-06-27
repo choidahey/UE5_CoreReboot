@@ -7,6 +7,7 @@
 #include "Character/Data/WeaponData.h"
 #include "RangedWeapon.generated.h"
 
+class UObjectPoolComponent;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float InPercent);
 
 struct FRangedWeaponData;
@@ -48,7 +49,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FRangedWeaponInfo TypeSpecificInfo; 
 #pragma endregion
-
+	
 #pragma region Cached
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	uint8 bIsReloading:1 {false};

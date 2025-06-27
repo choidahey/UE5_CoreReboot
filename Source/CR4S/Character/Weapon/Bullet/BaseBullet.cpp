@@ -8,6 +8,8 @@
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Data/WeaponData.h"
 #include "Components/BoxComponent.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Utility/CombatStatics.h"
@@ -37,6 +39,8 @@ ABaseBullet::ABaseBullet()
 	ProjectileMovementComponent->InitialSpeed=0.f;
 	ProjectileMovementComponent->MaxSpeed=0.f;
 	ProjectileMovementComponent->ProjectileGravityScale=0.f;
+
+	PoolComponent=CreateDefaultSubobject<UObjectPoolComponent>(TEXT("PoolComponent"));
 	
 }
 
@@ -45,18 +49,26 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AA
 	BulletInfo=InData;
 	Damage=InDamage;
 
-	if (!ProjectileMovementComponent) return; 
+	if (!ProjectileMovementComponent) return;
+
+	ProjectileMovementComponent->Activate();
 	ProjectileMovementComponent->InitialSpeed=BulletInfo.InitialBulletSpeed;
 	ProjectileMovementComponent->MaxSpeed=BulletInfo.MaxBulletSpeed;
 	ProjectileMovementComponent->Velocity=GetActorForwardVector()*BulletInfo.InitialBulletSpeed;
 	
 	if (BulletInfo.MaxLifeTime>KINDA_SMALL_NUMBER)
 	{
-		SetLifeSpan(BulletInfo.MaxLifeTime);
+		PoolComponent->ReturnToPoolAfter(BulletInfo.MaxLifeTime);
 	}
 	else
 	{
-		Destroy();
+		if (UWorld* CurrentWorld = GetWorld())
+		{
+			if (UProjectilePoolSubsystem* Pool = CurrentWorld->GetSubsystem<UProjectilePoolSubsystem>())
+			{
+				Pool->ReturnToPool(this);
+			}
+		}
 	}
 
 	if (CollisionComponent)
@@ -87,7 +99,7 @@ void ABaseBullet::OnOverlapBegin(
 {
 	FVector OverlapLocation=GetActorLocation();
 	AActor* OwnerActor=GetOwner();
-	if (BulletInfo.ExplosionRadius<=KINDA_SMALL_NUMBER) // 
+	if (BulletInfo.ExplosionRadius<=KINDA_SMALL_NUMBER) 
 	{
 		if (OtherActor&&OtherActor!=this)
 		{
@@ -140,7 +152,14 @@ void ABaseBullet::OnOverlapBegin(
 		);
 	}
 	UCombatStatics::ApplyStun(OtherActor,BulletInfo.StunAmount);
-	Destroy();
+
+	if (UWorld* CurrentWorld = GetWorld())
+	{
+		if (UProjectilePoolSubsystem* Pool = CurrentWorld->GetSubsystem<UProjectilePoolSubsystem>())
+		{
+			Pool->ReturnToPool(this);
+		}
+	}
 }
 
 // Called every frame
