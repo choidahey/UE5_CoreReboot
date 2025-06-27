@@ -20,7 +20,7 @@ struct CR4S_API FHelperPickUpData
 
 	FHelperPickUpData()
 	{
-		BotName = TEXT("");
+		BotName = FText::FromString(TEXT(""));
 		CurrentHealth = 0.0f;
 		bIsInit = false;
 	}

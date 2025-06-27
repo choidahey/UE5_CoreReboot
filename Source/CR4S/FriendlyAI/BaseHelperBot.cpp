@@ -92,7 +92,7 @@ void ABaseHelperBot::BeginPlay()
 	{
 		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
 		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
-		InteractableComp->SetInteractionText(FText::FromString(BotName));
+		InteractableComp->SetInteractionText(BotName);
 	}
 	
 	if (IsValid(InfoWidgetComponent))
@@ -143,7 +143,7 @@ void ABaseHelperBot::LoadStats()
 
 			if (IsValid(InteractableComp))
 			{
-				InteractableComp->SetInteractionText(FText::FromString(BotName));
+				InteractableComp->SetInteractionText(BotName);
 			}
 
 		});
@@ -440,15 +440,15 @@ void ABaseHelperBot::StartDeathSequence()
 	}
 }
 
-void ABaseHelperBot::SetBotName(const FString& NewName)
+void ABaseHelperBot::SetBotName(const FText& NewName)
 {
-	if (NewName.Len() >= 2 && NewName.Len() <= 8)
+	FString NameString = NewName.ToString();
+	if (NameString.Len() >= 2 && NameString.Len() <= 8)
 	{
 		BotName = NewName;
-		
 		if (InteractableComp)
 		{
-			InteractableComp->SetInteractionText(FText::FromString(BotName));
+			InteractableComp->SetInteractionText(BotName);
 		}
 	}
 }
@@ -585,7 +585,7 @@ bool ABaseHelperBot::RepairBot(APlayerCharacter* Player)
 FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const
 {
 	FHelperBotSaveGame Data;
-	Data.BotName         = FText::FromString(BotName);
+	Data.BotName         = BotName;
 	Data.CurrentHealth   = CurrentHealth;
 	Data.CurrentLocation = GetActorLocation();
 	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
@@ -602,7 +602,7 @@ FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const
 
 void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
 {
-	BotName = Data.BotName.ToString();
+	BotName = Data.BotName;
 	CurrentHealth = Data.CurrentHealth;
 	SetActorLocation(Data.CurrentLocation);
 	
