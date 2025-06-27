@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/Characters/ModularRobot.h"
 #include "Character/Data/WeaponData.h"
 #include "Character/Weapon/BaseTool.h"
 #include "UObject/Object.h"
@@ -24,6 +25,7 @@ public:
 
 	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
 	FORCEINLINE float GetWeaponWeight() const { return BaseInfo.Weight; }
+	FORCEINLINE virtual AActor* GetToolOwner() const override { return OwningCharacter; }
 	FORCEINLINE virtual UMeshComponent* GetToolMeshComponent() override { return StaticMeshComp; }
 	
 	virtual void Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx);
