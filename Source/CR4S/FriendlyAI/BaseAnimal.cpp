@@ -55,6 +55,10 @@ ABaseAnimal::ABaseAnimal()
     StunEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("StunEffectComponent"));
     StunEffectComponent->SetupAttachment(RootComponent);
     StunEffectComponent->bAutoActivate = false;
+
+    HitEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HitEffectComponent"));
+    HitEffectComponent->SetupAttachment(RootComponent);
+    HitEffectComponent->bAutoActivate = false;
 }
 
 void ABaseAnimal::BeginPlay()
@@ -440,6 +444,8 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     {
         return 0.f;
     }
+    
+    ShowHitEffect(DamageCauser);
 
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
@@ -455,6 +461,32 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     }
 
     return ActualDamage;
+}
+
+void ABaseAnimal::ShowHitEffect(AActor* DamageCauser)
+{
+    if (!HitEffectComponent || HitEffectSystems.Num() == 0 || !DamageCauser)
+        return;
+    
+    int32 RandomIndex = FMath::RandRange(0, HitEffectSystems.Num() - 1);
+    UNiagaraSystem* SelectedEffect = HitEffectSystems[RandomIndex];
+    
+    if (!SelectedEffect)
+        return;
+    
+    FVector StartLocation = DamageCauser->GetActorLocation();
+    FVector EndLocation = GetActorLocation();
+    
+    FHitResult HitResult;
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(DamageCauser);
+    
+    if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Pawn, QueryParams))
+    {
+        HitEffectComponent->SetWorldLocation(HitResult.Location);
+        HitEffectComponent->SetAsset(SelectedEffect);
+        HitEffectComponent->ActivateSystem(true);
+    }
 }
 
 // void ABaseAnimal::SetbIsTamed(bool bNewValue)
@@ -751,20 +783,3 @@ void ABaseAnimal::UpdateFade()
     }
 }
 #pragma endregion
-
-
-// Stun Test
-void ABaseAnimal::ForceStunToMax()
-{
-    if (!bStatsReady || !StatsRow) 
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[%s] ForceStunToMax - Stats not ready"), *GetName());
-        return;
-    }
-    
-    UE_LOG(LogTemp, Log, TEXT("[%s] ForceStunToMax - Applying max stun: %f"), *GetName(), CurrentStats.StunThreshold);
-    UCombatStatics::ApplyStun(this, 5000.f);
-
-    UE_LOG(LogTemp, Log, TEXT("[%s] ApplyStun - StunValue: %f / Threshold: %f"), 
-    *GetName(), StunValue, CurrentStats.StunThreshold);
-}

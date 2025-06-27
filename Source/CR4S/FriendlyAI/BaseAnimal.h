@@ -133,6 +133,8 @@ public:
 	virtual void RecoverFromStun();
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	void ShowHitEffect(AActor* DamageCauser);
 	
 	UFUNCTION(BlueprintCallable)
 	void Die();
@@ -172,6 +174,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	UParticleSystemComponent* StunEffectComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects")
+	class UNiagaraComponent* HitEffectComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects")
+	TArray<class UNiagaraSystem*> HitEffectSystems;
 
 #pragma region Attack
 	
@@ -280,9 +288,4 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bDrawAttackRangeDebug : 1 = 0;
 #pragma endregion
-
-public:
-	// StunTest
-	UFUNCTION(BlueprintCallable)
-	void ForceStunToMax();
 };
