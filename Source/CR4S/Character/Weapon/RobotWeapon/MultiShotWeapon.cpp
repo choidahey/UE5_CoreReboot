@@ -23,6 +23,9 @@ void AMultiShotWeapon::OnAttack()
 		return;
 	}
 	
+	PlayMuzzleVFX(TypeSpecificInfo.MuzzleSocketName);
+	PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
+	
 	FireMultiBullet();
 	
 	AddCurrentAmmo(-1);

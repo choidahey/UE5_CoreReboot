@@ -18,6 +18,8 @@ void AAutomaticFireWeapon::OnAttack()
 {
 	if (!bCanAttack||bIsReloading) return;
 
+	StartMuzzleFlash(TypeSpecificInfo.MuzzleSocketName);
+	
 	FireBulletForInterval();
 	
 	const float FireInterval=1.0f/TypeSpecificInfo.AutomaticFireInfo.ShotsPerSecond;
@@ -34,6 +36,9 @@ void AAutomaticFireWeapon::OnAttack()
 void AAutomaticFireWeapon::StopAttack()
 {
 	GetWorld()->GetTimerManager().ClearTimer(FireRateTimerHandle);
+
+	StopMuzzleFlash();
+	
 	if (BaseInfo.AttackCooldownTime>KINDA_SMALL_NUMBER)
 	{
 		StartAttackCooldown();
@@ -76,6 +81,8 @@ void AAutomaticFireWeapon::FireBulletForInterval()
 		return;
 	}
 
+	PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
+	
 	const FRotator SpawnRotation=ShootDirection.Rotation();
 	FireBullet(MuzzleLocation, SpawnRotation);
 

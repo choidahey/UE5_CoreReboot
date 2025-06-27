@@ -7,6 +7,7 @@
 #include "Character/Data/WeaponData.h"
 #include "RangedWeapon.generated.h"
 
+class UNiagaraComponent;
 class UObjectPoolComponent;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float InPercent);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStartReload, const float Duration);
@@ -33,6 +34,15 @@ public:
 	virtual void SetCurrentAmmo(const int32 NewAmount) override;
 #pragma endregion
 
+#pragma region VFX/SFX
+public:
+	void PlayMuzzleVFX(const FName& MuzzleSocketName) const;
+	void PlayMuzzleSFX(const FName& MuzzleSocketName) const;
+
+	void StartMuzzleFlash(const FName& MuzzleSocketName);
+	void StopMuzzleFlash();
+#pragma endregion
+	
 #pragma region Get
 	float GetCurrentAmmoPercentage() const;
 #pragma endregion
@@ -62,6 +72,7 @@ protected:
 #pragma endregion
 	
 #pragma region Cached
+protected:
 	FTimerHandle SequentialFireTimerHandle;
 	int32 ShotsRemainingInSequence{0};
 	int32 MuzzleIndexInSequence{0};
@@ -70,7 +81,11 @@ protected:
 	uint8 bIsReloading:1 {false};
 	FTimerHandle ReloadTimerHandle;
 
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	TWeakObjectPtr<AActor> CurrentHomingTarget;
+	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraComponent> MuzzleFlashComp; 
 #pragma endregion
 
 #pragma region Delegate

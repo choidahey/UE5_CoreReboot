@@ -35,9 +35,11 @@ void ASingleShotWeapon::OnAttack()
 	{
 		return;
 	}
+
+	PlayMuzzleVFX(TypeSpecificInfo.MuzzleSocketName);
+	PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
 	
 	const FRotator SpawnRotation=ShootDirection.Rotation();
-	
 	FireBullet(MuzzleLocation,SpawnRotation);
 	
 	AddCurrentAmmo(-1);
