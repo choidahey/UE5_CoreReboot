@@ -25,6 +25,7 @@ public:
 
 #pragma region Check
 	ABaseWeapon* GetWeaponByIndex(const int32 SlotIdx);
+	FORCEINLINE bool IsDuringAttackAction() const { return bIsDuringAttackAction; }
 	FORCEINLINE void SetIsDuringAttackAction(const bool bIsAttacking) { bIsDuringAttackAction= bIsAttacking; }
 #pragma endregion
 	
