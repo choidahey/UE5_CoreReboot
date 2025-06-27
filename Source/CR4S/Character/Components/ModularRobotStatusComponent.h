@@ -13,6 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float, New
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxWeightChangedDelegate, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnArmLoadChangedDelegate, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxArmLoadChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHoverStarted);
 
 class AModularRobot;
 class UModularRobotStatusAsset;
@@ -197,6 +198,8 @@ public:
 	FOnArmLoadChangedDelegate OnArmLoadChanged;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnMaxArmLoadChangedDelegate OnMaxArmLoadChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnHoverStarted OnHoverStarted;
 #pragma endregion
 
 #pragma region Timer

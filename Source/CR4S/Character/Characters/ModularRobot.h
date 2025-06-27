@@ -47,6 +47,11 @@ public:
 	virtual void ApplySaveData(FSavedActorData& InSaveData) override;
 #pragma endregion
 
+#pragma region Effects
+	UFUNCTION()
+	void HandleHoverEffects();
+#pragma endregion
+	
 #pragma region InputEnable
 	void SetInputEnable(const bool bEnableInput) const;
 	void SetMovementInputEnable(const bool bEnableMovementInput) const;

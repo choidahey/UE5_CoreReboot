@@ -6,10 +6,10 @@
 #include "CR4S.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
-#include "Character/AnimNotify/WeaponTrace.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/RobotWeaponComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -22,6 +22,7 @@
 #include "Character/Data/RobotPartsData.h"
 #include "Components/TimelineComponent.h"
 #include "Game/SaveGame/SaveGameManager.h"
+#include "Game/System/AudioManager.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -167,6 +168,35 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 	EquipBoosterParts(RobotData.BoosterTag);
 
 	WeaponManager->ApplyWeaponSaveData(RobotData.EquippedWeapons);
+}
+
+void AModularRobot::HandleHoverEffects() 
+{
+	if (!CR4S_ENSURE(LogHong1,GetMesh())) return;
+	
+	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
+	if (RobotSettings.HoverEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			RobotSettings.HoverEffect,
+			BoosterLocation
+		);
+	}
+	if (RobotSettings.DashSound)
+	{
+		if (UGameInstance* GI=GetGameInstance())
+		{
+			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			{
+				Audio->PlaySFX(
+					RobotSettings.HoverSound,
+					BoosterLocation,
+					EConcurrencyType::Impact
+				);
+			}
+		}
+	}
 }
 
 void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
@@ -740,6 +770,7 @@ void AModularRobot::BeginPlay()
 	if (Status)
 	{
 		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
+		Status->OnHoverStarted.AddDynamic(this,&AModularRobot::HandleHoverEffects);
 	}
 
 	if (WeaponManager && InputBuffer)

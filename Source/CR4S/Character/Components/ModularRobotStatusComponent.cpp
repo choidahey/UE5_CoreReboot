@@ -356,6 +356,7 @@ void UModularRobotStatusComponent::StartHover()
 	{
 		ConsumeResourceForHovering();
 		OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		OnHoverStarted.Broadcast();
 		GetWorld()->GetTimerManager().SetTimer(
 			HoverTimerHandle,
 			this,
