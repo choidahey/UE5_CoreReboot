@@ -125,7 +125,7 @@ void ABaseAnimal::LoadStats()
             
             if (GetCharacterMovement())
             {
-                GetCharacterMovement()->MaxWalkSpeed = CurrentStats.WalkSpeed;
+                GetCharacterMovement()->MaxWalkSpeed = CurrentStats.RunSpeed;
                 GetCharacterMovement()->MaxAcceleration = 2048.f;
                 GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
                 GetCharacterMovement()->GroundFriction = 8.f;

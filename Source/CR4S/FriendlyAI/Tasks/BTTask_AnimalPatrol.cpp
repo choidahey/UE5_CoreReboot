@@ -217,7 +217,7 @@ EBTNodeResult::Type UBTTask_AnimalPatrol::AbortTask(UBehaviorTreeComponent& Owne
        ABaseAnimal* Animal = Cast<ABaseAnimal>(Pawn);
        if (Animal && Animal->GetCharacterMovement())
        {
-           Animal->GetCharacterMovement()->MaxWalkSpeed = Animal->GetCurrentStats().WalkSpeed;
+           Animal->GetCharacterMovement()->MaxWalkSpeed = Animal->GetCurrentStats().RunSpeed;
        }
    }
    return Super::AbortTask(OwnerComp, NodeMemory);
@@ -231,7 +231,7 @@ void UBTTask_AnimalPatrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uin
        ABaseAnimal* Animal = Cast<ABaseAnimal>(Pawn);
        if (Animal && Animal->GetCharacterMovement())
        {
-           Animal->GetCharacterMovement()->MaxWalkSpeed = Animal->GetCurrentStats().WalkSpeed;
+           Animal->GetCharacterMovement()->MaxWalkSpeed = Animal->GetCurrentStats().RunSpeed;
        }
    }
         
