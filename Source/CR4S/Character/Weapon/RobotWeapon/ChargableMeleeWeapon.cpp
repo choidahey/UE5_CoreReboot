@@ -51,10 +51,10 @@ void AChargableMeleeWeapon::StopAttack()
 
 	if (MontageToPlay)
 	{
+		OnMeleeAttackStarted.Broadcast(this);
 		OwningCharacter->PlayAnimMontage(MontageToPlay);
 	}
 	StartAttackCooldown();
-	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned

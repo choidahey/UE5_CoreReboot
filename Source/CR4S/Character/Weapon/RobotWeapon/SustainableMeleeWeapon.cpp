@@ -34,6 +34,7 @@ void ASustainableMeleeWeapon::StopAttack()
 	}
 
 	OwningCharacter->StopAnimMontage(BaseInfo.AttackMontages[bIsRightHand]);
+	StartAttackCooldown();
 }
 
 // Called when the game starts or when spawned
