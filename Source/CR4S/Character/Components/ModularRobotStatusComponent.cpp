@@ -160,6 +160,23 @@ void UModularRobotStatusComponent::SetMaxEnergy(const float NewValue)
 	OnEnergyChanged.Broadcast(Percentage);
 }
 
+void UModularRobotStatusComponent::ApplyEnergyDepletedDebuff() const
+{
+	if (!CR4S_ENSURE(LogHong1, OwningCharacter && OwningCharacter->GetCharacterMovement()))
+	{
+		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed*RobotStatus.EnergyDepletedSpeedMultiplier;
+	}
+}
+
+void UModularRobotStatusComponent::RemoveEnergyDepletedDebuff() const
+{
+	if (!CR4S_ENSURE(LogHong1, OwningCharacter
+	                 && OwningCharacter->GetCharacterMovement()))
+	{
+		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed/RobotStatus.EnergyDepletedSpeedMultiplier;
+	}
+}
+
 void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 {
 	const float ClampedEnergy = FMath::Clamp(NewValue, 0.f, RobotStatus.MaxEnergy);
@@ -178,6 +195,7 @@ void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 		{
 			bIsRobotActive = false;
 			StopConsumeEnergy();
+			ApplyEnergyDepletedDebuff();
 		}
 	}
 	else
@@ -185,6 +203,7 @@ void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 		if (!bIsRobotActive)
 		{
 			bIsRobotActive = true;
+			RemoveEnergyDepletedDebuff();
 		}
 	}
 }

@@ -66,6 +66,8 @@ public:
 
 #pragma region Set
 	void SetMaxEnergy(const float NewValue);
+	void ApplyEnergyDepletedDebuff() const;
+	void RemoveEnergyDepletedDebuff() const;
 	void SetCurrentEnergy(const float NewValue);
 
 	void SetMaxStun(const float NewValue);
