@@ -173,33 +173,36 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 void AModularRobot::HandleHoverEffects() 
 {
 	if (!CR4S_ENSURE(LogHong1,GetMesh())) return;
-	
-	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
-	if (RobotSettings.HoverEffect)
+
+	for (FName BoosterSocket : RobotSettings.BoosterSocketNames)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(
-			RobotSettings.HoverEffect,
-			GetMesh(),
-			RobotSettings.BoosterSocketName,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::SnapToTarget,
-			true
-		);
-	}
-	if (RobotSettings.DashSound)
-	{
-		if (UGameInstance* GI=GetGameInstance())
+		const FVector BoosterLocation=GetMesh()->GetSocketLocation(BoosterSocket);
+		if (RobotSettings.HoverEffect)
 		{
-			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
-			{
-				Audio->PlaySFX(
-					RobotSettings.HoverSound,
-					BoosterLocation,
-					EConcurrencyType::Impact
-				);
-			}
+			UNiagaraFunctionLibrary::SpawnSystemAttached(
+				RobotSettings.HoverEffect,
+				GetMesh(),
+				BoosterSocket,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				EAttachLocation::SnapToTarget,
+				true
+			);
 		}
+		if (RobotSettings.DashSound)
+		{
+			if (UGameInstance* GI=GetGameInstance())
+			{
+				if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+				{
+					Audio->PlaySFX(
+						RobotSettings.HoverSound,
+						BoosterLocation,
+						EConcurrencyType::Impact
+					);
+				}
+			}
+		}		
 	}
 }
 
@@ -350,7 +353,7 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 	RobotSettings.DashSound=BoosterInfo.DashSound;
 	RobotSettings.HoverEffect=BoosterInfo.HoverEffect;
 	RobotSettings.HoverSound=BoosterInfo.HoverSound;
-	RobotSettings.BoosterSocketName=BoosterInfo.BoosterSocketName;
+	RobotSettings.BoosterSocketNames=BoosterInfo.BoosterSocketNames;
 	
 	RobotSettings.BoosterStrength=BoosterInfo.BoosterStrength;
 	RobotSettings.DashCooldown=BoosterInfo.DashCooldown;
@@ -482,7 +485,7 @@ void AModularRobot::UnequipBoosterParts()
 	RobotSettings.DashSound=nullptr;
 	RobotSettings.HoverEffect=nullptr;
 	RobotSettings.HoverSound=nullptr;
-	RobotSettings.BoosterSocketName=FName();
+	RobotSettings.BoosterSocketNames.Empty();
 
 	RobotSettings.BoosterStrength=DefaultSettings.BoosterStrength;
 	RobotSettings.DashCooldown=DefaultSettings.DashCooldown;
@@ -940,30 +943,33 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 		DashPower+=RobotSettings.LegStrength;
 	}
 
-	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
-	if (RobotSettings.DashEffect)
+	for (FName BoosterSocket : RobotSettings.BoosterSocketNames)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(
-			RobotSettings.DashEffect,
-			GetMesh(),
-			RobotSettings.BoosterSocketName,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::SnapToTarget,
-			true
-		);
-	}
-	if (RobotSettings.DashSound)
-	{
-		if (UGameInstance* GI=GetGameInstance())
+		const FVector BoosterLocation=GetMesh()->GetSocketLocation(BoosterSocket);
+		if (RobotSettings.DashEffect)
 		{
-			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			UNiagaraFunctionLibrary::SpawnSystemAttached(
+				RobotSettings.DashEffect,
+				GetMesh(),
+				BoosterSocket,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				EAttachLocation::SnapToTarget,
+				true
+			);
+		}
+		if (RobotSettings.DashSound)
+		{
+			if (UGameInstance* GI=GetGameInstance())
 			{
-				Audio->PlaySFX(
-					RobotSettings.DashSound,
-					BoosterLocation,
-					EConcurrencyType::Impact
-				);
+				if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+				{
+					Audio->PlaySFX(
+						RobotSettings.DashSound,
+						BoosterLocation,
+						EConcurrencyType::Impact
+					);
+				}
 			}
 		}
 	}

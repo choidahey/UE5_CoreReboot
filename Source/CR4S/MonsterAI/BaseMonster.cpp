@@ -8,6 +8,7 @@
 #include "Components/MonsterAnimComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Data/MonsterAIKeyNames.h" 
+#include "Game/System/AudioManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 ABaseMonster::ABaseMonster()
@@ -113,9 +114,13 @@ void ABaseMonster::HandleDeath()
 		return;
 	}
 
+	if (UAudioManager* AudioMgr = GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioMgr->StopBGM();
+	}
+	
 	bIsDead = true;
 	StateComponent->SetState(EMonsterState::Dead);
-
 	OnDied.Broadcast(this);
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())

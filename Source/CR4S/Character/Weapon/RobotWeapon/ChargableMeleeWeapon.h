@@ -23,5 +23,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 #pragma endregion
+
+#pragma region Cached
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackPressTime {0};
+#pragma endregion
 	
 };
