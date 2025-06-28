@@ -4,6 +4,7 @@
 #include "SettingsWidget.generated.h"
 
 class UButton;
+class UTextBlock;
 class UBorder;
 class UVerticalBox;
 class USlider;
@@ -11,6 +12,23 @@ class UNotificationWidget;
 class UBaseWindowWidget;
 class UMainMenuWidget;
 class UAudioManager;
+
+UENUM()
+enum class EWindowModeOption : uint8
+{
+	Fullscreen,
+	WindowedFullscreen,
+	Windowed,
+};
+
+UENUM()
+enum class EGraphicsQualityOption : uint8
+{
+	Epic,
+	High,
+	Medium,
+	Low,
+};
 
 UCLASS()
 class CR4S_API USettingsWidget : public UUserWidget
@@ -47,6 +65,27 @@ protected:
 	TObjectPtr<UBorder> GraphicsSettings;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> ControlsSettings;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> WindowModeLeftButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> WindowModeRightButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> WindowModeText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ResolutionLeftButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ResolutionRightButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ResolutionText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> QualityLeftButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> QualityRightButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> QualityText;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USlider> MasterVolumeSlider;
@@ -97,6 +136,22 @@ protected:
 	void HandleButtonHovered();
 	UFUNCTION()
 	void HandleButtonUnhovered();
+	
+	UFUNCTION()
+	void OnWindowModeLeftClicked();
+	UFUNCTION()
+	void OnWindowModeRightClicked();
+
+	UFUNCTION()
+	void OnResolutionLeftClicked();
+	UFUNCTION()
+	void OnResolutionRightClicked();
+
+	UFUNCTION()
+	void OnGraphicsQualityLeftClicked();
+	UFUNCTION()
+	void OnGraphicsQualityRightClicked();
+
 	UFUNCTION()
 	void OnMasterVolumeChanged(float Value);
 	UFUNCTION()
@@ -116,6 +171,36 @@ private:
 
 #pragma endregion
 
+#pragma region Graphics Settings
+
+
+	void UpdateWindowModeText();
+	void ApplyWindowModeSetting();
+	
+	void UpdateResolutionText();
+	void ApplyResolutionSetting();
+
+	void UpdateGraphicsQualityText();
+	void ApplyGraphicsQualitySetting();
+
+	TArray<FIntPoint> ResolutionOptions;
+	
+	TArray<EWindowModeOption> WindowModeOptions = {
+	EWindowModeOption::Fullscreen,
+	EWindowModeOption::WindowedFullscreen,
+	EWindowModeOption::Windowed
+	};
+
+	TArray<EGraphicsQualityOption> GraphicsQualityOptions = {
+	EGraphicsQualityOption::Epic,
+	EGraphicsQualityOption::High,
+	EGraphicsQualityOption::Medium,
+	EGraphicsQualityOption::Low
+	};
+	
+	int32 CurrentWindowModeIndex = 0;
+	int32 CurrentResolutionIndex = 0;
+	int32 CurrentGraphicsQualityIndex = 0;
 
 #pragma region Audio Settings
 ;
