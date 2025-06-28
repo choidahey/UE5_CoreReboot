@@ -40,6 +40,10 @@ AAnimalProjectile::AAnimalProjectile()
 	HitEffect->SetAutoActivate(false);
 	HitEffect->Deactivate();
 	HitEffect->OnSystemFinished.AddDynamic(this, &AAnimalProjectile::OnNiagaraFinished);
+
+	ProjectileNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ProjectileNiagara"));
+	ProjectileNiagaraComponent->SetupAttachment(RootSceneComponent);
+	ProjectileNiagaraComponent->SetAutoActivate(true);
 }
 
 void AAnimalProjectile::BeginPlay()
@@ -70,6 +74,11 @@ void AAnimalProjectile::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponen
 			MeshComponent->SetVisibility(false);
 		}
 
+		if (ProjectileNiagaraComponent)
+		{
+			ProjectileNiagaraComponent->SetVisibility(false);
+		}
+
 		if (HitEffect)
 		{
 			HitEffect->SetWorldLocation(GetActorLocation());
@@ -78,7 +87,7 @@ void AAnimalProjectile::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponen
 
 		if (CapsuleCollision)
 		{
-			CapsuleCollision->SetActive(false);
+			CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 
 		// if (UWorld* World = GetWorld())
@@ -102,9 +111,14 @@ void AAnimalProjectile::ResetProjectile()
 		MeshComponent->SetVisibility(true);
 	}
 
+	if (ProjectileNiagaraComponent)
+	{
+		ProjectileNiagaraComponent->SetVisibility(true);
+	}
+
 	if (CapsuleCollision)
 	{
-		CapsuleCollision->SetActive(true);
+		CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 }
 

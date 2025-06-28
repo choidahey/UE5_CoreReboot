@@ -50,6 +50,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UNiagaraComponent* HitEffect;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UNiagaraComponent* ProjectileNiagaraComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Damage;
+	
 };
