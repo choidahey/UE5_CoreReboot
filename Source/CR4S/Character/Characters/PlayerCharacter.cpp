@@ -76,6 +76,7 @@ void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
 	PlayerData.EquippedToolTag= CurrentTool ? CurrentTool->GetToolGameplayTag() : FGameplayTag::EmptyTag;
 	PlayerData.Stance=GetStance();
 	PlayerData.Gait=GetGait();
+	PlayerData.OverlayMode=GetOverlayMode();
 	PlayerData.bIsRightShoulder=Camera->IsRightShoulder();
 
 	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
@@ -95,6 +96,7 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 	SetCurrentToolByTag(PlayerData.EquippedToolTag);
 	SetDesiredStance(PlayerData.Stance);
 	SetDesiredGait(PlayerData.Gait);
+	SetOverlayMode(PlayerData.OverlayMode);
 	Camera->SetRightShoulder(PlayerData.bIsRightShoulder);
 
 	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
