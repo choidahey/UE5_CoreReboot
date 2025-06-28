@@ -79,7 +79,7 @@ void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
 	PlayerData.OverlayMode=GetOverlayMode();
 	PlayerData.bIsRightShoulder=Camera->IsRightShoulder();
 
-	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
+	PlayerInventory->GetPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
 }
 
 void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)

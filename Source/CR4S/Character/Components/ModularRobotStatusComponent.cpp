@@ -19,7 +19,7 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 void UModularRobotStatusComponent::TakeDamage(const float DamageAmount)
 {
 	const float ArmorFactor=BaseStatus.Armor*RobotStatus.ArmorMultiplier;
-	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant+(BaseStatus.ArmorConstant*ArmorFactor));
+	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant/(BaseStatus.ArmorConstant+ArmorFactor));
 	
 	AddCurrentHP(-(ComputedDamage));
 }
@@ -162,7 +162,7 @@ void UModularRobotStatusComponent::SetMaxEnergy(const float NewValue)
 
 void UModularRobotStatusComponent::ApplyEnergyDepletedDebuff() const
 {
-	if (!CR4S_ENSURE(LogHong1, OwningCharacter && OwningCharacter->GetCharacterMovement()))
+	if (CR4S_ENSURE(LogHong1, OwningCharacter && OwningCharacter->GetCharacterMovement()))
 	{
 		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed*=RobotStatus.EnergyDepletedSpeedMultiplier;
 	}
@@ -170,7 +170,7 @@ void UModularRobotStatusComponent::ApplyEnergyDepletedDebuff() const
 
 void UModularRobotStatusComponent::RemoveEnergyDepletedDebuff() const
 {
-	if (!CR4S_ENSURE(LogHong1, OwningCharacter
+	if (CR4S_ENSURE(LogHong1, OwningCharacter
 	                 && OwningCharacter->GetCharacterMovement()))
 	{
 		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed/=RobotStatus.EnergyDepletedSpeedMultiplier;
