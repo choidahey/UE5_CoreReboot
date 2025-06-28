@@ -265,7 +265,7 @@ void UInventoryContainerWidget::PlaySound2D(USoundBase* Sound,
 	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
 	if (IsValid(AudioManager))
 	{
-		AudioManager->Play2DSound(Sound, VolumeMultiplier, PitchMultiplier, StartTime);
+		AudioManager->PlayUISound(Sound, PitchMultiplier, StartTime);
 	}
 }
 
