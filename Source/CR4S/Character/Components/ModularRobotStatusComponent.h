@@ -66,6 +66,8 @@ public:
 
 #pragma region Set
 	void SetMaxEnergy(const float NewValue);
+	void ApplyEnergyDepletedDebuff() const;
+	void RemoveEnergyDepletedDebuff() const;
 	void SetCurrentEnergy(const float NewValue);
 
 	void SetMaxStun(const float NewValue);
@@ -130,8 +132,10 @@ protected:
 
 	
 #pragma region Stun
-public:
+protected:
 	void RemoveStunDebuff();
+	void BeginStunRecovery();
+	void ProcessAcceleratingStunRecovery();
 #pragma endregion
 
 #pragma region Energy
@@ -165,6 +169,10 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Stun")
+	float StunRecoveryStartTime{0};
+	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
 	uint8 bIsStunned:1 {false};
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
@@ -209,5 +217,10 @@ public:
 	FTimerHandle EnergyTimerHandle;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
 	FTimerHandle HoverTimerHandle;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
+	FTimerHandle StunRecoveryAcceleratingTimerHandle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
+	FTimerHandle StunRecoveryStartTimerHandle;
 #pragma endregion
 };

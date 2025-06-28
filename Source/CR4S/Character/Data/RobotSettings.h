@@ -64,6 +64,11 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FName> BoosterSocketNames{FName(),FName()};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UNiagaraSystem> RobotExplosionEffect;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USoundBase> RobotExplosionSound;
 };
 
 USTRUCT(BlueprintType,Blueprintable)

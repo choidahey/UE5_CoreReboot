@@ -76,16 +76,16 @@ void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
 	PlayerData.EquippedToolTag= CurrentTool ? CurrentTool->GetToolGameplayTag() : FGameplayTag::EmptyTag;
 	PlayerData.Stance=GetStance();
 	PlayerData.Gait=GetGait();
+	PlayerData.OverlayMode=GetOverlayMode();
 	PlayerData.bIsRightShoulder=Camera->IsRightShoulder();
 
-	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
+	PlayerInventory->GetPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
 }
 
 void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 {
 	FPlayerCharacterSaveGame& PlayerData=InSaveData.PlayerCharacterData;
-
-	SetActorTransform(InSaveData.ActorTransform);
+	
 	Status->SetCurrentHP(PlayerData.CurrentHP);
 	Status->SetCurrentResource(PlayerData.CurrentResource);
 	Status->OnResourceConsumed();
@@ -95,6 +95,7 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 	SetCurrentToolByTag(PlayerData.EquippedToolTag);
 	SetDesiredStance(PlayerData.Stance);
 	SetDesiredGait(PlayerData.Gait);
+	SetOverlayMode(PlayerData.OverlayMode);
 	Camera->SetRightShoulder(PlayerData.bIsRightShoulder);
 
 	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
@@ -102,9 +103,6 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 
 void APlayerCharacter::OnDeath()
 {
-	SetOverlayMode(AlsOverlayModeTags::Default);
-	StartRagdolling();
-	
 	APlayerController* PC=Cast<APlayerController>(GetController());
 	if (!CR4S_ENSURE(LogHong1,PC)) return;
 
@@ -112,6 +110,9 @@ void APlayerCharacter::OnDeath()
 	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
 
 	InputSubsystem->RemoveMappingContext(InputMappingContext);
+	SetOverlayMode(AlsOverlayModeTags::Default);
+	StartRagdolling();
+	Status->StopConsumeHunger();
 }
 
 void APlayerCharacter::SetCurrentToolByTag(const FGameplayTag& ToolTag)

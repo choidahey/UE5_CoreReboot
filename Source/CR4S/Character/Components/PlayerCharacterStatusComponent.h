@@ -51,6 +51,7 @@ public:
 	void RemoveHungerDebuff();
 	void ApplyStarvationDamage();
 	void StartConsumeHunger();
+	void StopConsumeHunger();
 	void ConsumeCurrentHungerForInterval();
 	FORCEINLINE bool IsStarving() const { return bIsStarving; }
 #pragma endregion
