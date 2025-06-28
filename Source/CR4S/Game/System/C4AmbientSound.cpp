@@ -6,23 +6,42 @@ void AC4AmbientSound::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UWorld* World = GetWorld())
+	CachedAudioComponent = GetAudioComponent();
+
+	if (UAudioManager* AudioManager = GetWorld()->GetGameInstance()->GetSubsystem<UAudioManager>())
 	{
-		if (UAudioManager* AudioManager = World->GetGameInstance()->GetSubsystem<UAudioManager>())
+		const float FinalVolume =
+			AudioManager->GetMasterVolume() * AudioManager->GetBGMVolume() * VolumeMultiplier;
+
+		if (IsValid(CachedAudioComponent))
 		{
-			const float FinalVolume =
-				AudioManager->GetMasterVolume() * AudioManager->GetBGMVolume() * VolumeMultiplier;
+			CachedAudioComponent->SetVolumeMultiplier(FinalVolume);
 
-			if (UAudioComponent* AmbientComp = GetAudioComponent())
+			if (bAutoPlayOnBegin && !CachedAudioComponent->IsPlaying())
 			{
-				AmbientComp->SetVolumeMultiplier(FinalVolume);
-
-				if (bAutoPlayOnBegin && !AmbientComp->IsPlaying())
-				{
-					AmbientComp->Play();
-				}
+				CachedAudioComponent->Play();
 			}
-
 		}
+
+		AudioManager->OnSoundVolumeChanged.AddDynamic(this, &AC4AmbientSound::HandleVolumeChanged);
 	}
+}
+
+void AC4AmbientSound::HandleVolumeChanged(const FSoundClassVolume& NewVolume)
+{
+	if (IsValid(CachedAudioComponent))
+	{
+		const float FinalVolume = NewVolume.Master * NewVolume.BGM * VolumeMultiplier;
+		CachedAudioComponent->SetVolumeMultiplier(FinalVolume);
+	}
+}
+
+void AC4AmbientSound::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioManager->OnSoundVolumeChanged.RemoveDynamic(this, &AC4AmbientSound::HandleVolumeChanged);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
