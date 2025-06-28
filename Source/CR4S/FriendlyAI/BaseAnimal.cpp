@@ -557,7 +557,8 @@ void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) c
     if (USkeletalMeshComponent* MeshComp = GetMesh())
     {
         Location = MeshComp->GetSocketLocation(TEXT("head"));
-        Rotation = MeshComp->GetSocketRotation(TEXT("head"));
+        FRotator RawRot = MeshComp->GetSocketRotation(TEXT("head"));
+        Rotation = FRotator(0.f, RawRot.Yaw, 0.f);
     }
     else
     {
