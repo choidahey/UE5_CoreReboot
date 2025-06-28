@@ -47,6 +47,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
 	float EnvHumidDelta = 0.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
+	TObjectPtr<USoundBase> SpawnSFX;
+
 private:
 	UPROPERTY()
 	TObjectPtr<AEnvironmentalModifierVolume> SpawnedEnvVolume = nullptr;
