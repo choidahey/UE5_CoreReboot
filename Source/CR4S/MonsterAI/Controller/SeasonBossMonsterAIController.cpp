@@ -42,9 +42,9 @@ void ASeasonBossMonsterAIController::Tick(float DeltaSeconds)
 	}
 
 	bool isDashing = false;
-	if (BlackboardComp->IsValidKey(BlackboardComp->GetKeyID(TEXT("IsDashing"))))
+	if (BlackboardComp->IsValidKey(BlackboardComp->GetKeyID(FSeasonBossAIKeys::bIsDashing)))
 	{
-		isDashing = BlackboardComp->GetValueAsBool(TEXT("IsDashing"));
+		isDashing = BlackboardComp->GetValueAsBool(FSeasonBossAIKeys::bIsDashing);
 	}
 	
 	if (IsValid(Target) && !isDashing)

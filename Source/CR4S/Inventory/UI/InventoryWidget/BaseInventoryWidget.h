@@ -60,6 +60,9 @@ protected:
 
 #pragma region ItemSlotWidget
 
+public:
+	virtual void CloseSlotWidgets();
+	
 protected:
 	UFUNCTION()
 	virtual void UpdateItemSlotWidget(int32 SlotIndex, UBaseInventoryItem* Item);
