@@ -144,8 +144,20 @@ void ABaseMonster::HandleDeath()
 		AnimComponent->PlayDeathMontage();
 	}
 
-	SetLifeSpan(2.f);
-	StartFadeOut();
+	SetLifeSpan(5.f);
+
+	FTimerHandle FadeStartTimerHandle;
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateLambda([this]()
+	{
+		StartFadeOut();
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(
+		FadeStartTimerHandle,
+		FadeDelegate,
+		3.0f,
+		false
+	);
 }
 
 void ABaseMonster::StartFadeOut()

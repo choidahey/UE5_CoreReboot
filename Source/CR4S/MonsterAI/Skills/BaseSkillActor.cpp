@@ -49,12 +49,19 @@ void ABaseSkillActor::PlaySkillSound(USoundBase* Sound)
 
 void ABaseSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	FVector HitLocation = OtherActor ? OtherActor->GetActorLocation() : GetActorLocation();
+	PlayEffectAtLocation(HitLocation);
+	PlaySoundAtLocation(HitLocation);
+	
 	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
 
 void ABaseSkillActor::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	PlayEffectAtLocation(Hit.Location);
+	PlaySoundAtLocation(Hit.Location);
+	
 	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
@@ -143,8 +150,21 @@ void ABaseSkillActor::PlayEffectAtLocation(const FVector& Location)
 
 void ABaseSkillActor::PlaySoundAtLocation(const FVector& Location)
 {
-	if (HitSound)
+	// if (HitSound)
+	// {
+	// 	UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
+	// }
+
+	if (!IsValid(HitSound)) return;
+	
+	if (UWorld* World = GetWorld())
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UAudioManager* AudioMgr = GI->GetSubsystem<UAudioManager>())
+			{
+				AudioMgr->PlaySFX(HitSound, GetActorLocation(), StartSoundType);
+			}
+		}
 	}
 }
