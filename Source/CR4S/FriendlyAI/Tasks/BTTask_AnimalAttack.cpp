@@ -100,9 +100,10 @@ void UBTTask_AnimalAttack::OnAttackFinished()
 			{
 				if (ABaseAnimal* Animal = Cast<ABaseAnimal>(C->GetPawn()))
 				{
-					if (IsValid(Animal->CurrentTarget))
+					AActor* CurrentPlayerTarget = C->GetCurrentPlayerTarget();
+					if (IsValid(CurrentPlayerTarget))
 					{
-						C->SetTargetActor(Animal->CurrentTarget);
+						C->SetTargetActor(CurrentPlayerTarget);
 						C->SetAnimalState(EAnimalState::Chase);
 					}
 					else
