@@ -186,6 +186,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	UBaseInventoryWidget* OtherInventoryWidget = Cast<UBaseInventoryWidget>(OpenOtherWidget);
 	if (IsValid(OtherInventoryWidget))
 	{
+		OtherInventoryWidget->CloseSlotWidgets();
 		OtherInventoryWidget->UnBoundWidgetDelegate();
 	}
 
