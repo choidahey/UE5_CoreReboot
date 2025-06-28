@@ -13,7 +13,9 @@
 #include "Character/Characters/ModularRobot.h"
 #include "FriendlyAI/Component/FlyingMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 
 AAnimalAIController::AAnimalAIController()
 {
@@ -83,6 +85,14 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
     {
         if (Stimulus.WasSuccessfullySensed())
         {
+            if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
+            {
+                if (Cast<AAnimalMonster>(Actor) || Cast<ABaseMonster>(Actor))
+                {
+                    return;
+                }
+            }
+
             if (ABaseAnimal* SensedAnimal = Cast<ABaseAnimal>(Actor))
             {
                 if (SensedAnimal->CurrentState == EAnimalState::Dead ||

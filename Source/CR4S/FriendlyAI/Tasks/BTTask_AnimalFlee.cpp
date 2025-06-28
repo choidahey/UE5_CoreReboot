@@ -7,6 +7,7 @@
 #include "../BaseAnimal.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "FriendlyAI/AnimalMonster.h"
 #include "FriendlyAI/Controller/AnimalAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/BaseMonster.h"
@@ -252,6 +253,23 @@ void UBTTask_AnimalFlee::UpdateThreats(UBehaviorTreeComponent& OwnerComp, uint8*
 				if (Distance <= Stats->TargetLostRange)
 				{
 					MyMemory->ThreatsToFlee.Add(Monster);
+				}
+			}
+		}
+	}
+	
+	TArray<AActor*> AnimalMonsters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAnimalMonster::StaticClass(), AnimalMonsters);
+	for (AActor* Actor : AnimalMonsters)
+	{
+		if (AAnimalMonster* AnimalMonster = Cast<AAnimalMonster>(Actor))
+		{
+			if (IsValid(AnimalMonster) && AnimalMonster->CurrentState != EAnimalState::Dead)
+			{
+				float Distance = FVector::Dist(SelfLocation, AnimalMonster->GetActorLocation());
+				if (Distance <= Stats->TargetLostRange)
+				{
+					MyMemory->ThreatsToFlee.Add(AnimalMonster);
 				}
 			}
 		}
