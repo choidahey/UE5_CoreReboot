@@ -8,6 +8,7 @@
 #include "Components/MonsterAnimComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Data/MonsterAIKeyNames.h" 
+#include "Game/System/AudioManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 ABaseMonster::ABaseMonster()
@@ -113,9 +114,13 @@ void ABaseMonster::HandleDeath()
 		return;
 	}
 
+	if (UAudioManager* AudioMgr = GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioMgr->StopBGM();
+	}
+	
 	bIsDead = true;
 	StateComponent->SetState(EMonsterState::Dead);
-
 	OnDied.Broadcast(this);
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
@@ -139,8 +144,20 @@ void ABaseMonster::HandleDeath()
 		AnimComponent->PlayDeathMontage();
 	}
 
-	SetLifeSpan(2.f);
-	StartFadeOut();
+	SetLifeSpan(5.f);
+
+	FTimerHandle FadeStartTimerHandle;
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateLambda([this]()
+	{
+		StartFadeOut();
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(
+		FadeStartTimerHandle,
+		FadeDelegate,
+		3.0f,
+		false
+	);
 }
 
 void ABaseMonster::StartFadeOut()

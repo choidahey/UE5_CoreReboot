@@ -74,6 +74,7 @@ void UAmmoWidget::ClearBindingsToWeapon()
 				RangedWeapon->OnCurrentAmmoChanged.RemoveAll(this);
 				RangedWeapon->OnStartReload.RemoveAll(this);
 			}
+			UpdateCurrentAmmoWidget(i,0);
 		}
 	}
 

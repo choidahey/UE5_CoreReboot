@@ -16,17 +16,22 @@ AChargableMeleeWeapon::AChargableMeleeWeapon()
 
 void AChargableMeleeWeapon::OnAttack()
 {
-	if (!bCanAttack || !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand]) return;
-	
 	AttackPressTime=GetWorld()->GetTimeSeconds();
+	if ( !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand] || !TypeSpecificInfo.ChargeAttackMontages[bIsRightHand]) return;
+	
 	Super::OnAttack();
 }
 
 void AChargableMeleeWeapon::StopAttack()
 {
+	if (!bCanAttack) return;
+	
+	Super::StopAttack();
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter
 		&& BaseInfo.AttackMontages.IsValidIndex(bIsRightHand)
-		&& BaseInfo.AttackMontages[bIsRightHand]))
+		&& BaseInfo.AttackMontages[bIsRightHand])
+		&& TypeSpecificInfo.ChargeAttackMontages.IsValidIndex(bIsRightHand)
+		&& TypeSpecificInfo.ChargeAttackMontages[bIsRightHand])
 	{
 		return;
 	}
@@ -37,22 +42,19 @@ void AChargableMeleeWeapon::StopAttack()
 
 	if (ElapsedTime >= TypeSpecificInfo.ChargeAttackTimeThreshold)
 	{
-		MontageToPlay = TypeSpecificInfo.ChargeAttackMontage;
+		MontageToPlay = TypeSpecificInfo.ChargeAttackMontages[bIsRightHand];
 	}
 	else
 	{
-		if (BaseInfo.AttackMontages.IsValidIndex(bIsRightHand) && BaseInfo.AttackMontages[bIsRightHand])
-		{
-			MontageToPlay = BaseInfo.AttackMontages[bIsRightHand];
-		}
+		MontageToPlay = BaseInfo.AttackMontages[bIsRightHand];
 	}
 
 	if (MontageToPlay)
 	{
+		OnMeleeAttackStarted.Broadcast(this);
 		OwningCharacter->PlayAnimMontage(MontageToPlay);
 	}
 	StartAttackCooldown();
-	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned

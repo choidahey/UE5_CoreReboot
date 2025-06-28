@@ -63,12 +63,6 @@ void UToolInventoryItem::EquipItem() const
 	{
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
 		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
-
-		if (IsValid(StatusComponent))
-		{
-			StatusComponent->AddAttackPower(ToolItemData.Damage);
-			CR4S_Log(LogInventory, Warning, TEXT("AttackPower: %.f"), StatusComponent->GetAttackPower());
-		}
 	}
 }
 
@@ -80,11 +74,5 @@ void UToolInventoryItem::UnEquipItem() const
 	{
 		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag::EmptyTag);
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
-
-		if (IsValid(StatusComponent))
-		{
-			StatusComponent->AddAttackPower(-ToolItemData.Damage);
-			CR4S_Log(LogInventory, Warning, TEXT("AttackPower: %.f"), StatusComponent->GetAttackPower());
-		}
 	}
 }

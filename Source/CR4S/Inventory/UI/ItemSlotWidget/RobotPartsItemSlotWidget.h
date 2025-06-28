@@ -20,15 +20,15 @@ public:
 	virtual void NativePreConstruct() override;
 
 	virtual void InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem) override;
-	
+
 	virtual bool IsItemAllowedByFilter(UBaseInventoryItem* Item) const override;
 
 	virtual void SetItem(UBaseInventoryItem* InItem) override;
-	
+
 private:
 	UPROPERTY()
 	TObjectPtr<URobotInventoryWidget> RobotInventoryWidget;
-	
+
 #pragma endregion
 
 #pragma region PartsTypeTag
@@ -41,7 +41,7 @@ private:
 	FGameplayTag PartsTypeTag;
 	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|PartsTypeName")
 	FText PartsTypeName;
-	
+
 #pragma endregion
 
 #pragma region CreateMode
@@ -54,8 +54,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|CreateMode")
 	bool bCanCreateParts;
-	
-#pragma endregion 
+
+#pragma endregion
 
 #pragma region BindWidget
 
@@ -71,13 +71,16 @@ private:
 #pragma endregion
 
 #pragma region ModularRobot
-	
+
+public:
+	FORCEINLINE void ResetModularRobotRef() { ModularRobot = nullptr; }
+
 private:
 	void EquipParts(const UBaseInventoryItem* Item) const;
 	void UnEquipParts() const;
 
 	bool EquippedBodyParts(const FGameplayTagContainer& ItemTags) const;
-	
+
 	UPROPERTY()
 	TObjectPtr<AModularRobot> ModularRobot;
 
@@ -86,6 +89,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|ModularRobot")
 	int32 WeaponSlotIndex = -1;
-	
-#pragma endregion 
+
+#pragma endregion
 };

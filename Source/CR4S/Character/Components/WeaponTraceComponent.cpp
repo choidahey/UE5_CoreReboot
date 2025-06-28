@@ -4,6 +4,7 @@
 #include "WeaponTraceComponent.h"
 
 #include "CR4S.h"
+#include "KismetTraceUtils.h"
 #include "Character/Weapon/BaseTool.h"
 #include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,6 +24,8 @@ UWeaponTraceComponent::UWeaponTraceComponent()
 
 void UWeaponTraceComponent::SetCurrentTool(ABaseTool* InTool)
 {
+	if (CurrentTool==InTool) return;
+	
 	CurrentTool = InTool;
 }
 
@@ -43,27 +46,35 @@ void UWeaponTraceComponent::PerformWeaponTrace()
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
 	
 	SweepAndApplyDamage(OwningCharacter,CurrentTop,CurrentBottom,Damage);
+	PreviousTopLocation=CurrentTop;
+	PreviousBottomLocation=CurrentBottom;
 }
 
 void UWeaponTraceComponent::SweepAndApplyDamage(AActor* OwningCharacter, const FVector& CurrentTop,
 	const FVector& CurrentBottom, const float InDamage)
 {
 	//Get Distance between Top and Bottom
-	FVector Delta=CurrentTop-CurrentBottom;
-	float Dist=Delta.Size();
-	FVector BoxHalfSize(Dist*0.5f,10,10);
-	//Set Orientation
-	FRotator Look=UKismetMathLibrary::FindLookAtRotation(CurrentTop,CurrentBottom);
+	const FVector PreviousCenter = (PreviousTopLocation + PreviousBottomLocation) * 0.5f;
+	const FVector CurrentCenter = (CurrentTop + CurrentBottom) * 0.5f;
+
+	const FVector BladeVector = CurrentTop - CurrentBottom;
+	const float BladeLength = BladeVector.Size();
+	const FRotator BladeRotation = BladeVector.ToOrientationRotator();
+	
+	const FVector BoxHalfSize(BladeLength * 0.5f, 15.f, 15.f);
+	
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex=true;
 	QueryParams.AddIgnoredActor(OwningCharacter);
+	QueryParams.AddIgnoredActors(AlreadyDamagedActors.Array());
+	
 	//Box Trace by Multi
 	TArray<FHitResult> HitResults;
 	bool bHit=GetWorld()->SweepMultiByChannel(
 		HitResults,
-		PreviousTopLocation,
-		CurrentTop,
-		Look.Quaternion(),
+		PreviousCenter,
+		CurrentCenter,
+		BladeRotation.Quaternion(),
 		ECC_GameTraceChannel5,
 		FCollisionShape::MakeBox(BoxHalfSize),
 		QueryParams
@@ -98,8 +109,16 @@ void UWeaponTraceComponent::SweepAndApplyDamage(AActor* OwningCharacter, const F
 	PreviousBottomLocation=CurrentBottom;
 
 	if (!bDebugMode) return;
-	const FVector BoxCenter = CurrentBottom + Delta * 0.5f;
-	DrawDebugBox(GetWorld(), BoxCenter, BoxHalfSize, Look.Quaternion(), FColor::Red, false, 2.f);
+	DrawDebugSweptBox(
+		GetWorld(),
+		CurrentCenter,
+		PreviousCenter,
+		BladeRotation,
+		BoxHalfSize,
+		FColor::Green,
+		false,
+		2.f
+	);
 }
 
 void UWeaponTraceComponent::SetWeaponTrace(const bool Trace)

@@ -65,7 +65,7 @@ struct CR4S_API FMeleeWeaponInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimMontage> ChargeAttackMontage;
+	TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages{nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ChargeAttackTimeThreshold{0.5};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

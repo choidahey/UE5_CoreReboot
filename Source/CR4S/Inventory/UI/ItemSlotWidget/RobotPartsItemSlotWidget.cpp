@@ -49,8 +49,7 @@ void URobotPartsItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInve
 
 bool URobotPartsItemSlotWidget::IsItemAllowedByFilter(UBaseInventoryItem* Item) const
 {
-	const bool Result = Super::IsItemAllowedByFilter(Item);
-	if (Result)
+	if (Super::IsItemAllowedByFilter(Item))
 	{
 		if (IsValid(Item))
 		{
@@ -62,7 +61,7 @@ bool URobotPartsItemSlotWidget::IsItemAllowedByFilter(UBaseInventoryItem* Item) 
 		}
 	}
 
-	return Result;
+	return false;
 }
 
 void URobotPartsItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
