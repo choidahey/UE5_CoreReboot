@@ -3,10 +3,13 @@
 
 #include "RangedWeapon.h"
 #include "CR4S.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "RewindData.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/Bullet/BaseBullet.h"
 #include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/System/AudioManager.h"
 #include "Game/System/ProjectilePoolSubsystem.h"
 #include "Utility/DataLoaderSubsystem.h"
 
@@ -64,6 +67,7 @@ void ARangedWeapon::StartSequentialFire(AActor* HomingTarget)
 		ShotsRemainingInSequence=TypeSpecificInfo.BurstShotInfo.ShotsPerBurst;
 		MuzzleIndexInSequence=0;
 	}
+	
 
 	if (ShotsRemainingInSequence<=0) return;
 
@@ -108,6 +112,9 @@ void ARangedWeapon::FireNextShotInSequence()
 
 	if (!ShootDirection.IsNearlyZero() && TypeSpecificInfo.ProjectileClass)
 	{
+		PlayMuzzleVFX(TypeSpecificInfo.MuzzleSocketName);
+		PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
+		
 		const FRotator SpawnRotation=ShootDirection.Rotation();
 		FireBullet(MuzzleLocation, SpawnRotation, CurrentHomingTarget.Get());
 		AddCurrentAmmo(-1);
@@ -269,5 +276,68 @@ void ARangedWeapon::SetCurrentAmmo(const int32 NewAmount)
 
 	const float Percent = (MaxAmmo>0) ? static_cast<float>(NewCurrentAmmo)/MaxAmmo : 0;
 	OnCurrentAmmoChanged.Broadcast(Percent);
+}
+
+void ARangedWeapon::PlayMuzzleVFX(const FName& MuzzleSocketName) const
+{
+	if (!CR4S_ENSURE(LogHong1,TypeSpecificInfo.MuzzleParticle)) return;
+
+	UNiagaraFunctionLibrary::SpawnSystemAttached(
+		TypeSpecificInfo.MuzzleParticle,
+		StaticMeshComp,
+		MuzzleSocketName,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		EAttachLocation::SnapToTarget,
+		true
+	);
+}
+
+void ARangedWeapon::PlayMuzzleSFX(const FName& MuzzleSocketName) const
+{
+	if (!CR4S_ENSURE(LogHong1,TypeSpecificInfo.MuzzleSound)) return;
+
+	const FVector MuzzleLocation=GetMuzzleLocation(MuzzleSocketName);
+	if (TypeSpecificInfo.MuzzleSound)
+	{
+		if (UGameInstance* GI=GetGameInstance())
+		{
+			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			{
+				Audio->PlaySFX(
+					TypeSpecificInfo.MuzzleSound,
+					MuzzleLocation,
+					EConcurrencyType::Impact
+				);
+			}
+		}
+	}
+}
+
+void ARangedWeapon::StartMuzzleFlash(const FName& MuzzleSocketName)
+{
+	if (!CR4S_ENSURE(LogHong1,TypeSpecificInfo.MuzzleParticle)) return;
+
+	if (MuzzleFlashComp && MuzzleFlashComp->IsActive()) return;
+
+	MuzzleFlashComp=UNiagaraFunctionLibrary::SpawnSystemAttached(
+		TypeSpecificInfo.MuzzleParticle,
+		StaticMeshComp,
+		MuzzleSocketName,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		EAttachLocation::SnapToTarget,
+		true
+	);
+}
+
+void ARangedWeapon::StopMuzzleFlash()
+{
+	if (!MuzzleFlashComp) return;
+
+	MuzzleFlashComp->Deactivate();
+
+	MuzzleFlashComp->DestroyComponent();
+	MuzzleFlashComp=nullptr;
 }
 

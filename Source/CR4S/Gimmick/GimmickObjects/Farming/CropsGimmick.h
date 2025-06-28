@@ -48,6 +48,9 @@ public:
 
 	virtual FGimmickSaveGameData GetGimmickSaveGameData_Implementation(bool& bSuccess) override;
 
+private:
+	void InitCollisionSetting() const;
+	
 #pragma endregion
 
 #pragma region UInteractableComponent

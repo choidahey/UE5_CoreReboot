@@ -7,6 +7,7 @@
 #include "Utility/Cr4sGameplayTags.h"
 #include "WeaponData.generated.h"
 
+class UNiagaraSystem;
 class ABaseWeapon;
 class APlayerTool;
 class ABaseTool;
@@ -20,7 +21,7 @@ struct CR4S_API FBulletInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> ImpactParticle;
+	TObjectPtr<UNiagaraSystem> ImpactParticle;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	TObjectPtr<USoundBase> ImpactSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -47,7 +48,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<UStaticMesh>> SkeletalMeshs {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimMontage> AttackMontage;
+	TArray<TObjectPtr<UAnimMontage>> AttackMontages {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DamageMultiplier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -157,6 +158,10 @@ struct CR4S_API FRangedWeaponInfo
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> MuzzleParticle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> MuzzleSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
 	float MaxAimTrackingRange{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")

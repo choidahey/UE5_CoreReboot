@@ -25,9 +25,7 @@ ACropsGimmick::ACropsGimmick()
 
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
 
-	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
+	InitCollisionSetting();
 
 	EnvironmentalStatus = CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 }
@@ -43,6 +41,8 @@ void ACropsGimmick::BeginPlay()
 
 		DefaultInteractionText = InteractableComponent->GetInteractionText();
 	}
+
+	InitCollisionSetting();	
 
 	if (const FGimmickInfoData* GimmickInfoData = GetGimmickInfoData())
 	{
@@ -72,6 +72,16 @@ FGimmickSaveGameData ACropsGimmick::GetGimmickSaveGameData_Implementation(bool& 
 {
 	bSuccess = false;
 	return bIsPlanted ? FGimmickSaveGameData() : Super::GetGimmickSaveGameData_Implementation(bSuccess);
+}
+
+void ACropsGimmick::InitCollisionSetting() const
+{
+	if (IsValid(GimmickMeshComponent))
+	{
+		GimmickMeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+		GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		GimmickMeshComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
+	}
 }
 
 void ACropsGimmick::OnGimmickInteracted(AActor* Interactor)
@@ -321,7 +331,7 @@ void ACropsGimmick::CheckIsDay(bool& bSuccess, bool& bIsDay) const
 		const float DawnTime = EnvironmentManager->GetCurrentDawnTime();
 		const float DuskTime = EnvironmentManager->GetCurrentDuskTime();
 
-		bIsDay = CurrentTime >= DawnTime || CurrentTime < DuskTime;
+		bIsDay = CurrentTime >= DawnTime && CurrentTime <= DuskTime;
 		return;
 	}
 

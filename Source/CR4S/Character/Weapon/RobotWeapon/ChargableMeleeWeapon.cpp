@@ -16,7 +16,7 @@ AChargableMeleeWeapon::AChargableMeleeWeapon()
 
 void AChargableMeleeWeapon::OnAttack()
 {
-	if (!bCanAttack) return;
+	if (!bCanAttack || !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand]) return;
 	
 	AttackPressTime=GetWorld()->GetTimeSeconds();
 	Super::OnAttack();
@@ -24,8 +24,12 @@ void AChargableMeleeWeapon::OnAttack()
 
 void AChargableMeleeWeapon::StopAttack()
 {
-	AModularRobot* Robot = GetTypedOuter<AModularRobot>();
-	if (!CR4S_ENSURE(LogHong1, Robot)) return;
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter
+		&& BaseInfo.AttackMontages.IsValidIndex(bIsRightHand)
+		&& BaseInfo.AttackMontages[bIsRightHand]))
+	{
+		return;
+	}
 
 	const float ElapsedTime = GetWorld()->GetTimeSeconds() - AttackPressTime;
 
@@ -37,12 +41,15 @@ void AChargableMeleeWeapon::StopAttack()
 	}
 	else
 	{
-		MontageToPlay = BaseInfo.AttackMontage;
+		if (BaseInfo.AttackMontages.IsValidIndex(bIsRightHand) && BaseInfo.AttackMontages[bIsRightHand])
+		{
+			MontageToPlay = BaseInfo.AttackMontages[bIsRightHand];
+		}
 	}
 
 	if (MontageToPlay)
 	{
-		Robot->PlayAnimMontage(MontageToPlay);
+		OwningCharacter->PlayAnimMontage(MontageToPlay);
 	}
 	StartAttackCooldown();
 	Super::StopAttack();
