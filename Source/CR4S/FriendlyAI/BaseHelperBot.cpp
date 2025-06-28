@@ -135,6 +135,7 @@ void ABaseHelperBot::LoadStats()
 			if (!PickUpData.bIsInit)
 			{
 				CurrentHealth = CurrentStats.MaxHealth;
+				BotName = PickUpData.BotName;
 				PickUpData.bIsInit = true;
 			}
 			else
@@ -468,6 +469,7 @@ void ABaseHelperBot::SetBotName(const FText& NewName)
 void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
 { 
 	PickUpData = InPickUpData;
+	LoadStats();
 }
 
 #pragma region FadeEffect

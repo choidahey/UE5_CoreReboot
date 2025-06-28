@@ -412,6 +412,7 @@ void UHelperBotStateManagerWidget::PickUp()
 					FHelperPickUpData PickUpData;
 					PickUpData.BotName = Bot->GetBotName();
 					PickUpData.CurrentHealth = Bot->GetCurrentHealth();
+					PickUpData.bIsInit = Bot->InitPickData();
 					InvComp->AddHelperBotItem(TEXT("HelperBot"), 1, PickUpData);
 				}
 			}
