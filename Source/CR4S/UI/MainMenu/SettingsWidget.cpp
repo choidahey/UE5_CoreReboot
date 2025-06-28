@@ -29,8 +29,6 @@ void USettingsWidget::NativeConstruct()
 		WindowWidget->OnApplyClicked.AddDynamic(this, &USettingsWidget::RequestSaveSettings);
 	}
 
-
-
 	if (IsCategoryValid())
 	{
 		GameplayButton->OnClicked.AddDynamic(this, &USettingsWidget::HandleGamePlayButtonClicked);
@@ -38,6 +36,35 @@ void USettingsWidget::NativeConstruct()
 		GraphicsButton->OnClicked.AddDynamic(this, &USettingsWidget::HandleGraphicsButtonClicked);
 		ControlsButton->OnClicked.AddDynamic(this, &USettingsWidget::HandleControlsButtonClicked);
 	}
+
+	InitGraphicsSettings();
+	InitAudioSettings();
+
+	SetupButtonAnimation(GameplayButton);
+	SetupButtonAnimation(AudioButton);
+	SetupButtonAnimation(GraphicsButton);
+	SetupButtonAnimation(ControlsButton);
+
+	LoadSettingsData();
+}
+
+void USettingsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	for (auto& Elem : TargetOffsets)
+	{
+		if (!Elem.Key) continue;
+
+		FVector2D Current = Elem.Key->RenderTransform.Translation;
+		FVector2D Target = Elem.Value;
+		FVector2D New = FMath::Vector2DInterpTo(Current, Target, InDeltaTime, 10.f);
+		Elem.Key->SetRenderTranslation(New);
+	}
+}
+
+void USettingsWidget::InitGraphicsSettings()
+{
 
 	if (WindowModeLeftButton)
 	{
@@ -64,15 +91,10 @@ void USettingsWidget::NativeConstruct()
 		QualityRightButton->OnClicked.AddDynamic(this, &USettingsWidget::OnGraphicsQualityRightClicked);
 	}
 
-	ResolutionOptions = {
-	FIntPoint(1280, 720),
-	FIntPoint(1600, 900),
-	FIntPoint(1920, 1080),
-	FIntPoint(2560, 1440),
-	FIntPoint(3840, 2160)
-	};
+	UGameUserSettings* Settings = GEngine->GetGameUserSettings();
+	if (!Settings) return;
 
-	FIntPoint CurrentResolution = GEngine->GetGameUserSettings()->GetScreenResolution();
+	FIntPoint CurrentResolution = Settings->GetScreenResolution();
 	for (int32 i = 0; i < ResolutionOptions.Num(); ++i)
 	{
 		if (ResolutionOptions[i] == CurrentResolution)
@@ -82,32 +104,44 @@ void USettingsWidget::NativeConstruct()
 		}
 	}
 
+	EWindowMode::Type CurrentMode = Settings->GetFullscreenMode();
+	for (int32 i = 0; i < WindowModeOptions.Num(); ++i)
+	{
+		if (ConvertToEWindowMode(WindowModeOptions[i]) == CurrentMode)
+		{
+			CurrentWindowModeIndex = i;
+			break;
+		}
+	}
+
+	int32 CurrentQuality = Settings->GetOverallScalabilityLevel();
+	for (int32 i = 0; i < GraphicsQualityOptions.Num(); ++i)
+	{
+		if (ConvertToQualityLevel(GraphicsQualityOptions[i]) == CurrentQuality)
+		{
+			CurrentGraphicsQualityIndex = i;
+			break;
+		}
+	}
+
 	UpdateResolutionText();
-
-	MasterVolumeSlider->OnValueChanged.AddDynamic(this, &USettingsWidget::OnMasterVolumeChanged);
-	BGMVolumeSlider->OnValueChanged.AddDynamic(this, &USettingsWidget::OnBGMVolumeChanged);
-	SFXVolumeSlider->OnValueChanged.AddDynamic(this, &USettingsWidget::OnSFXVolumeChanged);
-
-	SetupButtonAnimation(GameplayButton);
-	SetupButtonAnimation(AudioButton);
-	SetupButtonAnimation(GraphicsButton);
-	SetupButtonAnimation(ControlsButton);
-
-	LoadSettingsData();
+	UpdateWindowModeText();
+	UpdateGraphicsQualityText();
 }
 
-void USettingsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void USettingsWidget::InitAudioSettings()
 {
-	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	for (auto& Elem : TargetOffsets)
+	if (MasterVolumeSlider)
 	{
-		if (!Elem.Key) continue;
-
-		FVector2D Current = Elem.Key->RenderTransform.Translation;
-		FVector2D Target = Elem.Value;
-		FVector2D New = FMath::Vector2DInterpTo(Current, Target, InDeltaTime, 10.f);
-		Elem.Key->SetRenderTranslation(New);
+		MasterVolumeSlider->OnValueChanged.AddDynamic(this, &USettingsWidget::OnMasterVolumeChanged);
+	}
+	if (BGMVolumeSlider)
+	{
+		BGMVolumeSlider->OnValueChanged.AddDynamic(this, &USettingsWidget::OnBGMVolumeChanged);
+	}
+	if (SFXVolumeSlider)
+	{
+		SFXVolumeSlider->OnValueChanged.AddDynamic(this, &USettingsWidget::OnSFXVolumeChanged);
 	}
 }
 
@@ -361,10 +395,42 @@ void USettingsWidget::ApplyGraphicsQualitySetting()
 	case EGraphicsQualityOption::Low: QualityLevel = 0; break;
 	}
 
-	// 전체 항목 품질 적용
 	Settings->SetOverallScalabilityLevel(QualityLevel);
 	Settings->ApplySettings(false);
 }
+
+EWindowMode::Type USettingsWidget::ConvertToEWindowMode(EWindowModeOption Option)
+{
+	switch (Option)
+	{
+	case EWindowModeOption::Fullscreen:
+		return EWindowMode::Fullscreen;
+	case EWindowModeOption::WindowedFullscreen:
+		return EWindowMode::WindowedFullscreen;
+	case EWindowModeOption::Windowed:
+		return EWindowMode::Windowed;
+	default:
+		return EWindowMode::Windowed;
+	}
+}
+
+int32 USettingsWidget::ConvertToQualityLevel(EGraphicsQualityOption Option)
+{
+	switch (Option)
+	{
+	case EGraphicsQualityOption::Low:
+		return 0;
+	case EGraphicsQualityOption::Medium:
+		return 1;
+	case EGraphicsQualityOption::High:
+		return 2;
+	case EGraphicsQualityOption::Epic:
+		return 3;
+	default:
+		return 3;
+	}
+}
+
 
 #pragma endregion
 
@@ -401,7 +467,16 @@ void USettingsWidget::RequestSaveSettings()
 	USaveGameManager* SaveManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
 	if (SaveManager)
 	{
-		SaveManager->SaveSettings();
+		USettingsSaveGame* SaveData = NewObject<USettingsSaveGame>();
+		SaveData->MasterVolume = MasterVolumeSlider->GetValue();
+		SaveData->BGMVolume = BGMVolumeSlider->GetValue();
+		SaveData->SFXVolume = SFXVolumeSlider->GetValue();
+
+		SaveData->WindowModeIndex = CurrentWindowModeIndex;
+		SaveData->ResolutionIndex = CurrentResolutionIndex;
+		SaveData->GraphicsQualityIndex = CurrentGraphicsQualityIndex;
+
+		SaveManager->SaveSettings(SaveData);
 
 		if (NotificationWidgetClass)
 		{
@@ -419,7 +494,6 @@ void USettingsWidget::RequestSaveSettings()
 		UGameUserSettings* Settings = GEngine->GetGameUserSettings();
 		Settings->SaveSettings();
 	}
-	// index 저장
 }
 
 void USettingsWidget::LoadSettingsData()
@@ -432,19 +506,16 @@ void USettingsWidget::LoadSettingsData()
 	USettingsSaveGame* SettingsData = SaveManager->LoadSettings();
 	if (!SettingsData) return;
 
-	if (MasterVolumeSlider)
-	{
-		MasterVolumeSlider->SetValue(SettingsData->MasterVolume);
-	}
-	if (BGMVolumeSlider)
-	{
-		BGMVolumeSlider->SetValue(SettingsData->BGMVolume);
-	}
-	if (SFXVolumeSlider)
-	{
-		SFXVolumeSlider->SetValue(SettingsData->SFXVolume);
-	}
+	MasterVolumeSlider->SetValue(SettingsData->MasterVolume);
+	BGMVolumeSlider->SetValue(SettingsData->BGMVolume);
+	SFXVolumeSlider->SetValue(SettingsData->SFXVolume);
 
-	// TODO: ���, ��� �� �߰� UI ��� ����ȭ
+	CurrentWindowModeIndex = SettingsData->WindowModeIndex;
+	CurrentResolutionIndex = SettingsData->ResolutionIndex;
+	CurrentGraphicsQualityIndex = SettingsData->GraphicsQualityIndex;
+
+	UpdateResolutionText();
+	UpdateWindowModeText();
+	UpdateGraphicsQualityText();
 }
 

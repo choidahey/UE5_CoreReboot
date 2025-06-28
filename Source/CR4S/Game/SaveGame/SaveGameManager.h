@@ -48,7 +48,7 @@ public:
     void SaveCore(const FString& SlotName);
     void SaveWorld(const FString& SlotName);
 
-    void SaveSettings();
+    void SaveSettings(USettingsSaveGame* InSettingsSave);
     USettingsSaveGame* LoadSettings();
 
     void DeleteSaveGame(const FString& SlotName);

@@ -89,19 +89,11 @@ namespace
 }
 
 
-void USaveGameManager::SaveSettings()
+void USaveGameManager::SaveSettings(USettingsSaveGame* InSettingsSave)
 {
-    if (!SettingsSave)
-    {
-        SettingsSave = NewObject<USettingsSaveGame>();
-    }
+    if (!InSettingsSave) return;
 
-    if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
-    {
-        SettingsSave->MasterVolume = AudioManager->GetMasterVolume();
-        SettingsSave->BGMVolume = AudioManager->GetBGMVolume();
-        SettingsSave->SFXVolume = AudioManager->GetSFXVolume();
-    }
+    SettingsSave = InSettingsSave;
 
     UGameplayStatics::SaveGameToSlot(SettingsSave, SettingsSlotName, 0);
 }
