@@ -33,6 +33,18 @@ void ABaseSkillActor::BeginPlay()
 	Super::BeginPlay();
 	InitializeSkillData();
 
+	PlaySkillStart(LaunchSkillSound);
+
+}
+
+void ABaseSkillActor::PlaySkillStart(USoundBase* Sound)
+{
+	if (!Sound) return;
+
+	if (UAudioManager* AudioMgr = GetWorld()->GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioMgr->PlaySFX(Sound, GetActorLocation(), StartSoundType);
+	}
 }
 
 void ABaseSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -101,7 +113,7 @@ void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 		const FString SkillName = GetName();
 		const FString VictimName = Target->GetName();
 
-		UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s ¡æ Damage: %.1f, Stun: %.1f"),
+		UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s ï¿½ï¿½ Damage: %.1f, Stun: %.1f"),
 			*AttackerName,
 			*SkillName,
 			*VictimName,

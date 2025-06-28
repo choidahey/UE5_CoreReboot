@@ -33,7 +33,11 @@ protected:
 #pragma region Opening Pattern
 protected:
 	void SpawnOpeningPattern();  // Template Method
-	virtual UNiagaraSystem* GetOpeningNiagara() const PURE_VIRTUAL(ASeasonBossMonster::GetOpeningNiagara, return nullptr;);
+	virtual UNiagaraSystem* GetOpeningNiagara() const PURE_VIRTUAL(ASeasonBossMonster::GetOpeningNiagara, return nullptr;)
+	virtual USoundBase* GetBattleBGM() const PURE_VIRTUAL(ASeasonBossMonster::GetBattleBGM, return nullptr;)
+	UFUNCTION()
+	void PlayBattleBGM();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
 	FVector OpeningNiagaraScale = FVector(1.f, 1.f, 1.f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
@@ -49,6 +53,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Opening Pattern")
 	TObjectPtr<USoundBase> SpawnSFX;
+
+	UPROPERTY(EditDefaultsOnly, Category="Audio")
+	float BattleBGMDelay = 3.0f;
+	
 
 private:
 	UPROPERTY()

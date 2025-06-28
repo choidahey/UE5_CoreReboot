@@ -38,6 +38,15 @@ void ASeasonBossMonster::BeginPlay()
    }
    
    SpawnOpeningPattern();
+
+   FTimerHandle _bgmTimerHandle;
+   GetWorld()->GetTimerManager().SetTimer(
+       _bgmTimerHandle,
+       this,
+       &ASeasonBossMonster::PlayBattleBGM,
+       BattleBGMDelay,
+       false
+   );
 }
 
 
@@ -192,6 +201,17 @@ void ASeasonBossMonster::SpawnOpeningPattern()
          
          SpawnedNiagaraComp->SetRelativeScale3D(OpeningNiagaraScale);
          SpawnedNiagaraComp->Activate(true);
+      }
+   }
+}
+
+void ASeasonBossMonster::PlayBattleBGM()
+{
+   if (UAudioManager* AudioMgr = GetGameInstance()->GetSubsystem<UAudioManager>())
+   {
+      if (USoundBase* BGM = GetBattleBGM())
+      {
+         AudioMgr->PlayBGM(BGM);
       }
    }
 }
