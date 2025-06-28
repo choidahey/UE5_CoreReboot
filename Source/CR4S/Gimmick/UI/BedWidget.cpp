@@ -4,6 +4,8 @@
 #include "Animation/WidgetAnimation.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Components/Button.h"
+#include "Game/GameInstance/C4GameInstance.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "Game/System/EnvironmentManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -27,6 +29,11 @@ void UBedWidget::InitWidget_Implementation(ABaseBuildingGimmick* BedGimmick)
 		{
 			SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this, true);
 		}
+	}
+
+	if (IsValid(SaveButton))
+	{
+		SaveButton->OnClicked.AddUniqueDynamic(this, &ThisClass::SaveGame);
 	}
 
 	if (IsValid(SleepButton))
@@ -68,6 +75,24 @@ void UBedWidget::PlaySleepingAnimation_Implementation()
 
 		bIsSleeping = true;
 	}
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UBedWidget::SaveGame()
+{
+	UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
+	if (!CR4S_VALIDATE(LogGimmickUI, IsValid(GameInstance)))
+	{
+		return;
+	}
+
+	USaveGameManager* SaveGameManager = GameInstance->GetSubsystem<USaveGameManager>();
+	if (!CR4S_VALIDATE(LogGimmickUI, IsValid(SaveGameManager)))
+	{
+		return;
+	}
+	
+	SaveGameManager->SaveAll(GameInstance->CurrentSlotName);
 }
 
 void UBedWidget::PlayAwakingAnimation()
