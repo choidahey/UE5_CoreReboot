@@ -35,6 +35,8 @@ class CR4S_API USettingsWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+#pragma region Constructors & Initiailizers
+
 public:
 	UPROPERTY()
 	TObjectPtr<UMainMenuWidget> MainMenuWidgetRef;
@@ -43,6 +45,11 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
+private:
+	void InitGraphicsSettings();
+	void InitAudioSettings();
+
+#pragma endregion
 
 #pragma region Widget Bindings
 
@@ -183,7 +190,16 @@ private:
 	void UpdateGraphicsQualityText();
 	void ApplyGraphicsQualitySetting();
 
-	TArray<FIntPoint> ResolutionOptions;
+	static EWindowMode::Type ConvertToEWindowMode(EWindowModeOption Option);
+	static int32 ConvertToQualityLevel(EGraphicsQualityOption Option);
+
+	TArray<FIntPoint> ResolutionOptions = {
+	FIntPoint(1280, 720),
+	FIntPoint(1600, 900),
+	FIntPoint(1920, 1080),
+	FIntPoint(2560, 1440),
+	FIntPoint(3840, 2160)
+	};
 	
 	TArray<EWindowModeOption> WindowModeOptions = {
 	EWindowModeOption::Fullscreen,
@@ -192,15 +208,15 @@ private:
 	};
 
 	TArray<EGraphicsQualityOption> GraphicsQualityOptions = {
-	EGraphicsQualityOption::Epic,
-	EGraphicsQualityOption::High,
-	EGraphicsQualityOption::Medium,
-	EGraphicsQualityOption::Low
+		EGraphicsQualityOption::Low,
+		EGraphicsQualityOption::Medium,
+		EGraphicsQualityOption::High,
+		EGraphicsQualityOption::Epic
 	};
 	
 	int32 CurrentWindowModeIndex = 0;
-	int32 CurrentResolutionIndex = 0;
-	int32 CurrentGraphicsQualityIndex = 0;
+	int32 CurrentResolutionIndex = 2;
+	int32 CurrentGraphicsQualityIndex = 1;
 
 #pragma region Audio Settings
 ;
