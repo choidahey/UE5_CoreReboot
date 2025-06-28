@@ -871,7 +871,7 @@ void AModularRobot::Tick(float DeltaTime)
 
 void AModularRobot::Input_Move(const FInputActionValue& Value)
 {
-	if (!Controller||!Status->IsRobotActive()) return;
+	if (!Controller) return;
 	//Move Logic
 	// input is a Vector2D
 	FVector2D MoveInput = Value.Get<FVector2D>();
@@ -888,7 +888,6 @@ void AModularRobot::Input_Move(const FInputActionValue& Value)
 
 void AModularRobot::Input_Look(const FInputActionValue& Value)
 {
-	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	FVector2D LookInput=Value.Get<FVector2D>();
 
 	AddControllerYawInput(LookInput.X);
@@ -897,9 +896,7 @@ void AModularRobot::Input_Look(const FInputActionValue& Value)
 
 void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
-	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	
-	if (GetCharacterMovement()->IsFalling() && !bIsHovering)
+	if (GetCharacterMovement()->IsFalling() && !bIsHovering && Status->IsRobotActive())
 	{
 		Status->StartHover();
 		bIsHovering=true;
@@ -913,8 +910,6 @@ void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
-	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	
 	StopJumping();
 
 	if (bIsHovering)
@@ -927,7 +922,7 @@ void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()|| !BoosterTag.IsValid()) return;
+	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!BoosterTag.IsValid()||!Status->IsRobotActive()) return;
 	
 	bIsDashing = true;
 	
