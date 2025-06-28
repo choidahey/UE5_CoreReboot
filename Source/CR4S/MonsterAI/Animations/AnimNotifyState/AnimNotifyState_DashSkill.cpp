@@ -24,7 +24,7 @@ void UAnimNotifyState_DashSkill::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
 	if (!IsValid(BB)) return;
 
-	BB->SetValueAsBool(TEXT("IsDashing"), true);
+	BB->SetValueAsBool(FSeasonBossAIKeys::bIsDashing, true);
 	
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
 	if (!IsValid(Target))
@@ -145,7 +145,7 @@ void UAnimNotifyState_DashSkill::NotifyEnd(USkeletalMeshComponent* MeshComp, UAn
 			UBlackboardComponent* BB = AIC->GetBlackboardComponent();
 			if (IsValid(BB))
 			{
-				BB->SetValueAsBool(TEXT("IsDashing"), false);
+				BB->SetValueAsBool(FSeasonBossAIKeys::bIsDashing, false);
 			}
 		}
 	}
