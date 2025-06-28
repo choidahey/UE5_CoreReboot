@@ -276,7 +276,7 @@ void ABaseAnimal::TakeStun_Implementation(const float StunAmount)
 
 void ABaseAnimal::ApplyStun(float Amount)
 {
-    if (!bStatsReady || !StatsRow) return;
+    if (!bStatsReady || !StatsRow || bIsStunned) return;
 
     StunValue += Amount;
 
@@ -322,7 +322,10 @@ void ABaseAnimal::ApplyStun(float Amount)
 
 void ABaseAnimal::RecoverFromStun()
 {
+    if (CurrentState == EAnimalState::Dead) return;
+    
     bIsStunned = false;
+    StunValue = 0.f;
     
     if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
     {
@@ -356,6 +359,8 @@ void ABaseAnimal::RecoverFromStun()
 void ABaseAnimal::Die()
 {
     if (CurrentState != EAnimalState::Dead) return;
+
+    GetWorldTimerManager().ClearTimer(StunRecoverTimer);
     
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
