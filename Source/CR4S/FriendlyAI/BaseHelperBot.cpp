@@ -97,8 +97,10 @@ void ABaseHelperBot::BeginPlay()
 		InteractableComp->SetInteractionText(BotName);
 	}
 	
-	if (IsValid(InfoWidgetComponent))
+	if (IsValid(InfoWidgetComponent) && InfoWidgetClass)
 	{
+		InfoWidgetComponent->SetWidgetClass(InfoWidgetClass);
+
 		InfoUIInstance = Cast<UHelperBotInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
 		if (IsValid(InfoUIInstance))
 		{

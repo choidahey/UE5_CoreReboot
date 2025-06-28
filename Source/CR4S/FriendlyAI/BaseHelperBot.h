@@ -123,7 +123,6 @@ public:
 	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
 	FORCEINLINE FText GetBotName() const { return BotName; }
-	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
 	
 	FHelperPickUpData GetHelperBotData() const { return PickUpData; }
@@ -208,6 +207,9 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	class UWidgetComponent* InfoWidgetComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
+	TSubclassOf<UHelperBotInfoWidget> InfoWidgetClass;
 
 	UPROPERTY()
 	TObjectPtr<UHelperBotInfoWidget> InfoUIInstance = nullptr;
