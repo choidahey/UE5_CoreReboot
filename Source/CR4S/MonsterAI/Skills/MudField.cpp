@@ -59,7 +59,7 @@ void AMudField::SpawnMud()
 			if (AProjectileBomb* Bomb = Cast<AProjectileBomb>(SpawnActor))
 			{
 				Bomb->SetOwner(GetOwner());
-				Bomb->LaunchProjectile();
+				// Bomb->LaunchProjectile();
 			}
 			else if (ARotatingProjectile* Proj = Cast<ARotatingProjectile>(SpawnActor))
 			{
