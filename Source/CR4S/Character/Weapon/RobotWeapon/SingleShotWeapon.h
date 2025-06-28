@@ -18,6 +18,7 @@ public:
 #pragma region Override
 public:
 	virtual void OnAttack() override;
+	virtual void StopAttack() override;
 	virtual void Tick(float DeltaTime) override;
 protected:
 	virtual void BeginPlay() override;

@@ -130,5 +130,6 @@ protected:
 
 public:
 
-	FTimerHandle FadeOutTimerHandle;
+	FTimerHandle DissolveStepTimerHandle;
+	FTimerHandle NextBackgroundTimerHandle;
 };

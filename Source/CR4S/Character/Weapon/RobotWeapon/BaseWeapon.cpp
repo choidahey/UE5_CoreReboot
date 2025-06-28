@@ -90,9 +90,9 @@ void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 	if (!CR4S_ENSURE(LogHong1,CurrentBuffer)) return;
 	
 	InputBuffer=CurrentBuffer;
-	const int32 LeftRightIndex=SlotIdx%2; // 0:Left, 1: Right
-	if (!BaseInfo.SkeletalMeshs.IsValidIndex(LeftRightIndex) || BaseInfo.SkeletalMeshs[LeftRightIndex])
-	StaticMeshComp->SetStaticMesh(BaseInfo.SkeletalMeshs[LeftRightIndex]);
+	bIsRightHand=SlotIdx%2; // 0:Left, 1: Right
+	if (!BaseInfo.SkeletalMeshs.IsValidIndex(bIsRightHand) || BaseInfo.SkeletalMeshs[bIsRightHand])
+	StaticMeshComp->SetStaticMesh(BaseInfo.SkeletalMeshs[bIsRightHand]);
 }
 
 int32 ABaseWeapon::GetCurrentAmmo() const
