@@ -103,9 +103,6 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 
 void APlayerCharacter::OnDeath()
 {
-	SetOverlayMode(AlsOverlayModeTags::Default);
-	StartRagdolling();
-	
 	APlayerController* PC=Cast<APlayerController>(GetController());
 	if (!CR4S_ENSURE(LogHong1,PC)) return;
 
@@ -113,6 +110,9 @@ void APlayerCharacter::OnDeath()
 	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
 
 	InputSubsystem->RemoveMappingContext(InputMappingContext);
+	SetOverlayMode(AlsOverlayModeTags::Default);
+	StartRagdolling();
+	Status->StopConsumeHunger();
 }
 
 void APlayerCharacter::SetCurrentToolByTag(const FGameplayTag& ToolTag)

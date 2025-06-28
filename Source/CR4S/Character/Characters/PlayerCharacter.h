@@ -44,10 +44,12 @@ public:
 #pragma endregion
 	
 #pragma region Death
+protected:
 	void OnDeath();
 #pragma endregion
 	
 #pragma region Tool
+public:
 	FORCEINLINE APlayerTool* GetCurrentTool() const { return CurrentTool; }
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentToolByTag(const FGameplayTag& ToolTag);
