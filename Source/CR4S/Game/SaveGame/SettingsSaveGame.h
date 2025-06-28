@@ -11,7 +11,15 @@ class CR4S_API USettingsSaveGame : public USaveGame
 public:
 	USettingsSaveGame();
 
-	// Audio Volume Settings
+	// Graphics Settings //
+	UPROPERTY(VisibleAnywhere, Category = "Graphics")
+	int32 WindowModeIndex;
+	UPROPERTY(VisibleAnywhere, Category = "Graphics")
+	int32 ResolutionIndex;
+	UPROPERTY(VisibleAnywhere, Category = "Graphics")
+	int32 GraphicsQualityIndex;
+
+	// Audio Volume Settings //
 	UPROPERTY(VisibleAnywhere, Category = "Audio")
 	float MasterVolume;
 	UPROPERTY(VisibleAnywhere, Category = "Audio")
@@ -19,6 +27,4 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Audio")
 	float SFXVolume;
 
-	// UPROPERTY(VisibleAnywhere, Category = "Graphics")
-	// int32 ScreenResolutionIndex;
 };

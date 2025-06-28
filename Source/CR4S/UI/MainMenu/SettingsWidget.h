@@ -4,6 +4,7 @@
 #include "SettingsWidget.generated.h"
 
 class UButton;
+class UTextBlock;
 class UBorder;
 class UVerticalBox;
 class USlider;
@@ -12,10 +13,29 @@ class UBaseWindowWidget;
 class UMainMenuWidget;
 class UAudioManager;
 
+UENUM()
+enum class EWindowModeOption : uint8
+{
+	Fullscreen,
+	WindowedFullscreen,
+	Windowed,
+};
+
+UENUM()
+enum class EGraphicsQualityOption : uint8
+{
+	Epic,
+	High,
+	Medium,
+	Low,
+};
+
 UCLASS()
 class CR4S_API USettingsWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+#pragma region Constructors & Initiailizers
 
 public:
 	UPROPERTY()
@@ -25,6 +45,11 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
+private:
+	void InitGraphicsSettings();
+	void InitAudioSettings();
+
+#pragma endregion
 
 #pragma region Widget Bindings
 
@@ -47,6 +72,27 @@ protected:
 	TObjectPtr<UBorder> GraphicsSettings;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> ControlsSettings;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> WindowModeLeftButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> WindowModeRightButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> WindowModeText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ResolutionLeftButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ResolutionRightButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ResolutionText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> QualityLeftButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> QualityRightButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> QualityText;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USlider> MasterVolumeSlider;
@@ -97,6 +143,22 @@ protected:
 	void HandleButtonHovered();
 	UFUNCTION()
 	void HandleButtonUnhovered();
+	
+	UFUNCTION()
+	void OnWindowModeLeftClicked();
+	UFUNCTION()
+	void OnWindowModeRightClicked();
+
+	UFUNCTION()
+	void OnResolutionLeftClicked();
+	UFUNCTION()
+	void OnResolutionRightClicked();
+
+	UFUNCTION()
+	void OnGraphicsQualityLeftClicked();
+	UFUNCTION()
+	void OnGraphicsQualityRightClicked();
+
 	UFUNCTION()
 	void OnMasterVolumeChanged(float Value);
 	UFUNCTION()
@@ -116,6 +178,45 @@ private:
 
 #pragma endregion
 
+#pragma region Graphics Settings
+
+
+	void UpdateWindowModeText();
+	void ApplyWindowModeSetting();
+	
+	void UpdateResolutionText();
+	void ApplyResolutionSetting();
+
+	void UpdateGraphicsQualityText();
+	void ApplyGraphicsQualitySetting();
+
+	static EWindowMode::Type ConvertToEWindowMode(EWindowModeOption Option);
+	static int32 ConvertToQualityLevel(EGraphicsQualityOption Option);
+
+	TArray<FIntPoint> ResolutionOptions = {
+	FIntPoint(1280, 720),
+	FIntPoint(1600, 900),
+	FIntPoint(1920, 1080),
+	FIntPoint(2560, 1440),
+	FIntPoint(3840, 2160)
+	};
+	
+	TArray<EWindowModeOption> WindowModeOptions = {
+	EWindowModeOption::Fullscreen,
+	EWindowModeOption::WindowedFullscreen,
+	EWindowModeOption::Windowed
+	};
+
+	TArray<EGraphicsQualityOption> GraphicsQualityOptions = {
+		EGraphicsQualityOption::Low,
+		EGraphicsQualityOption::Medium,
+		EGraphicsQualityOption::High,
+		EGraphicsQualityOption::Epic
+	};
+	
+	int32 CurrentWindowModeIndex = 0;
+	int32 CurrentResolutionIndex = 2;
+	int32 CurrentGraphicsQualityIndex = 1;
 
 #pragma region Audio Settings
 ;
