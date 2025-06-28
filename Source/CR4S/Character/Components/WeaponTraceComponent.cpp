@@ -23,6 +23,8 @@ UWeaponTraceComponent::UWeaponTraceComponent()
 
 void UWeaponTraceComponent::SetCurrentTool(ABaseTool* InTool)
 {
+	if (CurrentTool==InTool) return;
+	
 	CurrentTool = InTool;
 }
 

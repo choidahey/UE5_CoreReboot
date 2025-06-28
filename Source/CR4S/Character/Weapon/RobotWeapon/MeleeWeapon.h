@@ -6,9 +6,8 @@
 #include "BaseWeapon.h"
 #include "MeleeWeapon.generated.h"
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMeleeAttackStarted, ABaseTool*, ActivatedWeapon);
+	
 UCLASS(BlueprintType, Blueprintable)
 class CR4S_API AMeleeWeapon : public ABaseWeapon
 {
@@ -21,7 +20,6 @@ public:
 	FORCEINLINE float GetStunAmount() const { return TypeSpecificInfo.StunAmount; }
 #pragma endregion
 
-	
 #pragma region Override
 public:
 	virtual void Initialize(AModularRobot* OwnerCharacter, int32 SlotIdx) override;
@@ -32,8 +30,12 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FMeleeWeaponInfo TypeSpecificInfo;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float AttackPressTime {0};
 #pragma endregion
+
+#pragma region Delegate
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnMeleeAttackStarted OnMeleeAttackStarted;
+#pragma endregion 
+	
 };

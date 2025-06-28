@@ -5,9 +5,11 @@
 #include "CR4S.h"
 #include "InputBufferComponent.h"
 #include "RobotInputBufferComponent.h"
+#include "WeaponTraceComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
 #include "Character/Weapon/RobotWeapon/HomingWeapon.h"
+#include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
 #include "Character/Weapon/RobotWeapon/RangedWeapon.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
@@ -187,6 +189,13 @@ void URobotWeaponComponent::EquipWeaponByTag(const FGameplayTag& Tag, const int3
 		NewWeapon->SetGameplayTag(Tag);
 		NewWeapon->Initialize(OwningCharacter, SlotIdx);
 		Weapons[SlotIdx]=NewWeapon;
+		if (AMeleeWeapon* MeleeWeapon=Cast<AMeleeWeapon>(NewWeapon))
+		{
+			if (WeaponTrace)
+			{
+				MeleeWeapon->OnMeleeAttackStarted.AddDynamic(WeaponTrace,&UWeaponTraceComponent::SetCurrentTool);
+			}
+		}
 
 		UModularRobotStatusComponent* Status=OwningCharacter->GetStatusComponent();
 		if (!CR4S_ENSURE(LogHong1,Status)) return;
@@ -207,6 +216,12 @@ void URobotWeaponComponent::UnequipWeapon(const int32 SlotIdx)
 	const float WeaponWeight=Weapons[SlotIdx]->GetWeaponWeight();
 	Status->AddCurrentWeight(-(WeaponWeight));
 	Status->AddCurrentArmMountWeight(-(WeaponWeight));
+
+	if (AMeleeWeapon* MeleeWeapon=Cast<AMeleeWeapon>(Weapons[SlotIdx]))
+	{
+		MeleeWeapon->OnMeleeAttackStarted.RemoveAll(WeaponTrace);
+	}
+	
 	Weapons[SlotIdx]->Destroy();
 	Weapons[SlotIdx]=nullptr;
 }
@@ -262,6 +277,9 @@ void URobotWeaponComponent::BeginPlay()
 		}
 	}
 
+	WeaponTrace=OwningCharacter->FindComponentByClass<UWeaponTraceComponent>();
+	if (!CR4S_ENSURE(LogHong1,WeaponTrace)) return;
+	
 	InputBuffer=OwningCharacter->FindComponentByClass<URobotInputBufferComponent>();
 	if (!CR4S_ENSURE(LogHong1,InputBuffer)) return;
 
