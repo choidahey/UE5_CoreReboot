@@ -546,19 +546,20 @@ void AModularRobot::SetMovementInputEnable(const bool bEnableMovementInput) cons
 
 void AModularRobot::OnDeath()
 {
-	APlayerCharacter* PC=MountedCharacter;
-	if (!CR4S_ENSURE(LogHong1,PC)) return;
+	bIsDead=true;
+	SetInputEnable(false);
+	
+	if (!CR4S_ENSURE(LogHong1,MountedCharacter && GetController())) return;
 
-	AController* CachedController=GetController();
-	if (!CR4S_ENSURE(LogHong1,CachedController)) return;
+	APlayerCharacter* CurrentCharacter=MountedCharacter;
+	AController* CurrentController=GetController();
 	
 	UnMountRobot();
 
-	SetInputEnable(false);
 	UGameplayStatics::ApplyDamage(
-		PC,
+		CurrentCharacter,
 		FLT_MAX,
-		CachedController,
+		CurrentController,
 		this,
 		UDamageType::StaticClass()
 	);
@@ -586,7 +587,7 @@ void AModularRobot::LoadDataFromDataLoader()
 
 void AModularRobot::MountRobot(AActor* InActor)
 {
-	if (!IsValid(InActor)) return;
+	if (!IsValid(InActor) || bIsDead) return;
 
 	ACharacter* PreviousCharacter=Cast<ACharacter>(InActor);
 	if (IsValid(PreviousCharacter))
@@ -625,7 +626,7 @@ void AModularRobot::UnMountRobot()
 	const bool bInAir=MovementComp->IsFalling();
 	const bool bIsStopped=MovementComp->Velocity.IsNearlyZero();
 	
-	if (bInAir || !bIsStopped) return;
+	if ( !bIsDead && (bInAir || !bIsStopped)) return;
 	
 	ACharacter* NextCharacter=MountedCharacter.Get();
 	if (IsValid(NextCharacter))
@@ -654,6 +655,7 @@ void AModularRobot::UnMountRobot()
 			CurrentController->Possess(NextCharacter);
 		}
 	}
+	
 	MountedCharacter=nullptr;
 	RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 	Status->StopConsumeEnergy();
