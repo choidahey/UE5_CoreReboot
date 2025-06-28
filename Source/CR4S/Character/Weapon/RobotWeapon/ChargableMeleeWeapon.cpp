@@ -17,7 +17,7 @@ AChargableMeleeWeapon::AChargableMeleeWeapon()
 void AChargableMeleeWeapon::OnAttack()
 {
 	AttackPressTime=GetWorld()->GetTimeSeconds();
-	if ( !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand] || !TypeSpecificInfo.ChargeAttackMontages[bIsRightHand]) return;
+	if ( !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand] || !TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand]) return;
 	
 	Super::OnAttack();
 }
@@ -28,21 +28,35 @@ void AChargableMeleeWeapon::StopAttack()
 	
 	Super::StopAttack();
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter
+		&& OwningCharacter->GetMesh()
 		&& BaseInfo.AttackMontages.IsValidIndex(bIsRightHand)
 		&& BaseInfo.AttackMontages[bIsRightHand])
-		&& TypeSpecificInfo.ChargeAttackMontages.IsValidIndex(bIsRightHand)
-		&& TypeSpecificInfo.ChargeAttackMontages[bIsRightHand])
+		&& TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages.IsValidIndex(bIsRightHand)
+		&& TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand])
 	{
 		return;
 	}
 
+	UAnimInstance* AnimInstance=OwningCharacter->GetMesh()->GetAnimInstance();
+	if (!CR4S_ENSURE(LogHong1,AnimInstance)) return;
+	
 	const float ElapsedTime = GetWorld()->GetTimeSeconds() - AttackPressTime;
 
 	UAnimMontage* MontageToPlay = nullptr;
 
-	if (ElapsedTime >= TypeSpecificInfo.ChargeAttackTimeThreshold)
+	if (ElapsedTime >= TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackTimeThreshold)
 	{
-		MontageToPlay = TypeSpecificInfo.ChargeAttackMontages[bIsRightHand];
+		MontageToPlay = TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand];
+
+		OriginalDamageMultiplier=BaseInfo.DamageMultiplier;
+		OriginalStunAmount=TypeSpecificInfo.StunAmount;
+
+		BaseInfo.DamageMultiplier=TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackDamageMultiplier;
+		TypeSpecificInfo.StunAmount=TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackStunAmount;
+
+		bIsChargeAttacking=true;
+
+		AnimInstance->OnMontageEnded.AddUniqueDynamic(this, &AChargableMeleeWeapon::OnChargeAttackMontageEnded);
 	}
 	else
 	{
@@ -62,6 +76,32 @@ void AChargableMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void AChargableMeleeWeapon::OnChargeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if ( !bIsChargeAttacking
+		||!TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages.IsValidIndex(bIsRightHand)
+		||Montage != TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand])
+	{
+		return;
+	}
+
+	bIsChargeAttacking=true;
+	
+	BaseInfo.DamageMultiplier=OriginalDamageMultiplier;
+	TypeSpecificInfo.StunAmount=OriginalStunAmount;
+
+	if (CR4S_ENSURE(LogHong1,OwningCharacter
+		&& OwningCharacter->GetMesh()))
+	{
+		return;
+	}
+	
+	if (UAnimInstance* AnimInstance=OwningCharacter->GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->OnMontageEnded.RemoveDynamic(this,&AChargableMeleeWeapon::OnChargeAttackMontageEnded);
+	}
 }
 
 // Called every frame
