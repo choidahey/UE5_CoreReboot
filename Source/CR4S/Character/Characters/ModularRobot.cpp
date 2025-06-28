@@ -556,6 +556,37 @@ void AModularRobot::OnDeath()
 	
 	UnMountRobot();
 
+	const FVector EffectLocation=GetActorLocation();
+	if (UCharacterMovementComponent* MovementComp=GetCharacterMovement())
+	{
+		MovementComp->StopMovementImmediately();
+		MovementComp->DisableMovement();
+		MovementComp->SetComponentTickEnabled(false);
+	}
+
+	if (RobotSettings.RobotExplosionEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			RobotSettings.RobotExplosionEffect,
+			EffectLocation
+		);
+	}
+	if (RobotSettings.RobotExplosionSound)
+	{
+		if (UGameInstance* GI=GetWorld()->GetGameInstance())
+		{
+			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			{
+				Audio->PlaySFX(
+					RobotSettings.RobotExplosionSound,
+					EffectLocation,
+					EConcurrencyType::Impact
+				);
+			}
+		}
+	}
+	
 	UGameplayStatics::ApplyDamage(
 		CurrentCharacter,
 		FLT_MAX,
@@ -563,6 +594,8 @@ void AModularRobot::OnDeath()
 		this,
 		UDamageType::StaticClass()
 	);
+
+	Destroy();
 }
 
 UDataLoaderSubsystem* AModularRobot::GetDataLoaderSubsystem() const
