@@ -112,8 +112,8 @@ void ARangedWeapon::FireNextShotInSequence()
 
 	if (!ShootDirection.IsNearlyZero() && TypeSpecificInfo.ProjectileClass)
 	{
-		PlayMuzzleVFX(TypeSpecificInfo.MuzzleSocketName);
-		PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
+		PlayMuzzleVFX(MuzzleName);
+		PlayMuzzleSFX(MuzzleName);
 		
 		const FRotator SpawnRotation=ShootDirection.Rotation();
 		FireBullet(MuzzleLocation, SpawnRotation, CurrentHomingTarget.Get());
@@ -307,7 +307,7 @@ void ARangedWeapon::PlayMuzzleSFX(const FName& MuzzleSocketName) const
 				Audio->PlaySFX(
 					TypeSpecificInfo.MuzzleSound,
 					MuzzleLocation,
-					EConcurrencyType::Impact
+					EConcurrencyType::Repetition
 				);
 			}
 		}

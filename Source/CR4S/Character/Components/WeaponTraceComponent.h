@@ -18,9 +18,13 @@ public:
 	// Sets default values for this component's properties
 	UWeaponTraceComponent();
 	
-#pragma region Attack & Weapon
+#pragma region Set
+	UFUNCTION(BlueprintCallable)
 	void SetCurrentTool(ABaseTool* InTool);
 	void SetWeaponTrace(const bool Trace);
+#pragma endregion
+
+#pragma region Trace
 	void PerformWeaponTrace();
 	void SweepAndApplyDamage(AActor* OwningCharacter, const FVector& CurrentTop, const FVector& CurrentBottom, const float InDamage);
 #pragma endregion
