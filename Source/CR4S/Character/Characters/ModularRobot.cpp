@@ -150,8 +150,6 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 
 	UnequipAll();
 
-	SetActorTransform(InSaveData.ActorTransform);
-
 	Status->SetCurrentHP(RobotData.CurrentHP);
 	Status->SetCurrentResource(RobotData.CurrentResource);
 	Status->OnResourceConsumed();
@@ -555,6 +553,8 @@ void AModularRobot::OnDeath()
 	if (!CR4S_ENSURE(LogHong1,CachedController)) return;
 	
 	UnMountRobot();
+
+	SetInputEnable(false);
 	UGameplayStatics::ApplyDamage(
 		PC,
 		FLT_MAX,

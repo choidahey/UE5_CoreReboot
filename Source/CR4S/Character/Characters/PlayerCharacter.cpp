@@ -85,8 +85,7 @@ void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
 void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 {
 	FPlayerCharacterSaveGame& PlayerData=InSaveData.PlayerCharacterData;
-
-	SetActorTransform(InSaveData.ActorTransform);
+	
 	Status->SetCurrentHP(PlayerData.CurrentHP);
 	Status->SetCurrentResource(PlayerData.CurrentResource);
 	Status->OnResourceConsumed();

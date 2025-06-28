@@ -351,10 +351,11 @@ void USaveGameManager::ApplyCoreData()
             continue; // 타입이 없으면 건너뛰기
         }
 
+        
         if (ActorClassToSpawn)
         {
             UE_LOG(LogHong1, Log, TEXT("Spawn Actor: %s"), *ActorClassToSpawn->GetName());
-            NewSpawnedActor = GetWorld()->SpawnActor<AActor>(ActorClassToSpawn);
+            NewSpawnedActor = GetWorld()->SpawnActor<AActor>(ActorClassToSpawn,SavedData.ActorTransform);
         }
 
         if (NewSpawnedActor)
