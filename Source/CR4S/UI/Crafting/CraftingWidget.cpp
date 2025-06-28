@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
+#include "Game/System/AudioManager.h"
 #include "Gimmick/Data/ItemData.h"
 
 UCraftingWidget::UCraftingWidget(const FObjectInitializer& ObjectInitializer)
@@ -127,6 +128,8 @@ void UCraftingWidget::CraftItem()
 		return;
 	}
 
+	PlayCraftingSound();
+
 	for (const auto& [DataTableHandle, Count] : ItemRecipeData.Ingredients)
 	{
 		PlayerInventoryComponent->RemoveItemByRowName(DataTableHandle.RowName, Count);
@@ -162,5 +165,25 @@ void UCraftingWidget::CraftItem()
 		}
 
 		CraftButton->SetIsEnabled(bCanCraft);
+	}
+}
+
+void UCraftingWidget::PlayCraftingSound() const
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(CraftingSound)))
+	{
+		return;
+	}
+
+	const UGameInstance* GameInstance = GetGameInstance();
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(GameInstance)))
+	{
+		return;
+	}
+
+	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+	if (IsValid(AudioManager))
+	{
+		AudioManager->PlayUISound(CraftingSound);
 	}
 }

@@ -14,25 +14,6 @@ enum class ESkillAttackType : uint8
 	Moving = 3 UMETA(DisplayName="Moving"),
 };
 
-// Probability structure based on Distance and Phase
-USTRUCT(BlueprintType)
-struct FSkillProbabilityEntry
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MinDistance = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxDistance = 9999.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Phase = 0; // 0 = Normal, 1 = Berserk, 2 = Groggy
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = 0.0, ClampMax = 1.0))
-	float Probability = 1.f;
-};
-
 // Skill Data Structure
 USTRUCT(BlueprintType)
 struct FMonsterSkillData : public FTableRowBase
@@ -51,5 +32,4 @@ struct FMonsterSkillData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) uint8 bUseBodyCollision : 1 = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float BodyDamage = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float BodyStunt = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) TArray<FSkillProbabilityEntry> ProbabilityList;
 };

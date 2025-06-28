@@ -5,12 +5,14 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Engine/DataTable.h"
 #include "Data/AnimalStatsRow.h"
+#include "Utility/StunnableInterface.h"
 #include "BaseAnimal.generated.h"
 
 class UAnimalRangedAttackComponent;
 class UAnimalPerceptionComponent;
 class UGroundMovementComponent;
 class UNavigationInvokerComponent;
+class UParticleSystemComponent;
 
 UENUM(BlueprintType)
 enum class EAnimalState : uint8
@@ -47,7 +49,7 @@ enum class EAnimalBehavior : uint8
 //Declared in Spawnable Interface, thus Deleted 
 
 UCLASS(Abstract)
-class CR4S_API ABaseAnimal : public ACharacter, public ISpawnable //Interface Added
+class CR4S_API ABaseAnimal : public ACharacter, public ISpawnable, public IStunnableInterface
 {
 	GENERATED_BODY()
 
@@ -124,14 +126,16 @@ public:
 		
 	UFUNCTION(BlueprintCallable)
 	virtual void ApplyStun(float Amount);
+
+	virtual void TakeStun_Implementation(const float StunAmount) override;
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void RecoverFromStun();
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	
 	UFUNCTION(BlueprintCallable)
 	void Die();
-	
-	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UInteractableComponent> InteractableComponent;
@@ -166,6 +170,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
 	UArrowComponent* MuzzleArrow;
 
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* StunEffectComponent;
 
 #pragma region Attack
 	
@@ -254,7 +260,7 @@ public:
 
 public:
 	void StartFadeOut();
-	void UpdateFade(UMaterialInstanceDynamic* DynMat);
+	void UpdateFade();
 	
 private:
 	// Fade Out
@@ -274,4 +280,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bDrawAttackRangeDebug : 1 = 0;
 #pragma endregion
+
+public:
+	// StunTest
+	UFUNCTION(BlueprintCallable)
+	void ForceStunToMax();
 };

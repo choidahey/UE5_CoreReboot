@@ -4,6 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "BaseGimmick.generated.h"
 
+enum class EConcurrencyType : uint8;
+struct FGimmickSaveGameData;
+class UObjectPoolComponent;
 class UItemGimmickSubsystem;
 struct FGimmickInfoData;
 struct FItemInfoData;
@@ -36,6 +39,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> GimmickMeshComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	TObjectPtr<UObjectPoolComponent> ObjectPoolComponent;
+
 #pragma endregion
 
 #pragma region GimmickData
@@ -47,10 +53,11 @@ public:
 	FORCEINLINE FName GetGimmickDataRowName() const { return GimmickData.RowName; }
 	UFUNCTION(BlueprintCallable, Category = "Gimmick|Data")
 	FORCEINLINE void SetGimmickDataRowName(const FName RowName) { GimmickData.RowName = RowName; }
+	UFUNCTION(BlueprintCallable, Category = "Gimmick|Destroy")
+	virtual void GimmickDestroy();
 
 protected:
 	virtual void GetResources(const AActor* InventoryOwnerActor) const;
-	virtual void GimmickDestroy();
 
 	UPROPERTY()
 	TObjectPtr<UItemGimmickSubsystem> ItemGimmickSubsystem;
@@ -60,4 +67,21 @@ private:
 	FDataTableRowHandle GimmickData;
 
 #pragma endregion
+
+#pragma region Sound
+
+protected:
+	void PlaySFX(USoundBase* SFX, const FVector& Location, EConcurrencyType SoundType, float Pitch = 1.f, float StartTime = 0.f) const;
+	
+#pragma endregion 
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Gimmick|LoadData")
+	FGimmickSaveGameData GetGimmickSaveGameData(bool& bSuccess);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Gimmick|LoadData")
+	void LoadGimmickSaveGameData(const FGimmickSaveGameData& GimmickSaveGameData);
+	
+#pragma endregion 
 };

@@ -22,6 +22,10 @@
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Character/Characters/PlayerCharacter.h"
+#include "Components/PoseableMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Game/SaveGame/HelperBotSaveGame.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -64,6 +68,12 @@ ABaseHelperBot::ABaseHelperBot()
 	HitEffectComponent->SetupAttachment(RootComponent);
 	HitEffectComponent->SetAutoActivate(false);
 	HitEffectComponent->SetVisibility(false);
+
+	InfoWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InfoWidgetComponent"));
+	InfoWidgetComponent->SetupAttachment(RootComponent);
+	InfoWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	InfoWidgetComponent->SetDrawAtDesiredSize(true);
+	InfoWidgetComponent->SetVisibility(false);
 }
 
 void ABaseHelperBot::BeginPlay()
@@ -82,7 +92,17 @@ void ABaseHelperBot::BeginPlay()
 	{
 		InteractableComp->OnTryInteract.AddUniqueDynamic(this, &ABaseHelperBot::HandleInteract);
 		InteractableComp->OnDetectionStateChanged.AddUniqueDynamic(this, &ABaseHelperBot::OnDetectedChange);
-		InteractableComp->SetInteractionText(FText::FromString(BotName));
+		InteractableComp->SetInteractionText(BotName);
+	}
+	
+	if (IsValid(InfoWidgetComponent))
+	{
+		InfoUIInstance = Cast<UHelperBotInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
+		if (IsValid(InfoUIInstance))
+		{
+			InfoUIInstance->SetOwnerHelperBot(this);
+		}
+		InfoWidgetComponent->SetVisibility(false);
 	}
 }
 
@@ -110,10 +130,20 @@ void ABaseHelperBot::LoadStats()
 				JumpComp->UpdateOwnerStats();
 			}
 
-			if (!bIsFromInventory)
+			if (!PickUpData.bIsInit)
 			{
 				CurrentHealth = CurrentStats.MaxHealth;
-				InteractableComp->SetInteractionText(FText::FromString(BotName));
+				PickUpData.bIsInit = true;
+			}
+			else
+			{
+				CurrentHealth = PickUpData.CurrentHealth;
+				BotName = PickUpData.BotName;
+			}
+
+			if (IsValid(InteractableComp))
+			{
+				InteractableComp->SetInteractionText(BotName);
 			}
 
 		});
@@ -124,25 +154,21 @@ void ABaseHelperBot::OnDetectedChange(AActor* InteractableActor, bool bIsDetecte
 {
 	if (bIsDetected)
 	{
-		if (!InfoUIInstance && InfoUIClass)
+		if (IsValid(InfoWidgetComponent))
 		{
-			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+			InfoUIInstance = Cast<UHelperBotInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
+			if (IsValid(InfoUIInstance))
 			{
-				InfoUIInstance = CreateWidget<UHelperBotInfoWidget>(PC, InfoUIClass);
-				if (InfoUIInstance)
-				{
-					InfoUIInstance->SetHealth(GetCurrentHealth(), CurrentStats.MaxHealth);
-					InfoUIInstance->AddToViewport();
-				}
+				InfoUIInstance->SetOwnerHelperBot(this);
+				InfoWidgetComponent->SetVisibility(true);
 			}
 		}
 	}
 	else
 	{
-		if (InfoUIInstance)
+		if (IsValid(InfoWidgetComponent))
 		{
-			InfoUIInstance->RemoveFromParent();
-			InfoUIInstance = nullptr;
+			InfoWidgetComponent->SetVisibility(false);
 		}
 	}
 }
@@ -371,11 +397,26 @@ float ABaseHelperBot::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 void ABaseHelperBot::PlayHitEffect(const FVector& HitDirection)
 {
-	if (HitEffectComponent)
+	if (HitEffectComponent && HitEffectComponent->GetAsset())
 	{
 		FVector HitLocation = GetActorLocation() + HitDirection * 50.0f;
 		HitEffectComponent->SetWorldLocation(HitLocation);
+		HitEffectComponent->SetVisibility(true);
 		HitEffectComponent->Activate(true);
+	}
+	
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetBodySimulatePhysics(FName("Spine"), true);
+		
+		FVector ImpulseForce = HitDirection * 150000.0f;
+		MeshComp->AddImpulseAtLocation(ImpulseForce, GetActorLocation(), FName("Spine"));
+		
+		FTimerHandle PhysicsTimer;
+		GetWorldTimerManager().SetTimer(PhysicsTimer, [this, MeshComp]()
+		{
+			MeshComp->SetBodySimulatePhysics(FName("Spine"), false);
+		}, 0.2f, false);
 	}
 }
 
@@ -388,40 +429,26 @@ void ABaseHelperBot::StartDeathSequence()
 	}
 
 	SetActorEnableCollision(false);
+	StartFadeOut();
 
 	if (DeathMontage)
 	{
 		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 		{
 			AnimInstance->Montage_Play(DeathMontage);
-			AnimInstance->OnMontageEnded.AddDynamic(this, &ABaseHelperBot::OnDeathMontageCompleted);
 		}
 	}
-	else
-	{
-		OnDeathMontageCompleted(nullptr, false);
-	}
 }
 
-void ABaseHelperBot::OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted)
+void ABaseHelperBot::SetBotName(const FText& NewName)
 {
-	if (DeathEffectSystem)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DeathEffectSystem, GetActorLocation());
-	}
-
-	Destroy();
-}
-
-void ABaseHelperBot::SetBotName(const FString& NewName)
-{
-	if (NewName.Len() >= 2 && NewName.Len() <= 8)
+	FString NameString = NewName.ToString();
+	if (NameString.Len() >= 2 && NameString.Len() <= 8)
 	{
 		BotName = NewName;
-		
 		if (InteractableComp)
 		{
-			InteractableComp->SetInteractionText(FText::FromString(BotName));
+			InteractableComp->SetInteractionText(BotName);
 		}
 	}
 }
@@ -429,14 +456,166 @@ void ABaseHelperBot::SetBotName(const FString& NewName)
 void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
 { 
 	PickUpData = InPickUpData;
-	
-	if (bIsFromInventory)
+}
+
+#pragma region FadeEffect
+void ABaseHelperBot::StartFadeOut()
+{
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp) return;
+    
+	for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
 	{
-		CurrentHealth = PickUpData.CurrentHealth;
-		BotName = PickUpData.BotName;
-		if (InteractableComp)
+		UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i);
+		if (DynMat)
 		{
-			InteractableComp->SetInteractionText(FText::FromString(BotName));
+			if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+			{
+				EHelperBotState CurrentState = static_cast<EHelperBotState>(
+					BotAI->GetBlackboardComponent()->GetValueAsEnum(FName("HelperBotState")));
+				
+				if (CurrentState == EHelperBotState::Dead)
+				{
+					DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+					DynMat->SetVectorParameterValue(TEXT("Param"), DeadColor);
+				}
+				else
+				{
+					DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+					DynMat->SetVectorParameterValue(TEXT("Param"), PickUpColor);
+				}
+			}
 		}
+	}
+	
+	MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+	if (UCapsuleComponent* CapsuleComp = GetCapsuleComponent())
+	{
+		CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+		
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseHelperBot::UpdateFadeOut);
+	GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+	SetLifeSpan(2.f);
+}
+
+void ABaseHelperBot::UpdateFadeOut()
+{
+	ElapsedFadeTime += 0.02f;
+	float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
+
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+		{
+			if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(MeshComp->GetMaterial(i)))
+			{
+				DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+			}
+		}
+	}
+
+	if (ElapsedFadeTime >= 2.0f)
+	{
+		GetWorldTimerManager().ClearTimer(FadeTimerHandle);
+	}
+}
+#pragma endregion
+
+#pragma region RobotRepair
+bool ABaseHelperBot::CanRepair(APlayerCharacter* Player) const
+{
+	if (CurrentHealth >= CurrentStats.MaxHealth)
+	{
+		return false;
+	}
+	
+	if (!Player)
+	{
+		return false;
+	}
+	
+	UPlayerInventoryComponent* PlayerInventory = Player->FindComponentByClass<UPlayerInventoryComponent>();
+	if (!PlayerInventory)
+	{
+		return false;
+	}
+
+	for (const auto& RequiredItem : CurrentStats.RepairRequiredItems)
+	{
+		FName ItemName = RequiredItem.Key;
+		int32 RequiredCount = RequiredItem.Value;
+		
+		if (PlayerInventory->GetItemCountByRowName(ItemName) < RequiredCount)
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+bool ABaseHelperBot::RepairBot(APlayerCharacter* Player)
+{
+	if (!CanRepair(Player))
+	{
+		return false;
+	}
+	
+	UPlayerInventoryComponent* PlayerInventory = Player->FindComponentByClass<UPlayerInventoryComponent>();
+	if (!PlayerInventory)
+	{
+		return false;
+	}
+	
+	for (const auto& RequiredItem : CurrentStats.RepairRequiredItems)
+	{
+		FName ItemName = RequiredItem.Key;
+		int32 RequiredCount = RequiredItem.Value;
+		
+		PlayerInventory->RemoveItemByRowName(ItemName, RequiredCount);
+	}
+	
+	CurrentHealth = CurrentStats.MaxHealth;
+	
+	return true;
+}
+#pragma endregion
+
+FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const
+{
+	FHelperBotSaveGame Data;
+	Data.BotName         = BotName;
+	Data.CurrentHealth   = CurrentHealth;
+	Data.CurrentLocation = GetActorLocation();
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		uint8 StateValue = BotAI->GetBlackboardComponent()->GetValueAsEnum(TEXT("HelperBotState"));
+		Data.CurrentState = static_cast<EHelperBotState>(StateValue);
+	}
+	if (InventoryComponent)
+	{
+		Data.InventoryData = InventoryComponent->GetInventorySaveGame();
+	}
+	return Data;
+}
+
+void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
+{
+	BotName = Data.BotName;
+	CurrentHealth = Data.CurrentHealth;
+	SetActorLocation(Data.CurrentLocation);
+	
+	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
+	{
+		BotAI->SetBotState(Data.CurrentState);
+		BotAI->GetBlackboardComponent()->SetValueAsEnum(
+			TEXT("HelperBotState"),
+			static_cast<uint8>(Data.CurrentState)
+		);
+	}
+	if (InventoryComponent)
+	{
+		InventoryComponent->LoadInventorySaveGame(Data.InventoryData);
 	}
 }

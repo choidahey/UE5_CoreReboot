@@ -9,16 +9,7 @@ AMeleeWeapon::AMeleeWeapon()
 {
 }
 
-void AMeleeWeapon::OnAttack()
-{
-	AModularRobot* Robot=GetTypedOuter<AModularRobot>();
-	if (!CR4S_ENSURE(LogHong1,Robot)||!CR4S_ENSURE(LogHong1,BaseInfo.AttackMontage)) return;
-	Robot->PlayAnimMontage(BaseInfo.AttackMontage);
-	
-	Super::OnAttack();
-}
-
-void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
+void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	UGameInstance* GI=GetGameInstance();
 	if (!GI) return;
@@ -31,5 +22,5 @@ void AMeleeWeapon::Initialize(AModularRobot* OwnerCharacter)
 	{
 		return;
 	}
-	Super::Initialize(OwnerCharacter);
+	Super::Initialize(OwnerCharacter, SlotIdx);
 }

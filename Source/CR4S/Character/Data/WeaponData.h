@@ -7,6 +7,7 @@
 #include "Utility/Cr4sGameplayTags.h"
 #include "WeaponData.generated.h"
 
+class UNiagaraSystem;
 class ABaseWeapon;
 class APlayerTool;
 class ABaseTool;
@@ -20,7 +21,7 @@ struct CR4S_API FBulletInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> ImpactParticle;
+	TObjectPtr<UNiagaraSystem> ImpactParticle;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	TObjectPtr<USoundBase> ImpactSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -35,6 +36,8 @@ public:
 	float HomingActivationDelay{0.2f};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxLifeTime{3};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunAmount{0};
 };
 
 USTRUCT(BlueprintType)
@@ -43,13 +46,11 @@ struct CR4S_API FBaseWeaponInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USkeletalMesh> SkeletalMesh;
+	TArray<TObjectPtr<UStaticMesh>> SkeletalMeshs {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimMontage> AttackMontage;
+	TArray<TObjectPtr<UAnimMontage>> AttackMontages {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DamageMultiplier{1};
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float StunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Weight{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -63,6 +64,12 @@ struct CR4S_API FMeleeWeaponInfo
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UAnimMontage> ChargeAttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChargeAttackTimeThreshold{0.5};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxCombo{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -102,7 +109,7 @@ struct CR4S_API FSpreadShotInfo
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 BulletPerShot{16};
-	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletsPerShot > 1"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,meta = (EditCondition = "BulletPerShot > 1"))
 	float SpreadAngle{20.f};
 };
 
@@ -151,6 +158,10 @@ struct CR4S_API FRangedWeaponInfo
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> MuzzleParticle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> MuzzleSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
 	float MaxAimTrackingRange{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
@@ -185,6 +196,8 @@ public:
 	TObjectPtr<UStaticMesh> StaticMesh{nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UAnimMontage> AttackMontage{nullptr};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackPower{100};
 };
 
 UCLASS(BlueprintType)

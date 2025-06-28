@@ -33,17 +33,21 @@ public:
 #pragma region Bind & Unbind
 public:
 	void ToggleWidgetMode(const bool bIsRobot);
+	
 	UFUNCTION(BlueprintCallable)
-	void BindLockOnWidgetToHomingWeapon(AHomingWeapon* HomingWeapon);
+	void BindLockOnWidgetToHomingWeapon(AHomingWeapon* HomingWeapon, const int32 SlotIdx);
+	void UnbindAllHomingWeaponFromUI();
+	
 	UFUNCTION(BlueprintCallable)
 	void BindAmmoWidgetToWeapon(ABaseWeapon* InWeapon, const int32 SlotIdx);
+	void UnbindWeaponFromUI();
 
 	void BindWidgetsToStatus(UBaseStatusComponent* InStatus);
+	void UnbindStatusFromUI();
 	
 	void BindEnvStatusWidgetToEnvStatus(UEnvironmentalStatusComponent* InStatus);
+	void UnbindEnvStatusFromUI();
 
-	void ClearBindingsToStatus();
-	void ClearBindingsToEnvStatus();
 #pragma endregion
 	
 #pragma region UpdateWidget
@@ -77,8 +81,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UImage> AimCircle;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
-	TObjectPtr<ULockOnWidget> LockOnWidget;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UAmmoWidget> CurrentAmmoWidgets;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<TObjectPtr<ULockOnWidget>> LockOnWidgets;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<ULockOnWidget> LockOnWidget0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<ULockOnWidget> LockOnWidget1;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<ULockOnWidget> LockOnWidget2;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<ULockOnWidget> LockOnWidget3;
 #pragma endregion
 };

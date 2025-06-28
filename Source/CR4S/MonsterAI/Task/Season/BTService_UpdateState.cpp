@@ -11,14 +11,13 @@
 UBTService_UpdateState::UBTService_UpdateState()
 {
 	NodeName = TEXT("UpdateState");
-	Interval = 1.f;
+	Interval = 0.5f;
 	bNotifyBecomeRelevant = true;
 	bNotifyTick = true;  
 	bCreateNodeInstance = true;
 
 	TargetActorKey.SelectedKeyName = FAIKeys::TargetActor;
 	NearestHouseActorKey.SelectedKeyName = FSeasonBossAIKeys::NearestHouseActor;
-	CurrentHP.SelectedKeyName = FSeasonBossAIKeys::CurrentHP;
 }
 
 void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -42,9 +41,6 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 
 	UMonsterAttributeComponent* AttrComp = OwnerPawn->FindComponentByClass<UMonsterAttributeComponent>();
 	if (!IsValid(AttrComp)) return;
-
-	CurrentHPValue = AttrComp->GetCurrentHP();
-	BB->SetValueAsFloat(CurrentHP.SelectedKeyName, CurrentHPValue);
 	
 	if (AnimComp->IsAnyMontagePlaying()) return;
 
@@ -52,16 +48,15 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	AActor* TargetHouse  = Cast<AActor>(BB->GetValueAsObject(NearestHouseActorKey.SelectedKeyName));
 
 	const FVector PawnLoc = OwnerPawn->GetActorLocation();
-	
-	if (IsValid(TargetActor))
+
+	if (IsValid(TargetHouse))
+	{
+		BB->SetValueAsObject(TargetActorKey.SelectedKeyName, TargetHouse);
+		StateComp->SetState(EMonsterState::AttackHouse);
+	}
+	else if (IsValid(TargetActor))
 	{
 		StateComp->SetState(EMonsterState::Attack);
-		CR4S_Log(LogDa, Warning, TEXT("TargetActor is Valid ! State = Attack"));
-	}
-	else if (IsValid(TargetHouse))
-	{
-		StateComp->SetState(EMonsterState::AttackHouse);
-		CR4S_Log(LogDa, Warning, TEXT("TargetHouse is Valid ! State = AttackHouse"));
 	}
 	else
 	{
@@ -69,10 +64,10 @@ void UBTService_UpdateState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 			BB->SetValueAsObject(FAIKeys::TargetActor, PlayerPawn);
 		
 		StateComp->SetState(EMonsterState::Attack);
-		CR4S_Log(LogDa, Log, TEXT("[UpdateState] TargetHouse, TargetActor is invalid or nullptr State = Attack"));
 	}
 	
-	CR4S_Log(LogDa, Log, TEXT("[UpdateState] %s Current State : %d"),
-			*OwnerPawn->GetName(),
-			BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));
+	CR4S_Log(LogDa, Log, TEXT("[%s] %s Current State : %d"),
+		*GetClass()->GetName(),
+		*OwnerPawn->GetName(),
+		BB->GetValueAsInt(FSeasonBossAIKeys::CurrentState));
 }

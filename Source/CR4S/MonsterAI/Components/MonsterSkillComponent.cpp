@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "TimerManager.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
+#include "Utility/CombatStatics.h"
+#include "CR4S.h"
 
 UMonsterSkillComponent::UMonsterSkillComponent()
 	: MyHeader(TEXT("MonsterSkillComp"))
@@ -30,12 +32,7 @@ void UMonsterSkillComponent::BeginPlay()
 
 		for (UPrimitiveComponent* Comp : CapsuleComps)
 		{
-			if (Comp->ComponentHasTag("WeaponCollider"))
-			{
-				WeaponColliders.Add(Comp);
-				Comp->OnComponentBeginOverlap.AddDynamic(this, &UMonsterSkillComponent::OnAttackHit);
-			}
-			else if (Comp->ComponentHasTag("BodyCollider"))
+			if (Comp->ComponentHasTag("BodyCollider"))
 			{
 				BodyColliders.Add(Comp);
 				Comp->OnComponentBeginOverlap.AddDynamic(this, &UMonsterSkillComponent::OnAttackHit);
@@ -177,9 +174,8 @@ void UMonsterSkillComponent::ResetCooldown(int32 Index)
 	}
 }
 
-void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable, int32 InSkillIndex)
+void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable)
 {
-	CurrentSkillIndex = InSkillIndex;
 	bIsAttackActive = bEnable;
 	const FMonsterSkillData& Skill = SkillList[CurrentSkillIndex];
 
@@ -189,8 +185,7 @@ void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable, int32 InSki
 			{
 				if (bEnable)
 				{
-					Collider->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-					Collider->SetCollisionResponseToAllChannels(ECR_Overlap);
+					Collider->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 					Collider->SetGenerateOverlapEvents(true);
 				}
 				else
@@ -200,11 +195,6 @@ void UMonsterSkillComponent::SetAttackCollisionEnabled(bool bEnable, int32 InSki
 				}
 			}
 		};
-
-	if (Skill.bUseWeaponCollision && !WeaponColliders.IsEmpty())
-	{
-		ConfigureColliders(WeaponColliders);
-	}
 
 	if (Skill.bUseBodyCollision && !BodyColliders.IsEmpty())
 	{
@@ -225,37 +215,16 @@ void UMonsterSkillComponent::OnAttackHit(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	if (!bIsAttackActive || !OtherActor || OtherActor == GetOwner())
-	{
-		return;
-	}
+	if (!bIsAttackActive || !OtherActor || OtherActor == GetOwner()) return;
+	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 
 	const FMonsterSkillData& CurrentSkillData = SkillList[CurrentSkillIndex];
 
-	if (!CurrentSkillData.bAllowMultipleHits && AlreadyHitActors.Contains(OtherActor))
-	{
-		return;
-	}
+	if (!CurrentSkillData.bAllowMultipleHits && AlreadyHitActors.Contains(OtherActor)) return;
+	if (!BodyColliders.Contains(HitComp) || !CurrentSkillData.bUseBodyCollision) return;
 
-	float Damage = CurrentSkillData.Damage;
-	if (WeaponColliders.Contains(HitComp) && CurrentSkillData.bUseWeaponCollision)
-	{
-		Damage = CurrentSkillData.Damage;
-	}
-	else if (BodyColliders.Contains(HitComp) && CurrentSkillData.bUseBodyCollision)
-	{
-		Damage = CurrentSkillData.BodyDamage;
-	}
-	else
-	{
-		return;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[%s] OnAttackHit : Hit %s with SkillIndex %d | Damage: %.2f"),
-		*MyHeader,
-		*OtherActor->GetName(),
-		CurrentSkillIndex,
-		Damage);
+	float Damage = CurrentSkillData.BodyDamage;
+	float Stun = CurrentSkillData.BodyStunt;
 
 	UGameplayStatics::ApplyDamage(
 		OtherActor,
@@ -264,6 +233,27 @@ void UMonsterSkillComponent::OnAttackHit(
 		GetOwner(),
 		UDamageType::StaticClass()
 	);
+
+	if (OtherActor->GetClass()->ImplementsInterface(UStunnableInterface::StaticClass()))
+	{
+		UCombatStatics::ApplyStun(OtherActor, Stun);
+	}
+
+#if WITH_EDITOR
+
+	const FString AttackerName = GetOwner() ? GetOwner()->GetName() : TEXT("UnknownOwner");
+	const FString VictimName = OtherActor->GetName();
+	const FString SkillIndexStr = FString::Printf(TEXT("Skill_%d"), CurrentSkillIndex);
+
+	UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s ¡æ Damage: %.1f, Stun: %.1f"),
+		*AttackerName,
+		*SkillIndexStr,
+		*VictimName,
+		Damage,
+		Stun
+	);
+
+#endif
 
 	AlreadyHitActors.Add(OtherActor);
 }

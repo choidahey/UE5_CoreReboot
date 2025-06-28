@@ -7,7 +7,10 @@
 #include "Character/Data/WeaponData.h"
 #include "RangedWeapon.generated.h"
 
+class UNiagaraComponent;
+class UObjectPoolComponent;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float InPercent);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStartReload, const float Duration);
 
 struct FRangedWeaponData;
 class ABaseBullet;
@@ -21,24 +24,45 @@ class CR4S_API ARangedWeapon : public ABaseWeapon
 public:
 	// Sets default values for this actor's properties
 	ARangedWeapon();
+
+	void RefreshUI();
 	
 #pragma region Override
 public:
-	virtual void Initialize(AModularRobot* OwnerCharacter) override;
+	virtual void Initialize(AModularRobot* OwnerCharacter, int32 SlotIdx) override;
+	virtual int32 GetCurrentAmmo() const override;
+	virtual void SetCurrentAmmo(const int32 NewAmount) override;
 #pragma endregion
 
+#pragma region VFX/SFX
+public:
+	void PlayMuzzleVFX(const FName& MuzzleSocketName) const;
+	void PlayMuzzleSFX(const FName& MuzzleSocketName) const;
+
+	void StartMuzzleFlash(const FName& MuzzleSocketName);
+	void StopMuzzleFlash();
+#pragma endregion
+	
+#pragma region Get
+	float GetCurrentAmmoPercentage() const;
+#pragma endregion
+	
 #pragma region Common
 protected:
+	void StartSequentialFire(AActor* HomingTarget = nullptr);
+	UFUNCTION()
+	void FireNextShotInSequence();
+	
 	void FireMultiBullet(AActor* HomingTarget=nullptr);
+	void FireBullet(const FVector& MuzzleLocation, const FRotator& SpawnRotation, AActor* HomingTarget = nullptr);
+	
 	bool GetAimHitResult(FHitResult& OutHitResult) const;
 	FVector GetMuzzleLocation(const FName& SocketName) const;
-	void FireBullet(const FVector& MuzzleLocation, const FRotator& SpawnRotation, AActor* HomingTarget = nullptr);
 
 	void ApplyRecoil() const;
 	void StartReload();
 	void FinishReload();
 	void AddCurrentAmmo(const int32 Amount);
-	void SetCurrentAmmo(const int32 NewAmount);
 #pragma endregion
 	
 #pragma region TypeSpecificInfo
@@ -46,16 +70,28 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FRangedWeaponInfo TypeSpecificInfo; 
 #pragma endregion
-
+	
 #pragma region Cached
+protected:
+	FTimerHandle SequentialFireTimerHandle;
+	int32 ShotsRemainingInSequence{0};
+	int32 MuzzleIndexInSequence{0};
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	uint8 bIsReloading:1 {false};
 	FTimerHandle ReloadTimerHandle;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	TWeakObjectPtr<AActor> CurrentHomingTarget;
+	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraComponent> MuzzleFlashComp; 
 #pragma endregion
 
 #pragma region Delegate
 public:
 	FOnCurrentAmmoChanged OnCurrentAmmoChanged;
+	FOnStartReload OnStartReload;
 #pragma endregion
 };
 

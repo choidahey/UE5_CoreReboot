@@ -14,9 +14,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-	void InitializeWeapon();
-
 	virtual void OnOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
@@ -26,5 +23,16 @@ protected:
 		const FHitResult& SweepResult
 	) override;
 
+	void SetupIgnoreOwnerCollision();
+
+public:
+	void ActivateWeaponCollision();
+	void DeactivateWeaponCollision();
+
+private:
+	void UpdateSkillDataFromOwner();
+
+	UPROPERTY()
+	bool bShouldActivateCollision = true;
 
 };

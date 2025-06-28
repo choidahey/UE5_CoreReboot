@@ -94,8 +94,8 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     
     UFUNCTION(BlueprintCallable, Category = "AI Jump")
-    void ActivateJumpComponent();
-
+    void ActivateJumpComponent(float InTargetReachDistance = 10.0f);
+    
     UFUNCTION(BlueprintCallable, Category = "AI Jump")
     void DeactivateJumpComponent();
 
@@ -107,10 +107,11 @@ public:
 #pragma endregion
 
 #pragma region Target Tracking System
-
+public:
+    bool HasReachedTarget();
+    
 private:
     bool GetTargetActorFromBlackboard();
-    bool HasReachedTarget();
 
 #pragma endregion
 
@@ -193,7 +194,10 @@ private:
     float PathRecalculationInterval = 0.5f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Jump Settings", meta = (AllowPrivateAccess = "true"))
-    float TargetReachDistance = 10.0f;
+    float TargetReachDistance = 1500.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Jump Settings", meta = (AllowPrivateAccess = "true"))
+    float JumpStartDistance = 10.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Jump Settings", meta = (AllowPrivateAccess = "true"))
     int32 MaxJumpRetries = 3;
@@ -227,4 +231,8 @@ private:
     uint8 bCrowdSystemInitialized : 1 = 0;
 
 #pragma endregion
+
+public:
+    bool GetIsComponentActive() const { return bIsComponentActive; }
+    
 };

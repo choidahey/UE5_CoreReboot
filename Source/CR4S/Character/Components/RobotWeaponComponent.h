@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputBufferComponent.h"
 #include "Character/Data/RobotSettings.h"
 #include "RobotWeaponComponent.generated.h"
 
 
+struct FRobotWeaponSaveGame;
 class URobotInputBufferComponent;
 class UInputBufferComponent;
 class ABaseWeapon;
@@ -21,6 +23,17 @@ class CR4S_API URobotWeaponComponent : public UActorComponent
 
 public:
 	URobotWeaponComponent();
+
+#pragma region Save/Load
+	void GatherWeaponSaveData(TArray<FRobotWeaponSaveGame>& OutWeaponData) const;
+	void ApplyWeaponSaveData(TArray<FRobotWeaponSaveGame>& InWeaponData);
+#pragma endregion
+
+#pragma region Check
+	ABaseWeapon* GetWeaponByIndex(const int32 SlotIdx);
+	FORCEINLINE bool IsDuringAttackAction() const { return bIsDuringAttackAction; }
+	FORCEINLINE void SetIsDuringAttackAction(const bool bIsAttacking) { bIsDuringAttackAction= bIsAttacking; }
+#pragma endregion
 	
 #pragma region Attack
 public:
@@ -40,12 +53,22 @@ public:
 	void Input_OnAttackRightShoulder();
 	UFUNCTION(BlueprintCallable)
 	void Input_StopAttackRightShoulder();
+
+	void TryAttackBySlot(const int32 SlotIdx, const EInputType AttackInput);
+	void StopAttackBySlot(const int32 SlotIdx);
 #pragma endregion
 	
 #pragma region EquipWeapon
+public:
+	void RefreshWeaponUI();
+	
 	UFUNCTION(BlueprintCallable)
 	void EquipWeaponByTag(const FGameplayTag& Tag, const int32 SlotIdx);
-	void BindWidgetWeapon(ABaseWeapon* Target, const int32 SlotIdx);
+	void UnequipWeapon(const int32 SlotIdx);
+	void UnequipAllWeapons();
+	
+	void BindWidgetWeapon();
+	bool IsArmSlot(const int32 SlotIdx) const;
 #pragma endregion
 
 #pragma region Overrides
@@ -64,7 +87,11 @@ protected:
 	
 	//Left, Right Arm (0,1), Left, Right Shoulder(2,3)	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
-	TArray<TObjectPtr<ABaseWeapon>> Weapons; 
+	TArray<TObjectPtr<ABaseWeapon>> Weapons;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsDuringAttackAction:1 {false};
+
 #pragma endregion
 
 #pragma region WeaponSettings

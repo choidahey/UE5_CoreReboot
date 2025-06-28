@@ -24,16 +24,23 @@ class CR4S_API UInventoryContainerWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-#pragma region Initalize
+#pragma region UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	
+#pragma endregion 
+	
+#pragma region Initalize
 
+public:
 	void InitWidget(ASurvivalHUD* InSurvivalHUD, UPlayerInventoryComponent* InPlayerInventoryComponent);
 
 	FORCEINLINE UPlayerInventoryComponent* GetPlayerInventoryComponent() const { return PlayerInventoryComponent; }
 
 private:
+	UPROPERTY()
+	TObjectPtr<APawn> PlayerPawn;
 	UPROPERTY()
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
 	UPROPERTY()
@@ -61,7 +68,14 @@ private:
 	void InitToggleWidget(UUserWidget* Widget) const;
 	UUserWidget* GetTargetInventoryWidget(EOpenWidgetType OpenWidgetType) const;
 
+	void PlaySound2D(USoundBase* Sound, float VolumeMultiplier = 1.0f, float PitchMultiplier = 1.0f, float StartTime = 0.0f) const;
+
 	bool bIsOpen;
+
+	UPROPERTY(EditDefaultsOnly, Category = "InventoryWidget|Sound")
+	TObjectPtr<USoundBase> OpenSound;
+	UPROPERTY(EditDefaultsOnly, Category = "InventoryWidget|Sound")
+	TObjectPtr<USoundBase> CloseSound;
 
 #pragma endregion
 
@@ -100,11 +114,6 @@ private:
 	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<URobotInventoryWidget> RobotWorkshopWidget;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UCompostBinWidget> CompostBinWidget;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UHelperBotWorkshopWidget> HelperBotWorkshopWidget;
-
 	
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUserWidget> OpenOtherWidget;

@@ -12,16 +12,19 @@ void UAudioManager::Initialize(FSubsystemCollectionBase& Collection)
 
 	Collection.InitializeDependency<USaveGameManager>();
 
+	// Load Sound Classes and Mix
 	MasterSoundMix = LoadObject<USoundMix>(nullptr, TEXT("/Game/CR4S/_Sounds/SCM_CR4S.SCM_CR4S"));
 
 	MasterSoundClass = LoadObject<USoundClass>(nullptr, TEXT("/Game/CR4S/_Sounds/SC_Master.SC_Master"));
 	BGMClass = LoadObject<USoundClass>(nullptr, TEXT("/Game/CR4S/_Sounds/SC_BGM.SC_BGM"));
 	SFXClass = LoadObject<USoundClass>(nullptr, TEXT("/Game/CR4S/_Sounds/SC_SFX.SC_SFX"));
 
-	UE_LOG(LogTemp, Warning, TEXT("MasterSoundMix: %s"), *GetNameSafe(MasterSoundMix));
-	UE_LOG(LogTemp, Warning, TEXT("MasterSoundClass: %s"), *GetNameSafe(MasterSoundClass));
-	UE_LOG(LogTemp, Warning, TEXT("BGMClass: %s"), *GetNameSafe(BGMClass));
-	UE_LOG(LogTemp, Warning, TEXT("SFXClass: %s"), *GetNameSafe(SFXClass));
+	// Load Concurrencies
+	BGMConcurrency = LoadObject<USoundConcurrency>(nullptr, TEXT("/Game/CR4S/_Sounds/Concurrency/SCON_BGM_Ambient.SCON_BGM_Ambient"));
+	UIConcurrency = LoadObject<USoundConcurrency>(nullptr, TEXT("/Game/CR4S/_Sounds/Concurrency/SCON_UI.SCON_UI"));
+	ImpactConcurrency = LoadObject<USoundConcurrency>(nullptr, TEXT("/Game/CR4S/_Sounds/Concurrency/SCON_Impact.SCON_Impact"));
+	AIConcurrency = LoadObject<USoundConcurrency>(nullptr, TEXT("/Game/CR4S/_Sounds/Concurrency/SCON_AI.SCON_AI"));
+	RepetitionConcurrency = LoadObject<USoundConcurrency>(nullptr, TEXT("/Game/CR4S/_Sounds/Concurrency/SCON_Repetition.SCON_Repetition"));
 
 	if (MasterSoundMix && !bMixPushed)
 	{
@@ -36,72 +39,87 @@ void UAudioManager::Initialize(FSubsystemCollectionBase& Collection)
 
 void UAudioManager::SetMasterVolume(float Volume)
 {
-	if (MasterSoundMix && MasterSoundClass)
-	{
-		UGameplayStatics::SetSoundMixClassOverride(GetWorld(), MasterSoundMix, MasterSoundClass, Volume);
+	//if (MasterSoundMix && MasterSoundClass)
+	//{
+	//	UGameplayStatics::SetSoundMixClassOverride(GetWorld(), MasterSoundMix, MasterSoundClass, Volume);
+	//}
 
-		MasterVolume = Volume;
+	GameSoundVolume.Master = Volume;
+
+	if (CurrentBGMComponent)
+	{
+		CurrentBGMComponent->SetVolumeMultiplier(GameSoundVolume.BGM * GameSoundVolume.Master);
 	}
+
+	OnSoundVolumeChanged.Broadcast(GameSoundVolume);
 }
 
 void UAudioManager::SetBGMVolume(float Volume)
 {
-	if (MasterSoundMix && BGMClass)
-	{
-		UGameplayStatics::SetSoundMixClassOverride(GetWorld(), MasterSoundMix, BGMClass, Volume);
+	//if (MasterSoundMix && BGMClass)
+	//{
+	//	UGameplayStatics::SetSoundMixClassOverride(GetWorld(), MasterSoundMix, BGMClass, Volume);
+	//}
 
-		BGMVolume = Volume;
+	GameSoundVolume.BGM = Volume;
+
+	if (CurrentBGMComponent)
+	{
+		CurrentBGMComponent->SetVolumeMultiplier(GameSoundVolume.BGM * GameSoundVolume.Master);
 	}
+
+	OnSoundVolumeChanged.Broadcast(GameSoundVolume);
 }
 
 void UAudioManager::SetSFXVolume(float Volume)
 {
-	if (MasterSoundMix && SFXClass)
-	{
-		UGameplayStatics::SetSoundMixClassOverride(GetWorld(), MasterSoundMix, SFXClass, Volume);
+	//if (MasterSoundMix && SFXClass)
+	//{
+	//	UGameplayStatics::SetSoundMixClassOverride(GetWorld(), MasterSoundMix, SFXClass, Volume);
+	//}
 
-		SFXVolume = Volume;
-	}
-}
+	GameSoundVolume.SFX = Volume;
 
-void UAudioManager::SaveVolumeSettings()
-{
-	USettingsSaveGame* SaveGame = NewObject<USettingsSaveGame>();
-	SaveGame->MasterVolume = MasterVolume;
-	SaveGame->BGMVolume = BGMVolume;
-	SaveGame->SFXVolume = SFXVolume;
-
-	UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("SettingsSave"), 0);
+	OnSoundVolumeChanged.Broadcast(GameSoundVolume);
 }
 
 void UAudioManager::LoadVolumeSettings()
 {
-	if (UGameInstance* GameInstance = GetGameInstance())
+	if (USaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<USaveGameManager>())
 	{
-		if (USaveGameManager* SaveGameManager = GameInstance->GetSubsystem<USaveGameManager>())
+		if (USettingsSaveGame* SaveGame = SaveGameManager->LoadSettings())
 		{
-			if (USettingsSaveGame* SaveGame = SaveGameManager->LoadSettings())
-			{
-				SetMasterVolume(SaveGame->MasterVolume);
-				SetBGMVolume(SaveGame->BGMVolume);
-				SetSFXVolume(SaveGame->SFXVolume);
+			SetMasterVolume(SaveGame->MasterVolume);
+			SetBGMVolume(SaveGame->BGMVolume);
+			SetSFXVolume(SaveGame->SFXVolume);
 
-				UE_LOG(LogTemp, Log, TEXT("[AudioManager] Volume loaded - Master: %.2f, BGM: %.2f, SFX: %.2f"),
-					SaveGame->MasterVolume, SaveGame->BGMVolume, SaveGame->SFXVolume);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("[AudioManager] Failed to load settings."));
-			}
+			UE_LOG(LogTemp, Log, TEXT("[AudioManager] Volume loaded - Master: %.2f, BGM: %.2f, SFX: %.2f"),
+				SaveGame->MasterVolume, SaveGame->BGMVolume, SaveGame->SFXVolume);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[AudioManager] Failed to load settings."));
 		}
 	}
 }
 
-void UAudioManager::Play2DSound(USoundBase* Sound, float VolumeMultiplier, float PitchMultiplier, float StartTime)
+UAudioComponent* UAudioManager::PlayUISound(USoundBase* Sound, float PitchMultiplier, float StartTime)
 {
-	if (!Sound) return;
+	if (!Sound)
+		return nullptr;
 
-	UGameplayStatics::SpawnSound2D(GetWorld(), Sound, VolumeMultiplier, PitchMultiplier, StartTime);
+	const float EffectiveVolume = GameSoundVolume.SFX * GameSoundVolume.Master;
+
+	UAudioComponent* UIAudioComponent = UGameplayStatics::SpawnSound2D(
+		GetWorld(),
+		Sound,
+		EffectiveVolume,
+		PitchMultiplier,
+		StartTime,
+		UIConcurrency
+	);
+
+	return UIAudioComponent;
 }
 
 UAudioComponent* UAudioManager::PlayBGM(USoundBase* BGM)
@@ -113,14 +131,23 @@ UAudioComponent* UAudioManager::PlayBGM(USoundBase* BGM)
 		CurrentBGMComponent->FadeOut(1.0f, 0.0f);
 	}
 
-	CurrentBGMComponent = UGameplayStatics::SpawnSound2D(GetWorld(), BGM, BGMVolume, 1.0f, 0.0f, nullptr, true);
+	CurrentBGMComponent = UGameplayStatics::SpawnSound2D(
+		GetWorld(),
+		BGM,
+		1.0f, // volume
+		1.0f, // pitch
+		0.0f, // start time
+		BGMConcurrency, //concurrency
+		true
+	);
+
 	if (CurrentBGMComponent)
 	{
-		CurrentBGMComponent->FadeIn(1.5f, 1.0f);
-		SetMasterVolume(MasterVolume);
-		SetBGMVolume(BGMVolume);
-		SetSFXVolume(SFXVolume);
-		UE_LOG(LogTemp, Log, TEXT("Set BGM Volume to: %.2f"), BGMVolume);
+		const float TargetVolume = GameSoundVolume.BGM * GameSoundVolume.Master;
+		CurrentBGMComponent->FadeIn(1.5f);
+		SetBGMVolume(GameSoundVolume.BGM);
+
+		UE_LOG(LogTemp, Log, TEXT("Set BGM Volume to: %.2f (Effective: %.2f)"), GameSoundVolume.BGM, TargetVolume);
 	}
 
 	return CurrentBGMComponent;
@@ -132,5 +159,46 @@ void UAudioManager::StopBGM()
 	{
 		CurrentBGMComponent->FadeOut(1.0f, 0.0f);
 		CurrentBGMComponent = nullptr;
+	}
+}
+
+UAudioComponent* UAudioManager::PlaySFX(USoundBase* SFX, FVector Location, EConcurrencyType SoundType, float Pitch, float StartTime)
+{
+	if (!SFX) return nullptr;
+
+	const float EffectiveVolume = GameSoundVolume.SFX * GameSoundVolume.Master;
+	USoundConcurrency* Concurrency = GetConcurrencyByType(SoundType);
+
+	UAudioComponent* SFXComponent = UGameplayStatics::SpawnSoundAtLocation(
+		GetWorld(),
+		SFX,
+		Location,
+		FRotator::ZeroRotator,
+		EffectiveVolume,
+		Pitch,
+		StartTime,
+		nullptr,
+		Concurrency
+	);
+
+	return SFXComponent;
+}
+// AudioComponent->SetOwner(ptr);
+
+
+USoundConcurrency* UAudioManager::GetConcurrencyByType(EConcurrencyType SoundType) const
+{
+	switch (SoundType)
+	{
+	case EConcurrencyType::UI:
+		return UIConcurrency;
+	case EConcurrencyType::Impact:
+		return ImpactConcurrency;
+	case EConcurrencyType::AI:
+		return AIConcurrency;
+	case EConcurrencyType::Repetition:
+		return RepetitionConcurrency;
+	default:
+		return nullptr;
 	}
 }

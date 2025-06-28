@@ -36,7 +36,7 @@ public:
 
 	void InitializeWidget(UBaseStatusComponent* InStatus);
 
-	void ClearBindings();
+	void ClearBindings() const;
 #pragma endregion
 	
 #pragma region Widgets

@@ -97,7 +97,7 @@ protected:
 	float CurrentHealth = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString BotName = TEXT("AutoBot");
+	FText BotName;
 
 private:
 	FHelperPickUpData PickUpData;
@@ -109,38 +109,30 @@ private:
 #pragma region Getters/Setters
 	
 public:
-	UFUNCTION(BlueprintCallable, Category = "Stats")
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHealth() const { return CurrentHealth; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHealth() const { return CurrentStats.MaxHealth; }
+	
 	FORCEINLINE float GetWoodDamagePerSecond() const { return CurrentStats.WoodDamagePerSecond; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetRockPerSecond() const { return CurrentStats.RockDamagePerSecond; }
-	
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetRepairingPerSecond() const { return CurrentStats.RepairingPerSecond; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
-	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetAttackPerSecond() const { return CurrentStats.AttackPerSecond; }
-
-	UFUNCTION(BlueprintCallable, Category = "Stats")
 	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
-	
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
+	FORCEINLINE FText GetBotName() const { return BotName; }
 	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
-
-	UFUNCTION(BlueprintCallable, Category = "Bot Info")
-	FORCEINLINE FString GetBotName() const { return BotName; }
-
+	
 	FHelperPickUpData GetHelperBotData() const { return PickUpData; }
 	
 	UFUNCTION(BlueprintCallable, Category = "Bot Info")
-	void SetBotName(const FString& NewName);
+	void SetBotName(const FText& NewName);
 	
 	FORCEINLINE void SetIsFromInventory(bool bFromInventory) { bIsFromInventory = bFromInventory; }
 
+	FORCEINLINE bool InitPickData() const { return PickUpData.bIsInit; }
 	void SetPickUpData(const FHelperPickUpData& InPickUpData);
 	
 #pragma endregion
@@ -213,8 +205,8 @@ public:
 	void OnDetectedChange(AActor* InteractableActor, bool bIsDetected);
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UHelperBotInfoWidget> InfoUIClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
+	class UWidgetComponent* InfoWidgetComponent = nullptr;
 
 	UPROPERTY()
 	TObjectPtr<UHelperBotInfoWidget> InfoUIInstance = nullptr;
@@ -232,24 +224,56 @@ public:
 private:
 	bool bIsWorking = false;
 #pragma endregion
+
+#pragma region RobotRepair
+public:
+	UFUNCTION()
+	bool CanRepair(APlayerCharacter* Player) const;
+	
+	UFUNCTION()
+	bool RepairBot(APlayerCharacter* Player);
+#pragma endregion
 	
 #pragma region Damage & Death
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
 	UNiagaraComponent* HitEffectComponent = nullptr;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
-	class UNiagaraSystem* DeathEffectSystem = nullptr;
-	
+		
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage & Death")
 	UAnimMontage* DeathMontage = nullptr;
 
 private:
 	void PlayHitEffect(const FVector& HitDirection);
 	void StartDeathSequence();
-	
-	UFUNCTION()
-	void OnDeathMontageCompleted(UAnimMontage* Montage, bool bInterrupted);
+
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "Hit Effect")
+	FVector SpineShakeOffset = FVector::ZeroVector;
+
 #pragma endregion
 
+#pragma region FadeEffect
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	FLinearColor PickUpColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	FLinearColor DeadColor;
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	void StartFadeOut();
+
+private:
+	float ElapsedFadeTime = 0.f;
+	FTimerHandle FadeTimerHandle;
+	void UpdateFadeOut();
+#pragma endregion
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FHelperBotSaveGame GetHelperBotSaveData() const;
+
+	UFUNCTION(BlueprintCallable)
+	void LoadHelperBotSaveData(const FHelperBotSaveGame& Data);
 };

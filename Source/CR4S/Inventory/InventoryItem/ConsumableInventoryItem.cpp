@@ -3,13 +3,13 @@
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 
 #define LOCTEXT_NAMESPACE "ConsumableInventoryItem"
 
 UConsumableInventoryItem::UConsumableInventoryItem()
-	: bIsRotten(false)
 {
 	bUsePassiveEffect = true;
 	FreshnessText = LOCTEXT("FreshnessText", "신선도");
@@ -53,15 +53,14 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 {
 	Super::UseItem(Index);
 
-	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)) ||
-		!CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)))
 	{
 		return;
 	}
 
 	if (IsValid(PlayerStatusComponent))
 	{
-		if (!bIsRotten)
+		if (!IsRotten())
 		{
 			PlayerStatusComponent->AddCurrentHunger(ConsumableItemData.HungerRestore);
 			PlayerStatusComponent->AddCurrentHP(ConsumableItemData.HealthRestore);
@@ -124,7 +123,7 @@ bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
 void UConsumableInventoryItem::OnItemRotten()
 {
 	CR4S_Log(LogTemp, Warning, TEXT("Item has fully rotted!"));
-	bIsRotten = true;
+	FreshnessInfo.bIsRotten = true;
 	UpdateItemDescription(RottenDescription);
 	EndPassiveEffect();
 }
@@ -282,6 +281,25 @@ void UConsumableInventoryItem::ApplyThreshold(const EResistanceBuffType Type, co
 		PlayerStatusComponent->AddColdThreshold(Value);
 		break;
 	}
+}
+
+FInventoryItemSaveGame UConsumableInventoryItem::GetInventoryItemSaveData()
+{
+	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
+
+	ItemSaveGame.InventoryItemData.ItemInfoData.Description = DefaultDescription;
+	ItemSaveGame.FreshnessInfo = FreshnessInfo;
+
+	return ItemSaveGame;
+}
+
+void UConsumableInventoryItem::LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+                                                         const FInventoryItemSaveGame& ItemSaveGame)
+{
+	Super::LoadInventoryItemSaveData(NewInventoryComponent, ItemSaveGame);
+	
+	FreshnessInfo = ItemSaveGame.FreshnessInfo;
+	FreshnessInfo.PreviousDecayPlayTime = -1;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -1,14 +1,19 @@
 #include "MonsterAI/BossMonster/Season/SeasonBossMonster.h"
+#include "AIController.h"
 #include "CR4S.h"
 #include "NavigationInvokerComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Game/System/EnvironmentalModifierVolume.h"
 #include "Game/System/EnvironmentManager.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Components/MonsterAggroComponent.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
+#include "MonsterAI/Components/MonsterAttributeComponent.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
 
 ASeasonBossMonster::ASeasonBossMonster()
@@ -24,6 +29,12 @@ void ASeasonBossMonster::BeginPlay()
 {
    Super::BeginPlay();
 
+   if (UMonsterStateComponent* StateComp = FindComponentByClass<UMonsterStateComponent>())
+   {
+      StateComp->SetPhase(EBossPhase::Normal);
+      StateComp->OnPhaseChanged.AddUniqueDynamic(this, &ASeasonBossMonster::HandlePhaseChanged);
+   }
+   
    SpawnOpeningPattern();
 }
 
@@ -60,10 +71,46 @@ void ASeasonBossMonster::HandleDeath()
    }
 }
 
+void ASeasonBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
+{
+   if (AAIController* AI = Cast<AAIController>(GetController()))
+   {
+      if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+      {
+         BB->SetValueAsEnum(FSeasonBossAIKeys::CurrentPhase, static_cast<int32>(NewPhase));
+      }
+   }
+
+   if (!AttributeComponent || !StateComponent) return;
+
+   if (NewPhase == EBossPhase::Normal)
+   {
+      AttributeComponent->InitializeMonsterAttribute(MonsterID);
+   }
+   else if (NewPhase == EBossPhase::Berserk)
+   {
+      const float BaseSpeed = AttributeComponent->GetMonsterAttribute().MoveSpeed;
+      const float SpeedMultiplier = StateComponent->GetCurrentSpeedMultiplier();
+
+      if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+      {
+         MoveComp->MaxWalkSpeed = BaseSpeed * SpeedMultiplier;
+      }
+   }
+
+   CR4S_Log(LogMonster, Log, TEXT("[%s] HandlePhaseChanged : Current phase changed to %s"), *GetClass()->GetName(),
+      *UEnum::GetDisplayValueAsText(NewPhase).ToString());
+}
+
 void ASeasonBossMonster::SpawnOpeningPattern()
 {
    UWorld* World = GetWorld();
    if (!World) return;
+
+   if (AnimComponent && !AnimComponent->IsAnyMontagePlaying())
+   {
+      AnimComponent->PlayCombatMontage();
+   }
    
    if (AEnvironmentManager* EnvManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(World, AEnvironmentManager::StaticClass())))
    {
@@ -84,16 +131,18 @@ void ASeasonBossMonster::SpawnOpeningPattern()
    }
 
    FVector ActorLoc = GetActorLocation();
-   const float TraceHeight = 2000.f;
+   const float TraceHeight = 5000.f;
    FHitResult Hit;
    FVector TraceStart = ActorLoc + FVector(0,0,TraceHeight);
    FVector TraceEnd = ActorLoc - FVector(0,0,TraceHeight);
    FCollisionQueryParams Params;
    Params.AddIgnoredActor(this);
+   Params.bTraceComplex = false;
 
-   float GroundOffsetZ = 0.f;
-   if ( World->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params) )
-      GroundOffsetZ = Hit.Location.Z - ActorLoc.Z;
+   GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params);
+
+   float GroundZ = Hit.bBlockingHit ? Hit.Location.Z : ActorLoc.Z;
+   FVector RelativeOffset(0.f, 0.f, GroundZ);
    
    if (UNiagaraSystem* RangeEffect = GetOpeningNiagara())
    {
@@ -101,9 +150,9 @@ void ASeasonBossMonster::SpawnOpeningPattern()
       
       SpawnedNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
           RangeEffect,
-          GetRootComponent(),
+          GetMesh(),
           NAME_None,
-          FVector(0.f, 0.f, GroundOffsetZ),
+          RelativeOffset,
           FRotator::ZeroRotator,
           EAttachLocation::KeepRelativeOffset,
           false,
@@ -111,10 +160,13 @@ void ASeasonBossMonster::SpawnOpeningPattern()
           ENCPoolMethod::AutoRelease,
           true
       );
-   }
 
-   if (AnimComponent && !AnimComponent->IsAnyMontagePlaying())
-   {
-      AnimComponent->PlayCombatMontage();
+      if (SpawnedNiagaraComp)
+      {
+         SpawnedNiagaraComp->SetRelativeLocation(RelativeOffset);
+         
+         SpawnedNiagaraComp->SetRelativeScale3D(OpeningNiagaraScale);
+         SpawnedNiagaraComp->Activate(true);
+      }
    }
 }

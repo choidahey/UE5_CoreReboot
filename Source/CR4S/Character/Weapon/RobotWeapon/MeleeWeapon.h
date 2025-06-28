@@ -17,16 +17,23 @@ class CR4S_API AMeleeWeapon : public ABaseWeapon
 public:
 	AMeleeWeapon();
 
+#pragma region Get
+	FORCEINLINE float GetStunAmount() const { return TypeSpecificInfo.StunAmount; }
+#pragma endregion
+
+	
 #pragma region Override
 public:
-	virtual void OnAttack() override;
-	virtual void Initialize(AModularRobot* OwnerCharacter) override;
+	virtual void Initialize(AModularRobot* OwnerCharacter, int32 SlotIdx) override;
 protected:
 #pragma endregion
 	
-#pragma region TypeSpecificInfo
+#pragma region Cached
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FMeleeWeaponInfo TypeSpecificInfo; 
+	FMeleeWeaponInfo TypeSpecificInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float AttackPressTime {0};
 #pragma endregion
 };

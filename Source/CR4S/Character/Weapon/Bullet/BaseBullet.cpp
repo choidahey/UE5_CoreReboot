@@ -5,11 +5,16 @@
 
 #include "CR4S.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Data/WeaponData.h"
 #include "Components/BoxComponent.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/System/AudioManager.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Utility/CombatStatics.h"
 
 // Sets default values
 ABaseBullet::ABaseBullet()
@@ -36,6 +41,8 @@ ABaseBullet::ABaseBullet()
 	ProjectileMovementComponent->InitialSpeed=0.f;
 	ProjectileMovementComponent->MaxSpeed=0.f;
 	ProjectileMovementComponent->ProjectileGravityScale=0.f;
+
+	PoolComponent=CreateDefaultSubobject<UObjectPoolComponent>(TEXT("PoolComponent"));
 	
 }
 
@@ -44,18 +51,26 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AA
 	BulletInfo=InData;
 	Damage=InDamage;
 
-	if (!ProjectileMovementComponent) return; 
+	if (!ProjectileMovementComponent) return;
+
+	ProjectileMovementComponent->Activate();
 	ProjectileMovementComponent->InitialSpeed=BulletInfo.InitialBulletSpeed;
 	ProjectileMovementComponent->MaxSpeed=BulletInfo.MaxBulletSpeed;
 	ProjectileMovementComponent->Velocity=GetActorForwardVector()*BulletInfo.InitialBulletSpeed;
 	
 	if (BulletInfo.MaxLifeTime>KINDA_SMALL_NUMBER)
 	{
-		SetLifeSpan(BulletInfo.MaxLifeTime);
+		PoolComponent->ReturnToPoolAfter(BulletInfo.MaxLifeTime);
 	}
 	else
 	{
-		Destroy();
+		if (UWorld* CurrentWorld = GetWorld())
+		{
+			if (UProjectilePoolSubsystem* Pool = CurrentWorld->GetSubsystem<UProjectilePoolSubsystem>())
+			{
+				Pool->ReturnToPool(this);
+			}
+		}
 	}
 
 	if (CollisionComponent)
@@ -65,7 +80,20 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AA
 		{
 			CollisionComponent->IgnoreActorWhenMoving(OwnerActor,true);
 		}
-		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this,&ABaseBullet::OnOverlapBegin);
+		CollisionComponent->OnComponentBeginOverlap.AddUniqueDynamic(this,&ABaseBullet::OnOverlapBegin);
+	}
+}
+
+void ABaseBullet::Deactivate()
+{
+	if (CollisionComponent)
+	{
+		CollisionComponent->OnComponentBeginOverlap.RemoveAll(this);
+	}
+	if (ProjectileMovementComponent)
+	{
+		ProjectileMovementComponent->Deactivate();
+		ProjectileMovementComponent->Velocity=FVector::ZeroVector;
 	}
 }
 
@@ -73,6 +101,7 @@ void ABaseBullet::Initialize(const FBulletInfo& InData, const float InDamage, AA
 void ABaseBullet::BeginPlay()
 {
 	Super::BeginPlay();
+	PoolComponent->OnReturnToPoolDelegate.AddUniqueDynamic(this,&ABaseBullet::Deactivate);
 }
 
 void ABaseBullet::OnOverlapBegin(
@@ -86,7 +115,7 @@ void ABaseBullet::OnOverlapBegin(
 {
 	FVector OverlapLocation=GetActorLocation();
 	AActor* OwnerActor=GetOwner();
-	if (BulletInfo.ExplosionRadius<=KINDA_SMALL_NUMBER) // 
+	if (BulletInfo.ExplosionRadius<=KINDA_SMALL_NUMBER) 
 	{
 		if (OtherActor&&OtherActor!=this)
 		{
@@ -118,28 +147,39 @@ void ABaseBullet::OnOverlapBegin(
 	}
 	if (BulletInfo.ImpactParticle)
 	{
-		UParticleSystemComponent* PSC=UGameplayStatics::SpawnEmitterAtLocation(
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
 			BulletInfo.ImpactParticle,
 			OverlapLocation,
-			FRotator::ZeroRotator,
-			true
+			FRotator::ZeroRotator
 		);
-		if (!CR4S_ENSURE(LogHong1,PSC)) return;
-		PSC->bAutoDestroy=true;
 	}
 	if (BulletInfo.ImpactSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(
-			this,
-			BulletInfo.ImpactSound,
-			OverlapLocation,
-			1.0f,
-			1.0f
-		);
+		if (BulletInfo.ImpactSound)
+		{
+			if (UGameInstance* GI=GetGameInstance())
+			{
+				if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+				{
+					Audio->PlaySFX(
+						BulletInfo.ImpactSound,
+						OverlapLocation,
+						EConcurrencyType::Impact
+					);
+				}
+			}
+		}
 	}
-	
-	Destroy();
+	UCombatStatics::ApplyStun(OtherActor,BulletInfo.StunAmount);
+
+	if (UWorld* CurrentWorld = GetWorld())
+	{
+		if (UProjectilePoolSubsystem* Pool = CurrentWorld->GetSubsystem<UProjectilePoolSubsystem>())
+		{
+			Pool->ReturnToPool(this);
+		}
+	}
 }
 
 // Called every frame

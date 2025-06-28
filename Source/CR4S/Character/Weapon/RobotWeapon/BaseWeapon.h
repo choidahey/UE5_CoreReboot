@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/Characters/ModularRobot.h"
 #include "Character/Data/WeaponData.h"
 #include "Character/Weapon/BaseTool.h"
 #include "UObject/Object.h"
@@ -23,18 +24,28 @@ public:
 	ABaseWeapon();
 
 	FORCEINLINE bool IsSelfStunWeapon() const { return BaseInfo.bHasSelfStun; }
+	FORCEINLINE float GetWeaponWeight() const { return BaseInfo.Weight; }
+	FORCEINLINE virtual AActor* GetToolOwner() const override { return OwningCharacter; }
+	FORCEINLINE virtual UMeshComponent* GetToolMeshComponent() override { return StaticMeshComp; }
 	
-	virtual void Initialize(AModularRobot* OwnerCharacter);
+	virtual void Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx);
+	
 #pragma region Attack
 public:
+	virtual int32 GetCurrentAmmo() const;
+	virtual void SetCurrentAmmo(const int32 NewAmmo);
+	
 	virtual float ComputeFinalDamage() override;
 	virtual void OnAttack() override;
 	virtual void StopAttack();
 protected:
 	void StartAttackCooldown();
 	void ResetAttackCooldown();
+	
 	void ApplySelfStun() const;
 	void RemoveSelfStun() const;
+
+	void SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const;
 #pragma endregion
 
 	
@@ -48,18 +59,20 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
 	TObjectPtr<URobotInputBufferComponent> InputBuffer;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Owner")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
 	uint8 bCanAttack:1 {true};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
+	uint8 bIsRightHand:1 {false};
 
 	FTimerHandle AttackCooldownTimerHandler;	
 #pragma endregion
 
 #pragma region Components
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComp;
+	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> SceneComp;
 #pragma endregion

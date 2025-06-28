@@ -27,6 +27,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Armor{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ArmorConstant {1000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackPower{0};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -42,7 +44,7 @@ public:
 	float HeatDamageAmount{10};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float RollStaminaCost{1000};
+	float ResourceConsumptionAmount{1000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceRegenDelay{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

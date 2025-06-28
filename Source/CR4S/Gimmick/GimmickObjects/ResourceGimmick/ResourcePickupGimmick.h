@@ -33,5 +33,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	TObjectPtr<UInteractableComponent> InteractableComponent;
 
+	UPROPERTY()
+	TObjectPtr<USoundBase> InteractSound;
+
 #pragma endregion
 };

@@ -5,9 +5,26 @@
 
 #include "BaseBuildingGimmick.generated.h"
 
+class UEnvironmentalStatusComponent;
+class UObjectShakeComponent;
 class UItemGimmickSubsystem;
 class UWidgetComponent;
 class UBuildingDurabilityWidget;
+
+USTRUCT(BlueprintType)
+struct FBuildingEnvironmentalStatus
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxTemperature = 30.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MinTemperature = -30.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxHumidity = 30.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MinHumidity = 0.f;
+};
 
 UCLASS(BlueprintType, Blueprintable)
 class CR4S_API ABaseBuildingGimmick : public AActor
@@ -31,8 +48,15 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "BuildingGimmick|Components")
 	TObjectPtr<UWidgetComponent> BuildingDurabilityWidgetComponent;
-	
-#pragma endregion 
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BuildingGimmick|Components",
+		meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UObjectShakeComponent> ShakeComponent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BuildingGimmick|Components",
+		meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatusComponent;
+
+#pragma endregion
 
 #pragma region BuildingGimmick
 
@@ -57,9 +81,35 @@ protected:
 	void ToggleDurabilityWidget(bool bIsOpen);
 
 private:
-
 	UPROPERTY(BlueprintReadOnly, Category = "BuildingGimmick|DurabilityWidget", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBuildingDurabilityWidget> BuildingDurabilityWidgetInstance;
 
 #pragma endregion
+
+#pragma region EnvironmentalStatus
+
+protected:
+	UFUNCTION(BlueprintCallable, Category = "BuildingGimmick|EnvironmentalStatus")
+	void InitEnvironmentalStatus(const FBuildingEnvironmentalStatus& InEnvironmentalStatus);
+
+#pragma endregion
+
+#pragma region Burn
+
+protected:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "BuildingGimmick|Burn")
+	void ApplyBurn(float ActualSeconds);
+	
+private:
+	UFUNCTION(BlueprintCallable, Category = "BuildingGimmick|Burn")
+	void StartBurn();
+	UFUNCTION(BlueprintCallable, Category = "BuildingGimmick|Burn")
+	void EndBurn();
+	
+	UFUNCTION()
+	void UpdateWorldTime(int64 NewPlayTime);
+	
+	int64 PrevPlayTime;
+	
+#pragma endregion 
 };

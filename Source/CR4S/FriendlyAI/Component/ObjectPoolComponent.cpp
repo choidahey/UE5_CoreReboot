@@ -1,4 +1,6 @@
 #include "ObjectPoolComponent.h"
+
+#include "Character/Weapon/Bullet/BaseBullet.h"
 #include "Game/System/ProjectilePoolSubsystem.h"
 
 UObjectPoolComponent::UObjectPoolComponent()
@@ -19,21 +21,27 @@ void UObjectPoolComponent::BeginPlay()
 	}
 }
 
-// Called when this actor is retrieved from the pool and activated.
+// Called when this actor is retrieved from the object pool and activated. Use OnSpawnFromPoolDelegate to bind custom initialization logic.
 void UObjectPoolComponent::OnSpawnFromPool()
 {
+	OnSpawnFromPoolDelegate.Broadcast();
+	
 	GetOwner()->SetActorHiddenInGame(false);
 	GetOwner()->SetActorEnableCollision(true);
 }
 
-// Schedule a delayed return to the pool
 void UObjectPoolComponent::OnReturnToPool()
 {
+	OnReturnToPoolDelegate.Broadcast();
+	
+	GetWorld()->GetTimerManager().ClearTimer(ReturnTimerHandle);
+
 	GetOwner()->SetActorHiddenInGame(true);
 	GetOwner()->SetActorEnableCollision(false);
 }
-// Schedule a delayed return to the pool
-void UObjectPoolComponent::ReturnToPoolAfter(float DelaySeconds)
+
+// Schedules this actor to be returned to the pool after a specified delay. If DelaySeconds is 0 or negative, returns to pool immediately.
+void UObjectPoolComponent::ReturnToPoolAfter(float DelaySeconds = 0.0f)
 {
 	if (DelaySeconds <= 0.f)
 	{
@@ -48,6 +56,7 @@ void UObjectPoolComponent::ReturnToPoolAfter(float DelaySeconds)
 		DelaySeconds, false);
 }
 
+// Internal function called by timer to return this actor to the pool. Do not call directly - use ReturnToPoolAfter() instead.
 void UObjectPoolComponent::HandleReturnToPool()
 {
 	if (UProjectilePoolSubsystem* Pool = GetWorld()->GetSubsystem<UProjectilePoolSubsystem>())

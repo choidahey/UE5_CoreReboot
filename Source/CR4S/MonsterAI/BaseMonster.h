@@ -82,13 +82,17 @@ public:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	bool IsDead() const;
-
-	UFUNCTION()
-	void OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
+	void StartFadeOut();
+	void UpdateFade();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
  	bool bIsDead = false;
+
+private:
+	FTimerHandle FadeTimerHandle;
+	float ElapsedFadeTime = 0.f;
 
 #pragma endregion
 
@@ -110,9 +114,6 @@ protected:
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
 	
 	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Death")
-	UMaterialInterface* DissolveMaterial;
 	
 	FOnDied OnDied;
 
@@ -136,7 +137,7 @@ protected:
 	virtual void TakeStun_Implementation(const float StunAmount) override;
 
 #pragma endregion
-	
+
 private:
 	FString MyHeader;
 

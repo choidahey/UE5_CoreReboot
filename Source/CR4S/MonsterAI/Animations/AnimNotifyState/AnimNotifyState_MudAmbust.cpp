@@ -14,39 +14,42 @@ void UAnimNotifyState_MudAmbust::NotifyBegin(
 	UAnimSequenceBase* Animation,
 	float TotalDuration)
 {
-	if (MeshComp->GetWorld()->WorldType != EWorldType::Game && MeshComp->GetWorld()->WorldType != EWorldType::PIE) return;
-	
-	if (!IsValid(MeshComp->GetWorld())
-		|| !IsValid(MeshComp)
+	if (!IsValid(MeshComp)
+		|| !IsValid(MeshComp->GetWorld())
 		|| !IsValid(MudFieldClass)
 		|| !IsValid(Animation)) return;
+	if (MeshComp->GetWorld()->WorldType != EWorldType::Game && MeshComp->GetWorld()->WorldType != EWorldType::PIE) return;
 
 	ElapsedTime = 0.f;
 	Duration = TotalDuration;
 
 	APawn* OwnerPawn = Cast<APawn>(MeshComp->GetOwner());
-	if (!OwnerPawn) return;
+	if (!IsValid(OwnerPawn)) return;
 	
 	AAIController* AIC = Cast<AAIController>(OwnerPawn->GetController());
+	if (!IsValid(AIC)) return;
+	
 	UBlackboardComponent* BB = AIC->GetBlackboardComponent();
-	if (!AIC || !BB) return;
+	if (!IsValid(BB)) return;
     
-	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
-	Target = Target ? Target : Cast<AActor>(BB->GetValueAsObject(TEXT("NearestHouseActor")));
-	Target = Target ? Target : UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
-
-	TargetActor = Target;
-	StartLocation = OwnerPawn->GetActorLocation();
+	AActor* Target = Cast<AActor>(BB->GetValueAsObject(FAIKeys::TargetActor));
+	if (!IsValid(Target))
+		Target = Cast<AActor>(BB->GetValueAsObject(FSeasonBossAIKeys::NearestHouseActor));
+	if (!IsValid(Target))
+		Target = UGameplayStatics::GetPlayerPawn(MeshComp->GetWorld(), 0);
+	if (!IsValid(Target)) return;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = MeshComp->GetOwner();
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	
+
+	StartLocation = OwnerPawn->GetActorLocation();
 	FVector SpawnLoc = StartLocation + FVector(0,0, TraceStartZ);
 	FRotator SpawnRot = FRotator::ZeroRotator;
 	
 	AActor* Field = MeshComp->GetWorld()->SpawnActor<AActor>(MudFieldClass, SpawnLoc, SpawnRot, SpawnParams);
 
+	TargetActor = Target;
 	SpawnedMudField = Field;
 	
 	if (ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn))
@@ -60,10 +63,13 @@ void UAnimNotifyState_MudAmbust::NotifyBegin(
 void UAnimNotifyState_MudAmbust::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float FrameDeltaTime)
 {
+	if (!IsValid(MeshComp)) return;
 	if (MeshComp->GetWorld()->WorldType != EWorldType::Game && MeshComp->GetWorld()->WorldType != EWorldType::PIE) return;
-	
-	if (!SpawnedMudField || !MeshComp) return;
+	if (!SpawnedMudField.IsValid() || !TargetActor.IsValid()) return;
 
+	AActor* FieldPtr = SpawnedMudField.Get();
+	AActor* TargetPtr = TargetActor.Get();
+	
 	FVector BossLoc = MeshComp->GetOwner()->GetActorLocation();
 	FVector TraceStart = BossLoc + FVector(0,0,TraceStartZ);
 	FVector TraceEnd = BossLoc - FVector(0,0,TraceDownDistance);
@@ -79,23 +85,22 @@ void UAnimNotifyState_MudAmbust::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 		ECC_Visibility,
 		Params
 	);
-	// DrawDebugLine(MeshComp->GetWorld(), TraceStart, TraceEnd, FColor::Blue, false, 0.1f);
 
 	if (bHit)
 	{
-		SpawnedMudField->SetActorLocation(Hit.ImpactPoint);
+		FieldPtr->SetActorLocation(Hit.ImpactPoint);
 	}
 	else
 	{
 		FVector Fallback = BossLoc;
 		Fallback.Z = BossLoc.Z - TraceDownDistance * 0.5f;
-		SpawnedMudField->SetActorLocation(Fallback);
+		FieldPtr->SetActorLocation(Fallback);
 	}
 	
 	ElapsedTime += FrameDeltaTime;
 	float Alpha = FMath::Clamp(ElapsedTime / Duration, 0.f, 1.f);
 	
-	TargetLocation = IsValid(TargetActor) ? TargetActor->GetActorLocation() : StartLocation;
+	TargetLocation = IsValid(TargetPtr) ? TargetActor->GetActorLocation() : StartLocation;
 	
 	FVector NewLocation = FMath::Lerp(StartLocation, TargetLocation, Alpha);
 	MeshComp->GetOwner()->SetActorLocation(NewLocation);
@@ -103,15 +108,21 @@ void UAnimNotifyState_MudAmbust::NotifyTick(USkeletalMeshComponent* MeshComp, UA
 
 void UAnimNotifyState_MudAmbust::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	if (!IsValid(MeshComp)) return;
 	if (MeshComp->GetWorld()->WorldType != EWorldType::Game && MeshComp->GetWorld()->WorldType != EWorldType::PIE) return;
+
+	MeshComp->GetWorld()->GetTimerManager().ClearTimer(RiseTimerHandle);
 	
 	AActor* OwnerActor = MeshComp->GetOwner();
+	if (!IsValid(OwnerActor)) return;
 
-	if (SpawnedMudField)
+	if (SpawnedMudField.IsValid())
 	{
 		SpawnedMudField->Destroy();
-		SpawnedMudField = nullptr;
+		SpawnedMudField.Reset();
 	}
+
+	TargetActor.Reset();
 
 	const FVector FinalLocation = TargetLocation;
 	TWeakObjectPtr<AActor> WeakOwner = OwnerActor;

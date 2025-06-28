@@ -17,8 +17,10 @@
 #include "AnimalMonster.h"
 #include "../Character/Characters/PlayerCharacter.h"
 #include "NavigationInvokerComponent.h"
+#include "NiagaraComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Utility/CombatStatics.h"
 
 ABaseAnimal::ABaseAnimal()
 {
@@ -46,11 +48,24 @@ ABaseAnimal::ABaseAnimal()
 
     NavInvokerComponent = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvokerComponent"));
     NavInvokerComponent->SetGenerationRadii(2000.0f, 2500.0f);
+
+    InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComponent"));
+    InteractableComponent->SetActive(false);
+
+    StunEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("StunEffectComponent"));
+    StunEffectComponent->SetupAttachment(RootComponent);
+    StunEffectComponent->bAutoActivate = false;
 }
 
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
+    
+    if (InteractableComponent)
+    {
+        InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ABaseAnimal::OnInteract);
+    }
+    
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
         C->SetAnimalState(EAnimalState::Patrol);
@@ -76,6 +91,7 @@ void ABaseAnimal::LoadStats()
         {
             StatsRow = Row;
             CurrentStats = *Row;
+            CurrentStats.RunSpeed = Row->RunSpeed;
             bStatsReady = true;
             CurrentHealth = Row->MaxHealth;
             JumpPower = Row->JumpPower;
@@ -245,6 +261,11 @@ void ABaseAnimal::DrawDebugVisuals()
 
 #pragma endregion
 
+void ABaseAnimal::TakeStun_Implementation(const float StunAmount)
+{
+    ApplyStun(StunAmount);
+}
+
 void ABaseAnimal::ApplyStun(float Amount)
 {
     if (!bStatsReady || !StatsRow) return;
@@ -256,8 +277,36 @@ void ABaseAnimal::ApplyStun(float Amount)
         if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
         {
             C->OnStunned();
+
+            if (UAIPerceptionComponent* PerceptionComp = C->GetAIPerceptionComponent())
+            {
+                PerceptionComp->SetSenseEnabled(UAISense_Sight::StaticClass(), false);
+                PerceptionComp->SetSenseEnabled(UAISense_Hearing::StaticClass(), false);
+            }
         }
+       
         bIsStunned = true;
+        
+        if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
+        {
+            MovementComp->DisableMovement();
+        }
+        
+        if (USkeletalMeshComponent* MeshComp = GetMesh())
+        {
+            if (MeshComp->DoesSocketExist(TEXT("Neck")))
+            {
+                FName BoneName = MeshComp->GetSocketBoneName(TEXT("Neck"));
+                MeshComp->SetCollisionProfileName(TEXT("Ragdoll"));
+                MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+                MeshComp->SetAllBodiesBelowSimulatePhysics(BoneName, true, true);
+            }
+        }
+        
+        if (StunEffectComponent)
+        {
+            StunEffectComponent->ActivateSystem(true);
+        }
 
         GetWorldTimerManager().SetTimer(StunRecoverTimer, this, &ABaseAnimal::RecoverFromStun, StatsRow->StunDuration, false);
     }
@@ -266,19 +315,35 @@ void ABaseAnimal::ApplyStun(float Amount)
 void ABaseAnimal::RecoverFromStun()
 {
     bIsStunned = false;
+    
+    if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+    {
+        MoveComp->SetMovementMode(MOVE_Walking);
+    }
+
+    if (StunEffectComponent)
+    {
+        StunEffectComponent->DeactivateSystem();
+    }
+
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        FName BoneName = MeshComp->GetSocketBoneName(TEXT("TS"));
+        MeshComp->SetAllBodiesBelowSimulatePhysics(BoneName, false, true);
+        MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
+        MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    }
 
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
+        if (UAIPerceptionComponent* PerceptionComp = C->GetAIPerceptionComponent())
+        {
+            PerceptionComp->SetSenseEnabled(UAISense_Sight::StaticClass(), true);
+            PerceptionComp->SetSenseEnabled(UAISense_Hearing::StaticClass(), true);
+        }
         C->OnRecoveredFromStun();
     }
-
-    if (IsValid(ActiveInteractWidget))
-    {
-        ActiveInteractWidget->RemoveFromParent();
-        ActiveInteractWidget = nullptr;
-    }
 }
-
 
 void ABaseAnimal::Die()
 {
@@ -291,6 +356,11 @@ void ABaseAnimal::Die()
     else if (AAnimalMonsterAIController* MC = Cast<AAnimalMonsterAIController>(GetController()))
     {
         MC->OnDied();
+    }
+
+    if (StunEffectComponent)
+    {
+        StunEffectComponent->DeactivateSystem();
     }
 
     if (IsValid(ActiveInteractWidget))
@@ -431,8 +501,8 @@ void ABaseAnimal::OnInteract(AActor* Interactor)
     {
         Inventory->AddItems(DroppedItems);
     }
-
-    Destroy();
+    StartFadeOut();
+    SetLifeSpan(2.0f);
 }
 
 void ABaseAnimal::Capture()
@@ -591,7 +661,7 @@ void ABaseAnimal::PerformMeleeAttack()
 
     const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
     if (Distance > MeleeRange) return;
-    
+        
     GetWorldTimerManager().SetTimer(
         MeleeAttackTimerHandle,
         this,
@@ -642,27 +712,59 @@ void ABaseAnimal::PerformRangedAttack()
 #pragma region Pade Out Effect
 void ABaseAnimal::StartFadeOut()
 {    
-    if (UMaterialInstanceDynamic* DynMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0))
+    USkeletalMeshComponent* MeshComp = GetMesh();
+    if (!MeshComp) return;
+    
+    for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
     {
-        DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
-        FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade, DynMat);
-        GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+        if (UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i))
+        {
+            DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+        }
     }
+
+    FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade);
+    GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+
+    MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 }
 
-void ABaseAnimal::UpdateFade(UMaterialInstanceDynamic* DynMat)
+void ABaseAnimal::UpdateFade()
 {
     ElapsedFadeTime += 0.02f;
     float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
-    DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+    
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+        {
+            if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(MeshComp->GetMaterial(i)))
+            {
+                DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+            }
+        }
+    }
     
     if (ElapsedFadeTime >= 2.0f)
     {
-        if (USkeletalMeshComponent* MeshComp = GetMesh())
-        {
-            MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
-        }
         GetWorldTimerManager().ClearTimer(FadeTimerHandle);
     }
 }
 #pragma endregion
+
+
+// Stun Test
+void ABaseAnimal::ForceStunToMax()
+{
+    if (!bStatsReady || !StatsRow) 
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[%s] ForceStunToMax - Stats not ready"), *GetName());
+        return;
+    }
+    
+    UE_LOG(LogTemp, Log, TEXT("[%s] ForceStunToMax - Applying max stun: %f"), *GetName(), CurrentStats.StunThreshold);
+    UCombatStatics::ApplyStun(this, 5000.f);
+
+    UE_LOG(LogTemp, Log, TEXT("[%s] ApplyStun - StunValue: %f / Threshold: %f"), 
+    *GetName(), StunValue, CurrentStats.StunThreshold);
+}

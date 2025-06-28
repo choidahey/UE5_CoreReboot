@@ -71,6 +71,11 @@ private:
 private:
 	UFUNCTION()
 	void CraftItem();
+
+	void PlayCraftingSound() const;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Crafitng|Sound")
+	TObjectPtr<USoundBase> CraftingSound;
 	
 	bool bCanCraft;
 	

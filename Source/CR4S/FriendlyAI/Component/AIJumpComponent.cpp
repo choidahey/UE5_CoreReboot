@@ -123,7 +123,17 @@ void UAIJumpComponent::ExecuteMovement()
     FJumpPoint CurrentTarget = CurrentPath[CurrentPathIndex];
     FVector CharacterLocation = OwnerCharacter->GetActorLocation();
         
-    if (FVector::Dist(CharacterLocation, CurrentTarget.Location) <= TargetReachDistance)
+    float CheckDistance = TargetReachDistance;
+    if (CurrentTargetActor && CurrentTargetActor->IsA<APawn>())
+    {
+        CheckDistance = 10.0f;
+    }
+    else
+    {
+        CheckDistance = 10.0f;
+    }
+
+    if (FVector::Dist(CharacterLocation, CurrentTarget.Location) <= CheckDistance)
     {
         CurrentPathIndex++;
         return;
@@ -131,7 +141,7 @@ void UAIJumpComponent::ExecuteMovement()
 
     if (CurrentTarget.bRequiresJump)
     {
-        if (FVector::Dist(CharacterLocation, CurrentTarget.JumpStartPos) <= TargetReachDistance)
+        if (FVector::Dist(CharacterLocation, CurrentTarget.JumpStartPos) <= JumpStartDistance)
         {
             ExecuteJump();
         }
@@ -663,18 +673,32 @@ bool UAIJumpComponent::GetTargetActorFromBlackboard()
 bool UAIJumpComponent::HasReachedTarget()
 {
     if (!CurrentTargetActor || !OwnerCharacter)
+    {
         return false;
-        
+    }
+   
+    float CheckDistance = TargetReachDistance;
+      
     float Distance = FVector::Dist(OwnerCharacter->GetActorLocation(), CurrentTargetActor->GetActorLocation());
-    return Distance <= TargetReachDistance;
+    // UE_LOG(LogTemp, Warning, TEXT("HasReachedTarget: Distance=%.2f, CheckDistance=%.2f, Target=%s"), 
+    //        Distance, CheckDistance, *CurrentTargetActor->GetName());
+  
+    bool bReached = Distance <= CheckDistance;
+    // if (bReached)
+    // {
+    //     UE_LOG(LogTemp, Warning, TEXT("HasReachedTarget: TARGET REACHED!"));
+    // }
+  
+    return bReached;
 }
 
 #pragma endregion
 
-void UAIJumpComponent::ActivateJumpComponent()
+void UAIJumpComponent::ActivateJumpComponent(float InTargetReachDistance)
 {
     SetComponentTickEnabled(true);
     bIsComponentActive = true;
+    TargetReachDistance = InTargetReachDistance;
     ResetJumpState();
 }
 

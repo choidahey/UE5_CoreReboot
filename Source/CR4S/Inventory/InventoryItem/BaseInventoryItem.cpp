@@ -2,6 +2,8 @@
 
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
+#include "Game/SaveGame/InventorySaveGame.h"
+#include "Game/System/AudioManager.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
@@ -14,9 +16,12 @@ UBaseInventoryItem::UBaseInventoryItem()
 }
 
 void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-                                           const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
+                                           const FInventoryItemData& NewInventoryItemData,
+                                           const int32 StackCount)
 {
 	UpdateInventoryItem(NewInventoryComponent);
+
+	PlayerInventoryComponent = nullptr;
 
 	if (IsValid(InventoryComponent))
 	{
@@ -41,7 +46,7 @@ void UBaseInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 	{
 		WorldTimeManager = World->GetSubsystem<UWorldTimeManager>();
 	}
-	
+
 	if (bUsePassiveEffect)
 	{
 		StartPassiveEffect();
@@ -55,10 +60,23 @@ void UBaseInventoryItem::UpdateInventoryItem(UBaseInventoryComponent* NewInvento
 
 void UBaseInventoryItem::UseItem(const int32 Index)
 {
-	USoundBase* UseSound = InventoryItemData.ItemInfoData.UseSound;
-	if (IsValid(UseSound))
+	if (!IsValid(OwnerPlayer))
 	{
-		UGameplayStatics::PlaySound2D(GetWorld(), UseSound);
+		return;
+	}
+
+	const UGameInstance* GameInstance = GetWorld()->GetGameInstance();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(GameInstance)))
+	{
+		return;
+	}
+
+	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+	if (IsValid(AudioManager))
+	{
+		AudioManager->PlaySFX(InventoryItemData.ItemInfoData.UseSound,
+		                      OwnerPlayer->GetActorLocation(),
+		                      EConcurrencyType::Default);
 	}
 }
 
@@ -89,4 +107,15 @@ void UBaseInventoryItem::EndPassiveEffect()
 void UBaseInventoryItem::SetCurrentStackCount(const int32 NewStackCount)
 {
 	CurrentStackCount = FMath::Clamp(NewStackCount, 0, InventoryItemData.ItemInfoData.MaxStackCount);
+}
+
+FInventoryItemSaveGame UBaseInventoryItem::GetInventoryItemSaveData()
+{
+	return FInventoryItemSaveGame(InventoryItemData, CurrentStackCount);
+}
+
+void UBaseInventoryItem::LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+                                                   const FInventoryItemSaveGame& ItemSaveGame)
+{
+	InitInventoryItem(NewInventoryComponent, ItemSaveGame.InventoryItemData, ItemSaveGame.Count);
 }

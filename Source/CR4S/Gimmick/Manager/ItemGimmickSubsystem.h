@@ -7,6 +7,9 @@
 
 #include "ItemGimmickSubsystem.generated.h"
 
+class UProjectilePoolSubsystem;
+struct FGimmickSaveGameData;
+struct FGimmickSaveGame;
 class ABaseGimmick;
 
 UCLASS(BlueprintType)
@@ -21,6 +24,7 @@ public:
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void PostInitialize() override;
 	
 #pragma endregion
 
@@ -75,5 +79,18 @@ private:
 	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Gimmick Spawn")
 	ABaseGimmick* SpawnGimmick(const FName& RowName, const FVector& SpawnLocation, const FRotator& SpawnRotation) const;
 
+	UPROPERTY()
+	TObjectPtr<UProjectilePoolSubsystem> PoolSubsystem;
+	
 #pragma endregion
+
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintPure, Category = "Gimmick|SaveGame")
+	FGimmickSaveGame GetGimmickSaveGame() const;
+	UFUNCTION(BlueprintCallable, Category = "Gimmick|LoadGame")
+	void LoadGimmickSaveGame(const FGimmickSaveGame& GimmickSaveGame);
+	
+#pragma endregion 
 };

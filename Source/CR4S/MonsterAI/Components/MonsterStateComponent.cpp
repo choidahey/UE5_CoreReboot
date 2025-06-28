@@ -47,7 +47,6 @@ void UMonsterStateComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		float CurrentRecoveryRate = FMath::Lerp(StunRecoveryMin, StunRecoveryMax, RecoveryAlpha);
 		
 		CurrentStun = FMath::Clamp(CurrentStun - CurrentRecoveryRate * DeltaTime, 0.f, MaxStun);
-		CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f"), CurrentStun);
 	}
 }
 
@@ -82,6 +81,26 @@ void UMonsterStateComponent::ForceInterrupt()
 	SetState(EMonsterState::Idle);
 }
 
+void UMonsterStateComponent::CheckPhaseTransition(float CurrentHP, float MaxHP)
+{
+	if (!PhaseDataAsset) return;
+
+	const float Ratio = CurrentHP / MaxHP;
+
+	for (const FPhaseTransitionCondition& Condition : PhaseDataAsset->PhaseConditions)
+	{
+		if (Condition.TargetPhase <= CurrentPhase) continue;
+		if (Ratio <= Condition.HPThresholdRatio)
+		{
+			CurrentSpeedMultiplier = Condition.SpeedMultiplier;
+			CurrentDamageMultiplier = Condition.DamageMultiplier;
+
+			SetPhase(Condition.TargetPhase);
+			break;
+		}
+	}
+}
+
 void UMonsterStateComponent::SetPhase(EBossPhase NewPhase)
 {
 	if (CurrentPhase == NewPhase) return;
@@ -95,7 +114,7 @@ void UMonsterStateComponent::AddStun(float StunAmount)
 	if (bIsStunned) return;
 	
 	CurrentStun = FMath::Clamp(CurrentStun + StunAmount, 0.f, MaxStun);
-	CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
+	CR4S_Log(LogMonster, Log, TEXT("[Stun] Add Stun - CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
 
 	bCanRecover = false;
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryDelayTimerHandle);
@@ -148,7 +167,7 @@ void UMonsterStateComponent::RemoveStunDebuff()
 		if (UCharacterMovementComponent* Movement = Owner->GetCharacterMovement())
 			Movement->SetMovementMode(EMovementMode::MOVE_Walking);
 
-	CR4S_Log(LogMonster, Log, TEXT("[Stun] CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
+	CR4S_Log(LogMonster, Log, TEXT("[Stun] Clear Stun - CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
 }
 
 void UMonsterStateComponent::InitializeStunData(const FMonsterAttributeRow& Data)

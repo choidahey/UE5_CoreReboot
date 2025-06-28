@@ -6,13 +6,15 @@
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Components/RobotInputBufferComponent.h"
+#include "Character/Components/RobotWeaponComponent.h"
 
 ABaseWeapon::ABaseWeapon()
 {
 	SceneComp=CreateDefaultSubobject<USceneComponent>(FName("Root"));
 	RootComponent=SceneComp;
-	SkeletalMeshComp=CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
-	SkeletalMeshComp->SetupAttachment(RootComponent);
+	StaticMeshComp=CreateDefaultSubobject<UStaticMeshComponent>("SkeletalMesh");
+	StaticMeshComp->SetupAttachment(RootComponent);
+	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 float ABaseWeapon::ComputeFinalDamage()
@@ -28,11 +30,13 @@ float ABaseWeapon::ComputeFinalDamage()
 void ABaseWeapon::OnAttack()
 {
 	ApplySelfStun();
+	SetWeaponManagerIsDuringAttackAction(true);
 }
 
 void ABaseWeapon::StopAttack()
 {
 	RemoveSelfStun();
+	SetWeaponManagerIsDuringAttackAction(false);
 }
 
 void ABaseWeapon::StartAttackCooldown()
@@ -69,7 +73,15 @@ void ABaseWeapon::RemoveSelfStun() const
 	}
 }
 
-void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
+void ABaseWeapon::SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const
+{
+	if (URobotWeaponComponent* WeaponManager=GetTypedOuter<URobotWeaponComponent>())
+	{
+		WeaponManager->SetIsDuringAttackAction(bIsAttacking);
+	}
+}
+
+void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 {
 	OwningCharacter=OwnerCharacter;
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
@@ -78,7 +90,19 @@ void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter)
 	if (!CR4S_ENSURE(LogHong1,CurrentBuffer)) return;
 	
 	InputBuffer=CurrentBuffer;
-	//SkeletalMeshComp->SetSkeletalMesh(BaseInfo.SkeletalMesh);
+	bIsRightHand=SlotIdx%2; // 0:Left, 1: Right
+	if (!BaseInfo.SkeletalMeshs.IsValidIndex(bIsRightHand) || BaseInfo.SkeletalMeshs[bIsRightHand])
+	StaticMeshComp->SetStaticMesh(BaseInfo.SkeletalMeshs[bIsRightHand]);
 }
+
+int32 ABaseWeapon::GetCurrentAmmo() const
+{
+	return 0;
+}
+
+void ABaseWeapon::SetCurrentAmmo(const int32 NewAmmo)
+{
+}
+
 
 

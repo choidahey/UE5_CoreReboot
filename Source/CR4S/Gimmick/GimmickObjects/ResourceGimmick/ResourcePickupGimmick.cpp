@@ -1,7 +1,9 @@
 ﻿#include "ResourcePickupGimmick.h"
 
 #include "CR4S.h"
+#include "Game/System/AudioManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Gimmick/Data/GimmickData.h"
 
 AResourcePickupGimmick::AResourcePickupGimmick()
 {
@@ -18,10 +20,17 @@ void AResourcePickupGimmick::BeginPlay()
 	{
 		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ThisClass::OnGimmickInteracted);
 	}
+
+	if (const FGimmickInfoData* GimmickInfoData = GetGimmickInfoData())
+	{
+		InteractSound = GimmickInfoData->InteractSound;
+	}
 }
 
 void AResourcePickupGimmick::OnGimmickInteracted(AActor* Interactor)
 {
+	PlaySFX(InteractSound, GetActorLocation(), EConcurrencyType::Default);
+	
 	GetResources(Interactor);
 
 	GimmickDestroy();

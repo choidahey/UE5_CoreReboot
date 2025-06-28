@@ -76,15 +76,21 @@ void UCharacterStatusWidget::InitializeWidget(UBaseStatusComponent* InStatus)
 	
 	InStatus->OnHPChanged.AddUObject(this,&UCharacterStatusWidget::UpdateHP);
 	InStatus->OnResourceChanged.AddUObject(this,&UCharacterStatusWidget::UpdateResource);
+
+	UpdateHP(InStatus->GetCurrentHPPercentage());
+	UpdateResource(InStatus->GetCurrentResourcePercentage());
 	
 	if (UModularRobotStatusComponent* RobotStatusComp=Cast<UModularRobotStatusComponent>(InStatus))
 	{
-		RobotStatusComp->OnEnergyChanged.AddUObject(this,&UCharacterStatusWidget::UpdateEnergy);
-		RobotStatusComp->OnStunChanged.AddUObject(this,&UCharacterStatusWidget::UpdateStun);
+		RobotStatusComp->OnEnergyChanged.AddDynamic(this,&UCharacterStatusWidget::UpdateEnergy);
+		RobotStatusComp->OnStunChanged.AddDynamic(this,&UCharacterStatusWidget::UpdateStun);
+
+		UpdateEnergy(RobotStatusComp->GetCurrentEnergyPercentage());
+		UpdateStun(RobotStatusComp->GetCurrentStunPercentage());
 	}
 }
 
-void UCharacterStatusWidget::ClearBindings()
+void UCharacterStatusWidget::ClearBindings() const
 {
 	if (!CR4S_ENSURE(LogHong1,CachedStatusComponent)) return;
 	CachedStatusComponent->OnHPChanged.RemoveAll(this);

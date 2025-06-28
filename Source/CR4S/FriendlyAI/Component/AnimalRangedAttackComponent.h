@@ -36,4 +36,7 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	float MaxPitchAngle = 60.f;
+
+	UPROPERTY(EditAnywhere)
+	float DamageMultiplier = 1.0f;
 };

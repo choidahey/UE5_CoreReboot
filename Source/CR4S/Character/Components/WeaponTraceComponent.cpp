@@ -5,8 +5,10 @@
 
 #include "CR4S.h"
 #include "Character/Weapon/BaseTool.h"
+#include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Utility/CombatStatics.h"
 
 
 // Sets default values for this component's properties
@@ -62,7 +64,7 @@ void UWeaponTraceComponent::SweepAndApplyDamage(AActor* OwningCharacter, const F
 		PreviousTopLocation,
 		CurrentTop,
 		Look.Quaternion(),
-		ECC_Visibility,
+		ECC_GameTraceChannel5,
 		FCollisionShape::MakeBox(BoxHalfSize),
 		QueryParams
 	);
@@ -84,6 +86,10 @@ void UWeaponTraceComponent::SweepAndApplyDamage(AActor* OwningCharacter, const F
 				OwningCharacter,
 				UDamageType::StaticClass()
 			);
+			if (AMeleeWeapon* CurrentWeapon=Cast<AMeleeWeapon>(CurrentTool))
+			{
+				UCombatStatics::ApplyStun(HitActor,CurrentWeapon->GetStunAmount());
+			}
 			AlreadyDamagedActors.Add(HitActor);	
 		}
 	}

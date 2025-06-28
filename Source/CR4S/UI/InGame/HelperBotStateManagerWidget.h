@@ -33,6 +33,9 @@ protected:
 	UFUNCTION() void ChangeNameButtonClicked();
 	UFUNCTION() void OnNameEditCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 	UFUNCTION() void PickUp();
+	UFUNCTION() void RepairBot();
+	void UpdateRepairButtonState();
+	void UpdateHealthDisplay(); 
 	
 protected:
 	UPROPERTY(meta=(BindWidget)) class UCanvasPanel* RootCanvas;
@@ -48,7 +51,9 @@ protected:
 	UPROPERTY(meta=(BindWidget)) class UEditableTextBox* BotNameEditBox;
 	UPROPERTY(meta=(BindWidget)) class UButton* ChangeNameButton;
 	UPROPERTY(meta=(BindWidget)) class UButton* PickUpButton;
-	UPROPERTY(meta=(BindWidget)) class UButton* SetGatheringButton; 
+	UPROPERTY(meta=(BindWidget)) class UButton* SetGatheringButton;
+	UPROPERTY(meta=(BindWidget)) class UButton* RepairBotButton;
+	UPROPERTY(meta=(BindWidget)) class UTextBlock* HealthText;
 
 	UPROPERTY() TObjectPtr<ABaseHelperBot> HelperBot = nullptr;
 

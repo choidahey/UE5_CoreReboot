@@ -33,7 +33,7 @@ void UCraftingContainerWidget::UpdateWidget(const int32 NewCraftingDifficulty)
 {
 	CraftingDifficulty = NewCraftingDifficulty;
 
-	CR4S_Log(LogCraftingUI, Warning, TEXT("Crafting Difficulty: %d"), NewCraftingDifficulty);
+	// CR4S_Log(LogCraftingUI, Warning, TEXT("Crafting Difficulty: %d"), NewCraftingDifficulty);
 
 	if (IsValid(CraftingCategorySelectWidget))
 	{

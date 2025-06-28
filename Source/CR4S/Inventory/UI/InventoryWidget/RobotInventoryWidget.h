@@ -4,6 +4,8 @@
 #include "BaseInventoryWidget.h"
 #include "RobotInventoryWidget.generated.h"
 
+class UModularRobotStatusComponent;
+class AModularRobot;
 class UCraftingWidget;
 class URecipeSelectWidget;
 
@@ -26,6 +28,8 @@ public:
 
 	virtual void InitWidget(ASurvivalHUD* SurvivalHUD, bool bNewCanSort) override;
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) override;
+
+	virtual void UnBoundWidgetDelegate() override;
 	
 #pragma endregion
 	
@@ -42,12 +46,30 @@ public:
 	void ChangeModeCreate();
 	UFUNCTION()
 	void ChangeModeAssembly();
+
+	FORCEINLINE AModularRobot* GetModularRobot() const { return ModularRobot; }
 	
 private:
 	void ChangeMode(ERobotWorkshopMode NewRobotWorkshopMode);
+
+	void BindDelegate();
+
+	UFUNCTION()
+	void UpdateCurrentWeightText(float NewValue);
+	UFUNCTION()
+	void UpdateMaxWeightText(float NewValue);
+	UFUNCTION()
+	void UpdateCurrentArmWeightText(float NewValue);
+	UFUNCTION()
+	void UpdateMaxArmWeightText(float NewValue);
 	
 	UPROPERTY(VisibleAnywhere, Category = "RobotWorkshop|Mode")
 	ERobotWorkshopMode RobotWorkshopMode;
+
+	UPROPERTY()
+	TObjectPtr<AModularRobot> ModularRobot;
+	UPROPERTY()
+	TObjectPtr<UModularRobotStatusComponent> RobotStatusComponent;
 	
 #pragma endregion
 
@@ -58,6 +80,9 @@ public:
 	FORCEINLINE UCraftingWidget* GetCraftingWidget() const { return CraftingWidget; }
 	
 private:
+	void UpdateCurrentWeightColor(bool bIsArmWeight) const;
+	void UpdateButtonColor() const;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> CreateModeButton;
 	UPROPERTY(meta = (BindWidget))
@@ -66,6 +91,14 @@ private:
 	TObjectPtr<URecipeSelectWidget> RecipeSelectWidget;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCraftingWidget> CraftingWidget;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CurrentWeightText;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> MaxWeightText;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CurrentArmWeightText;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> MaxArmWeightText;
 
 	UPROPERTY(EditDefaultsOnly, Category = "RobotInventoryWidget")
 	TObjectPtr<UDataTable> ItemRecipeData;
@@ -74,6 +107,19 @@ private:
 	FText CreateModeText;
 	UPROPERTY(EditDefaultsOnly, Category = "RobotInventoryWidget")
 	FText AssemblyModeText;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Color")
+	FLinearColor CurrentModeButtonColor = FLinearColor::Green;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Color")
+	FLinearColor DefaultColor = FLinearColor::White;
+	UPROPERTY(EditDefaultsOnly, Category = "Color")
+	FLinearColor OverColor = FLinearColor::Red;
+
+	int32 CurrentWeight = 0;
+	int32 MaxWeight = 0;
+	int32 CurrentArmWeight = 0;
+	int32 MaxArmWeight = 0;
 	
 #pragma endregion
 

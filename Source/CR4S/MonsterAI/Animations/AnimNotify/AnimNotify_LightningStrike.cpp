@@ -11,11 +11,6 @@ void UAnimNotify_LightningStrike::Notify(USkeletalMeshComponent* MeshComp, UAnim
 	ABaseMonster* OwnerMonster = Cast<ABaseMonster>(MeshComp->GetOwner());
 	if (!OwnerMonster) return;
 
-	UMonsterSkillComponent* SkillComp = OwnerMonster->FindComponentByClass<UMonsterSkillComponent>();
-	if (!SkillComp) return;
-
-	const float Damage = SkillComp->GetCurrentSkillData().Damage;
-
 	APawn* TargetPlayer = UGameplayStatics::GetPlayerPawn(OwnerMonster, 0);
 	if (!TargetPlayer) return;
 
@@ -28,9 +23,10 @@ void UAnimNotify_LightningStrike::Notify(USkeletalMeshComponent* MeshComp, UAnim
 
 	FTimerHandle SpawnHandle;
 	World->GetTimerManager().SetTimer(SpawnHandle,
-		FTimerDelegate::CreateWeakLambda(this, [this, World, TargetLocation, Damage]()
+		FTimerDelegate::CreateWeakLambda(this, [this, World, TargetLocation, OwnerMonster]()
 		{
 			FActorSpawnParameters Params;
+			Params.Owner = OwnerMonster;
 			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 			ALightningStrikeActor* Lightning = World->SpawnActor<ALightningStrikeActor>(
@@ -42,7 +38,7 @@ void UAnimNotify_LightningStrike::Notify(USkeletalMeshComponent* MeshComp, UAnim
 
 			if (Lightning)
 			{
-				Lightning->InitializeStrike(TargetLocation, LightningEffect, Damage);
+				Lightning->InitializeStrike(TargetLocation, LightningEffect);
 			}
 		}),
 		SpawnDelay,

@@ -6,6 +6,7 @@
 #include "Inventory/UI/InventoryWidget/RobotInventoryWidget.h"
 #include "RobotPartsItemSlotWidget.generated.h"
 
+class URobotWeaponComponent;
 class URobotInventoryWidget;
 
 UCLASS()
@@ -22,6 +23,8 @@ public:
 	
 	virtual bool IsItemAllowedByFilter(UBaseInventoryItem* Item) const override;
 
+	virtual void SetItem(UBaseInventoryItem* InItem) override;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<URobotInventoryWidget> RobotInventoryWidget;
@@ -64,7 +67,25 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "BackgroundIcon")
 	FSlateBrush BackgroundIconBrush;
+
+#pragma endregion
+
+#pragma region ModularRobot
 	
+private:
+	void EquipParts(const UBaseInventoryItem* Item) const;
+	void UnEquipParts() const;
+
+	bool EquippedBodyParts(const FGameplayTagContainer& ItemTags) const;
+	
+	UPROPERTY()
+	TObjectPtr<AModularRobot> ModularRobot;
+
+	UPROPERTY()
+	TObjectPtr<URobotWeaponComponent> RobotWeaponComponent;
+
+	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|ModularRobot")
+	int32 WeaponSlotIndex = -1;
 	
 #pragma endregion 
 };

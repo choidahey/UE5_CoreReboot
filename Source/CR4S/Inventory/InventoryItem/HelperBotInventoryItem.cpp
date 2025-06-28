@@ -3,6 +3,18 @@
 #include "CR4S.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "FriendlyAI/BaseHelperBot.h"
+#include "Game/SaveGame/InventorySaveGame.h"
+
+#define LOCTEXT_NAMESPACE "HelperBotInventoryItem"
+
+void UHelperBotInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
+                                                const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
+{
+	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
+
+	BotNameText = LOCTEXT("BotNameText", "이름");
+	HPText = LOCTEXT("HPText", "체력");
+}
 
 void UHelperBotInventoryItem::UseItem(const int32 Index)
 {
@@ -14,7 +26,7 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 		return;
 	}
 
-	UWorld* World = GetWorld();
+	const UWorld* World = GetWorld();
 	const FHelperBotItemData* HelperBotItem
 		= DataTable->FindRow<FHelperBotItemData>(GetItemRowName(), TEXT(""));
 	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(World)) ||
@@ -40,15 +52,17 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	ABaseHelperBot* HelperBot = GetWorld()->SpawnActor<ABaseHelperBot>(HelperBotItem->HelperBotClass,
-	                                                                         SpawnLocation,
-	                                                                         SpawnRotation,
-	                                                                         SpawnParameters);
+	                                                                   SpawnLocation,
+	                                                                   SpawnRotation,
+	                                                                   SpawnParameters);
 
 	if (IsValid(HelperBot))
 	{
-		HelperBot->SetIsFromInventory(true);
-		HelperBot->SetPickUpData(GetHelperBotData());
-		
+		if (HelperBot->InitPickData())
+		{
+			HelperBot->SetPickUpData(GetHelperBotData());
+		}
+
 		InventoryComponent->RemoveItemByIndex(Index, 1);
 	}
 	else
@@ -56,3 +70,36 @@ void UHelperBotInventoryItem::UseItem(const int32 Index)
 		CR4S_Log(LogInventoryItem, Warning, TEXT("Helper Bot Spawn Failed"));
 	}
 }
+
+void UHelperBotInventoryItem::SetHelperBotData(const FHelperPickUpData& NewHelperBotData)
+{
+	HelperBotData = NewHelperBotData;
+
+	const FText NewDescription = FText::Format(
+		LOCTEXT("ItemDescriptionFormat", "{0}: {1}\n{2}: {3}"),
+		BotNameText,
+		HelperBotData.BotName,
+		HPText,
+		FText::AsNumber(HelperBotData.CurrentHealth)
+	);
+
+	InventoryItemData.ItemInfoData.Description = NewDescription;
+}
+
+FInventoryItemSaveGame UHelperBotInventoryItem::GetInventoryItemSaveData()
+{
+	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
+	ItemSaveGame.HelperBotItemData = HelperBotData;
+
+	return ItemSaveGame;
+}
+
+void UHelperBotInventoryItem::LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+                                                        const FInventoryItemSaveGame& ItemSaveGame)
+{
+	Super::LoadInventoryItemSaveData(NewInventoryComponent, ItemSaveGame);
+
+	HelperBotData = ItemSaveGame.HelperBotItemData;
+}
+
+#undef LOCTEXT_NAMESPACE

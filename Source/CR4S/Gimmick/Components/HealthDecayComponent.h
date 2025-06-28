@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Gimmick/Data/HealthDecayData.h"
 #include "HealthDecayComponent.generated.h"
-
 
 class UWorldTimeManager;
 
@@ -32,32 +32,32 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HealthDecay")
 	void ResetHealthDecay();
 
-	UFUNCTION(BlueprintCallable, Category = "HealthDecay")
-	FORCEINLINE void SetMaxHealth(const float NewMaxHealth) { MaxHealth = NewMaxHealth; }
+	UFUNCTION(BlueprintPure, Category = "HealthDecay")
+	FORCEINLINE FHealthDecayData GetHealthDecayData() const { return HealthDecayData; }
 
 	UFUNCTION(BlueprintCallable, Category = "HealthDecay")
-	FORCEINLINE void SetCurrentHealth(const float NewCurrentHealth) { CurrentHealth = NewCurrentHealth; }
+	FORCEINLINE void SetMaxHealth(const float NewMaxHealth) { HealthDecayData.MaxHealth = NewMaxHealth; }
+
+	UFUNCTION(BlueprintCallable, Category = "HealthDecay")
+	FORCEINLINE void SetCurrentHealth(const float NewCurrentHealth)
+	{
+		HealthDecayData.CurrentHealth = NewCurrentHealth;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "HealthDecay")
+	FORCEINLINE bool IsInit() const { return bIsInit; }
 
 private:
 	UFUNCTION()
 	void HandleWorldTimeUpdated(const int64 NewPlayTime);
 
 	UPROPERTY(EditDefaultsOnly, Category = "HealthDecay")
-	float MaxHealth;
-	UPROPERTY(EditDefaultsOnly, Category = "HealthDecay")
-	float CurrentHealth;
-	UPROPERTY(EditDefaultsOnly, Category = "HealthDecay", meta=(ClampMin="0.0", ClampMax="1.0"))
-	float TargetHealthRatio;
-	UPROPERTY(EditDefaultsOnly, Category = "HealthDecay", meta=(ClampMin="1.0"))
-	float DecayDuration;
-
-	int64 PreviousPlayTime = -1;
-
-	float MinHealth;
-	float HealthDecayRate;
+	FHealthDecayData HealthDecayData;
 
 	UPROPERTY()
 	TObjectPtr<UWorldTimeManager> WorldTimeManager;
+	
+	bool bIsInit;
 
 #pragma endregion
 
@@ -75,4 +75,12 @@ public:
 	FOnEndHealthDecay OnEndHealthDecay;
 
 #pragma endregion
+
+#pragma region Load
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "HealthDecay")
+	void LoadHealthDecayData(const FHealthDecayData& NewHealthDecayData);
+	
+#pragma endregion 
 };

@@ -4,6 +4,7 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UToolInventoryItem::UToolInventoryItem()
 {
@@ -17,6 +18,12 @@ void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
+	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (IsValid(Pawn))
+	{
+		PlayerInventoryComponent = Pawn->FindComponentByClass<UPlayerInventoryComponent>();
+	}
+	
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;
 	if (!CR4S_VALIDATE(LogInventory, IsValid(DataTable)))
 	{
@@ -28,18 +35,16 @@ void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 	{
 		ToolItemData = *FindItemData;
 	}
+
+	if (IsValid(OwnerPlayer))
+	{
+		StatusComponent = OwnerPlayer->FindComponentByClass<UBaseStatusComponent>();
+	}
 }
 
 void UToolInventoryItem::UseItem(const int32 Index)
 {
 	Super::UseItem(Index);
-
-	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
-	{
-		return;
-	}
-
-	CR4S_Log(LogInventory, Warning, TEXT("Before: %s"), *OwnerPlayer->GetOverlayMode().ToString());
 
 	if (OwnerPlayer->GetOverlayMode() == ToolItemData.ToolTag)
 	{
@@ -49,8 +54,6 @@ void UToolInventoryItem::UseItem(const int32 Index)
 	{
 		EquipItem();
 	}
-
-	CR4S_Log(LogInventory, Warning, TEXT("After: %s"), *OwnerPlayer->GetOverlayMode().ToString());
 }
 
 void UToolInventoryItem::EquipItem() const
@@ -60,15 +63,28 @@ void UToolInventoryItem::EquipItem() const
 	{
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
 		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
+
+		if (IsValid(StatusComponent))
+		{
+			StatusComponent->AddAttackPower(ToolItemData.Damage);
+			CR4S_Log(LogInventory, Warning, TEXT("AttackPower: %.f"), StatusComponent->GetAttackPower());
+		}
 	}
 }
 
 void UToolInventoryItem::UnEquipItem() const
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
-		IsValid(PlayerInventoryComponent))
+		IsValid(PlayerInventoryComponent) &&
+		PlayerInventoryComponent->GetHeldToolTag() != FGameplayTag::EmptyTag)
 	{
-		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
+		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag::EmptyTag);
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
+
+		if (IsValid(StatusComponent))
+		{
+			StatusComponent->AddAttackPower(-ToolItemData.Damage);
+			CR4S_Log(LogInventory, Warning, TEXT("AttackPower: %.f"), StatusComponent->GetAttackPower());
+		}
 	}
 }

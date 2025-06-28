@@ -12,9 +12,10 @@ class CR4S_API ALightningStrikeActor : public ABaseSkillActor
 public:	
 	ALightningStrikeActor();
 
-	void InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect, float );
+	void InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect);
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void OnOverlap(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,

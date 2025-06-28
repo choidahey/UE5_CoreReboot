@@ -1,7 +1,11 @@
 #include "KamishForestBoss.h"
 #include "MonsterAI/Components/MonsterAnimComponent.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
+#include "MonsterAI/Skills/WeaponActor.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 
@@ -32,7 +36,15 @@ void AKamishForestBoss::OnMonsterStateChanged(EMonsterState Previous, EMonsterSt
 	if (Current == EMonsterState::Combat)
 	{
 		SpawnCloudEffect();
-		SkillComponent->UseSkill(0);
+
+		if (AAIController* AI = Cast<AAIController>(GetController()))
+		{
+			if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+			{
+				BB->SetValueAsInt(FRegionBossAIKeys::CurrentPatternID, 0);
+				BB->SetValueAsInt(FRegionBossAIKeys::PatternStepIndex, 0);
+			}
+		}
 	}
 
 	if (Previous == EMonsterState::Combat && Current != EMonsterState::Combat)
@@ -67,10 +79,12 @@ void AKamishForestBoss::AttachWeaponActor()
 		if (LeftWeapon)
 		{
 			LeftWeapon->AttachToComponent(SeletalMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AxeWeapon_L"));
+			WeaponActors.Add(Cast<AWeaponActor>(LeftWeapon));
 		}
 		if (RightWeapon)
 		{
 			RightWeapon->AttachToComponent(SeletalMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("AxeWeapon_R"));
+			WeaponActors.Add(Cast<AWeaponActor>(RightWeapon));
 		}
 	}
 }
@@ -109,3 +123,13 @@ void AKamishForestBoss::DestroyActiveClouds()
 	}
 }
 
+void AKamishForestBoss::SetWeaponLandingLocation(FVector Location)
+{
+	if (AAIController* AIC = Cast<AAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
+		{
+			BB->SetValueAsVector(FRegionBossAIKeys::SkillTargetLocation, Location);
+		}
+	}
+}

@@ -9,10 +9,25 @@
 #include "Game/SaveGame/CoreSaveGame.h"
 //#include "Game/SaveGame/BuildingSaveGame.h"
 
+
 #include "Game/GameInstance/C4GameInstance.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/Character.h"
 #include "CR4S.h"
+#include "SpawnActorClassConfig.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Character/Characters/PlayerCharacter.h"
+#include "DeveloperSettings/CR4SDataTableSettings.h"
+#include "Game/Interface/SavableActor.h"
+
+void USaveGameManager::Initialize(FSubsystemCollectionBase& Collection)
+{
+    Super::Initialize(Collection);
+
+    if (const UCR4SDataTableSettings* Settings=GetDefault<UCR4SDataTableSettings>())
+    {
+        SpawnClassDataAsset=Cast<USpawnActorClassConfig>(Settings->GetDataAssetByName(TEXT("SpawnClassDataAsset")));
+    }
+}
 
 void USaveGameManager::SaveAll(const FString& SlotName)
 {
@@ -37,6 +52,7 @@ void USaveGameManager::SaveAll(const FString& SlotName)
 
 void USaveGameManager::PreloadSaveData(const FString& SlotName)
 {
+    
     if (UGameplayStatics::DoesSaveGameExist(SlotName + "_Core", 0))
     {
         CoreSave = Cast<UCoreSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_Core", 0));
@@ -96,16 +112,6 @@ USettingsSaveGame* USaveGameManager::LoadSettings()
     {
         SettingsSave = Cast<USettingsSaveGame>(UGameplayStatics::LoadGameFromSlot(SettingsSlotName, 0));
 
-        if (SettingsSave)
-        {
-            if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
-            {
-                AudioManager->SetMasterVolume(SettingsSave->MasterVolume);
-                AudioManager->SetBGMVolume(SettingsSave->BGMVolume);
-                AudioManager->SetSFXVolume(SettingsSave->SFXVolume);
-            }
-		}
-
         return SettingsSave;
     }
 
@@ -123,6 +129,7 @@ void USaveGameManager::DeleteSaveGame(const FString& SlotName)
 	}
 }
 
+
 FSaveSlotMetaData USaveGameManager::GetSaveMetaDataByIndex(int32 Index) const
 {
     if (!MetaSave) return FSaveSlotMetaData();
@@ -134,6 +141,35 @@ FSaveSlotMetaData USaveGameManager::GetSaveMetaDataByIndex(int32 Index) const
     }
 
     return FSaveSlotMetaData();
+}
+
+void USaveGameManager::RegisterSavableActor(TScriptInterface<ISavableActor> SavableActor)
+{
+    if (SavableActor)
+    {
+        SavableActors.AddUnique(SavableActor);
+    }
+}
+
+void USaveGameManager::UnregisterSavableActor(TScriptInterface<ISavableActor> SavableActor)
+{
+    if (SavableActor)
+    {
+        SavableActors.Remove(SavableActor);
+    }
+}
+
+FName USaveGameManager::GenerateUniqueID()
+{
+    if (!CoreSave)
+    {
+        CoreSave=NewObject<UCoreSaveGame>();
+    }
+
+    const int32 IDNumber=CoreSave->NextUniqueID;
+    CoreSave->NextUniqueID++;
+
+    return FName(*FString::Printf(TEXT("UniqueID_%d"),IDNumber));
 }
 
 void USaveGameManager::CreateSlot(const FString& SlotName)
@@ -166,24 +202,35 @@ void USaveGameManager::DeleteSlot(const FString& SlotName)
 void USaveGameManager::SaveCore(const FString& SlotName)
 {
     CR4S_Log(LogSave, Log, TEXT("Called with SlotName: %s"), *SlotName);
-
-    CoreSave = NewObject<UCoreSaveGame>();
-
-    if (!CR4S_VALIDATE(LogSave, CoreSave)) return;
-
-    if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0))
+    if (!CoreSave)
     {
-        CoreSave->PlayerLocation = Player->GetActorLocation();
-        CoreSave->PlayerRotation = Player->GetActorRotation();
-    }
-    else
-    {
-        CR4S_Log(LogSave, Warning, TEXT("PlayerCharacter not found"));
+        CoreSave = NewObject<UCoreSaveGame>();
     }
 
+    CoreSave->SavedActorsData.Empty();
+
+   for (const TScriptInterface<ISavableActor>& SavableActor : SavableActors)
+   {
+       if (!SavableActor) return;
+
+       FName UniqueID=SavableActor->GetUniqueSaveID();
+       if (UniqueID.IsNone())
+       {
+           UniqueID=GenerateUniqueID();
+           SavableActor->SetUniqueSaveID(UniqueID);
+       }
+
+       FSavedActorData ActorDataContainer;
+
+       SavableActor->GatherSaveData(ActorDataContainer);
+
+       CoreSave->SavedActorsData.Add(UniqueID, ActorDataContainer);
+   }
+
+    
     const FString FullSlotName = SlotName + TEXT("_Core");
     const bool bSuccess = UGameplayStatics::SaveGameToSlot(CoreSave, FullSlotName, 0);
-
+    
     if (bSuccess)
     {
         CR4S_Log(LogSave, Log, TEXT("Successfully saved to slot: %s"), *FullSlotName);
@@ -245,6 +292,7 @@ void USaveGameManager::SaveWorld(const FString& SlotName)
 
 bool USaveGameManager::IsNewGame() const
 {
+    CR4S_SIMPLE_SCOPE_LOG;
     const UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
     if (!GameInstance)
     {
@@ -253,16 +301,24 @@ bool USaveGameManager::IsNewGame() const
     }
 
     const bool bIsExistingSlot = MetaSave && MetaSave->SaveSlots.Contains(GameInstance->CurrentSlotName);
+    const FString SlotName = GameInstance->CurrentSlotName;
+    const bool bHasCore = UGameplayStatics::DoesSaveGameExist(SlotName + TEXT("_Core"), 0);
+    const bool bHasWorld = UGameplayStatics::DoesSaveGameExist(SlotName + TEXT("_World"), 0);
+    const bool bIsNew = !(bHasCore && bHasWorld);
 
-    CR4S_Log(LogSave, Log, TEXT("CurrentSlotName: %s, IsNewGame: %s"),
-        *GameInstance->CurrentSlotName, bIsExistingSlot ? TEXT("false") : TEXT("true"));
+    CR4S_Log(LogSave, Log, TEXT("SlotName: %s, HasCore: %s, HasWorld: %s, IsNewGame: %s"),
+        *SlotName,
+        bHasCore ? TEXT("true") : TEXT("false"),
+        bHasWorld ? TEXT("true") : TEXT("false"),
+        bIsNew ? TEXT("true") : TEXT("false"));
 
-    return !bIsExistingSlot;
+    return bIsNew;
 }
 
 
 void USaveGameManager::ApplyAll()
 {
+    CR4S_SIMPLE_SCOPE_LOG;
     if (!CR4S_VALIDATE(LogSave, CoreSave)) return;
     if (!CR4S_VALIDATE(LogSave, WorldSave)) return;
 
@@ -272,15 +328,63 @@ void USaveGameManager::ApplyAll()
 
 void USaveGameManager::ApplyCoreData()
 {
-    ACharacter* Player = UGameplayStatics::GetPlayerCharacter(this, 0);
+    if (!CR4S_ENSURE(LogHong1,CoreSave && SpawnClassDataAsset)) return;
+    
+    for (int32 i=SavableActors.Num()-1;i>=0;i--)
+    {
+        if (AActor* ActorToDestroy=Cast<AActor>(SavableActors[i].GetObject()))
+        {
+            ActorToDestroy->Destroy();
+        }
+    }
 
-    if (!CR4S_VALIDATE(LogSave, Player))
-        return;
+    SavableActors.Empty();
 
-    Player->SetActorLocation(CoreSave->PlayerLocation);
-    Player->SetActorRotation(CoreSave->PlayerRotation);
+    for (auto& Pair : CoreSave->SavedActorsData)
+    {
+        const FName& ActorID=Pair.Key;
+        FSavedActorData& SavedData = Pair.Value;
 
-    CR4S_Log(LogSave, Log, TEXT("Player Location Applied: %s"), *CoreSave->PlayerLocation.ToString());
+        UClass* ActorClassToSpawn = nullptr;
+        AActor* NewSpawnedActor = nullptr;
+        
+        switch (SavedData.ActorType)
+        {
+        case ESavedActorType::PlayerCharacter:
+            ActorClassToSpawn = SpawnClassDataAsset->PlayerCharacterClass;
+            break;
+        case ESavedActorType::ModularRobot:
+            ActorClassToSpawn = SpawnClassDataAsset->ModularRobotClass;
+            break;
+        default:
+            continue; // 타입이 없으면 건너뛰기
+        }
+
+        if (ActorClassToSpawn)
+        {
+            UE_LOG(LogHong1, Log, TEXT("Spawn Actor: %s"), *ActorClassToSpawn->GetName());
+            NewSpawnedActor = GetWorld()->SpawnActor<AActor>(ActorClassToSpawn);
+        }
+
+        if (NewSpawnedActor)
+        {
+            if (ISavableActor* Savable = Cast<ISavableActor>(NewSpawnedActor))
+            {
+                Savable->SetUniqueSaveID(ActorID);
+                Savable->ApplySaveData(SavedData);
+
+                if (APlayerCharacter* NewPlayer = Cast<APlayerCharacter>(NewSpawnedActor))
+                {
+                    if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+                    {
+                        UE_LOG(LogHong1, Log, TEXT("Possess Player"));
+                        PC->Possess(NewPlayer);
+                    }
+                }
+            }
+        }
+    }
+    
 }
 
 void USaveGameManager::ApplyWorldData()

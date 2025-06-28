@@ -2,6 +2,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
 #include "NiagaraComponent.h"
+#include "ProjectileBomb.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
@@ -42,26 +43,35 @@ void AMudField::SpawnMud()
 	FActorSpawnParameters Params;
 	Params.Owner = Cast<AActor>(GetOwner());
 	Params.Instigator = GetInstigator();
-	Params.SpawnCollisionHandlingOverride =
-		ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	
-	FVector Origin = GetActorLocation();
-	FRotator SpawnRot = FRotator::ZeroRotator;
-	
-	ARotatingProjectile* Proj = GetWorld()->SpawnActor<ARotatingProjectile>(MudActorClass, Origin, SpawnRot, Params);
-	if (!Proj) return;
-	
-	float LaunchSpeed = 1000.f;
+	const float RandomZOffset = FMath::FRandRange(MinSpawnZOffset, MaxSpawnZOffset);
+	const FVector SpawnLocation = GetActorLocation() + FVector(0.f, 0.f, RandomZOffset);
+	const FRotator SpawnRot = FRotator::ZeroRotator;
 
-	for (int32 i = 0; i < SpawnCount; ++i)
+	if (SpawnCount > 0)
 	{
-		Proj->SetBossActor(GetOwner(), NAME_None);
-		
-		FVector2D Rand2D = FMath::RandPointInCircle(300.f);
-		float RandZ = FMath::FRandRange(MinSpawnZOffset, MaxSpawnZOffset);
-		FVector TargetLoc = Origin + FVector(Rand2D.X, Rand2D.Y, RandZ);
-
-		Proj->LaunchProjectile(TargetLoc, LaunchSpeed);
+		for (int32 i = 0; i < SpawnCount; ++i)
+		{
+			AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(MudActorClass, SpawnLocation, SpawnRot, Params);
+			if (!SpawnActor) continue;
+			
+			if (AProjectileBomb* Bomb = Cast<AProjectileBomb>(SpawnActor))
+			{
+				Bomb->SetOwner(GetOwner());
+				Bomb->LaunchProjectile();
+			}
+			else if (ARotatingProjectile* Proj = Cast<ARotatingProjectile>(SpawnActor))
+			{
+				constexpr float Speed = 1.f;
+				Proj->SetBossActor(GetOwner(), NAME_None);
+				
+				const FVector2D Rand2D = FMath::RandPointInCircle(300.f);
+				const FVector TargetLoc = GetActorLocation() + FVector(Rand2D.X, Rand2D.Y, RandomZOffset);
+				
+				Proj->LaunchProjectile(TargetLoc, Speed);
+			}
+		}
 	}
 }
 

@@ -15,12 +15,14 @@ const FName FAIKeys::bIsPlayingAttackMontage = TEXT("bIsPlayingAttackMontage");
 // Region Boss AI Key
 const FName FRegionBossAIKeys::CombatStartLocation = TEXT("CombatStartLocation");
 const FName FRegionBossAIKeys::PatrolTargetLocation = TEXT("PatrolTargetLocation");
-const FName FRegionBossAIKeys::SkillTargetLocation = TEXT("SkillTargetLocation");
-const FName FRegionBossAIKeys::MoveSpeedScale = TEXT("MoveSpeedScale");
-const FName FRegionBossAIKeys::ApproachType = TEXT("ApproachType");
 const FName FRegionBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
 const FName FRegionBossAIKeys::ShouldReturn = TEXT("ShouldReturn");
 const FName FRegionBossAIKeys::LastIdleBoredTime = TEXT("LastIdleBoredTime");
+const FName FRegionBossAIKeys::SkillTargetLocation = TEXT("SkillTargetLocation");
+const FName FRegionBossAIKeys::CurrentPatternID = TEXT("CurrentPatternID");
+const FName FRegionBossAIKeys::PreviousPatternID = TEXT("PreviousPatternID");
+const FName FRegionBossAIKeys::PatternStepIndex = TEXT("PatternStepIndex");
+const FName FRegionBossAIKeys::AttackType = TEXT("AttackType");
 
 // Season Boss AI Key
 const FName FSeasonBossAIKeys::NearestHouseActor = TEXT("NearestHouseActor");
@@ -32,5 +34,9 @@ const FName FSeasonBossAIKeys::AttackType = TEXT("AttackType");
 const FName FSeasonBossAIKeys::CurrentSkillRange = TEXT("CurrentSkillRange");
 const FName FSeasonBossAIKeys::MeleeOptimalDistance = TEXT("MeleeOptimalDistance");
 const FName FSeasonBossAIKeys::RangedOptimalDistance = TEXT("RangedOptimalDistance");
-const FName FSeasonBossAIKeys::bIsInSkillRange = TEXT("bIsInSkillRange");
-const FName FSeasonBossAIKeys::AggroTarget = TEXT("AggroTarget");
+const FName FSeasonBossAIKeys::TeleportLocation = TEXT("TeleportLocation");
+const FName FSeasonBossAIKeys::SelectedComboKey = TEXT("SelectedComboKey");
+const FName FSeasonBossAIKeys::SpecialPatternKey = TEXT("SpecialPatternKey");
+const FName FSeasonBossAIKeys::bIsDashing = TEXT("bIsDashing");
+const FName FSeasonBossAIKeys::CurrentPhase = TEXT("CurrentPhase");
+const FName FSeasonBossAIKeys::bIsPlayedBerserkAnim = TEXT("bIsPlayedBerserkAnim");

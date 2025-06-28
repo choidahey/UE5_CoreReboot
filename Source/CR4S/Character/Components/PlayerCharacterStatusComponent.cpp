@@ -19,6 +19,63 @@ void UPlayerCharacterStatusComponent::Refresh()
 	AddCurrentHunger(0);
 }
 
+float UPlayerCharacterStatusComponent::GetCurrentHungerPercentage() const
+{
+	if (PlayerStatus.MaxHunger<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(PlayerStatus.Hunger/PlayerStatus.MaxHunger,0,1);
+}
+
+void UPlayerCharacterStatusComponent::SetMaxHunger(const float NewValue)
+{
+	PlayerStatus.MaxHunger = NewValue;
+	const float Percentage = GetCurrentHungerPercentage();
+	OnHungerChanged.Broadcast(Percentage);
+}
+
+void UPlayerCharacterStatusComponent::SetCurrentHunger(const float NewValue)
+{
+	const float ClampedHunger = FMath::Clamp(NewValue, 0.f, PlayerStatus.MaxHunger);
+	const bool bValueChanged= !FMath::IsNearlyEqual(PlayerStatus.Hunger, ClampedHunger);
+	
+	PlayerStatus.Hunger = ClampedHunger;
+	const float Percentage = GetCurrentHungerPercentage();
+	OnHungerChanged.Broadcast(Percentage);
+
+	if (!bValueChanged) return;
+
+	if (PlayerStatus.Hunger<=KINDA_SMALL_NUMBER)
+	{
+		if (!bIsStarving)
+		{
+			bIsStarving=true;
+			ApplyHungerDebuff();
+			OnHungerDebuffChanged.Broadcast(true);
+		}
+	}
+	else
+	{
+		if (bIsStarving)
+		{
+			bIsStarving=false;
+			RemoveHungerDebuff();
+			OnHungerDebuffChanged.Broadcast(false);
+		}
+	}
+}
+
+void UPlayerCharacterStatusComponent::AddMaxHunger(const float InAmount)
+{
+	SetMaxHunger(PlayerStatus.MaxHunger + InAmount);
+}
+
+void UPlayerCharacterStatusComponent::AddCurrentHunger(const float InAmount)
+{
+	SetCurrentHunger(PlayerStatus.Hunger+InAmount);
+}
+
 
 // Called when the game starts
 void UPlayerCharacterStatusComponent::BeginPlay()
@@ -95,25 +152,6 @@ void UPlayerCharacterStatusComponent::RemoveHungerDebuff()
 void UPlayerCharacterStatusComponent::ConsumeCurrentHungerForInterval()
 {
 	AddCurrentHunger(-(PlayerStatus.HungerDecreaseAmount*PlayerStatus.HungerConsumptionMultiplier));
-	
-	if (PlayerStatus.Hunger<=KINDA_SMALL_NUMBER)
-	{
-		if (!bIsStarving)
-		{
-			bIsStarving=true;
-			ApplyHungerDebuff();
-			OnHungerDebuffChanged.Broadcast(true);
-		}
-	}
-	else
-	{
-		if (bIsStarving)
-		{
-			bIsStarving=false;
-			RemoveHungerDebuff();
-			OnHungerDebuffChanged.Broadcast(false);
-		}
-	}
 }
 
 void UPlayerCharacterStatusComponent::StartSprint()
@@ -193,19 +231,5 @@ void UPlayerCharacterStatusComponent::RemoveHighHumidityDebuff()
 	Tool->SetMontagePlayRate(PlayerStatus.DefaultMontagePlayRate);
 }
 
-void UPlayerCharacterStatusComponent::AddMaxHunger(const float InAmount)
-{
-	PlayerStatus.MaxHunger+=InAmount;
-	const float Percentage=FMath::Clamp((PlayerStatus.Hunger)/PlayerStatus.MaxHunger,0.f,1.f);
-	OnHungerChanged.Broadcast(Percentage);
-}
-
-void UPlayerCharacterStatusComponent::AddCurrentHunger(const float InAmount)
-{
-	const float Temp=FMath::Clamp(PlayerStatus.Hunger+InAmount,0,PlayerStatus.MaxHunger);
-	PlayerStatus.Hunger=Temp;
-	const float Percentage=FMath::Clamp((PlayerStatus.Hunger)/PlayerStatus.MaxHunger,0.f,1.f);
-	OnHungerChanged.Broadcast(Percentage);
-}
 
 

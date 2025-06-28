@@ -1,6 +1,7 @@
 ﻿#include "PlayerInventoryComponent.h"
 
 #include "CR4S.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
@@ -8,7 +9,7 @@
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
 	: InventoryContainerWidgetOrder(20),
-	  HeldToolTag(FGameplayTag())
+	  HeldToolTag(FGameplayTag::EmptyTag)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -48,7 +49,8 @@ void UPlayerInventoryComponent::BeginPlay()
 	AddItem(FName("StoneAxe"), 1);
 }
 
-FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem)
+FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count,
+                                                  UBaseInventoryItem* OriginItem)
 {
 	const FAddItemResult Result = Super::AddItem(RowName, Count, OriginItem);
 
@@ -70,7 +72,7 @@ int32 UPlayerInventoryComponent::RemoveItemByRowName(const FName RowName, const 
 		RemainingCount = QuickSlotInventoryComponent->RemoveItemByRowName(RowName, RemainingCount);
 	}
 
-	return RemainingCount; 
+	return RemainingCount;
 }
 
 void UPlayerInventoryComponent::RemoveAllItemByRowName(const FName RowName)
@@ -91,7 +93,7 @@ int32 UPlayerInventoryComponent::GetItemCountByRowName(const FName RowName) cons
 	{
 		Count += QuickSlotInventoryComponent->GetItemCountByRowName(RowName);
 	}
-	
+
 	return Count;
 }
 
@@ -99,7 +101,7 @@ UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWid
 {
 	if (IsValid(InventoryContainerWidgetInstance))
 	{
-		return InventoryContainerWidgetInstance->GetPlanterBoxInventoryWidget(); 
+		return InventoryContainerWidgetInstance->GetPlanterBoxInventoryWidget();
 	}
 
 	return nullptr;
@@ -166,17 +168,17 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 		return;
 	}
 
+	if (OnInventoryClose.IsBound())
+	{
+		OnInventoryClose.Broadcast();
+	}
+
 	InventoryContainerWidgetInstance->CloseInventoryWidget();
 
 	InteractionComponent = OwnerActor->FindComponentByClass<UInteractionComponent>();
 	if (IsValid(InteractionComponent))
 	{
 		InteractionComponent->StartDetectProcess();
-	}
-
-	if (OnInventoryClose.IsBound())
-	{
-		OnInventoryClose.Broadcast();
 	}
 }
 
@@ -197,5 +199,27 @@ void UPlayerInventoryComponent::UseItem(const int32 Index) const
 		{
 			Item->UseItem(Index);
 		}
+	}
+}
+
+void UPlayerInventoryComponent::GetPlayerInventorySaveGame(FInventorySaveGame& OutPlayerInventorySaveGame,
+                                                           FInventorySaveGame& OutQuickSlotSaveGame)
+{
+	OutPlayerInventorySaveGame = Super::GetInventorySaveGame();
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		OutQuickSlotSaveGame = QuickSlotInventoryComponent->GetInventorySaveGame();
+	}
+}
+
+void UPlayerInventoryComponent::LoadPlayerInventorySaveGame(const FInventorySaveGame& PlayerInventorySaveGame,
+                                                            const FInventorySaveGame& QuickSlotSaveGame)
+{
+	Super::LoadInventorySaveGame(PlayerInventorySaveGame);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		QuickSlotInventoryComponent->LoadInventorySaveGame(QuickSlotSaveGame);
 	}
 }

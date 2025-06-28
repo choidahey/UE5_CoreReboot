@@ -16,6 +16,14 @@ UBaseStatusComponent::UBaseStatusComponent()
 	// ...
 }
 
+void UBaseStatusComponent::TakeDamage(const float DamageAmount)
+{
+	const float ArmorFactor=BaseStatus.Armor;
+	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant/(BaseStatus.ArmorConstant*ArmorFactor));
+
+	AddCurrentHP(-(ComputedDamage));
+}
+
 void UBaseStatusComponent::Refresh()
 {
 	AddCurrentHP(0);
@@ -32,81 +40,179 @@ void UBaseStatusComponent::BeginPlay()
 }
 
 
-void UBaseStatusComponent::AddMaxHP(const float InAmount)
+float UBaseStatusComponent::GetCurrentHPPercentage() const
 {
-	BaseStatus.MaxHealth+=InAmount;
-	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
+	if (BaseStatus.MaxHealth<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(BaseStatus.Health/BaseStatus.MaxHealth,0.0,1);
+}
+
+float UBaseStatusComponent::GetCurrentResourcePercentage() const
+{
+	if (BaseStatus.MaxResource<=KINDA_SMALL_NUMBER)
+	{
+		return 0;
+	}
+	return FMath::Clamp(BaseStatus.Resource/BaseStatus.MaxResource,0.0,1);
+}
+
+void UBaseStatusComponent::SetMaxHP(const float NewValue)
+{
+	BaseStatus.MaxHealth = NewValue;
+
+	const float Percentage=GetCurrentHPPercentage();
 	OnHPChanged.Broadcast(Percentage);
 }
 
-void UBaseStatusComponent::AddMaxResource(const float InAmount)
+void UBaseStatusComponent::SetCurrentHP(const float NewValue)
 {
-	BaseStatus.MaxResource+=InAmount;
-	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
+	const float ClampedHP=FMath::Clamp(NewValue,0,BaseStatus.MaxHealth);
+	const bool bValueChanged= !FMath::IsNearlyEqual(BaseStatus.Health,ClampedHP);
+	
+	BaseStatus.Health=ClampedHP;
+	
+	const float Percentage=GetCurrentHPPercentage();
+	OnHPChanged.Broadcast(Percentage);
+
+	if (!bValueChanged) return;
+	
+	if (BaseStatus.Health <= 0)
+	{
+		OnDeathState.Broadcast();
+	}
+}
+
+void UBaseStatusComponent::SetMaxResource(const float NewValue)
+{
+	BaseStatus.MaxResource = NewValue;
+	const float Percentage = GetCurrentResourcePercentage();
 	OnResourceChanged.Broadcast(Percentage);
+}
+
+void UBaseStatusComponent::SetCurrentResource(const float NewValue)
+{
+	const float ClampedResource = FMath::Clamp(NewValue, 0.f, BaseStatus.MaxResource);
+
+	BaseStatus.Resource = ClampedResource;
+	
+	const float Percentage = GetCurrentResourcePercentage();
+	OnResourceChanged.Broadcast(Percentage);
+}
+
+void UBaseStatusComponent::SetArmor(const float NewValue)
+{
+	BaseStatus.Armor = NewValue;
+}
+
+void UBaseStatusComponent::SetAttackPower(const float NewValue)
+{
+	BaseStatus.AttackPower=NewValue;
+}
+
+void UBaseStatusComponent::SetColdThreshold(const float NewValue)
+{
+	BaseStatus.ColdThreshold=NewValue;
+	OnColdThresholdChanged.Broadcast(BaseStatus.ColdThreshold);
+}
+
+void UBaseStatusComponent::SetHeatThreshold(const float NewValue)
+{
+	BaseStatus.HeatThreshold=NewValue;
+	OnHeatThresholdChanged.Broadcast(BaseStatus.HeatThreshold);
+}
+
+void UBaseStatusComponent::SetHumidityThreshold(const float NewValue)
+{
+	BaseStatus.HumidityThreshold=NewValue;
+	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
+}
+
+void UBaseStatusComponent::SetResourceConsumptionAmount(const float NewCost)
+{
+	BaseStatus.ResourceConsumptionAmount=NewCost;
+}
+
+void UBaseStatusComponent::SetResourceRegenDelay(const float NewDelay)
+{
+	BaseStatus.ResourceRegenDelay=NewDelay;
+}
+
+void UBaseStatusComponent::AddMaxHP(const float InAmount)
+{
+	SetMaxHP(BaseStatus.MaxHealth+InAmount);
 }
 
 void UBaseStatusComponent::AddCurrentHP(const float InAmount)
 {
-	const float Temp=FMath::Clamp(BaseStatus.Health+InAmount,0,BaseStatus.MaxHealth);
-	if (Temp <= 0)
-	{
-		BaseStatus.Health = 0;
-		OnDeathState.Broadcast();
-	}
-	else
-	{
-		BaseStatus.Health=Temp;
-	}
-	const float Percentage=FMath::Clamp((BaseStatus.Health)/BaseStatus.MaxHealth,0.f,1.f);
-	OnHPChanged.Broadcast(Percentage);
+	SetCurrentHP(BaseStatus.Health+InAmount);
+}
+
+void UBaseStatusComponent::AddMaxResource(const float InAmount)
+{
+	SetMaxResource(BaseStatus.MaxResource+InAmount);
 }
 
 void UBaseStatusComponent::AddCurrentResource(const float InAmount)
 {
-	const float Temp=FMath::Clamp(BaseStatus.Resource+InAmount,0,BaseStatus.MaxResource);
-	BaseStatus.Resource=Temp;
-	const float Percentage=FMath::Clamp((BaseStatus.Resource)/BaseStatus.MaxResource,0.f,1.f);
-	OnResourceChanged.Broadcast(Percentage);
+	SetCurrentResource(BaseStatus.Resource+InAmount);
 }
 
 void UBaseStatusComponent::AddAttackPower(const float InAmount)
 {
-	BaseStatus.AttackPower+=InAmount;
+	SetAttackPower(BaseStatus.AttackPower+InAmount);
 }
 
 void UBaseStatusComponent::AddArmor(const float InAmount)
 {
-	BaseStatus.Armor+=InAmount;
+	SetArmor(BaseStatus.Armor+InAmount);
 }
 
 void UBaseStatusComponent::AddColdThreshold(const float InAmount)
 {
-	BaseStatus.ColdThreshold+=InAmount;
-	OnColdThresholdChanged.Broadcast(BaseStatus.ColdThreshold);
+	SetColdThreshold(BaseStatus.ColdThreshold+InAmount);
 }
 
 void UBaseStatusComponent::AddHeatThreshold(const float InAmount)
 {
-	BaseStatus.HeatThreshold+=InAmount;
-	OnHeatThresholdChanged.Broadcast(BaseStatus.HeatThreshold);
+	SetHeatThreshold(BaseStatus.HeatThreshold+InAmount);
 }
 
 void UBaseStatusComponent::AddHumidityThreshold(const float InAmount)
 {
-	BaseStatus.HumidityThreshold+=InAmount;
-	OnHumidityThresholdChanged.Broadcast(BaseStatus.HumidityThreshold);
+	SetHumidityThreshold(BaseStatus.HumidityThreshold+InAmount);
+}
+
+void UBaseStatusComponent::ApplyResourceRegenModifier(const float Modifier)
+{
+	BaseStatus.ResourceRegenMultiplier*=Modifier;
+}
+
+void UBaseStatusComponent::RevertResourceRegenModifier(const float Modifier)
+{
+	BaseStatus.ResourceRegenMultiplier/=Modifier;
+}
+
+void UBaseStatusComponent::ApplyResourceConsumptionModifier(const float Modifier)
+{
+	BaseStatus.ResourceConsumptionMultiplier*=Modifier;
+}
+
+void UBaseStatusComponent::RevertResourceConsumptionModifier(const float Modifier)
+{
+	BaseStatus.ResourceConsumptionMultiplier/=Modifier;
 }
 
 bool UBaseStatusComponent::HasEnoughResourceForRoll() const
 {
-	return GetCurrentResource()>=(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier);
+	return GetCurrentResource()>=(BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier);
 }
 
 //Dash & Roll
 void UBaseStatusComponent::ConsumeResourceForRoll()
 {
-	AddCurrentResource(-(BaseStatus.RollStaminaCost*BaseStatus.ResourceConsumptionMultiplier));
+	AddCurrentResource(-(BaseStatus.ResourceConsumptionAmount*BaseStatus.ResourceConsumptionMultiplier));
 	OnResourceConsumed();
 }
 
