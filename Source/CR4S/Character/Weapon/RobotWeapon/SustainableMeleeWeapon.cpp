@@ -17,7 +17,8 @@ ASustainableMeleeWeapon::ASustainableMeleeWeapon()
 void ASustainableMeleeWeapon::OnAttack()
 {
 	if (!bCanAttack || !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand]) return;
-	
+
+	OnMeleeAttackStarted.Broadcast(this);
 	OwningCharacter->PlayAnimMontage(BaseInfo.AttackMontages[bIsRightHand]);
 	Super::OnAttack();
 }
@@ -25,7 +26,6 @@ void ASustainableMeleeWeapon::OnAttack()
 void ASustainableMeleeWeapon::StopAttack()
 {
 	Super::StopAttack();
-
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter
 		&& BaseInfo.AttackMontages.IsValidIndex(bIsRightHand)
 		&& BaseInfo.AttackMontages[bIsRightHand]))
