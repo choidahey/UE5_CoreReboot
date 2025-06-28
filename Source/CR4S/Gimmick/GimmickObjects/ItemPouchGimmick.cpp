@@ -1,7 +1,6 @@
 ﻿#include "ItemPouchGimmick.h"
 
 #include "CR4S.h"
-#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "Game/SaveGame/GimmickSaveGame.h"
 #include "Game/System/AudioManager.h"
 #include "Game/System/WorldTimeManager.h"

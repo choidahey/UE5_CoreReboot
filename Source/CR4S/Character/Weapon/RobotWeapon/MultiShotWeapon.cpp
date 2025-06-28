@@ -23,12 +23,24 @@ void AMultiShotWeapon::OnAttack()
 		return;
 	}
 	
+	PlayMuzzleVFX(TypeSpecificInfo.MuzzleSocketName);
+	PlayMuzzleSFX(TypeSpecificInfo.MuzzleSocketName);
+	
 	FireMultiBullet();
 	
 	AddCurrentAmmo(-1);
 	ApplyRecoil();
 	StartAttackCooldown();
 	Super::OnAttack();
+}
+
+void AMultiShotWeapon::StopAttack()
+{
+	Super::StopAttack();
+	if (TypeSpecificInfo.AmmoInfo.CurrentAmmo<=0)
+	{
+		StartReload();
+	}
 }
 
 // Called when the game starts or when spawned

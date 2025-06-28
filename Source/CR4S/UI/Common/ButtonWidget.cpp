@@ -21,6 +21,10 @@ void UButtonWidget::NativePreConstruct()
 	if (ButtonText)
 	{
 		ButtonText->SetText(ButtonLabel);
+
+		FSlateFontInfo FontInfo = ButtonText->Font;
+		FontInfo.Size = TextSize;
+		ButtonText->SetFont(FontInfo);
 	}
 }
 

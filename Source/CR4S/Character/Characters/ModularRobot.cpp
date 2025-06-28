@@ -6,6 +6,7 @@
 #include "CR4S.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
 #include "Camera/CameraComponent.h"
@@ -17,9 +18,11 @@
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Character/Components/RobotInputBufferComponent.h"
+#include "Character/Components/WeaponTraceComponent.h"
 #include "Character/Data/RobotPartsData.h"
 #include "Components/TimelineComponent.h"
 #include "Game/SaveGame/SaveGameManager.h"
+#include "Game/System/AudioManager.h"
 #include "Inventory/Components/RobotInventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -88,7 +91,8 @@ AModularRobot::AModularRobot()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	Status=CreateDefaultSubobject<UModularRobotStatusComponent>(TEXT("Status"));
-	
+
+	WeaponTrace=CreateDefaultSubobject<UWeaponTraceComponent>(TEXT("WeaponTrace"));
 	//InteractableComponent
 	InteractComp=CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractComp"));
 
@@ -164,6 +168,39 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 	EquipBoosterParts(RobotData.BoosterTag);
 
 	WeaponManager->ApplyWeaponSaveData(RobotData.EquippedWeapons);
+}
+
+void AModularRobot::HandleHoverEffects() 
+{
+	if (!CR4S_ENSURE(LogHong1,GetMesh())) return;
+	
+	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
+	if (RobotSettings.HoverEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(
+			RobotSettings.HoverEffect,
+			GetMesh(),
+			RobotSettings.BoosterSocketName,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget,
+			true
+		);
+	}
+	if (RobotSettings.DashSound)
+	{
+		if (UGameInstance* GI=GetGameInstance())
+		{
+			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			{
+				Audio->PlaySFX(
+					RobotSettings.HoverSound,
+					BoosterLocation,
+					EConcurrencyType::Impact
+				);
+			}
+		}
+	}
 }
 
 void AModularRobot::EquipCoreParts(const FGameplayTag& Tag)
@@ -308,6 +345,13 @@ void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
 	
 	BoosterTag=Tag;
 
+
+	RobotSettings.DashEffect=BoosterInfo.DashEffect;
+	RobotSettings.DashSound=BoosterInfo.DashSound;
+	RobotSettings.HoverEffect=BoosterInfo.HoverEffect;
+	RobotSettings.HoverSound=BoosterInfo.HoverSound;
+	RobotSettings.BoosterSocketName=BoosterInfo.BoosterSocketName;
+	
 	RobotSettings.BoosterStrength=BoosterInfo.BoosterStrength;
 	RobotSettings.DashCooldown=BoosterInfo.DashCooldown;
 	Status->SetResourceConsumptionAmount(BoosterInfo.ResourceConsumption);
@@ -433,6 +477,12 @@ void AModularRobot::UnequipBoosterParts()
 	if (!CR4S_ENSURE(LogHong1,bSuccessed)) return;
 
 	BoosterTag=FGameplayTag::EmptyTag;
+
+	RobotSettings.DashEffect=nullptr;
+	RobotSettings.DashSound=nullptr;
+	RobotSettings.HoverEffect=nullptr;
+	RobotSettings.HoverSound=nullptr;
+	RobotSettings.BoosterSocketName=FName();
 
 	RobotSettings.BoosterStrength=DefaultSettings.BoosterStrength;
 	RobotSettings.DashCooldown=DefaultSettings.DashCooldown;
@@ -724,6 +774,7 @@ void AModularRobot::BeginPlay()
 	if (Status)
 	{
 		Status->OnDeathState.AddUObject(this,&AModularRobot::OnDeath);
+		Status->OnHoverStarted.AddDynamic(this,&AModularRobot::HandleHoverEffects);
 	}
 
 	if (WeaponManager && InputBuffer)
@@ -888,7 +939,34 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 	{
 		DashPower+=RobotSettings.LegStrength;
 	}
-	
+
+	const FVector BoosterLocation=GetMesh()->GetSocketLocation(RobotSettings.BoosterSocketName);
+	if (RobotSettings.DashEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(
+			RobotSettings.DashEffect,
+			GetMesh(),
+			RobotSettings.BoosterSocketName,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget,
+			true
+		);
+	}
+	if (RobotSettings.DashSound)
+	{
+		if (UGameInstance* GI=GetGameInstance())
+		{
+			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			{
+				Audio->PlaySFX(
+					RobotSettings.DashSound,
+					BoosterLocation,
+					EConcurrencyType::Impact
+				);
+			}
+		}
+	}
 
 	const float WeightBasedDivisor=Status->GetCurrentWeight()*RobotSettings.WeightFactor;
 	const float FinalVelocityAmount=DashPower/WeightBasedDivisor;

@@ -7,6 +7,7 @@
 #include "Components/Image.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryWidget/RobotInventoryWidget.h"
+#include "Utility/Cr4sGameplayTags.h"
 
 void URobotPartsItemSlotWidget::NativePreConstruct()
 {

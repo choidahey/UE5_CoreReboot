@@ -27,6 +27,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Armor{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ArmorConstant {1000};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackPower{0};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

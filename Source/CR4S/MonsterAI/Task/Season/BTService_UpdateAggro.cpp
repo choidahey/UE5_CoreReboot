@@ -28,20 +28,38 @@ void UBTService_UpdateAggro::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 		if (Boss->AggroComp)
 		{
 			AActor* CurrentTarget = Cast<AActor>(BB->GetValueAsObject(AggroTargetKey.SelectedKeyName));
-			AActor* HitTarget = Boss->AggroComp->GetCurrentAggroTarget();
-			if (IsValid(HitTarget) && HitTarget != CurrentTarget)
+			AActor* AggroTarget = Boss->AggroComp->GetCurrentAggroTarget();
+
+			if (IsValid(AggroTarget))
 			{
-				BB->SetValueAsObject(AggroTargetKey.SelectedKeyName, HitTarget);
+				if (AggroTarget != CurrentTarget)
+				{
+					BB->SetValueAsObject(AggroTargetKey.SelectedKeyName, AggroTarget);
+				}
 				return;
 			}
+			
+			if (IsValid(CurrentTarget))
+			{
+				if (Boss->AggroComp->HasAggroFor(CurrentTarget))
+				{
+					return;
+				}
+				else
+				{
+					BB->ClearValue(AggroTargetKey.SelectedKeyName);
+					return;
+				}
+			}
 
-			if (!IsValid(CurrentTarget))
+			if (!Boss->AggroComp->HasAnyAggro())
 			{
 				if (AActor* Player = UGameplayStatics::GetPlayerPawn(Boss->GetWorld(), 0))
 				{
 					BB->SetValueAsObject(AggroTargetKey.SelectedKeyName, Player);
 				}
 			}
+
 		}
 	}
 }

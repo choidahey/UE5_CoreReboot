@@ -16,6 +16,14 @@ UBaseStatusComponent::UBaseStatusComponent()
 	// ...
 }
 
+void UBaseStatusComponent::TakeDamage(const float DamageAmount)
+{
+	const float ArmorFactor=BaseStatus.Armor;
+	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant/(BaseStatus.ArmorConstant*ArmorFactor));
+
+	AddCurrentHP(-(ComputedDamage));
+}
+
 void UBaseStatusComponent::Refresh()
 {
 	AddCurrentHP(0);
