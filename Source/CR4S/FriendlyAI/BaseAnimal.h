@@ -1,11 +1,13 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Game/Interface/Spawnable.h" // Added Spawnable Interface Library 
+#include "Game/Interface/Spawnable.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Engine/DataTable.h"
 #include "Data/AnimalStatsRow.h"
 #include "Utility/StunnableInterface.h"
+#include "Game/System/AudioManager.h"
+#include "Data/AnimalSoundData.h"
 #include "BaseAnimal.generated.h"
 
 class UAnimalRangedAttackComponent;
@@ -62,6 +64,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName RowName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UAnimalSoundData* SoundData;
 
 protected:
 	void LoadStats();
@@ -156,13 +161,7 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<class UAnimalInteractWidget> ActiveInteractWidget;
-
-	UFUNCTION()
-	void Capture();
-
-	UFUNCTION()
-	void Butcher();
-
+	
 	//float LastAttackTime = 0.0f;
 	//float CachedAttackInterval = 0.0f;
 
@@ -287,5 +286,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bDrawAttackRangeDebug : 1 = 0;
+#pragma endregion
+
+#pragma region SFX
+	void PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch = 1.0f, const float StartTime = 0.0f) const;
 #pragma endregion
 };

@@ -94,6 +94,10 @@ void ABaseAnimal::LoadStats()
         if (Row)
         {
             StatsRow = Row;
+            if (!SoundData)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[%s] SoundData is not assigned"), *GetName());
+            }
             CurrentStats = *Row;
             CurrentStats.RunSpeed = Row->RunSpeed;
             bStatsReady = true;
@@ -486,6 +490,11 @@ void ABaseAnimal::ShowHitEffect(AActor* DamageCauser)
         HitEffectComponent->SetWorldLocation(HitResult.Location);
         HitEffectComponent->SetAsset(SelectedEffect);
         HitEffectComponent->ActivateSystem(true);
+    
+        if (SoundData && CurrentState != EAnimalState::Dead)
+        {
+            PlayAnimalSound(SoundData->HitSounds, HitResult.Location, EConcurrencyType::Impact);
+        }
     }
 }
 
@@ -533,35 +542,14 @@ void ABaseAnimal::OnInteract(AActor* Interactor)
     {
         Inventory->AddItems(DroppedItems);
     }
+
+    if (SoundData)
+    {
+        PlayAnimalSound(SoundData->InteractionSounds, GetActorLocation(), EConcurrencyType::Default);
+    }
+    
     StartFadeOut();
     SetLifeSpan(2.0f);
-}
-
-void ABaseAnimal::Capture()
-{
-    APlayerCharacter* Interactor = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
-    if (!IsValid(Interactor)) return;
-
-    UBaseInventoryComponent* Inventory = Interactor->FindComponentByClass<UBaseInventoryComponent>();
-    if (!IsValid(Inventory)) return;
-
-    const FAddItemResult Result = Inventory->AddItem(RowName, 1);
-    if (Result.bSuccess)
-    {
-        if (IsValid(ActiveInteractWidget))
-        {
-            ActiveInteractWidget->RemoveFromParent();
-            ActiveInteractWidget = nullptr;
-        }
-
-        Destroy();
-    }
-}
-
-void ABaseAnimal::Butcher()
-{
-    // TODO : AddItem
-    Destroy();
 }
 
 void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) const
@@ -780,6 +768,30 @@ void ABaseAnimal::UpdateFade()
     if (ElapsedFadeTime >= 2.0f)
     {
         GetWorldTimerManager().ClearTimer(FadeTimerHandle);
+    }
+}
+#pragma endregion
+
+#pragma region SFX
+void ABaseAnimal::PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch, const float StartTime) const
+{
+    if (SoundArray.Num() == 0)
+        return;
+       
+    int32 RandomIndex = FMath::RandRange(0, SoundArray.Num() - 1);
+    USoundBase* SelectedSound = SoundArray[RandomIndex];
+   
+    if (SelectedSound)
+    {
+        const UGameInstance* GameInstance = GetGameInstance();
+        if (IsValid(GameInstance))
+        {
+            UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+            if (IsValid(AudioManager))
+            {
+                AudioManager->PlaySFX(SelectedSound, Location, SoundType, Pitch, StartTime);
+            }
+        }
     }
 }
 #pragma endregion
