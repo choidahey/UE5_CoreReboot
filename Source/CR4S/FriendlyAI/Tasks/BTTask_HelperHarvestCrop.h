@@ -20,6 +20,8 @@ struct FBTHarvestCropMemory
 	float CachedHarvestDuration = 0.f;
 	float ElapsedTime = 0.f;
 	bool bIsTargetDestroyedBound = false;
+
+	FTimerHandle BeamUpdateTimer;
    
 	UPROPERTY()
 	TWeakObjectPtr<UBehaviorTreeComponent> OwnerComp = nullptr;

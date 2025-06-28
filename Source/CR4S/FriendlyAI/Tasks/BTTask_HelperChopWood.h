@@ -18,6 +18,8 @@ struct FBTChopWoodMemory
 	
 	float CachedDamagePerSecond = 0.f;
 
+	FTimerHandle BeamUpdateTimer;
+
 	FBTChopWoodMemory()
 		: CachedTarget(nullptr)
 		, CachedHelper(nullptr)
