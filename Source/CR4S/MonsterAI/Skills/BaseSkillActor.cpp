@@ -33,11 +33,11 @@ void ABaseSkillActor::BeginPlay()
 	Super::BeginPlay();
 	InitializeSkillData();
 
-	PlaySkillStart(LaunchSkillSound);
+	PlaySkillSound(LaunchSkillSound);
 
 }
 
-void ABaseSkillActor::PlaySkillStart(USoundBase* Sound)
+void ABaseSkillActor::PlaySkillSound(USoundBase* Sound)
 {
 	if (!Sound) return;
 

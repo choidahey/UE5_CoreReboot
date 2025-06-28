@@ -72,7 +72,7 @@ protected:
 protected:
 	void PlayEffectAtLocation(const FVector& Location);
 	void PlaySoundAtLocation(const FVector& Location);
-	virtual void PlaySkillStart(USoundBase* Sound);
+	virtual void PlaySkillSound(USoundBase* Sound);
 
 	// Execute SKill
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Audio")
