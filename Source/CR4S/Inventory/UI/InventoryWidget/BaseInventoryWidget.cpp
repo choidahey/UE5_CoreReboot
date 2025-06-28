@@ -120,6 +120,10 @@ void UBaseInventoryWidget::UnBoundWidgetDelegate()
 	}
 }
 
+void UBaseInventoryWidget::CloseSlotWidgets()
+{
+}
+
 void UBaseInventoryWidget::UpdateItemSlotWidget(const int32 SlotIndex, UBaseInventoryItem* Item)
 {
 	if (ItemSlotWidgets.IsValidIndex(SlotIndex))

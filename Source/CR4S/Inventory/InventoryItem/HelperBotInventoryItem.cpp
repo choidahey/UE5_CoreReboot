@@ -75,15 +75,18 @@ void UHelperBotInventoryItem::SetHelperBotData(const FHelperPickUpData& NewHelpe
 {
 	HelperBotData = NewHelperBotData;
 
-	const FText NewDescription = FText::Format(
-		LOCTEXT("ItemDescriptionFormat", "{0}: {1}\n{2}: {3}"),
-		BotNameText,
-		HelperBotData.BotName,
-		HPText,
-		FText::AsNumber(HelperBotData.CurrentHealth)
-	);
+	if (HelperBotData.bIsInit)
+	{
+		const FText NewDescription = FText::Format(
+			LOCTEXT("ItemDescriptionFormat", "{0}: {1}\n{2}: {3}"),
+			BotNameText,
+			HelperBotData.BotName,
+			HPText,
+			FText::AsNumber(HelperBotData.CurrentHealth)
+		);
 
-	InventoryItemData.ItemInfoData.Description = NewDescription;
+		InventoryItemData.ItemInfoData.Description = NewDescription;
+	}
 }
 
 FInventoryItemSaveGame UHelperBotInventoryItem::GetInventoryItemSaveData()
