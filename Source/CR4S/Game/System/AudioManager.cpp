@@ -50,6 +50,8 @@ void UAudioManager::SetMasterVolume(float Volume)
 	{
 		CurrentBGMComponent->SetVolumeMultiplier(GameSoundVolume.BGM * GameSoundVolume.Master);
 	}
+
+	OnSoundVolumeChanged.Broadcast(GameSoundVolume);
 }
 
 void UAudioManager::SetBGMVolume(float Volume)
@@ -65,6 +67,8 @@ void UAudioManager::SetBGMVolume(float Volume)
 	{
 		CurrentBGMComponent->SetVolumeMultiplier(GameSoundVolume.BGM * GameSoundVolume.Master);
 	}
+
+	OnSoundVolumeChanged.Broadcast(GameSoundVolume);
 }
 
 void UAudioManager::SetSFXVolume(float Volume)
@@ -75,6 +79,8 @@ void UAudioManager::SetSFXVolume(float Volume)
 	//}
 
 	GameSoundVolume.SFX = Volume;
+
+	OnSoundVolumeChanged.Broadcast(GameSoundVolume);
 }
 
 void UAudioManager::LoadVolumeSettings()
@@ -97,11 +103,23 @@ void UAudioManager::LoadVolumeSettings()
 	}
 }
 
-void UAudioManager::Play2DSound(USoundBase* Sound, float VolumeMultiplier, float PitchMultiplier, float StartTime)
+UAudioComponent* UAudioManager::PlayUISound(USoundBase* Sound, float PitchMultiplier, float StartTime)
 {
-	if (!Sound) return;
+	if (!Sound)
+		return nullptr;
 
-	UGameplayStatics::SpawnSound2D(GetWorld(), Sound, VolumeMultiplier, PitchMultiplier, StartTime);
+	const float EffectiveVolume = GameSoundVolume.SFX * GameSoundVolume.Master;
+
+	UAudioComponent* UIAudioComponent = UGameplayStatics::SpawnSound2D(
+		GetWorld(),
+		Sound,
+		EffectiveVolume,
+		PitchMultiplier,
+		StartTime,
+		UIConcurrency
+	);
+
+	return UIAudioComponent;
 }
 
 UAudioComponent* UAudioManager::PlayBGM(USoundBase* BGM)
@@ -162,11 +180,6 @@ UAudioComponent* UAudioManager::PlaySFX(USoundBase* SFX, FVector Location, EConc
 		nullptr,
 		Concurrency
 	);
-
-	UE_LOG(LogTemp, Verbose, TEXT("[AudioManager] PlaySFX [%s] at %s | Volume: %.2f"),
-		*UEnum::GetValueAsString(SoundType),
-		*Location.ToCompactString(),
-		EffectiveVolume);
 
 	return SFXComponent;
 }

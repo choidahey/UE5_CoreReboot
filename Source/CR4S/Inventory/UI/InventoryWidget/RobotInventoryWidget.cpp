@@ -211,7 +211,6 @@ void URobotInventoryWidget::UpdateCurrentArmWeightText(const float NewValue)
 	if (IsValid(CurrentArmWeightText))
 	{
 		CurrentArmWeight = NewValue;
-
 		CurrentArmWeightText->SetText(FText::AsNumber(CurrentArmWeight));
 
 		UpdateCurrentWeightColor(true);
@@ -225,7 +224,7 @@ void URobotInventoryWidget::UpdateMaxArmWeightText(const float NewValue)
 		MaxArmWeight = NewValue;
 		MaxArmWeightText->SetText(FText::AsNumber(MaxArmWeight));
 
-		UpdateCurrentWeightColor(false);
+		UpdateCurrentWeightColor(true);
 	}
 }
 
@@ -243,7 +242,7 @@ void URobotInventoryWidget::UpdateCurrentWeightColor(const bool bIsArmWeight) co
 		if (IsValid(CurrentWeightText))
 		{
 			CurrentWeightText->SetColorAndOpacity(CurrentWeight <= MaxWeight ? DefaultColor : OverColor);
-		}		
+		}
 	}
 }
 
