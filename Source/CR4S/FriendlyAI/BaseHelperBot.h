@@ -17,6 +17,7 @@ class UBaseInventoryComponent;
 class UNavigationInvokerComponent;
 class UNiagaraComponent;
 class UParticleSystemComponent;
+class UHelperBotSoundData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
@@ -276,4 +277,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void LoadHelperBotSaveData(const FHelperBotSaveGame& Data);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	UHelperBotSoundData* SoundData;
+	
+	void PlayBotSound(USoundBase* Sound, const FVector& Location = FVector::ZeroVector) const;
 };

@@ -25,7 +25,9 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Data/HelperBotSoundData.h"
 #include "Game/SaveGame/HelperBotSaveGame.h"
+#include "Game/System/AudioManager.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -220,6 +222,11 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 
 	if (BotAI)
 	{
+		if (SoundData && SoundData->InteractSound)
+		{
+			PlayBotSound(SoundData->InteractSound);
+		}
+    
 		if (StateUIClass)
 		{
 			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
@@ -403,6 +410,11 @@ void ABaseHelperBot::PlayHitEffect(const FVector& HitDirection)
 		HitEffectComponent->SetWorldLocation(HitLocation);
 		HitEffectComponent->SetVisibility(true);
 		HitEffectComponent->Activate(true);
+	}
+	
+	if (SoundData && SoundData->HitSound)
+	{
+		PlayBotSound(SoundData->HitSound);
 	}
 	
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
@@ -617,5 +629,24 @@ void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
 	if (InventoryComponent)
 	{
 		InventoryComponent->LoadInventorySaveGame(Data.InventoryData);
+	}
+}
+
+
+void ABaseHelperBot::PlayBotSound(USoundBase* Sound, const FVector& Location) const
+{
+	if (!Sound)
+		return;
+
+	FVector SoundLocation = Location.IsZero() ? GetActorLocation() : Location;
+    
+	const UGameInstance* GameInstance = GetGameInstance();
+	if (IsValid(GameInstance))
+	{
+		UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+		if (IsValid(AudioManager))
+		{
+			AudioManager->PlaySFX(Sound, SoundLocation, EConcurrencyType::AI);
+		}
 	}
 }

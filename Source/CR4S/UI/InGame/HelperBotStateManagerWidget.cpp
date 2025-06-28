@@ -11,6 +11,8 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
+#include "Game/System/AudioManager.h"
+#include "../../FriendlyAI/Data/HelperBotSoundData.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 
 void UHelperBotStateManagerWidget::InitializeWithController(AHelperBotAIController* InController, EHelperBotState InPreviousState)
@@ -58,19 +60,68 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 
 	SetIsFocusable(true);
 
-	if (SetIdleButton) SetIdleButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetIdle);
-	if (SetFollowingButton) SetFollowingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetFollowing);
-	if (SetChopWoodButton) SetChopWoodButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetChopWood);
-	if (SetGatheringButton) SetGatheringButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetGathering);
-	if (CloseButton) CloseButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::CloseStateWidget);
-	if (OpenInventoryButton) OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
-	if (SetMiningButton) SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
-	if (SetRepairingButton) SetRepairingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetRepairing);
-	if (SetDefendingButton) SetDefendingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetDefending);
-	if (ChangeNameButton) ChangeNameButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::ChangeNameButtonClicked);
-	if (BotNameEditBox) BotNameEditBox->OnTextCommitted.AddDynamic(this, &UHelperBotStateManagerWidget::OnNameEditCommitted);
-	if (PickUpButton) PickUpButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::PickUp);
-	if (RepairBotButton) RepairBotButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::RepairBot);
+	if (SetIdleButton)
+	{
+		SetIdleButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetIdle);
+		SetIdleButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (SetFollowingButton)
+	{
+		SetFollowingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetFollowing);
+		SetFollowingButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (SetChopWoodButton)
+	{
+		SetChopWoodButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetChopWood);
+		SetChopWoodButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (SetGatheringButton)
+	{
+		SetGatheringButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetGathering);
+		SetGatheringButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (CloseButton)
+	{
+		CloseButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::CloseStateWidget);
+		CloseButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (OpenInventoryButton)
+	{
+		OpenInventoryButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::OpenInventory);
+		OpenInventoryButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (SetMiningButton)
+	{
+		SetMiningButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetMining);
+		SetMiningButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (SetRepairingButton)
+	{
+		SetRepairingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetRepairing);
+		SetRepairingButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (SetDefendingButton)
+	{
+		SetDefendingButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::SetDefending);
+		SetDefendingButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (ChangeNameButton)
+	{
+		ChangeNameButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::ChangeNameButtonClicked);
+		ChangeNameButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (BotNameEditBox) BotNameEditBox->OnTextCommitted.AddDynamic(
+		this, &UHelperBotStateManagerWidget::OnNameEditCommitted);
+	if (PickUpButton)
+	{
+		PickUpButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::PickUp);
+		PickUpButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
+	if (RepairBotButton)
+	{
+		RepairBotButton->OnClicked.AddDynamic(this, &UHelperBotStateManagerWidget::RepairBot);
+		RepairBotButton->OnHovered.AddDynamic(this, &UHelperBotStateManagerWidget::OnButtonHovered);
+	}
 
 		
 	GetWorld()->GetTimerManager().SetTimer(DistanceCheckTimer, this, 
@@ -91,18 +142,36 @@ void UHelperBotStateManagerWidget::NativeConstruct()
 void UHelperBotStateManagerWidget::SetIdle()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Idle);
+
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->CommandResponseSound)
+	{
+		HelperBot->PlayBotSound(HelperBot->SoundData->CommandResponseSound);
+	}
+    
 	CloseWidgetAndResetInput();
 }
 
 void UHelperBotStateManagerWidget::SetFollowing()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Following);
+	
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->CommandResponseSound)
+	{
+		HelperBot->PlayBotSound(HelperBot->SoundData->CommandResponseSound);
+	}
+    
 	CloseWidgetAndResetInput();
 }
 
 void UHelperBotStateManagerWidget::SetChopWood()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::ChopWood);
+	
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->CommandResponseSound)
+	{
+		HelperBot->PlayBotSound(HelperBot->SoundData->CommandResponseSound);
+	}
+    
 	CloseWidgetAndResetInput();
 }
 
@@ -145,24 +214,49 @@ void UHelperBotStateManagerWidget::OpenInventory()
 void UHelperBotStateManagerWidget::SetMining()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Mining);
+	
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->CommandResponseSound)
+	{
+		HelperBot->PlayBotSound(HelperBot->SoundData->CommandResponseSound);
+	}
+    
 	CloseWidgetAndResetInput();
 }
+
 
 void UHelperBotStateManagerWidget::SetRepairing()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Repairing);
+
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->CommandResponseSound)
+	{
+		HelperBot->PlayBotSound(HelperBot->SoundData->CommandResponseSound);
+	}
+    
 	CloseWidgetAndResetInput();
 }
 
 void UHelperBotStateManagerWidget::SetGathering()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Gathering);
+	
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->CommandResponseSound)
+	{
+		HelperBot->PlayBotSound(HelperBot->SoundData->CommandResponseSound);
+	}
+    
 	CloseWidgetAndResetInput();
 }
 
 void UHelperBotStateManagerWidget::SetDefending()
 {
 	if (OwnerAIController) OwnerAIController->SetBotState(EHelperBotState::Defending);
+	
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->CommandResponseSound)
+	{
+		HelperBot->PlayBotSound(HelperBot->SoundData->CommandResponseSound);
+	}
+    
 	CloseWidgetAndResetInput();
 }
 
@@ -307,6 +401,11 @@ void UHelperBotStateManagerWidget::PickUp()
 					}
 				}
 				
+				if (Bot->SoundData && Bot->SoundData->RecallSound)
+				{
+					Bot->PlayBotSound(Bot->SoundData->RecallSound);
+				}
+
 				Bot->StartFadeOut();
 				if (UBaseInventoryComponent* InvComp = PC->FindComponentByClass<UBaseInventoryComponent>())
 				{
@@ -338,6 +437,11 @@ void UHelperBotStateManagerWidget::RepairBot()
 	{
 		UpdateHealthDisplay();
 		UpdateRepairButtonState();
+
+		if (HelperBot->SoundData && HelperBot->SoundData->SelfRepairUISound)
+		{
+			PlayUISound(HelperBot->SoundData->SelfRepairUISound);
+		}
 	}
 }
 
@@ -367,5 +471,29 @@ void UHelperBotStateManagerWidget::UpdateHealthDisplay()
 			(int32)HelperBot->GetCurrentHealth(), 
 			(int32)HelperBot->GetMaxHealth());
 		HealthText->SetText(FText::FromString(HealthString));
+	}
+}
+
+void UHelperBotStateManagerWidget::OnButtonHovered()
+{
+	if (HelperBot && HelperBot->SoundData && HelperBot->SoundData->InteractButtonHoverSound)
+	{
+		PlayUISound(HelperBot->SoundData->InteractButtonHoverSound);
+	}
+}
+
+void UHelperBotStateManagerWidget::PlayUISound(USoundBase* Sound) const
+{
+	if (!Sound || !HelperBot)
+		return;
+
+	const UGameInstance* GameInstance = GetGameInstance();
+	if (IsValid(GameInstance))
+	{
+		UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+		if (IsValid(AudioManager))
+		{
+			AudioManager->PlaySFX(Sound, FVector::ZeroVector, EConcurrencyType::UI);
+		}
 	}
 }
