@@ -47,6 +47,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Button")
 	FText ButtonLabel;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Button")
+	int32 TextSize = 32;
 
 private:
 	bool bHasHoveredSoundPlayed;
