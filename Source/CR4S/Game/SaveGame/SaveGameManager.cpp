@@ -29,14 +29,12 @@ void USaveGameManager::Initialize(FSubsystemCollectionBase& Collection)
     }
 }
 
-void USaveGameManager::SaveAll(const FString& SlotName)
+bool USaveGameManager::SaveAll(const FString& SlotName)
 {
-    //UBuildingSaveGame* Building = NewObject<UBuildingSaveGame>();
-    //UGameplayStatics::SaveGameToSlot(Building, SlotName + "_Building", 0);
+    bool bSuccess = true;
 
-    SaveCore(SlotName);
-
-    SaveWorld(SlotName);
+    bSuccess &= SaveCore(SlotName);
+    bSuccess &= SaveWorld(SlotName);
 
     if (!MetaSave)
         MetaSave = NewObject<UC4MetaSaveGame>();
@@ -48,6 +46,8 @@ void USaveGameManager::SaveAll(const FString& SlotName)
 
     MetaSave->SaveSlots.Add(SlotName, Data);
     SaveMeta();
+
+    return bSuccess;
 }
 
 void USaveGameManager::PreloadSaveData(const FString& SlotName)
@@ -191,9 +191,8 @@ void USaveGameManager::DeleteSlot(const FString& SlotName)
 	}
 }
 
-void USaveGameManager::SaveCore(const FString& SlotName)
+bool USaveGameManager::SaveCore(const FString& SlotName)
 {
-    CR4S_Log(LogSave, Log, TEXT("Called with SlotName: %s"), *SlotName);
     if (!CoreSave)
     {
         CoreSave = NewObject<UCoreSaveGame>();
@@ -201,28 +200,25 @@ void USaveGameManager::SaveCore(const FString& SlotName)
 
     CoreSave->SavedActorsData.Empty();
 
-   for (const TScriptInterface<ISavableActor>& SavableActor : SavableActors)
-   {
-       if (!SavableActor) return;
+    for (const TScriptInterface<ISavableActor>& SavableActor : SavableActors)
+    {
+        if (!SavableActor) continue;
 
-       FName UniqueID=SavableActor->GetUniqueSaveID();
-       if (UniqueID.IsNone())
-       {
-           UniqueID=GenerateUniqueID();
-           SavableActor->SetUniqueSaveID(UniqueID);
-       }
+        FName UniqueID = SavableActor->GetUniqueSaveID();
+        if (UniqueID.IsNone())
+        {
+            UniqueID = GenerateUniqueID();
+            SavableActor->SetUniqueSaveID(UniqueID);
+        }
 
-       FSavedActorData ActorDataContainer;
+        FSavedActorData ActorDataContainer;
+        SavableActor->GatherSaveData(ActorDataContainer);
+        CoreSave->SavedActorsData.Add(UniqueID, ActorDataContainer);
+    }
 
-       SavableActor->GatherSaveData(ActorDataContainer);
-
-       CoreSave->SavedActorsData.Add(UniqueID, ActorDataContainer);
-   }
-
-    
     const FString FullSlotName = SlotName + TEXT("_Core");
     const bool bSuccess = UGameplayStatics::SaveGameToSlot(CoreSave, FullSlotName, 0);
-    
+
     if (bSuccess)
     {
         CR4S_Log(LogSave, Log, TEXT("Successfully saved to slot: %s"), *FullSlotName);
@@ -231,19 +227,20 @@ void USaveGameManager::SaveCore(const FString& SlotName)
     {
         CR4S_Log(LogSave, Error, TEXT("Failed to save to slot: %s"), *FullSlotName);
     }
+
+    return bSuccess;
 }
 
-
-void USaveGameManager::SaveWorld(const FString& SlotName)
+bool USaveGameManager::SaveWorld(const FString& SlotName)
 {
     WorldSave = NewObject<UWorldSaveGame>();
-    if (!CR4S_VALIDATE(LogSave, WorldSave)) return;
+    if (!CR4S_VALIDATE(LogSave, WorldSave)) return false;
 
     UWorldTimeManager* TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
-    if (!CR4S_VALIDATE(LogSave, TimeManager)) return;
+    if (!CR4S_VALIDATE(LogSave, TimeManager)) return false;
 
     USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
-    if (!CR4S_VALIDATE(LogSave, SeasonManager)) return;
+    if (!CR4S_VALIDATE(LogSave, SeasonManager)) return false;
 
     WorldSave->Season = SeasonManager->GetCurrentSeason();
     WorldSave->SeasonDay = SeasonManager->GetCurrentSeasonDay();
@@ -258,13 +255,12 @@ void USaveGameManager::SaveWorld(const FString& SlotName)
         WorldSave->DuskTime,
         WorldSave->SeasonLength);
 
-
     WorldSave->TimeData = TimeManager->GetCurrentTimeData();
     WorldSave->TotalGameTime = TimeManager->GetTotalPlayTime();
     WorldSave->DayCycleLength = TimeManager->GetDayCycleLength();
 
     CR4S_Log(LogSave, Log, TEXT("Time data saved: Current=%s, TotalTime=%lld, CycleLength=%d"),
-        *WorldSave->TimeData.ToString(), 
+        *WorldSave->TimeData.ToString(),
         WorldSave->TotalGameTime,
         WorldSave->DayCycleLength);
 
@@ -279,7 +275,10 @@ void USaveGameManager::SaveWorld(const FString& SlotName)
     {
         CR4S_Log(LogSave, Error, TEXT("Failed to save WorldSave to slot: %s"), *FullSlotName);
     }
+
+    return bSuccess;
 }
+
 
 
 bool USaveGameManager::IsNewGame() const

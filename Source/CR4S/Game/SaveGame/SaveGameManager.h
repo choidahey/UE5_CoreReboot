@@ -36,7 +36,7 @@ public:
     
 #pragma region Public API - Save / Load
 public:
-    void SaveAll(const FString& SlotName);
+    bool SaveAll(const FString& SlotName);
     UFUNCTION(BlueprintCallable)
     void PreloadSaveData(const FString& SlotName);
     void ApplyAll();
@@ -45,8 +45,8 @@ public:
     void ApplyWorldData();
 
     UFUNCTION(BlueprintCallable)
-    void SaveCore(const FString& SlotName);
-    void SaveWorld(const FString& SlotName);
+    bool SaveCore(const FString& SlotName);
+    bool SaveWorld(const FString& SlotName);
 
     void SaveSettings(USettingsSaveGame* InSettingsSave);
     USettingsSaveGame* LoadSettings();
