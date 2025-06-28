@@ -9,9 +9,12 @@ USTRUCT(BlueprintType)
 struct FSoundClassVolume //Multiplier
 {
 	GENERATED_BODY()
-
+	
+	UPROPERTY(BlueprintReadWrite)
 	float Master = 1.0f;
+	UPROPERTY(BlueprintReadWrite)
 	float BGM = 1.0f;
+	UPROPERTY(BlueprintReadWrite)
 	float SFX = 1.0f;
 };
 
@@ -24,6 +27,8 @@ enum class EConcurrencyType : uint8
 	Repetition UMETA(DisplayName = "Repetition"),	// eg. footsteps, gun shot
 	Default    UMETA(DisplayName = "Default")
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSoundVolumeChanged, const FSoundClassVolume&, NewVolume);
 
 UCLASS()
 class CR4S_API UAudioManager : public UGameInstanceSubsystem
@@ -57,11 +62,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UAudioComponent* PlaySFX(USoundBase* SFX, FVector Location, EConcurrencyType SoundType, float Pitch = 1.0f, float StartTime = 0.0f);
 
-	// XXX Do not use XXX //
+	// Plays 2D UI Sound Effects  //
 	UFUNCTION(BlueprintCallable)
-	void Play2DSound(USoundBase* Sound, float VolumeMultiplier = 1.0f, float PitchMultiplier = 1.0f, float StartTime = 0.0f);
+	UAudioComponent* PlayUISound(USoundBase* Sound, float PitchMultiplier = 1.0f, float StartTime = 0.0f);
 
-	// Stops Current BGM that is beeing played //
+	// Stops Current BGM that is being played //
 	UFUNCTION(BlueprintCallable)
 	void StopBGM();
 
@@ -70,7 +75,6 @@ protected:
 
 	UPROPERTY()
 	UAudioComponent* CurrentBGMComponent;
-
 
 #pragma endregion 
 
@@ -101,6 +105,11 @@ protected:
 	USoundConcurrency* RepetitionConcurrency;
 
 #pragma endregion 
+public:
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSoundVolumeChanged OnSoundVolumeChanged;
+
 
 private:
 	UFUNCTION(BlueprintCallable)

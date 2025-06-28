@@ -184,6 +184,6 @@ void UCraftingWidget::PlayCraftingSound() const
 	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
 	if (IsValid(AudioManager))
 	{
-		AudioManager->Play2DSound(CraftingSound);
+		AudioManager->PlayUISound(CraftingSound);
 	}
 }
