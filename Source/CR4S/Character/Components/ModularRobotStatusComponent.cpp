@@ -164,7 +164,7 @@ void UModularRobotStatusComponent::ApplyEnergyDepletedDebuff() const
 {
 	if (!CR4S_ENSURE(LogHong1, OwningCharacter && OwningCharacter->GetCharacterMovement()))
 	{
-		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed*RobotStatus.EnergyDepletedSpeedMultiplier;
+		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed*=RobotStatus.EnergyDepletedSpeedMultiplier;
 	}
 }
 
@@ -173,7 +173,7 @@ void UModularRobotStatusComponent::RemoveEnergyDepletedDebuff() const
 	if (!CR4S_ENSURE(LogHong1, OwningCharacter
 	                 && OwningCharacter->GetCharacterMovement()))
 	{
-		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed/RobotStatus.EnergyDepletedSpeedMultiplier;
+		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed/=RobotStatus.EnergyDepletedSpeedMultiplier;
 	}
 }
 
