@@ -26,6 +26,7 @@ protected:
 	void InitMainMenu();
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 #pragma endregion
 
@@ -129,8 +130,7 @@ protected:
 	void OnCreditsButtonClicked();
 	UFUNCTION()
 	void OnQuitButtonClicked();
-	UFUNCTION()
-	void OnSettingsClosed();
+
 public:
 
 	FTimerHandle DissolveStepTimerHandle;
