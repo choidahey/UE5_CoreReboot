@@ -18,6 +18,8 @@
 #include "../Character/Characters/PlayerCharacter.h"
 #include "NavigationInvokerComponent.h"
 #include "NiagaraComponent.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Character/Components/BaseStatusComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Utility/CombatStatics.h"
@@ -74,6 +76,27 @@ void ABaseAnimal::BeginPlay()
     {
         C->SetAnimalState(EAnimalState::Patrol);
     }
+
+    if (APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0)))
+    {
+        if (UBaseStatusComponent* StatusComp = Player->FindComponentByClass<UBaseStatusComponent>())
+        {
+            StatusComp->OnDeathState.AddLambda([this]()
+            {
+                bPlayerDead = true;
+
+                if (Cast<APlayerCharacter>(CurrentTarget) || Cast<AModularRobot>(CurrentTarget))
+                {
+                    if (AAnimalAIController* AIController = Cast<AAnimalAIController>(GetController()))
+                    {
+                        AIController->ClearTargetActor();
+                        AIController->SetAnimalState(EAnimalState::Patrol);
+                    }
+                }
+            });
+        }
+    }
+    
     LoadStats();
     
     bUseControllerRotationYaw = false;
