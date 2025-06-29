@@ -6,4 +6,5 @@ AHiemsFrostBossMonster::AHiemsFrostBossMonster()
 {
 	MonsterID = TEXT("HiemsFrostBoss");
 	EnvTempDelta = -10.f;
+	DropItems.Add({ FName("IceCrystal"), 1 });
 }

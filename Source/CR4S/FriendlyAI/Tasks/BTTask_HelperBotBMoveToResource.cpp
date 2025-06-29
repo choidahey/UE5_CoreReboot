@@ -45,7 +45,7 @@ EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::ExecuteTask(UBehaviorTreeC
     if (JumpComp)
     {
         MyMemory->JumpComponent = JumpComp;
-        JumpComp->ActivateJumpComponent();
+        JumpComp->ActivateJumpComponent(AcceptanceRadius);
         //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: Jump component activated"));
     }
     // else
@@ -137,6 +137,10 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
     AActor* TargetActor = ResultActors[0];
     // UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: EQS Result Actor: %s"), TargetActor ? *TargetActor->GetName() : TEXT("NULL"));
     // UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: EQS Result Location: %s"), *TargetActor->GetActorLocation().ToString());
+
+    FVector AdjustedLocation = TargetActor->GetActorLocation();
+    AdjustedLocation.Z += 10.0f;
+    TargetActor->SetActorLocation(AdjustedLocation);
     
     MyMemory->OwnerCompPtr->GetBlackboardComponent()->SetValueAsObject("TargetActor", TargetActor);
     //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: TargetActor set in blackboard"));
@@ -173,14 +177,20 @@ void UBTTask_HelperBotBMoveToResource::CheckReachedTarget(FBTMoveToResourceMemor
     if (!MyMemory || !MyMemory->JumpComponent || !MyMemory->OwnerCompPtr)
         return;
 
-    if (MyMemory->JumpComponent->HasReachedTarget())
+    bool bReached = MyMemory->JumpComponent->HasReachedTarget();
+    //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: HasReachedTarget = %s"), bReached ? TEXT("TRUE") : TEXT("FALSE"));
+
+    if (bReached)
     {
+        //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Target reached! Clearing timer and deactivating jump component"));
         MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->CheckTimer);
         MyMemory->JumpComponent->DeactivateJumpComponent();
         
+        //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Starting rotation timer"));
         FTimerDelegate RotationDelegate = FTimerDelegate::CreateUObject(this, &UBTTask_HelperBotBMoveToResource::HandleTargetRotation, MyMemory);
         MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().SetTimer(MyMemory->RotationTimer, RotationDelegate, 0.016f, true); // 60fps
        
+        //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Finishing task with SUCCESS"));
         FinishLatentTask(*MyMemory->OwnerCompPtr, EBTNodeResult::Succeeded);
     }
 }
@@ -201,6 +211,9 @@ void UBTTask_HelperBotBMoveToResource::HandleTargetRotation(FBTMoveToResourceMem
     AActor* TargetActor = Cast<AActor>(MyMemory->OwnerCompPtr->GetBlackboardComponent()->GetValueAsObject("TargetActor"));
     if (!TargetActor)
         return;
+
+    float Distance = FVector::Dist(Pawn->GetActorLocation(), TargetActor->GetActorLocation());
+    //UE_LOG(LogTemp, Warning, TEXT("HandleTargetRotation: Distance to target = %.2f"), Distance);
        
     FVector TargetDirection = (TargetActor->GetActorLocation() - Pawn->GetActorLocation()).GetSafeNormal();
     FRotator TargetRotation = TargetDirection.Rotation();

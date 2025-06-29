@@ -1,6 +1,9 @@
 #include "AnimalSingleTargetProjectile.h"
+
+#include "FriendlyAI/BaseAnimal.h"
 #include "Kismet/GameplayStatics.h"
 #include "Game/System/ProjectilePoolSubsystem.h"
+#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
 
 AAnimalSingleTargetProjectile::AAnimalSingleTargetProjectile()
 {
@@ -11,19 +14,11 @@ void AAnimalSingleTargetProjectile::OnCapsuleOverlap(UPrimitiveComponent* Overla
 													 bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnCapsuleOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-	
-	if (OtherActor && OtherActor != this 
-		&& OtherActor != GetOwner() 
-		&& !OtherActor->IsA<AAnimalProjectile>())
+
+	if (!ShouldDamageActor(OtherActor))
 	{
-		UGameplayStatics::ApplyDamage(OtherActor, Damage, nullptr, this, UDamageType::StaticClass());
-		
-		// if (UWorld* World = GetWorld())
-		// {
-		// 	if (UProjectilePoolSubsystem* Pool = World->GetSubsystem<UProjectilePoolSubsystem>())
-		// 	{
-		// 		Pool->ReturnToPool(this);
-		// 	}
-		// }
+		return;
 	}
+
+	UGameplayStatics::ApplyDamage(OtherActor, Damage, nullptr, this, UDamageType::StaticClass());
 }

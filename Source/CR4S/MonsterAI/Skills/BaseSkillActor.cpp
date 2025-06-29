@@ -10,6 +10,7 @@
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
 #include "Utility/CombatStatics.h"
+#include "Utility/NiagaraParamHelper.h"
 #include "CR4S.h"
 
 ABaseSkillActor::ABaseSkillActor()
@@ -166,5 +167,17 @@ void ABaseSkillActor::PlaySoundAtLocation(const FVector& Location)
 				AudioMgr->PlaySFX(HitSound, GetActorLocation(), StartSoundType);
 			}
 		}
+	}
+}
+
+void ABaseSkillActor::SpawnEffectAtLocationWithParams(UNiagaraSystem* System, const FVector& Location, const FNiagaraParamSet& Params)
+{
+	if (!System) return;
+
+	UNiagaraComponent* SpawnedNiagara = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, System, Location);
+
+	if (SpawnedNiagara)
+	{
+		UNiagaraParamUtils::ApplyParams(SpawnedNiagara, Params);
 	}
 }
