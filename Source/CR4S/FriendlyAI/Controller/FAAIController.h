@@ -4,7 +4,13 @@
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "../BaseAnimal.h"
 #include "FAAIController.generated.h"
+
+class UAIPerceptionComponent;
+class UAISenseConfig_Sight;
+class UAISenseConfig_Hearing;
+class AAnimalFlying;
 
 UCLASS()
 class CR4S_API AFAAIController : public AAIController
@@ -151,4 +157,23 @@ public:
 #pragma endregion
 
 	void SetDoIFearTheEnemy();
+	void SetAnimalState(EAnimalState NewState);
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	UAIPerceptionComponent* AIPerceptionComp;
+
+	UPROPERTY()
+	UAISenseConfig_Sight* SightConfig;
+
+	UPROPERTY()
+	UAISenseConfig_Hearing* HearingConfig;
+
+	UFUNCTION()
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	void SetTargetActor(AActor* Target);
+	void ApplyPerceptionStats(const FAnimalStatsRow& Stats);
+	void HandlePerceptionResponse(AAnimalFlying* Animal, AActor* SensedActor);
+	AActor* GetCurrentPlayerTarget() const;
+
 };
