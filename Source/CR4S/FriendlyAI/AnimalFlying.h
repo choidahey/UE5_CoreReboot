@@ -20,7 +20,8 @@ public:
 	
 public:
 	virtual void BeginPlay() override;
-
+	virtual void Tick(float DeltaTime) override;
+	
 	UFUNCTION(BlueprintCallable)
 	void OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 	
@@ -29,12 +30,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="AI")
 	UBehaviorTree* BehaviorTreeAsset;
-	
-#pragma region Stun
-public:
-	virtual void ApplyStun(float Amount) override;
-	virtual void RecoverFromStun() override;
-#pragma endregion
 	
 #pragma region Attack
 	//void PerformMeleeAttack() override;
@@ -222,4 +217,6 @@ private:
 public:
 	void UpdateAnimationParametersFromBlackboard();
 	FTimerHandle AnimationUpdateTimer;
+
+	virtual void SetAnimalState(EAnimalState NewState) override;
 };
