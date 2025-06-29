@@ -56,15 +56,20 @@ public:
 #pragma region BaseMonster Components
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	TObjectPtr<UMonsterAnimComponent> AnimComponent;
+	FORCEINLINE UMonsterAnimComponent* GetMonsterAnimComp() const { return AnimComponent;	}
+	FORCEINLINE UMonsterSkillComponent* GetMonsterSkillComp() const { return SkillComponent;	}
+	FORCEINLINE UMonsterAttributeComponent* GetMonsterAttribute() const { return AttributeComponent;	}
+	FORCEINLINE UMonsterStateComponent* GetMonsterStateComp() const { return StateComponent;	}
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
+	TObjectPtr<UMonsterAnimComponent> AnimComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterSkillComponent> SkillComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterStateComponent> StateComponent;
