@@ -92,7 +92,7 @@ private:
 	AActor* TargetActor = nullptr;
 	
 	UPROPERTY()
-	TSet<AActor*> OverlappingActors;
+	TSet<TWeakObjectPtr<AActor>> OverlappingActors;
 	
 	float ElapsedTime = 0.f;
 	float TraceHeight = 1000.f;
