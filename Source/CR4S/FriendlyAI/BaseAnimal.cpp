@@ -706,7 +706,7 @@ float ABaseAnimal::PlayRangedAttackMontage()
 
 void ABaseAnimal::PerformMeleeAttack()
 {
-    if (!CurrentTarget || !bCanMelee || bIsMeleeOnCooldown) return;
+    if (!IsValid(CurrentTarget) || !bCanMelee || bIsMeleeOnCooldown) return;
 
     const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
     if (Distance > MeleeRange) return;
