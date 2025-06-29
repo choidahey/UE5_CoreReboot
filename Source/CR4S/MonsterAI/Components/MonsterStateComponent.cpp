@@ -147,14 +147,20 @@ void UMonsterStateComponent::AddStun(float StunAmount)
 		CurrentStun = MaxStun;
             	
 		SetState(EMonsterState::Stunned);
-            	
+		OnStunStarted.Broadcast();
+		
 		if (ACharacter* Owner = Cast<ACharacter>(GetOwner()))
 			if (UCharacterMovementComponent* Movement = Owner->GetCharacterMovement())
 				Movement->DisableMovement();
             	
 		if (ABaseMonster* Monster = Cast<ABaseMonster>(GetOwner()))
-			if (Monster->AnimComponent)
-				Monster->AnimComponent->PlayStunnedMontage();
+		{
+			if (Monster->GetMonsterAnimComp())
+			{
+				Monster->GetMonsterAnimComp()->StopAllMontages();
+				Monster->GetMonsterAnimComp()->PlayStunnedMontage();
+			}
+		}
 
 		GetWorld()->GetTimerManager().ClearTimer(RecoveryDelayTimerHandle);
 		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryTimerHandle);
@@ -177,6 +183,8 @@ void UMonsterStateComponent::RemoveStunDebuff()
 	RecoveryElapsedTime = 0.f;
 
 	SetState(EMonsterState::Idle);
+	OnStunEnded.Broadcast();
+	
 	GetWorld()->GetTimerManager().ClearTimer(StunRecoveryTimerHandle);
 	
 	if (ACharacter* Owner = Cast<ACharacter>(GetOwner()))
@@ -237,9 +245,9 @@ void UMonsterStateComponent::HandlePlayerDeath()
 	
 	if (ABaseMonster* Monster = Cast<ABaseMonster>(GetOwner()))
 	{
-		if (Monster->AnimComponent)
+		if (Monster->GetMonsterAnimComp())
 		{
-			Monster->AnimComponent->StopAllMontages();
+			Monster->GetMonsterAnimComp()->StopAllMontages();
 		}
 	}
 

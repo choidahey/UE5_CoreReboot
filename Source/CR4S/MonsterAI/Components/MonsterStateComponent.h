@@ -9,6 +9,9 @@
 struct FMonsterAttributeRow;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMonsterStateChanged, EMonsterState, PreviousState, EMonsterState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, EBossPhase, NewPhase);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStunStarted);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStunEnded);
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CR4S_API UMonsterStateComponent : public UActorComponent
@@ -109,6 +112,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Monster|State")
 	float GetCurrentStunAmount() const { return MaxStun > 0.f ? CurrentStun / MaxStun : 0.f; }
+
+	UPROPERTY(BlueprintAssignable)
+	FOnStunStarted OnStunStarted;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnStunEnded   OnStunEnded;
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|State")
