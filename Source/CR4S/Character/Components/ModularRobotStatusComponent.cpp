@@ -19,7 +19,7 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 void UModularRobotStatusComponent::TakeDamage(const float DamageAmount)
 {
 	const float ArmorFactor=BaseStatus.Armor*RobotStatus.ArmorMultiplier;
-	const float ComputedDamage = DamageAmount*(1000.f/(1000.f*ArmorFactor));
+	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant/(BaseStatus.ArmorConstant+ArmorFactor));
 	
 	AddCurrentHP(-(ComputedDamage));
 }
@@ -64,9 +64,49 @@ void UModularRobotStatusComponent::RemoveStunDebuff()
 {
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter)) return;
 
+	GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(StunRecoveryStartTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(StunRecoveryAcceleratingTimerHandle);
+	
 	SetCurrentStun(0);
 	OwningCharacter->SetInputEnable(true);
 	bIsStunned=false;
+}
+
+void UModularRobotStatusComponent::BeginStunRecovery()
+{
+	if (!CR4S_ENSURE(LogHong1,GetWorld())) return;
+
+	StunRecoveryStartTime=GetWorld()->GetTimeSeconds();
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		StunRecoveryAcceleratingTimerHandle,
+		this,
+		&UModularRobotStatusComponent::ProcessAcceleratingStunRecovery,
+		RobotStatus.StunRecoveryInterval,
+		true
+	);
+}
+
+void UModularRobotStatusComponent::ProcessAcceleratingStunRecovery()
+{
+	const float ElapsedTime=GetWorld()->GetTimeSeconds()-StunRecoveryStartTime;
+
+	const float Alpha=FMath::Clamp(ElapsedTime/RobotStatus.StunRecoveryAccelerationDuration,0,1);
+
+	const float CurrentRecoveryAmount = FMath::Lerp(
+		RobotStatus.InitialStunRecoveryAmount,
+		RobotStatus.MaxStunRecoveryAmount,
+		Alpha
+	);
+
+	AddStun(-(CurrentRecoveryAmount));
+
+	if (RobotStatus.Stun <= KINDA_SMALL_NUMBER)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryAcceleratingTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryStartTimerHandle);
+	}
 }
 
 void UModularRobotStatusComponent::StartConsumeEnergy()
@@ -160,6 +200,23 @@ void UModularRobotStatusComponent::SetMaxEnergy(const float NewValue)
 	OnEnergyChanged.Broadcast(Percentage);
 }
 
+void UModularRobotStatusComponent::ApplyEnergyDepletedDebuff() const
+{
+	if (CR4S_ENSURE(LogHong1, OwningCharacter && OwningCharacter->GetCharacterMovement()))
+	{
+		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed*=RobotStatus.EnergyDepletedSpeedMultiplier;
+	}
+}
+
+void UModularRobotStatusComponent::RemoveEnergyDepletedDebuff() const
+{
+	if (CR4S_ENSURE(LogHong1, OwningCharacter
+	                 && OwningCharacter->GetCharacterMovement()))
+	{
+		OwningCharacter->GetCharacterMovement()->MaxWalkSpeed/=RobotStatus.EnergyDepletedSpeedMultiplier;
+	}
+}
+
 void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 {
 	const float ClampedEnergy = FMath::Clamp(NewValue, 0.f, RobotStatus.MaxEnergy);
@@ -178,6 +235,7 @@ void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 		{
 			bIsRobotActive = false;
 			StopConsumeEnergy();
+			ApplyEnergyDepletedDebuff();
 		}
 	}
 	else
@@ -185,6 +243,7 @@ void UModularRobotStatusComponent::SetCurrentEnergy(const float NewValue)
 		if (!bIsRobotActive)
 		{
 			bIsRobotActive = true;
+			RemoveEnergyDepletedDebuff();
 		}
 	}
 }
@@ -214,7 +273,11 @@ void UModularRobotStatusComponent::SetCurrentStun(const float NewValue)
 		bIsStunned = true;
 		OwningCharacter->SetInputEnable(false);
 		
+		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryStartTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryAcceleratingTimerHandle);
+		
 		GetWorld()->GetTimerManager().ClearTimer(StunTimerHandle);
+		
 		GetWorld()->GetTimerManager().SetTimer(
 			StunTimerHandle,
 			this,
@@ -286,6 +349,30 @@ void UModularRobotStatusComponent::AddMaxStun(const float InAmount)
 void UModularRobotStatusComponent::AddStun(const float InAmount)
 {
 	SetCurrentStun(RobotStatus.Stun+InAmount);
+	
+	if (InAmount>KINDA_SMALL_NUMBER)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryStartTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(StunRecoveryAcceleratingTimerHandle);
+		if (RobotStatus.Stun>KINDA_SMALL_NUMBER && !bIsStunned)
+		{
+			GetWorld()->GetTimerManager().SetTimer(
+				StunRecoveryStartTimerHandle,
+				this,
+				&UModularRobotStatusComponent::BeginStunRecovery,
+				RobotStatus.TimeUntilStunRecoveryStarts,
+				false
+			);
+		}
+	}
+	else
+	{
+		if (RobotStatus.Stun<=KINDA_SMALL_NUMBER)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(StunRecoveryStartTimerHandle);
+			GetWorld()->GetTimerManager().ClearTimer(StunRecoveryAcceleratingTimerHandle);
+		}
+	}
 }
 
 void UModularRobotStatusComponent::AddArmorMultiplier(const float InAmount)
@@ -354,7 +441,9 @@ void UModularRobotStatusComponent::StartHover()
 
 	if (CR4S_ENSURE(LogHong1,GetCurrentResource()>=RobotStatus.HoverCostMultiplier))
 	{
+		ConsumeResourceForHovering();
 		OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		OnHoverStarted.Broadcast();
 		GetWorld()->GetTimerManager().SetTimer(
 			HoverTimerHandle,
 			this,

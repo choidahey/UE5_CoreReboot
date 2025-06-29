@@ -131,7 +131,6 @@ void URobotPartsInventoryItem::InitRobotPartsInfoData(const FGameplayTag& Tag)
 
 		InventoryItemData.ItemInfoData.Description = FText::Format(
 			TextFormat,
-			InventoryItemData.ItemInfoData.Description,
 			FText::AsNumber(CorePartsInfo.AttackPower),
 			FText::AsNumber(CorePartsInfo.ArmorMultiplier),
 			FText::AsNumber(CorePartsInfo.AdditiveTemperatureThreshold),

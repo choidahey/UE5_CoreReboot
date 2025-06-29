@@ -72,6 +72,19 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 	MyMemory->CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
 	Helper->SetIsWorking(true);
 	Helper->UpdateEyeBeamWorkTarget(TargetActor);
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		MyMemory->BeamUpdateTimer,
+		FTimerDelegate::CreateLambda([Helper, TargetActor]()
+		{
+			if (Helper && TargetActor)
+			{
+				Helper->UpdateEyeBeamWorkTarget(TargetActor);
+			}
+		}),
+		1.0f,
+		true
+	);
 
 	static int32 HelperCounter = 0;
 	static TMap<AActor*, int32> HelperIndexMap;
@@ -100,9 +113,9 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 				);
 			}
 		}),
-		0.2f,     // 반복 간격
-		true,     // 반복
-		InitialDelay  // 초기 딜레이
+		0.2f,
+		true,
+		InitialDelay
 	);
 
 	return EBTNodeResult::InProgress;
@@ -171,6 +184,11 @@ void UBTTask_HelperGatherResource::CleanupAndFinish(UBehaviorTreeComponent& Owne
 	if (MyMemory->DamageTimerHandle.IsValid())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(MyMemory->DamageTimerHandle);
+	}
+
+	if (MyMemory->BeamUpdateTimer.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(MyMemory->BeamUpdateTimer);
 	}
 
 	if (MyMemory->CachedHelper.IsValid())

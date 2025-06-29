@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BedWidget.generated.h"
 
+class USaveGameManager;
 class ABaseBuildingGimmick;
 class ASurvivalHUD;
 class UButton;
@@ -24,6 +25,14 @@ private:
 	TObjectPtr<ASurvivalHUD> SurvivalHUD;
 	
 #pragma endregion
+
+#pragma region SaveGame
+
+public:
+	UFUNCTION()
+	void SaveGame();
+	
+#pragma endregion 
 
 #pragma region Sleep
 

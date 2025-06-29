@@ -16,36 +16,59 @@ AChargableMeleeWeapon::AChargableMeleeWeapon()
 
 void AChargableMeleeWeapon::OnAttack()
 {
-	if (!bCanAttack) return;
-	
 	AttackPressTime=GetWorld()->GetTimeSeconds();
+	if ( !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand] || !TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand]) return;
+	
 	Super::OnAttack();
 }
 
 void AChargableMeleeWeapon::StopAttack()
 {
-	AModularRobot* Robot = GetTypedOuter<AModularRobot>();
-	if (!CR4S_ENSURE(LogHong1, Robot)) return;
+	if (!bCanAttack) return;
+	
+	Super::StopAttack();
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter
+		&& OwningCharacter->GetMesh()
+		&& BaseInfo.AttackMontages.IsValidIndex(bIsRightHand)
+		&& BaseInfo.AttackMontages[bIsRightHand])
+		&& TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages.IsValidIndex(bIsRightHand)
+		&& TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand])
+	{
+		return;
+	}
 
+	UAnimInstance* AnimInstance=OwningCharacter->GetMesh()->GetAnimInstance();
+	if (!CR4S_ENSURE(LogHong1,AnimInstance)) return;
+	
 	const float ElapsedTime = GetWorld()->GetTimeSeconds() - AttackPressTime;
 
 	UAnimMontage* MontageToPlay = nullptr;
 
-	if (ElapsedTime >= TypeSpecificInfo.ChargeAttackTimeThreshold)
+	if (ElapsedTime >= TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackTimeThreshold)
 	{
-		MontageToPlay = TypeSpecificInfo.ChargeAttackMontage;
+		MontageToPlay = TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand];
+
+		OriginalDamageMultiplier=BaseInfo.DamageMultiplier;
+		OriginalStunAmount=TypeSpecificInfo.StunAmount;
+
+		BaseInfo.DamageMultiplier=TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackDamageMultiplier;
+		TypeSpecificInfo.StunAmount=TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackStunAmount;
+
+		bIsChargeAttacking=true;
+
+		AnimInstance->OnMontageEnded.AddUniqueDynamic(this, &AChargableMeleeWeapon::OnChargeAttackMontageEnded);
 	}
 	else
 	{
-		MontageToPlay = BaseInfo.AttackMontage;
+		MontageToPlay = BaseInfo.AttackMontages[bIsRightHand];
 	}
 
 	if (MontageToPlay)
 	{
-		Robot->PlayAnimMontage(MontageToPlay);
+		OnMeleeAttackStarted.Broadcast(this);
+		OwningCharacter->PlayAnimMontage(MontageToPlay);
 	}
 	StartAttackCooldown();
-	Super::StopAttack();
 }
 
 // Called when the game starts or when spawned
@@ -53,6 +76,32 @@ void AChargableMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void AChargableMeleeWeapon::OnChargeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if ( !bIsChargeAttacking
+		||!TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages.IsValidIndex(bIsRightHand)
+		||Montage != TypeSpecificInfo.ChargableWeaponInfo.ChargeAttackMontages[bIsRightHand])
+	{
+		return;
+	}
+
+	bIsChargeAttacking=true;
+	
+	BaseInfo.DamageMultiplier=OriginalDamageMultiplier;
+	TypeSpecificInfo.StunAmount=OriginalStunAmount;
+
+	if (CR4S_ENSURE(LogHong1,OwningCharacter
+		&& OwningCharacter->GetMesh()))
+	{
+		return;
+	}
+	
+	if (UAnimInstance* AnimInstance=OwningCharacter->GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->OnMontageEnded.RemoveDynamic(this,&AChargableMeleeWeapon::OnChargeAttackMontageEnded);
+	}
 }
 
 // Called every frame

@@ -34,16 +34,35 @@ void ABaseSkillActor::BeginPlay()
 	Super::BeginPlay();
 	InitializeSkillData();
 
+	PlaySkillSound(LaunchSkillSound);
+
+}
+
+void ABaseSkillActor::PlaySkillSound(USoundBase* Sound)
+{
+	if (!Sound) return;
+
+	if (UAudioManager* AudioMgr = GetWorld()->GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioMgr->PlaySFX(Sound, GetActorLocation(), StartSoundType);
+	}
 }
 
 void ABaseSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	FVector HitLocation = OtherActor ? OtherActor->GetActorLocation() : GetActorLocation();
+	PlayEffectAtLocation(HitLocation);
+	PlaySoundAtLocation(HitLocation);
+	
 	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
 
 void ABaseSkillActor::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	PlayEffectAtLocation(Hit.Location);
+	PlaySoundAtLocation(Hit.Location);
+	
 	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
@@ -102,7 +121,7 @@ void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 		const FString SkillName = GetName();
 		const FString VictimName = Target->GetName();
 
-		UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s ¡æ Damage: %.1f, Stun: %.1f"),
+		UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s ï¿½ï¿½ Damage: %.1f, Stun: %.1f"),
 			*AttackerName,
 			*SkillName,
 			*VictimName,
@@ -132,9 +151,22 @@ void ABaseSkillActor::PlayEffectAtLocation(const FVector& Location)
 
 void ABaseSkillActor::PlaySoundAtLocation(const FVector& Location)
 {
-	if (HitSound)
+	// if (HitSound)
+	// {
+	// 	UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
+	// }
+
+	if (!IsValid(HitSound)) return;
+	
+	if (UWorld* World = GetWorld())
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UAudioManager* AudioMgr = GI->GetSubsystem<UAudioManager>())
+			{
+				AudioMgr->PlaySFX(HitSound, GetActorLocation(), StartSoundType);
+			}
+		}
 	}
 }
 

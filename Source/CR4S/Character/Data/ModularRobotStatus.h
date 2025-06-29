@@ -22,6 +22,8 @@ public:
 	float EnergyConsumptionInterval{0.1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float EnergyEfficiency{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float EnergyDepletedSpeedMultiplier {0.3};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float HoverCostMultiplier{0.1};
@@ -37,6 +39,16 @@ public:
 	float Stun{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunDuration{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float InitialStunRecoveryAmount{5};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunRecoveryInterval{0.1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TimeUntilStunRecoveryStarts{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxStunRecoveryAmount{20};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunRecoveryAccelerationDuration{1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ArmorMultiplier{1};

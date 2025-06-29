@@ -16,19 +16,25 @@ ASustainableMeleeWeapon::ASustainableMeleeWeapon()
 
 void ASustainableMeleeWeapon::OnAttack()
 {
-	if (!bCanAttack || !OwningCharacter || !BaseInfo.AttackMontage) return;
-	
-	OwningCharacter->PlayAnimMontage(BaseInfo.AttackMontage);
+	if (!bCanAttack || !OwningCharacter || !BaseInfo.AttackMontages[bIsRightHand]) return;
+
+	OnMeleeAttackStarted.Broadcast(this);
+	OwningCharacter->PlayAnimMontage(BaseInfo.AttackMontages[bIsRightHand]);
 	Super::OnAttack();
 }
 
 void ASustainableMeleeWeapon::StopAttack()
 {
 	Super::StopAttack();
+	if (!CR4S_ENSURE(LogHong1,OwningCharacter
+		&& BaseInfo.AttackMontages.IsValidIndex(bIsRightHand)
+		&& BaseInfo.AttackMontages[bIsRightHand]))
+	{
+		return;
+	}
 
-	if (!CR4S_ENSURE(LogHong1,OwningCharacter && !BaseInfo.AttackMontage)) return;
-
-	OwningCharacter->StopAnimMontage(BaseInfo.AttackMontage);
+	OwningCharacter->StopAnimMontage(BaseInfo.AttackMontages[bIsRightHand]);
+	StartAttackCooldown();
 }
 
 // Called when the game starts or when spawned

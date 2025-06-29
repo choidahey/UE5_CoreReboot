@@ -11,6 +11,7 @@
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class UWeaponTraceComponent;
 class USaveGame;
 class UTimelineComponent;
 class UDataLoaderSubsystem;
@@ -30,6 +31,7 @@ class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
 
+
 UCLASS()
 class CR4S_API AModularRobot : public ACharacter, public IStunnableInterface, public ISavableActor
 {
@@ -46,6 +48,11 @@ public:
 	virtual void ApplySaveData(FSavedActorData& InSaveData) override;
 #pragma endregion
 
+#pragma region Effects
+	UFUNCTION()
+	void HandleHoverEffects();
+#pragma endregion
+	
 #pragma region InputEnable
 	void SetInputEnable(const bool bEnableInput) const;
 	void SetMovementInputEnable(const bool bEnableMovementInput) const;
@@ -208,6 +215,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UModularRobotStatusComponent> Status;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWeaponTraceComponent> WeaponTrace;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<URobotWeaponComponent> WeaponManager;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractableComponent> InteractComp;
@@ -248,6 +257,8 @@ protected:
 	uint8 bIsDashing : 1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsHovering : 1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsDead : 1 {false};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
 	FName UniqueSaveID;
@@ -262,4 +273,5 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bIsDebugMode : 1 {false};
 #pragma endregion
+	
 };

@@ -13,6 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float, New
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxWeightChangedDelegate, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnArmLoadChangedDelegate, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxArmLoadChangedDelegate, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHoverStarted);
 
 class AModularRobot;
 class UModularRobotStatusAsset;
@@ -26,7 +27,7 @@ public:
 	UModularRobotStatusComponent();
 
 #pragma region Damage
-	virtual void TakeDamage(const float DamageAmount);
+	virtual void TakeDamage(const float DamageAmount) override;
 #pragma endregion
 
 #pragma region CheckWeight
@@ -65,6 +66,8 @@ public:
 
 #pragma region Set
 	void SetMaxEnergy(const float NewValue);
+	void ApplyEnergyDepletedDebuff() const;
+	void RemoveEnergyDepletedDebuff() const;
 	void SetCurrentEnergy(const float NewValue);
 
 	void SetMaxStun(const float NewValue);
@@ -129,8 +132,10 @@ protected:
 
 	
 #pragma region Stun
-public:
+protected:
 	void RemoveStunDebuff();
+	void BeginStunRecovery();
+	void ProcessAcceleratingStunRecovery();
 #pragma endregion
 
 #pragma region Energy
@@ -164,6 +169,10 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Stun")
+	float StunRecoveryStartTime{0};
+	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
 	uint8 bIsStunned:1 {false};
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category="State")
@@ -197,6 +206,8 @@ public:
 	FOnArmLoadChangedDelegate OnArmLoadChanged;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
 	FOnMaxArmLoadChangedDelegate OnMaxArmLoadChanged;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Delegate")
+	FOnHoverStarted OnHoverStarted;
 #pragma endregion
 
 #pragma region Timer
@@ -206,5 +217,10 @@ public:
 	FTimerHandle EnergyTimerHandle;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
 	FTimerHandle HoverTimerHandle;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
+	FTimerHandle StunRecoveryAcceleratingTimerHandle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
+	FTimerHandle StunRecoveryStartTimerHandle;
 #pragma endregion
 };

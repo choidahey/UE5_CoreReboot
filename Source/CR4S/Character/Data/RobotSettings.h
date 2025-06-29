@@ -10,6 +10,8 @@
  * 
  */
 
+class UNiagaraSystem;
+
 USTRUCT(BlueprintType,Blueprintable)
 struct CR4S_API FRobotSettings
 {
@@ -49,6 +51,24 @@ public:
 	TObjectPtr<UCurveFloat> HoverCurve;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hovere")
 	float HoverUpwardSpeed{30};
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> DashEffect;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> DashSound;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> HoverEffect;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> HoverSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FName> BoosterSocketNames{FName(),FName()};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UNiagaraSystem> RobotExplosionEffect;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USoundBase> RobotExplosionSound;
 };
 
 USTRUCT(BlueprintType,Blueprintable)

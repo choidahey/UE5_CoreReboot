@@ -186,6 +186,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	UBaseInventoryWidget* OtherInventoryWidget = Cast<UBaseInventoryWidget>(OpenOtherWidget);
 	if (IsValid(OtherInventoryWidget))
 	{
+		OtherInventoryWidget->CloseSlotWidgets();
 		OtherInventoryWidget->UnBoundWidgetDelegate();
 	}
 
@@ -265,7 +266,7 @@ void UInventoryContainerWidget::PlaySound2D(USoundBase* Sound,
 	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
 	if (IsValid(AudioManager))
 	{
-		AudioManager->Play2DSound(Sound, VolumeMultiplier, PitchMultiplier, StartTime);
+		AudioManager->PlayUISound(Sound, PitchMultiplier, StartTime);
 	}
 }
 

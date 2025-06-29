@@ -7,6 +7,7 @@
 #include "Utility/Cr4sGameplayTags.h"
 #include "WeaponData.generated.h"
 
+class UNiagaraSystem;
 class ABaseWeapon;
 class APlayerTool;
 class ABaseTool;
@@ -20,7 +21,7 @@ struct CR4S_API FBulletInfo
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> ImpactParticle;
+	TObjectPtr<UNiagaraSystem> ImpactParticle;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	TObjectPtr<USoundBase> ImpactSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -47,7 +48,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<UStaticMesh>> SkeletalMeshs {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimMontage> AttackMontage;
+	TArray<TObjectPtr<UAnimMontage>> AttackMontages {nullptr, nullptr};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DamageMultiplier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -59,14 +60,25 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct CR4S_API FMeleeWeaponInfo
+struct CR4S_API FChargableWeaponInfo
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimMontage> ChargeAttackMontage;
+	TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages{nullptr, nullptr};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChargeAttackDamageMultiplier{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChargeAttackStunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ChargeAttackTimeThreshold{0.5};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FMeleeWeaponInfo
+{
+	GENERATED_BODY()
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -75,6 +87,9 @@ public:
 	FName TopSocketName{};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName BottomSocketName{};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FChargableWeaponInfo ChargableWeaponInfo;
 };
 
 USTRUCT(BlueprintType)
@@ -157,6 +172,10 @@ struct CR4S_API FRangedWeaponInfo
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> MuzzleParticle;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<USoundBase> MuzzleSound;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
 	float MaxAimTrackingRange{10000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Base")
