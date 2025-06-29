@@ -4,6 +4,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
+#include "CR4S.h"
 
 AGroundShockActor::AGroundShockActor()
 {
@@ -16,15 +17,6 @@ AGroundShockActor::AGroundShockActor()
 
 void AGroundShockActor::InitShock(const FRotator& FacingRot)
 {
-	APawn* InstigatorPawn = Cast<APawn>(GetInstigator());
-	if (InstigatorPawn)
-	{
-		if (UMonsterSkillComponent* SkillComp = InstigatorPawn->FindComponentByClass<UMonsterSkillComponent>())
-		{
-			Damage = SkillComp->GetCurrentSkillData().Damage;
-		}
-	}
-
 	const FVector BaseLocation = GetActorLocation();
 	const float StartAngleDeg = -AngleRange * 0.5f;
 	const float EndAngleDeg = +AngleRange * 0.5f;
@@ -114,5 +106,4 @@ void AGroundShockActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-
 }
