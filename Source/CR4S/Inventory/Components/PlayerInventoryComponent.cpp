@@ -37,9 +37,7 @@ void UPlayerInventoryComponent::BeginPlay()
 		return;
 	}
 
-	InventoryContainerWidgetInstance = SurvivalHUD->CreateAndAddWidget(InventoryContainerWidgetClass,
-	                                                                   0,
-	                                                                   ESlateVisibility::Visible);
+	InventoryContainerWidgetInstance = SurvivalHUD->GetInventoryContainerWidget();
 
 	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
 	{

@@ -3,6 +3,7 @@
 #include "Character/Components/BaseStatusComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
 
 void ASurvivalHUD::BeginPlay()
 {
@@ -12,6 +13,8 @@ void ASurvivalHUD::BeginPlay()
 
 	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 10, ESlateVisibility::Collapsed);
 	PauseWidget->OnResumeRequested.BindUObject(this, &ASurvivalHUD::HandlePauseToggle);
+
+	InventoryContainerWidget = CreateAndAddWidget(InventoryContainerWidgetClass, 0, ESlateVisibility::Visible);
 
 	BindGameOverWidget();
 }
@@ -170,7 +173,7 @@ void ASurvivalHUD::SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidge
 
 void ASurvivalHUD::ShowWidgetOnly(UUserWidget* TargetWidget)
 {
-	TArray<UUserWidget*> AllWidgets = { InGameWidget, PauseWidget, GameOverWidget, EndingWidget };
+	TArray<UUserWidget*> AllWidgets = { InGameWidget, PauseWidget, GameOverWidget, EndingWidget, InventoryContainerWidget };
 
 	for (UUserWidget* Widget : AllWidgets)
 	{
