@@ -106,12 +106,17 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
                     return;
                 }
             }
-
+            
             if (Cast<APlayerCharacter>(Actor))
             {
+                if (Animal->bPlayerDead)
+                {
+                    return;
+                }
                 AActor* PlayerTarget = GetCurrentPlayerTarget();
                 SetTargetActor(PlayerTarget);
             }
+            
             else if (AModularRobot* SensedRobot = Cast<AModularRobot>(Actor))
             {
                 if (SensedRobot->GetMountedCharacter())
@@ -464,6 +469,11 @@ AActor* AAnimalAIController::GetCurrentPlayerTarget() const
 {
     APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
     if (!IsValid(Player)) return nullptr;
+
+    if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
+    {
+        if (Animal->bPlayerDead) return nullptr;
+    }
     
     TArray<AActor*> FoundRobots;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AModularRobot::StaticClass(), FoundRobots);

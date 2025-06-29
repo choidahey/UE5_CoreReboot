@@ -96,7 +96,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category="Monster|State")
 	void InitializeStunData(const FMonsterAttributeRow& Data);
-	
+	void HandlePlayerDeath();
+
 	UFUNCTION(BlueprintCallable, Category = "Monster|State")
 	void AddStun(float StunAmount);
     
