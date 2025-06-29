@@ -10,6 +10,8 @@
 #include "GameFramework/HUD.h"
 #include "SurvivalHUD.generated.h"
 
+class UInventoryContainerWidget;
+
 enum class ESurvivalInputMode
 {
 	GameOnly,
@@ -25,6 +27,8 @@ class CR4S_API ASurvivalHUD : public AHUD
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE UDefaultInGameWidget* GetInGameWidget() const { return InGameWidget; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE UInventoryContainerWidget* GetInventoryContainerWidget() const { return InventoryContainerWidget; }
 
 #pragma region WidgetSetting
 public:
@@ -63,6 +67,8 @@ protected:
 	TSubclassOf<ULoadingWidget> LoadingWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UNotificationWidget> NotificationWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
 
 
 #pragma endregion
@@ -79,6 +85,8 @@ protected:
 	TObjectPtr<UEndingSummaryWidget> EndingWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UNotificationWidget> NotificationWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
 
 #pragma endregion
 
