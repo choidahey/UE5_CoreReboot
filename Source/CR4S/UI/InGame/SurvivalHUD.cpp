@@ -1,6 +1,8 @@
 #include "UI/InGame/SurvivalHUD.h"
 #include "Blueprint/UserWidget.h"
+#include "Character/Components/BaseStatusComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
 
 void ASurvivalHUD::BeginPlay()
 {
@@ -11,6 +13,39 @@ void ASurvivalHUD::BeginPlay()
 	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 10, ESlateVisibility::Collapsed);
 	PauseWidget->OnResumeRequested.BindUObject(this, &ASurvivalHUD::HandlePauseToggle);
 
+	BindGameOverWidget();
+}
+
+void ASurvivalHUD::BindGameOverWidget()
+{
+	GameOverWidget = CreateAndAddWidget<UGameOverWidget>(GameOverWidgetClass, 11, ESlateVisibility::Hidden);
+
+	if (APlayerController* PC = GetOwningPlayerController())
+	{
+		if (APawn* Pawn = PC->GetPawn())
+		{
+			if (ACharacter* Character = Cast<ACharacter>(Pawn))
+			{
+				if (UBaseStatusComponent* StatusComponent = Character->FindComponentByClass<UBaseStatusComponent>())
+				{
+					StatusComponent->OnDeathState.AddLambda([this]()
+						{
+							if (GameOverWidget)
+							{
+								HandleGameOverToggle();
+							}
+						});
+				}
+			}
+		}
+	}
+
+}
+
+void ASurvivalHUD::ShowLoading()
+{
+	ULoadingWidget* LoadingWidget = CreateAndAddWidget<ULoadingWidget>(LoadingWidgetClass, 12, ESlateVisibility::Visible);
+	ShowWidgetOnly(LoadingWidget);
 }
 
 void ASurvivalHUD::PlayEndingSequence()
@@ -35,6 +70,23 @@ void ASurvivalHUD::HandlePauseToggle()
 	}
 
 	ToggleWidget(PauseWidget);
+}
+
+void ASurvivalHUD::HandleGameOverToggle()
+{
+	const bool bIsVisible = GameOverWidget->GetVisibility() == ESlateVisibility::Visible;
+
+	if (bIsVisible)
+	{
+		SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	}
+	else
+	{
+		GameOverWidget->HandleGameOver();
+		SetInputMode(ESurvivalInputMode::UIOnly, GameOverWidget, true);
+	}
+
+	ToggleWidget(GameOverWidget);
 }
 
 void ASurvivalHUD::ToggleWidget(UUserWidget* Widget)
@@ -108,3 +160,27 @@ void ASurvivalHUD::SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidge
 
 	PC->bShowMouseCursor = bShowCursor;
 }
+
+void ASurvivalHUD::ShowWidgetOnly(UUserWidget* TargetWidget)
+{
+	TArray<UUserWidget*> AllWidgets = { InGameWidget, PauseWidget, GameOverWidget, EndingWidget };
+
+	for (UUserWidget* Widget : AllWidgets)
+	{
+		if (!Widget) continue;
+
+		if (Widget->GetVisibility() == ESlateVisibility::Visible)
+		{
+			if (Widget != TargetWidget)
+			{
+				Widget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+		}
+	}
+
+	if (TargetWidget && TargetWidget->GetVisibility() != ESlateVisibility::Visible)
+	{
+		TargetWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
