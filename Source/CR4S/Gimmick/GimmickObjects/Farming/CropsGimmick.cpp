@@ -137,6 +137,7 @@ void ACropsGimmick::Harvest(const AActor* Interactor)
 
 	GetResources(Interactor);
 
+	OnSpawnableDestroyed.Broadcast(this);
 	GimmickDestroy();
 }
 
