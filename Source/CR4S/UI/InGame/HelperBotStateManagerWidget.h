@@ -34,8 +34,10 @@ protected:
 	UFUNCTION() void OnNameEditCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 	UFUNCTION() void PickUp();
 	UFUNCTION() void RepairBot();
+	UFUNCTION() void OnButtonHovered();
 	void UpdateRepairButtonState();
-	void UpdateHealthDisplay(); 
+	void UpdateHealthDisplay();
+	void PlayUISound(USoundBase* Sound) const;
 	
 protected:
 	UPROPERTY(meta=(BindWidget)) class UCanvasPanel* RootCanvas;

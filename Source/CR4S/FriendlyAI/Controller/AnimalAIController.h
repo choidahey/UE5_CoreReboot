@@ -38,7 +38,7 @@ public:
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	
-	void HandlePerceptionResponse(class ABaseAnimal* Animal);
+	void HandlePerceptionResponse(class ABaseAnimal* Animal, AActor* SensedActor);
 	
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -81,4 +81,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	UBehaviorTree* MonsterBehaviorTree;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	AActor* GetCurrentPlayerTarget() const;
 };

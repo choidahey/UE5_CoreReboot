@@ -10,6 +10,8 @@
 #include "Data/MonsterAIKeyNames.h" 
 #include "Game/System/AudioManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ABaseMonster::ABaseMonster()
 	: MyHeader(TEXT("BaseMonster"))
@@ -123,6 +125,11 @@ void ABaseMonster::HandleDeath()
 	StateComponent->SetState(EMonsterState::Dead);
 	OnDied.Broadcast(this);
 
+	if (UBaseInventoryComponent* InventoryComp = GetPlayerInventory())
+	{
+		TryDropItems(InventoryComp);
+	}
+
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		MoveComp->DisableMovement();
 
@@ -144,8 +151,20 @@ void ABaseMonster::HandleDeath()
 		AnimComponent->PlayDeathMontage();
 	}
 
-	SetLifeSpan(2.f);
-	StartFadeOut();
+	SetLifeSpan(5.f);
+
+	FTimerHandle FadeStartTimerHandle;
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateLambda([this]()
+	{
+		StartFadeOut();
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(
+		FadeStartTimerHandle,
+		FadeDelegate,
+		3.0f,
+		false
+	);
 }
 
 void ABaseMonster::StartFadeOut()
@@ -206,4 +225,41 @@ void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState C
 		*UEnum::GetValueAsString(Previous),
 		*UEnum::GetValueAsString(Current)
 	);
+}
+
+UBaseInventoryComponent* ABaseMonster::GetPlayerInventory() const
+{
+	if (APawn* Pawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0))
+	{
+		return Pawn->FindComponentByClass<UBaseInventoryComponent>();
+	}
+	return nullptr;
+}
+
+void ABaseMonster::TryDropItems(UBaseInventoryComponent* InventoryComp) const
+{
+	if (DropItems.IsEmpty())
+		return;
+
+	TMap<FName,int32> ItemsToAdd;
+	for (const FDropData& DropData : DropItems)
+	{
+		if (!DropData.DropItemRowName.IsNone() && DropData.DropItemCount > 0)
+		{
+			ItemsToAdd.FindOrAdd(DropData.DropItemRowName) += DropData.DropItemCount;
+		}
+	}
+	if (ItemsToAdd.IsEmpty())
+		return;
+
+	InventoryComp->AddItems(ItemsToAdd);
+
+	// NOTICE :: TestLog
+	for (auto& Pair : ItemsToAdd)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Dropped %s x%d"),
+			*GetClass()->GetName(),
+			*Pair.Key.ToString(),
+			Pair.Value);
+	}
 }

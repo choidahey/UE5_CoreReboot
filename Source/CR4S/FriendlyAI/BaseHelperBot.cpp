@@ -25,7 +25,9 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Data/HelperBotSoundData.h"
 #include "Game/SaveGame/HelperBotSaveGame.h"
+#include "Game/System/AudioManager.h"
 
 
 ABaseHelperBot::ABaseHelperBot()
@@ -95,8 +97,10 @@ void ABaseHelperBot::BeginPlay()
 		InteractableComp->SetInteractionText(BotName);
 	}
 	
-	if (IsValid(InfoWidgetComponent))
+	if (IsValid(InfoWidgetComponent) && InfoWidgetClass)
 	{
+		InfoWidgetComponent->SetWidgetClass(InfoWidgetClass);
+
 		InfoUIInstance = Cast<UHelperBotInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
 		if (IsValid(InfoUIInstance))
 		{
@@ -133,6 +137,7 @@ void ABaseHelperBot::LoadStats()
 			if (!PickUpData.bIsInit)
 			{
 				CurrentHealth = CurrentStats.MaxHealth;
+				BotName = PickUpData.BotName;
 				PickUpData.bIsInit = true;
 			}
 			else
@@ -220,6 +225,11 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 
 	if (BotAI)
 	{
+		if (SoundData && SoundData->InteractSound)
+		{
+			PlayBotSound(SoundData->InteractSound);
+		}
+    
 		if (StateUIClass)
 		{
 			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
@@ -405,6 +415,11 @@ void ABaseHelperBot::PlayHitEffect(const FVector& HitDirection)
 		HitEffectComponent->Activate(true);
 	}
 	
+	if (SoundData && SoundData->HitSound)
+	{
+		PlayBotSound(SoundData->HitSound);
+	}
+	
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		MeshComp->SetBodySimulatePhysics(FName("Spine"), true);
@@ -456,6 +471,7 @@ void ABaseHelperBot::SetBotName(const FText& NewName)
 void ABaseHelperBot::SetPickUpData(const FHelperPickUpData& InPickUpData)
 { 
 	PickUpData = InPickUpData;
+	LoadStats();
 }
 
 #pragma region FadeEffect
@@ -617,5 +633,24 @@ void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
 	if (InventoryComponent)
 	{
 		InventoryComponent->LoadInventorySaveGame(Data.InventoryData);
+	}
+}
+
+
+void ABaseHelperBot::PlayBotSound(USoundBase* Sound, const FVector& Location) const
+{
+	if (!Sound)
+		return;
+
+	FVector SoundLocation = Location.IsZero() ? GetActorLocation() : Location;
+    
+	const UGameInstance* GameInstance = GetGameInstance();
+	if (IsValid(GameInstance))
+	{
+		UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+		if (IsValid(AudioManager))
+		{
+			AudioManager->PlaySFX(Sound, SoundLocation, EConcurrencyType::AI);
+		}
 	}
 }

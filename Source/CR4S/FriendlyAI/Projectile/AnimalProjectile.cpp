@@ -4,7 +4,13 @@
 #include "Game/System/ProjectilePoolSubsystem.h"
 #include "../Component/ObjectPoolComponent.h"
 #include "NiagaraComponent.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "FriendlyAI/BaseAnimal.h"
+#include "FriendlyAI/BaseHelperBot.h"
+#include "Gimmick/GimmickObjects/DestructibleGimmick.h"
+#include "Gimmick/GimmickObjects/Buildings/BaseBuildingGimmick.h"
+#include "MonsterAI/BaseMonster.h"
 
 AAnimalProjectile::AAnimalProjectile()
 {
@@ -40,6 +46,10 @@ AAnimalProjectile::AAnimalProjectile()
 	HitEffect->SetAutoActivate(false);
 	HitEffect->Deactivate();
 	HitEffect->OnSystemFinished.AddDynamic(this, &AAnimalProjectile::OnNiagaraFinished);
+
+	ProjectileNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ProjectileNiagara"));
+	ProjectileNiagaraComponent->SetupAttachment(RootSceneComponent);
+	ProjectileNiagaraComponent->SetAutoActivate(true);
 }
 
 void AAnimalProjectile::BeginPlay()
@@ -56,6 +66,17 @@ void AAnimalProjectile::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponen
 										UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 										bool bFromSweep, const FHitResult& SweepResult)
 {
+	const ABaseAnimal* OwnerAnimal = Cast<ABaseAnimal>(GetOwner());
+	if (!OwnerAnimal)
+	{
+		return;
+	}
+
+	if (bIgnoreSameSpeciesOverlap && !ShouldDamageActor(OtherActor))
+	{
+		return;
+	}
+	
 	if (OtherActor && OtherActor != this
 		&& OtherActor != GetOwner()
 		&& !OtherActor->IsA<AAnimalProjectile>())
@@ -70,6 +91,11 @@ void AAnimalProjectile::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponen
 			MeshComponent->SetVisibility(false);
 		}
 
+		if (ProjectileNiagaraComponent)
+		{
+			ProjectileNiagaraComponent->SetVisibility(false);
+		}
+
 		if (HitEffect)
 		{
 			HitEffect->SetWorldLocation(GetActorLocation());
@@ -78,7 +104,7 @@ void AAnimalProjectile::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponen
 
 		if (CapsuleCollision)
 		{
-			CapsuleCollision->SetActive(false);
+			CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 
 		// if (UWorld* World = GetWorld())
@@ -102,9 +128,14 @@ void AAnimalProjectile::ResetProjectile()
 		MeshComponent->SetVisibility(true);
 	}
 
+	if (ProjectileNiagaraComponent)
+	{
+		ProjectileNiagaraComponent->SetVisibility(true);
+	}
+
 	if (CapsuleCollision)
 	{
-		CapsuleCollision->SetActive(true);
+		CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 }
 
@@ -117,4 +148,49 @@ void AAnimalProjectile::OnNiagaraFinished(UNiagaraComponent* PSystem)
 			Pool->ReturnToPool(this);
 		}
 	}
+}
+
+bool AAnimalProjectile::ShouldDamageActor(AActor* OtherActor) const
+{
+	if (!OtherActor || OtherActor == this || OtherActor == GetOwner() || OtherActor->IsA<AAnimalProjectile>())
+		return false;
+
+	const ABaseAnimal* OwnerAnimal = Cast<ABaseAnimal>(GetOwner());
+	if (!OwnerAnimal)
+	{
+		return false;
+	}
+	
+	if (const ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(OtherActor))
+	{
+		if (HitAnimal->RowName == OwnerAnimal->RowName)
+			return false;
+	}
+	
+	if (OtherActor->IsA<ADestructibleGimmick>())
+	{
+		return false;
+	}
+
+	if (OtherActor->IsA<ABaseBuildingGimmick>())
+	{
+		return bCanHitBuilding;
+	}
+	
+	if (OtherActor->IsA<ABaseMonster>())
+	{
+		return false;
+	}
+	
+	if (OtherActor->IsA<APlayerCharacter>())
+	{
+		return true;
+	}
+	
+	if (OtherActor->IsA<ABaseHelperBot>())
+	{
+		return true;
+	}
+
+	return true;
 }

@@ -150,8 +150,6 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 
 	UnequipAll();
 
-	SetActorTransform(InSaveData.ActorTransform);
-
 	Status->SetCurrentHP(RobotData.CurrentHP);
 	Status->SetCurrentResource(RobotData.CurrentResource);
 	Status->OnResourceConsumed();
@@ -548,20 +546,56 @@ void AModularRobot::SetMovementInputEnable(const bool bEnableMovementInput) cons
 
 void AModularRobot::OnDeath()
 {
-	APlayerCharacter* PC=MountedCharacter;
-	if (!CR4S_ENSURE(LogHong1,PC)) return;
+	bIsDead=true;
+	SetInputEnable(false);
+	
+	if (!CR4S_ENSURE(LogHong1,MountedCharacter && GetController())) return;
 
-	AController* CachedController=GetController();
-	if (!CR4S_ENSURE(LogHong1,CachedController)) return;
+	APlayerCharacter* CurrentCharacter=MountedCharacter;
+	AController* CurrentController=GetController();
 	
 	UnMountRobot();
+
+	const FVector EffectLocation=GetActorLocation();
+	if (UCharacterMovementComponent* MovementComp=GetCharacterMovement())
+	{
+		MovementComp->StopMovementImmediately();
+		MovementComp->DisableMovement();
+		MovementComp->SetComponentTickEnabled(false);
+	}
+
+	if (RobotSettings.RobotExplosionEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			RobotSettings.RobotExplosionEffect,
+			EffectLocation
+		);
+	}
+	if (RobotSettings.RobotExplosionSound)
+	{
+		if (UGameInstance* GI=GetWorld()->GetGameInstance())
+		{
+			if (UAudioManager* Audio=GI->GetSubsystem<UAudioManager>())
+			{
+				Audio->PlaySFX(
+					RobotSettings.RobotExplosionSound,
+					EffectLocation,
+					EConcurrencyType::Impact
+				);
+			}
+		}
+	}
+	
 	UGameplayStatics::ApplyDamage(
-		PC,
+		CurrentCharacter,
 		FLT_MAX,
-		CachedController,
+		CurrentController,
 		this,
 		UDamageType::StaticClass()
 	);
+
+	Destroy();
 }
 
 UDataLoaderSubsystem* AModularRobot::GetDataLoaderSubsystem() const
@@ -586,7 +620,7 @@ void AModularRobot::LoadDataFromDataLoader()
 
 void AModularRobot::MountRobot(AActor* InActor)
 {
-	if (!IsValid(InActor)) return;
+	if (!IsValid(InActor) || bIsDead) return;
 
 	ACharacter* PreviousCharacter=Cast<ACharacter>(InActor);
 	if (IsValid(PreviousCharacter))
@@ -625,7 +659,7 @@ void AModularRobot::UnMountRobot()
 	const bool bInAir=MovementComp->IsFalling();
 	const bool bIsStopped=MovementComp->Velocity.IsNearlyZero();
 	
-	if (bInAir || !bIsStopped) return;
+	if ( !bIsDead && (bInAir || !bIsStopped)) return;
 	
 	ACharacter* NextCharacter=MountedCharacter.Get();
 	if (IsValid(NextCharacter))
@@ -654,6 +688,7 @@ void AModularRobot::UnMountRobot()
 			CurrentController->Possess(NextCharacter);
 		}
 	}
+	
 	MountedCharacter=nullptr;
 	RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 	Status->StopConsumeEnergy();
@@ -871,7 +906,7 @@ void AModularRobot::Tick(float DeltaTime)
 
 void AModularRobot::Input_Move(const FInputActionValue& Value)
 {
-	if (!Controller||!Status->IsRobotActive()) return;
+	if (!Controller) return;
 	//Move Logic
 	// input is a Vector2D
 	FVector2D MoveInput = Value.Get<FVector2D>();
@@ -888,7 +923,6 @@ void AModularRobot::Input_Move(const FInputActionValue& Value)
 
 void AModularRobot::Input_Look(const FInputActionValue& Value)
 {
-	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
 	FVector2D LookInput=Value.Get<FVector2D>();
 
 	AddControllerYawInput(LookInput.X);
@@ -897,9 +931,7 @@ void AModularRobot::Input_Look(const FInputActionValue& Value)
 
 void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 {
-	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	
-	if (GetCharacterMovement()->IsFalling() && !bIsHovering)
+	if (GetCharacterMovement()->IsFalling() && !bIsHovering && Status->IsRobotActive())
 	{
 		Status->StartHover();
 		bIsHovering=true;
@@ -913,8 +945,6 @@ void AModularRobot::Input_StartJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 {
-	if (!CR4S_ENSURE(LogHong1,Status->IsRobotActive())) return;
-	
 	StopJumping();
 
 	if (bIsHovering)
@@ -927,7 +957,7 @@ void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 
 void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
-	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!Status->IsRobotActive()|| !BoosterTag.IsValid()) return;
+	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!BoosterTag.IsValid()||!Status->IsRobotActive()) return;
 	
 	bIsDashing = true;
 	
