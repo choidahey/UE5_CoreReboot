@@ -2,13 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Gimmick/Data/GimmickData.h"
+#include "Game/Interface/Spawnable.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "CropsGimmick.generated.h"
 
 class AEnvironmentManager;
 class UEnvironmentalStatusComponent;
 class UInteractableComponent;
-
 USTRUCT(BlueprintType)
 struct FCropsGimmickGrowthData
 {
@@ -35,7 +35,7 @@ struct FCropsGimmickGrowthData
 };
 
 UCLASS(BlueprintType)
-class CR4S_API ACropsGimmick : public ABaseGimmick
+class CR4S_API ACropsGimmick : public ABaseGimmick, public ISpawnable
 {
 	GENERATED_BODY()
 
@@ -195,6 +195,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "CropsGimmick|LoadGame")
 	void LoadPlantedCropsGimmick(const FCropsGimmickGrowthData& NewCropsGimmickData);
+
+#pragma endregion
+	 
+#pragma region Spawn
+	virtual FOnSpawnableDestroyed* GetOnSpawnableDestroyedDelegate() override { return &OnSpawnableDestroyed; }
+	FOnSpawnableDestroyed OnSpawnableDestroyed;
 
 #pragma endregion
 };

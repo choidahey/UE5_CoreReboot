@@ -94,7 +94,7 @@ AActor* ASpawnZoneVolume::SpawnActorsAndTrack(TSubclassOf<AActor> SpawnClass, co
             ISpawnable* Spawnable = Cast<ISpawnable>(Spawned);
             if (Spawnable)
             {
-                if (FOnDied* Delegate = Spawnable->GetOnDiedDelegate())
+                if (FOnSpawnableDestroyed* Delegate = Spawnable->GetOnSpawnableDestroyedDelegate())
                 {
                     Delegate->AddUObject(this, &ASpawnZoneVolume::HandleActorDeath);
                 }
@@ -220,7 +220,7 @@ void ASpawnZoneVolume::SpawnCrops()
                     SpawnLocation = FVector(RandomPoint2D.X, RandomPoint2D.Y, SpawnHeight);
                 }
 
-                AActor* Spawned = GetWorld()->SpawnActor<AActor>(SpawnInfo.SpawnClass, SpawnLocation, FRotator::ZeroRotator);
+                AActor* Spawned = SpawnActorsAndTrack(SpawnInfo.SpawnClass, SpawnLocation);
                 if (Spawned)
                 {
                     SpawnedActors.Add(Spawned);
@@ -229,6 +229,7 @@ void ASpawnZoneVolume::SpawnCrops()
         }
     }
 }
+
 
 
 void ASpawnZoneVolume::DespawnActorsInZone()
