@@ -118,8 +118,11 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	EAnimalBehavior BehaviorTypeEnum;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bPlayerDead = false;
+
 	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
-	void SetAnimalState(EAnimalState NewState);
+	virtual void SetAnimalState(EAnimalState NewState);
 	void ClearTarget();
 
 	FOnDied OnDied;

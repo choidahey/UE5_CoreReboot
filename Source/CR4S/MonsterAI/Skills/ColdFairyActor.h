@@ -79,6 +79,7 @@ private:
 	int32 SpawnOrder = 0;
 	int32 TotalCount = 0;
 
+	inline static TMap<TWeakObjectPtr<AActor>, TArray<TWeakObjectPtr<AColdFairyActor>>> ActiveFairiesMap;
 	FTimerHandle LaunchTimerHandle;
 	FTimerHandle DestroyTimerHandle;
 	

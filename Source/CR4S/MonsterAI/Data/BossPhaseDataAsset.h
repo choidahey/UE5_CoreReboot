@@ -11,7 +11,7 @@ struct FPhaseTransitionCondition
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	EBossPhase TargetPhase;
+	EBossPhase TargetPhase = EBossPhase::Normal;
 
 	UPROPERTY(EditAnyWhere)
 	float HPThresholdRatio = 1.f;

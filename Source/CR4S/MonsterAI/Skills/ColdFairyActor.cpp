@@ -44,6 +44,12 @@ void AColdFairyActor::BeginPlay()
 		if (APawn* InstPawn = GetInstigator<APawn>())
 			CollisionComp->IgnoreActorWhenMoving(InstPawn, true);
 	}
+
+	if (AActor* OwnerActor = GetOwner())
+	{
+		auto& ArrayRef = ActiveFairiesMap.FindOrAdd(OwnerActor);
+		ArrayRef.Add(this);
+	}
 }
 
 void AColdFairyActor::Tick(float DeltaTime)
@@ -100,46 +106,47 @@ void AColdFairyActor::HandleImmediateLaunch() const
 {
 	if (bHasLaunched) return;
 	
-	TArray<AActor*> SpawnedActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AColdFairyActor::StaticClass(), SpawnedActors);
+	AActor* OwnerActor = GetOwner();
+	if (!OwnerActor) return;
 
-	TArray<AColdFairyActor*> FairyActors;
-	for (AActor* Actor : SpawnedActors)
+	const auto* ArrayPtr = ActiveFairiesMap.Find(OwnerActor);
+	if (!ArrayPtr || ArrayPtr->Num() < TotalCount)
 	{
-		AColdFairyActor* CF = Cast<AColdFairyActor>(Actor);
-		if (CF && CF->GetOwner() == GetOwner() && !CF->bHasLaunched)
-			FairyActors.Add(CF);
+		return;
 	}
-    	
-	if (FairyActors.Num() < TotalCount) return;
-	float DelayTime = FairyActors.Last()->LaunchDelay;
-    	
+
+	TArray<TWeakObjectPtr<AColdFairyActor>> SortedFairies = *ArrayPtr;
+	SortedFairies.Sort([](auto& A, auto& B){
+		return A.IsValid() && B.IsValid() && A->SpawnOrder < B->SpawnOrder;
+	});
+
+	float DelayTime = SortedFairies.Last()->LaunchDelay;
 	if (DelayTime <= KINDA_SMALL_NUMBER)
 	{
-		for (AColdFairyActor* FairyActor : FairyActors)
+		for (auto& WeakFairy : SortedFairies)
 		{
-			if (IsValid(FairyActor))
-				FairyActor->Launch();
+			if (WeakFairy.IsValid())
+				WeakFairy->Launch();
 		}
 	}
 	else
 	{
 		FTimerDelegate LaunchAllDelegate;
-		LaunchAllDelegate.BindLambda([FairyActors]()
+		LaunchAllDelegate.BindLambda([SortedFairies]()
 		{
-			for (AColdFairyActor* FairyActor : FairyActors)
+			for (auto& WeakFairy : SortedFairies)
 			{
-				if (IsValid(FairyActor))
-					FairyActor->Launch();
+				if (WeakFairy.IsValid())
+					WeakFairy->Launch();
 			}
 		});
-		
+
 		GetWorld()->GetTimerManager().SetTimer(
-		FairyActors.Last()->LaunchTimerHandle,
-			LaunchAllDelegate,
-			DelayTime,
-			false
-		);
+				SortedFairies.Last()->LaunchTimerHandle,
+				LaunchAllDelegate,
+				DelayTime,
+				false
+			);
 	}
 }
 
@@ -238,6 +245,18 @@ void AColdFairyActor::OnOverlap(
 
 void AColdFairyActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (AActor* OwnerActor = GetOwner())
+	{
+		if (auto* ArrayPtr = ActiveFairiesMap.Find(OwnerActor))
+		{
+			ArrayPtr->Remove(this);
+			if (ArrayPtr->Num() == 0)
+			{
+				ActiveFairiesMap.Remove(OwnerActor);
+			}
+		}
+	}
+	
 	if (GetWorld())
 	{
 		if (GetWorld()->GetTimerManager().IsTimerActive(LaunchTimerHandle))
