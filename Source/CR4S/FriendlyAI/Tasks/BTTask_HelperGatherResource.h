@@ -18,7 +18,10 @@ struct FBTGatherResourceMemory
 	TWeakObjectPtr<APawn> CachedHelper = nullptr;
 	
 	float CachedDamagePerSecond = 0.f;
+	
 	bool bIsTargetDestroyedBound = false;
+
+	FTimerHandle BeamUpdateTimer;
 	
 	UPROPERTY()
 	TWeakObjectPtr<UBehaviorTreeComponent> OwnerComp = nullptr;

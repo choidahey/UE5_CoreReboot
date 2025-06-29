@@ -4,6 +4,7 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Gimmick/Data/RecipeCategoryData.h"
+#include "Inventory/UI/ItemSlotWidget/RobotPartsItemSlotWidget.h"
 #include "UI/Crafting/CraftingWidget.h"
 #include "UI/Crafting/RecipeSelectWidget.h"
 
@@ -83,6 +84,20 @@ void URobotInventoryWidget::UnBoundWidgetDelegate()
 
 	ModularRobot = nullptr;
 	RobotStatusComponent = nullptr;
+}
+
+void URobotInventoryWidget::CloseSlotWidgets()
+{
+	Super::CloseSlotWidgets();
+
+	for (UBaseItemSlotWidget* SlotWidget : ItemSlotWidgets)
+	{
+		URobotPartsItemSlotWidget* RobotPartsItemSlotWidget = Cast<URobotPartsItemSlotWidget>(SlotWidget);
+		if (IsValid(RobotPartsItemSlotWidget))
+		{
+			RobotPartsItemSlotWidget->ResetModularRobotRef();
+		}
+	}
 }
 
 void URobotInventoryWidget::OpenRecipeSelectWidget(UTexture2D* Icon, const FText& Name,

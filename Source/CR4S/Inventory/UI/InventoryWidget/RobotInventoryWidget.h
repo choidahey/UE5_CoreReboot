@@ -30,6 +30,8 @@ public:
 	virtual void ConnectInventoryComponent(UBaseInventoryComponent* NewInventoryComponent) override;
 
 	virtual void UnBoundWidgetDelegate() override;
+
+	virtual void CloseSlotWidgets() override;
 	
 #pragma endregion
 	
