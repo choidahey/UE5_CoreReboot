@@ -153,6 +153,8 @@ float AAnimalMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
         return 0.f;
     }
 
+    ShowHitEffect(DamageCauser);
+    
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
     {

@@ -115,6 +115,9 @@ void ABaseBullet::OnOverlapBegin(
 {
 	FVector OverlapLocation=GetActorLocation();
 	AActor* OwnerActor=GetOwner();
+
+	if (OwnerActor==OtherActor) return;
+	
 	if (BulletInfo.ExplosionRadius<=KINDA_SMALL_NUMBER) 
 	{
 		if (OtherActor&&OtherActor!=this)

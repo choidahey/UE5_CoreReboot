@@ -94,6 +94,20 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		return;
 	}
 
+	if (AAnimalAIController* AIController = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
+	{
+		AActor* CurrentPlayerTarget = AIController->GetCurrentPlayerTarget();
+		if (IsValid(CurrentPlayerTarget) && CurrentPlayerTarget != TargetToChase)
+		{
+			TargetToChase = CurrentPlayerTarget;
+			Animal->CurrentTarget = CurrentPlayerTarget;
+			if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+			{
+				BB->SetValueAsObject(TEXT("TargetActor"), CurrentPlayerTarget);
+			}
+		}
+	}
+
 	ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(TargetToChase);
 	if (!IsValid(TargetToChase) || (TargetAnimal && TargetAnimal->CurrentState == EAnimalState::Dead))
 	{

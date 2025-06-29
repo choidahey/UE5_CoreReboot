@@ -70,7 +70,20 @@ EBTNodeResult::Type UBTTask_HelperHarvestCrop::ExecuteTask(UBehaviorTreeComponen
 	MyMemory->ElapsedTime = 0.f;
 	Helper->SetIsWorking(true);
 	Helper->UpdateEyeBeamWorkTarget(TargetActor);
-	
+
+	GetWorld()->GetTimerManager().SetTimer(
+		MyMemory->BeamUpdateTimer,
+		FTimerDelegate::CreateLambda([Helper, TargetActor]()
+		{
+			if (Helper && TargetActor)
+			{
+				Helper->UpdateEyeBeamWorkTarget(TargetActor);
+			}
+		}),
+		1.0f,
+		true
+	);
+
 	return EBTNodeResult::InProgress;
 }
 
@@ -161,6 +174,11 @@ void UBTTask_HelperHarvestCrop::CleanupAndFinish(UBehaviorTreeComponent& OwnerCo
 	{
 		FinishLatentTask(OwnerComp, Result);
 		return;
+	}
+
+	if (MyMemory->BeamUpdateTimer.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(MyMemory->BeamUpdateTimer);
 	}
 
 	if (MyMemory->CachedHelper.IsValid())
