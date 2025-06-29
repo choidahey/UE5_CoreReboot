@@ -81,7 +81,7 @@ void ABaseAnimal::BeginPlay()
     {
         if (UBaseStatusComponent* StatusComp = Player->FindComponentByClass<UBaseStatusComponent>())
         {
-            StatusComp->OnDeathState.AddLambda([this]()
+            StatusComp->OnDeathState.AddWeakLambda(this, [this]()
             {
                 bPlayerDead = true;
 
