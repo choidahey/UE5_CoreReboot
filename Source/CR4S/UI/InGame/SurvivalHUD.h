@@ -5,6 +5,7 @@
 #include "EndingSummaryWidget.h"
 #include "GameOverWidget.h"
 #include "UI/Common/LoadingWidget.h"
+#include "UI/Common/NotificationWidget.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "SurvivalHUD.generated.h"
@@ -60,6 +61,9 @@ protected:
 	TSubclassOf<UEndingSummaryWidget> EndingSummaryWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<ULoadingWidget> LoadingWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UNotificationWidget> NotificationWidgetClass;
+
 
 #pragma endregion
 
@@ -73,6 +77,8 @@ protected:
 	TObjectPtr<UGameOverWidget> GameOverWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UEndingSummaryWidget> EndingWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UNotificationWidget> NotificationWidget;
 
 #pragma endregion
 
@@ -85,7 +91,13 @@ public:
 	// Supports GameOnly, GameAndUI, and UIOnly modes with optional widget focus and mouse lock.
 	void SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidget = nullptr, bool bShowCursor = true, bool bLockMouse = false);
 
-	void ShowWidgetOnly(UUserWidget* TargetWidget);
+	// Show Only Selected Widget
+	// If TargetWidget = nullptr, HUD hides all the Child Widgets
+	UFUNCTION(BlueprintCallable)
+	void ShowWidgetOnly(UUserWidget* TargetWidget = nullptr);
+	UFUNCTION(BlueprintCallable)
+	void ShowMessage(const FText& InText, float Duration);
+
 #pragma endregion
 
 #pragma region WidgetHandlers

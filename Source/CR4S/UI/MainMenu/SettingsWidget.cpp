@@ -190,27 +190,15 @@ UButton* USettingsWidget::GetHoveredButton() const
 void USettingsWidget::HandleOpenWindow()
 {
 	SetVisibility(ESlateVisibility::Visible);
-	PlayAnimation(FadeIn);
+	//PlayAnimation(FadeIn);
 }
 
 void USettingsWidget::HandleCloseWindow()
 {
-	PlayAnimation(FadeOut);
+	//PlayAnimation(FadeOut);
 
-	FTimerHandle HideTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(
-		HideTimerHandle,
-		[this]()
-		{
-			SetVisibility(ESlateVisibility::Collapsed);
-			if (MainMenuWidgetRef)
-			{
-				MainMenuWidgetRef->ShowMenuButtons();
-			}
-		},
-		0.3f,
-		false
-	);
+	SetVisibility(ESlateVisibility::Hidden);
+	OnSettingsClosed.Broadcast();
 }
 
 void USettingsWidget::HandleGamePlayButtonClicked()

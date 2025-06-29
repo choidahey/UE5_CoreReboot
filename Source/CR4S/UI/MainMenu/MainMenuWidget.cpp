@@ -55,6 +55,7 @@ void UMainMenuWidget::CreateChildWidgets()
 	if (!SettingsWidgetInstance && SettingsWidgetClass)
 	{
 		SettingsWidgetInstance = CreateWidget<USettingsWidget>(GetWorld(), SettingsWidgetClass);
+		SettingsWidgetInstance->OnSettingsClosed.AddDynamic(this, &UMainMenuWidget::ShowMenuButtons);
 	}
 	if (!CreditsWidgetInstance && CreditsWidgetClass)
 	{
@@ -100,7 +101,7 @@ void UMainMenuWidget::OnSettingsButtonClicked()
 		}
 
 		HideMenuButtons();
-		SettingsWidgetInstance->MainMenuWidgetRef = this;
+
 		SettingsWidgetInstance->HandleOpenWindow();
 	}
 }
@@ -139,6 +140,11 @@ void UMainMenuWidget::OnQuitButtonClicked()
 	{
 		GEngine->GameViewport->GetWindow()->RequestDestroyWindow();
 	}
+}
+
+void UMainMenuWidget::OnSettingsClosed()
+{
+
 }
 
 void UMainMenuWidget::PlayIntroSequence()

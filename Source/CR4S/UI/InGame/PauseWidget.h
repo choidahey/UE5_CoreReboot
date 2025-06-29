@@ -5,6 +5,7 @@
 
 class UButtonWidget;
 class USettingsWidget;
+class UOverlay;
 
 DECLARE_DELEGATE(FOnResumeRequested);
 
@@ -24,12 +25,24 @@ protected:
 	UFUNCTION()
 	void OnToMenuButtonClicked();
 
+	UFUNCTION()
+	void HideMenu();
+	UFUNCTION()
+	void ShowMenu();
+
 	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* ResumeButton;
+	TObjectPtr<UButtonWidget> ResumeButton;
 	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* SettingsButton;
+	TObjectPtr<UButtonWidget> SettingsButton;
 	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* ToMenuButton;
+	TObjectPtr<UButtonWidget> ToMenuButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UOverlay> PauseMenuOverlay;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> HideMenuAnim;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> ShowMenuAnim;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
