@@ -95,7 +95,9 @@ public:
 
 	void ShowBackground();
 
+	UFUNCTION()
 	void HideMenuButtons();
+	UFUNCTION()
 	void ShowMenuButtons();
 
 protected:
@@ -127,7 +129,8 @@ protected:
 	void OnCreditsButtonClicked();
 	UFUNCTION()
 	void OnQuitButtonClicked();
-
+	UFUNCTION()
+	void OnSettingsClosed();
 public:
 
 	FTimerHandle DissolveStepTimerHandle;

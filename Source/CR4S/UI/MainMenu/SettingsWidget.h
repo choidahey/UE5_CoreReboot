@@ -30,17 +30,14 @@ enum class EGraphicsQualityOption : uint8
 	Low,
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSettingsClosed);
+
 UCLASS()
 class CR4S_API USettingsWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 #pragma region Constructors & Initiailizers
-
-public:
-	UPROPERTY()
-	TObjectPtr<UMainMenuWidget> MainMenuWidgetRef;
-
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -224,5 +221,12 @@ private:
 private:
 	void LoadSettingsData();
 	TObjectPtr<UAudioManager> AudioManager;
+#pragma endregion
+
+
+#pragma region Delegate
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Settings")
+	FOnSettingsClosed OnSettingsClosed;
 #pragma endregion
 };
