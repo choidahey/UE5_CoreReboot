@@ -3,9 +3,14 @@
 #include "DefaultInGameWidget.h"
 #include "PauseWidget.h"
 #include "EndingSummaryWidget.h"
+#include "GameOverWidget.h"
+#include "UI/Common/LoadingWidget.h"
+#include "UI/Common/NotificationWidget.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "SurvivalHUD.generated.h"
+
+class UInventoryContainerWidget;
 
 enum class ESurvivalInputMode
 {
@@ -22,6 +27,8 @@ class CR4S_API ASurvivalHUD : public AHUD
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE UDefaultInGameWidget* GetInGameWidget() const { return InGameWidget; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE UInventoryContainerWidget* GetInventoryContainerWidget() const { return InventoryContainerWidget; }
 
 #pragma region WidgetSetting
 public:
@@ -53,7 +60,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
 	TSubclassOf<UPauseWidget> PauseWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UGameOverWidget> GameOverWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UEndingSummaryWidget> EndingSummaryWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<ULoadingWidget> LoadingWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UNotificationWidget> NotificationWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UInventoryContainerWidget> InventoryContainerWidgetClass;
+
 
 #pragma endregion
 
@@ -64,7 +80,13 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UPauseWidget> PauseWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UGameOverWidget> GameOverWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UEndingSummaryWidget> EndingWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UNotificationWidget> NotificationWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
 
 #pragma endregion
 
@@ -77,17 +99,29 @@ public:
 	// Supports GameOnly, GameAndUI, and UIOnly modes with optional widget focus and mouse lock.
 	void SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidget = nullptr, bool bShowCursor = true, bool bLockMouse = false);
 
+	// Show Only Selected Widget
+	// If TargetWidget = nullptr, HUD hides all the Child Widgets
+	UFUNCTION(BlueprintCallable)
+	void ShowWidgetOnly(UUserWidget* TargetWidget = nullptr);
+	UFUNCTION(BlueprintCallable)
+	void ShowMessage(const FText& InText, float Duration);
+
 #pragma endregion
 
 #pragma region WidgetHandlers
 public:
 	UFUNCTION(BlueprintCallable) //for prototype
 	void HandlePauseToggle();
+	UFUNCTION(BlueprintCallable)
+	void HandleGameOverToggle();
 
+	void ShowLoading();
 	void PlayEndingSequence();
+	void BindGameOverWidget();
 
 #pragma endregion
 
 private:
 	virtual void BeginPlay() override;
+
 };

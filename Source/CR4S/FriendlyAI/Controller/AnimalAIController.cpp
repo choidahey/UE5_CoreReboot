@@ -10,8 +10,12 @@
 #include "../AnimalFlying.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "../Component/AIJumpComponent.h"
+#include "Character/Characters/ModularRobot.h"
 #include "FriendlyAI/Component/FlyingMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
+#include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 
 AAnimalAIController::AAnimalAIController()
 {
@@ -81,6 +85,14 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
     {
         if (Stimulus.WasSuccessfullySensed())
         {
+            if (Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
+            {
+                if (Cast<AAnimalMonster>(Actor) || Cast<ABaseMonster>(Actor))
+                {
+                    return;
+                }
+            }
+
             if (ABaseAnimal* SensedAnimal = Cast<ABaseAnimal>(Actor))
             {
                 if (SensedAnimal->CurrentState == EAnimalState::Dead ||
@@ -94,9 +106,30 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
                     return;
                 }
             }
-
-            SetTargetActor(Actor);
-            HandlePerceptionResponse(Animal);
+            
+            if (Cast<APlayerCharacter>(Actor))
+            {
+                if (Animal->bPlayerDead)
+                {
+                    return;
+                }
+                AActor* PlayerTarget = GetCurrentPlayerTarget();
+                SetTargetActor(PlayerTarget);
+            }
+            
+            else if (AModularRobot* SensedRobot = Cast<AModularRobot>(Actor))
+            {
+                if (SensedRobot->GetMountedCharacter())
+                {
+                    SetTargetActor(SensedRobot);
+                }
+            }
+            else
+            {
+                SetTargetActor(Actor);
+            }
+            
+            HandlePerceptionResponse(Animal, Actor);
         }
         else
         {
@@ -120,7 +153,7 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
     }
 }
 
-void AAnimalAIController::HandlePerceptionResponse(ABaseAnimal* Animal)
+void AAnimalAIController::HandlePerceptionResponse(ABaseAnimal* Animal, AActor* SensedActor)
 {
     if (!Animal || !Animal->bStatsReady) return;
 
@@ -131,14 +164,14 @@ void AAnimalAIController::HandlePerceptionResponse(ABaseAnimal* Animal)
         break;
 
     case EAnimalBehavior::Coward:
-        if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(Animal->CurrentTarget))
+        if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(SensedActor))
         {
             if (TargetAnimal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
             {
                 SetAnimalState(EAnimalState::Flee);
             }
         }
-        else if (Cast<APlayerCharacter>(Animal->CurrentTarget))
+        else if (Cast<APlayerCharacter>(SensedActor) || Cast<AModularRobot>(SensedActor))
         {
             SetAnimalState(EAnimalState::Flee);
         }
@@ -348,7 +381,18 @@ void AAnimalAIController::SetTargetByDamage(AActor* Attacker)
 
         if (bForceTargetSwitch || !IsValid(Animal->CurrentTarget) || DistanceToNew < DistanceToCurrent)
         {
-            SetTargetActor(Attacker);
+            if (Cast<APlayerCharacter>(Attacker) || Cast<AModularRobot>(Attacker))
+            {
+                AActor* PlayerTarget = GetCurrentPlayerTarget();
+                if (IsValid(PlayerTarget))
+                {
+                    SetTargetActor(PlayerTarget);
+                }
+            }
+            else
+            {
+                SetTargetActor(Attacker);
+            }
 
             switch (Animal->BehaviorTypeEnum)
             {
@@ -419,4 +463,31 @@ void AAnimalAIController::ClearTargetActor()
             BlackboardComponent->ClearValue(TEXT("TargetActor"));
         }
     }
+}
+
+AActor* AAnimalAIController::GetCurrentPlayerTarget() const
+{
+    APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+    if (!IsValid(Player)) return nullptr;
+
+    if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
+    {
+        if (Animal->bPlayerDead) return nullptr;
+    }
+    
+    TArray<AActor*> FoundRobots;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AModularRobot::StaticClass(), FoundRobots);
+
+    for (AActor* RobotActor : FoundRobots)
+    {
+        if (AModularRobot* Robot = Cast<AModularRobot>(RobotActor))
+        {
+            APlayerCharacter* MountedChar = Robot->GetMountedCharacter();            
+            if (MountedChar == Player)
+            {
+                return Robot;
+            }
+        }
+    }
+    return Player;
 }

@@ -51,6 +51,19 @@ EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& 
 	Helper->SetIsWorking(true);
 	Helper->UpdateEyeBeamWorkTarget(TargetActor);
 	
+	GetWorld()->GetTimerManager().SetTimer(
+		MyMemory->BeamUpdateTimer,
+		FTimerDelegate::CreateLambda([Helper, TargetActor]()
+		{
+			if (Helper && TargetActor)
+			{
+				Helper->UpdateEyeBeamWorkTarget(TargetActor);
+			}
+		}),
+		1.0f,
+		true
+	);
+
 	return EBTNodeResult::InProgress;
 }
 
@@ -124,6 +137,11 @@ void UBTTask_HelperChopWood::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp,
 		return;
 	}
 
+	if (MyMemory->BeamUpdateTimer.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(MyMemory->BeamUpdateTimer);
+	}
+
 	if (MyMemory->CachedHelper.IsValid())
 	{
 		ABaseHelperBot* Helper = Cast<ABaseHelperBot>(MyMemory->CachedHelper.Get());
@@ -133,6 +151,6 @@ void UBTTask_HelperChopWood::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp,
 			Helper->StopEyeBeamWork();
 		}
 	}
-	
+    
 	FinishLatentTask(OwnerComp, Result);
 }

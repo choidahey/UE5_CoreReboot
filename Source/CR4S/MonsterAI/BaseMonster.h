@@ -7,11 +7,24 @@
 #include "Utility/StunnableInterface.h"
 #include "BaseMonster.generated.h"
 
+class UBaseInventoryComponent;
 class UMonsterAttributeComponent;
 class UMonsterSkillComponent;
 class UMonsterStateComponent;
 class UMonsterAnimComponent;
 class UBehaviorTree;
+
+USTRUCT(BlueprintType)
+struct FDropData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Drops")
+	FName DropItemRowName = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Drops", meta=(ClampMin="1"))
+	int32 DropItemCount = 1;
+};
 
 UCLASS()
 class CR4S_API ABaseMonster : public ACharacter, public ISpawnable, public IStunnableInterface
@@ -43,15 +56,20 @@ public:
 #pragma region BaseMonster Components
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	TObjectPtr<UMonsterAnimComponent> AnimComponent;
+	FORCEINLINE UMonsterAnimComponent* GetMonsterAnimComp() const { return AnimComponent;	}
+	FORCEINLINE UMonsterSkillComponent* GetMonsterSkillComp() const { return SkillComponent;	}
+	FORCEINLINE UMonsterAttributeComponent* GetMonsterAttribute() const { return AttributeComponent;	}
+	FORCEINLINE UMonsterStateComponent* GetMonsterStateComp() const { return StateComponent;	}
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
+	TObjectPtr<UMonsterAnimComponent> AnimComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterSkillComponent> SkillComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterStateComponent> StateComponent;
@@ -89,8 +107,14 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
  	bool bIsDead = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Monster|ItemDrops")
+	TArray<FDropData> DropItems;
 
 private:
+	UBaseInventoryComponent* GetPlayerInventory() const;
+	void TryDropItems(UBaseInventoryComponent* Inv) const;
+	
 	FTimerHandle FadeTimerHandle;
 	float ElapsedFadeTime = 0.f;
 

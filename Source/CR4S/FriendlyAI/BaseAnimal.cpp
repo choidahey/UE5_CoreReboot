@@ -18,6 +18,8 @@
 #include "../Character/Characters/PlayerCharacter.h"
 #include "NavigationInvokerComponent.h"
 #include "NiagaraComponent.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Character/Components/BaseStatusComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Utility/CombatStatics.h"
@@ -55,6 +57,10 @@ ABaseAnimal::ABaseAnimal()
     StunEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("StunEffectComponent"));
     StunEffectComponent->SetupAttachment(RootComponent);
     StunEffectComponent->bAutoActivate = false;
+
+    HitEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HitEffectComponent"));
+    HitEffectComponent->SetupAttachment(RootComponent);
+    HitEffectComponent->bAutoActivate = false;
 }
 
 void ABaseAnimal::BeginPlay()
@@ -70,6 +76,27 @@ void ABaseAnimal::BeginPlay()
     {
         C->SetAnimalState(EAnimalState::Patrol);
     }
+
+    if (APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0)))
+    {
+        if (UBaseStatusComponent* StatusComp = Player->FindComponentByClass<UBaseStatusComponent>())
+        {
+            StatusComp->OnDeathState.AddWeakLambda(this, [this]()
+            {
+                bPlayerDead = true;
+
+                if (Cast<APlayerCharacter>(CurrentTarget) || Cast<AModularRobot>(CurrentTarget))
+                {
+                    if (AAnimalAIController* AIController = Cast<AAnimalAIController>(GetController()))
+                    {
+                        AIController->ClearTargetActor();
+                        AIController->SetAnimalState(EAnimalState::Patrol);
+                    }
+                }
+            });
+        }
+    }
+    
     LoadStats();
     
     bUseControllerRotationYaw = false;
@@ -90,6 +117,10 @@ void ABaseAnimal::LoadStats()
         if (Row)
         {
             StatsRow = Row;
+            if (!SoundData)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[%s] SoundData is not assigned"), *GetName());
+            }
             CurrentStats = *Row;
             CurrentStats.RunSpeed = Row->RunSpeed;
             bStatsReady = true;
@@ -117,7 +148,7 @@ void ABaseAnimal::LoadStats()
             
             if (GetCharacterMovement())
             {
-                GetCharacterMovement()->MaxWalkSpeed = CurrentStats.WalkSpeed;
+                GetCharacterMovement()->MaxWalkSpeed = CurrentStats.RunSpeed;
                 GetCharacterMovement()->MaxAcceleration = 2048.f;
                 GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
                 GetCharacterMovement()->GroundFriction = 8.f;
@@ -268,7 +299,7 @@ void ABaseAnimal::TakeStun_Implementation(const float StunAmount)
 
 void ABaseAnimal::ApplyStun(float Amount)
 {
-    if (!bStatsReady || !StatsRow) return;
+    if (!bStatsReady || !StatsRow || bIsStunned) return;
 
     StunValue += Amount;
 
@@ -314,7 +345,10 @@ void ABaseAnimal::ApplyStun(float Amount)
 
 void ABaseAnimal::RecoverFromStun()
 {
+    if (CurrentState == EAnimalState::Dead) return;
+    
     bIsStunned = false;
+    StunValue = 0.f;
     
     if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
     {
@@ -348,6 +382,8 @@ void ABaseAnimal::RecoverFromStun()
 void ABaseAnimal::Die()
 {
     if (CurrentState != EAnimalState::Dead) return;
+
+    GetWorldTimerManager().ClearTimer(StunRecoverTimer);
     
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
@@ -440,6 +476,8 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     {
         return 0.f;
     }
+    
+    ShowHitEffect(DamageCauser);
 
     CurrentHealth -= ActualDamage;
     if (CurrentHealth <= 0.f)
@@ -455,6 +493,37 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     }
 
     return ActualDamage;
+}
+
+void ABaseAnimal::ShowHitEffect(AActor* DamageCauser)
+{
+    if (!HitEffectComponent || HitEffectSystems.Num() == 0 || !DamageCauser)
+        return;
+    
+    int32 RandomIndex = FMath::RandRange(0, HitEffectSystems.Num() - 1);
+    UNiagaraSystem* SelectedEffect = HitEffectSystems[RandomIndex];
+    
+    if (!SelectedEffect)
+        return;
+    
+    FVector StartLocation = DamageCauser->GetActorLocation();
+    FVector EndLocation = GetActorLocation();
+    
+    FHitResult HitResult;
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(DamageCauser);
+    
+    if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Pawn, QueryParams))
+    {
+        HitEffectComponent->SetWorldLocation(HitResult.Location);
+        HitEffectComponent->SetAsset(SelectedEffect);
+        HitEffectComponent->ActivateSystem(true);
+    
+        if (SoundData && CurrentState != EAnimalState::Dead)
+        {
+            PlayAnimalSound(SoundData->HitSounds, HitResult.Location, EConcurrencyType::Impact);
+        }
+    }
 }
 
 // void ABaseAnimal::SetbIsTamed(bool bNewValue)
@@ -501,35 +570,14 @@ void ABaseAnimal::OnInteract(AActor* Interactor)
     {
         Inventory->AddItems(DroppedItems);
     }
+
+    if (SoundData)
+    {
+        PlayAnimalSound(SoundData->InteractionSounds, GetActorLocation(), EConcurrencyType::Default);
+    }
+    
     StartFadeOut();
     SetLifeSpan(2.0f);
-}
-
-void ABaseAnimal::Capture()
-{
-    APlayerCharacter* Interactor = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
-    if (!IsValid(Interactor)) return;
-
-    UBaseInventoryComponent* Inventory = Interactor->FindComponentByClass<UBaseInventoryComponent>();
-    if (!IsValid(Inventory)) return;
-
-    const FAddItemResult Result = Inventory->AddItem(RowName, 1);
-    if (Result.bSuccess)
-    {
-        if (IsValid(ActiveInteractWidget))
-        {
-            ActiveInteractWidget->RemoveFromParent();
-            ActiveInteractWidget = nullptr;
-        }
-
-        Destroy();
-    }
-}
-
-void ABaseAnimal::Butcher()
-{
-    // TODO : AddItem
-    Destroy();
 }
 
 void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) const
@@ -537,7 +585,8 @@ void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) c
     if (USkeletalMeshComponent* MeshComp = GetMesh())
     {
         Location = MeshComp->GetSocketLocation(TEXT("head"));
-        Rotation = MeshComp->GetSocketRotation(TEXT("head"));
+        FRotator RawRot = MeshComp->GetSocketRotation(TEXT("head"));
+        Rotation = FRotator(0.f, RawRot.Yaw, 0.f);
     }
     else
     {
@@ -657,7 +706,7 @@ float ABaseAnimal::PlayRangedAttackMontage()
 
 void ABaseAnimal::PerformMeleeAttack()
 {
-    if (!CurrentTarget || !bCanMelee || bIsMeleeOnCooldown) return;
+    if (!IsValid(CurrentTarget) || !bCanMelee || bIsMeleeOnCooldown) return;
 
     const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
     if (Distance > MeleeRange) return;
@@ -752,19 +801,26 @@ void ABaseAnimal::UpdateFade()
 }
 #pragma endregion
 
-
-// Stun Test
-void ABaseAnimal::ForceStunToMax()
+#pragma region SFX
+void ABaseAnimal::PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch, const float StartTime) const
 {
-    if (!bStatsReady || !StatsRow) 
-    {
-        UE_LOG(LogTemp, Warning, TEXT("[%s] ForceStunToMax - Stats not ready"), *GetName());
+    if (SoundArray.Num() == 0)
         return;
+       
+    int32 RandomIndex = FMath::RandRange(0, SoundArray.Num() - 1);
+    USoundBase* SelectedSound = SoundArray[RandomIndex];
+   
+    if (SelectedSound)
+    {
+        const UGameInstance* GameInstance = GetGameInstance();
+        if (IsValid(GameInstance))
+        {
+            UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+            if (IsValid(AudioManager))
+            {
+                AudioManager->PlaySFX(SelectedSound, Location, SoundType, Pitch, StartTime);
+            }
+        }
     }
-    
-    UE_LOG(LogTemp, Log, TEXT("[%s] ForceStunToMax - Applying max stun: %f"), *GetName(), CurrentStats.StunThreshold);
-    UCombatStatics::ApplyStun(this, 5000.f);
-
-    UE_LOG(LogTemp, Log, TEXT("[%s] ApplyStun - StunValue: %f / Threshold: %f"), 
-    *GetName(), StunValue, CurrentStats.StunThreshold);
 }
+#pragma endregion

@@ -35,6 +35,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
 	FGameplayTag Gait;
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
+	FGameplayTag OverlayMode;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
 	uint8 bIsRightShoulder:1 {true};
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Inventory")

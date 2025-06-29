@@ -60,14 +60,25 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct CR4S_API FMeleeWeaponInfo
+struct CR4S_API FChargableWeaponInfo
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UAnimMontage> ChargeAttackMontage;
+	TArray<TObjectPtr<UAnimMontage>> ChargeAttackMontages{nullptr, nullptr};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChargeAttackDamageMultiplier{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChargeAttackStunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ChargeAttackTimeThreshold{0.5};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FMeleeWeaponInfo
+{
+	GENERATED_BODY()
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float StunAmount{0};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -76,6 +87,9 @@ public:
 	FName TopSocketName{};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName BottomSocketName{};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FChargableWeaponInfo ChargableWeaponInfo;
 };
 
 USTRUCT(BlueprintType)

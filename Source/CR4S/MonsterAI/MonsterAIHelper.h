@@ -8,6 +8,6 @@ class ABaseMonster;
 
 namespace MonsterAIHelper
 {
-	ABaseMonster* GetControlledMonster(UBehaviorTreeComponent& OwnerComp);
-	void SetMonstersHP(const UWorld* World, const float InHealth);
+	CR4S_API ABaseMonster* GetControlledMonster(UBehaviorTreeComponent& OwnerComp);
+	CR4S_API void SetMonstersHP(const UWorld* World, const float InHealth);
 }

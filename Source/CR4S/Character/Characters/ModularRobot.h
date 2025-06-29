@@ -31,6 +31,7 @@ class USpringArmComponent;
 class UCameraComponent;
 struct FInputActionValue;
 
+
 UCLASS()
 class CR4S_API AModularRobot : public ACharacter, public IStunnableInterface, public ISavableActor
 {
@@ -256,6 +257,8 @@ protected:
 	uint8 bIsDashing : 1 {false};
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsHovering : 1 {false};
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsDead : 1 {false};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
 	FName UniqueSaveID;
@@ -270,4 +273,5 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bIsDebugMode : 1 {false};
 #pragma endregion
+	
 };

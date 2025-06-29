@@ -17,6 +17,7 @@ class UBaseInventoryComponent;
 class UNavigationInvokerComponent;
 class UNiagaraComponent;
 class UParticleSystemComponent;
+class UHelperBotSoundData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, InteractingController);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
@@ -122,7 +123,6 @@ public:
 	FORCEINLINE float GetHarvestDuration() const { return CurrentStats.HarvestDuration; }
 	FORCEINLINE bool GetIsWorking() const { return bIsWorking; }
 	FORCEINLINE FText GetBotName() const { return BotName; }
-	
 	void SetIsWorking(bool NewIsWorking) {bIsWorking = NewIsWorking;}
 	
 	FHelperPickUpData GetHelperBotData() const { return PickUpData; }
@@ -208,6 +208,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	class UWidgetComponent* InfoWidgetComponent = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
+	TSubclassOf<UHelperBotInfoWidget> InfoWidgetClass;
+
 	UPROPERTY()
 	TObjectPtr<UHelperBotInfoWidget> InfoUIInstance = nullptr;
 	
@@ -276,4 +279,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void LoadHelperBotSaveData(const FHelperBotSaveGame& Data);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
+	UHelperBotSoundData* SoundData;
+	
+	void PlayBotSound(USoundBase* Sound, const FVector& Location = FVector::ZeroVector) const;
 };

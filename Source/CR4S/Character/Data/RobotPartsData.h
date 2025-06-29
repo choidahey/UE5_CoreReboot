@@ -137,7 +137,7 @@ public:
 	TObjectPtr<USoundBase> HoverSound;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName BoosterSocketName{};
+	TArray<FName> BoosterSocketNames{FName(),FName()};
 };
 
 UCLASS()

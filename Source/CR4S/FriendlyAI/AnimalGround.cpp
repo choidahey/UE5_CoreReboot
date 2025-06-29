@@ -107,9 +107,12 @@ void AAnimalGround::ResetAttackFlag()
 void AAnimalGround::PerformMeleeAttack()
 {
 	Super::PerformMeleeAttack();
-    
-	if (!CurrentTarget) return;
 
+	if (!IsValid(CurrentTarget)) 
+	{
+		return;
+	}
+	
 	if (ABaseAnimal* HitAnimal = Cast<ABaseAnimal>(CurrentTarget))
 	{
 		if (HitAnimal->CurrentState == EAnimalState::Dead)

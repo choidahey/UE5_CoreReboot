@@ -50,6 +50,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UNiagaraComponent* HitEffect;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UNiagaraComponent* ProjectileNiagaraComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage Rule")
+	bool bIgnoreSameSpeciesOverlap = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage Rule")
+	bool bCanHitBuilding = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Damage Rule")
+	virtual bool ShouldDamageActor(AActor* OtherActor) const;
 };

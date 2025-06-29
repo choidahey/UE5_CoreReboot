@@ -123,6 +123,14 @@ void UPlayerCharacterStatusComponent::StartConsumeHunger()
 	}
 }
 
+void UPlayerCharacterStatusComponent::StopConsumeHunger()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(HungerTimerHandle);
+	}
+}
+
 void UPlayerCharacterStatusComponent::ApplyHungerDebuff()
 {
 	if (!GetWorld()) return;

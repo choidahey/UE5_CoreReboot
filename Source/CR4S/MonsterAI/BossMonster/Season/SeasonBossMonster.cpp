@@ -15,6 +15,8 @@
 #include "MonsterAI/Components/MonsterAttributeComponent.h"
 #include "MonsterAI/Components/MonsterStateComponent.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
+#include "Game/System/AudioManager.h"
+#include "Sound/SoundBase.h"
 
 ASeasonBossMonster::ASeasonBossMonster()
 {
@@ -36,6 +38,15 @@ void ASeasonBossMonster::BeginPlay()
    }
    
    SpawnOpeningPattern();
+
+   FTimerHandle _bgmTimerHandle;
+   GetWorld()->GetTimerManager().SetTimer(
+       _bgmTimerHandle,
+       this,
+       &ASeasonBossMonster::PlayBattleBGM,
+       BattleBGMDelay,
+       false
+   );
 }
 
 
@@ -46,11 +57,22 @@ float ASeasonBossMonster::TakeDamage(
    AActor* DamageCauser)
 {
    float Actual = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-   if (AggroComp && DamageCauser)
+   
+   AActor* AggroInstigator = nullptr;
+   if (EventInstigator && EventInstigator->GetPawn())
    {
-      AggroComp->AddDamageAggro(DamageCauser, Actual);
+      AggroInstigator = EventInstigator->GetPawn();
    }
+   else if (DamageCauser)
+   {
+      AggroInstigator = DamageCauser;
+   }
+
+   if (AggroComp && AggroInstigator)
+   {
+      AggroComp->AddDamageAggro(AggroInstigator, Actual);
+   }
+   
    return Actual;
 }
 
@@ -107,6 +129,18 @@ void ASeasonBossMonster::SpawnOpeningPattern()
    UWorld* World = GetWorld();
    if (!World) return;
 
+   if (SpawnSFX)
+   {
+      if (UAudioManager* AudioMgr = GetGameInstance()->GetSubsystem<UAudioManager>())
+      {
+         AudioMgr->PlaySFX(
+             SpawnSFX,
+             GetActorLocation(),
+             EConcurrencyType::Impact
+         );
+      }
+   }
+   
    if (AnimComponent && !AnimComponent->IsAnyMontagePlaying())
    {
       AnimComponent->PlayCombatMontage();
@@ -167,6 +201,17 @@ void ASeasonBossMonster::SpawnOpeningPattern()
          
          SpawnedNiagaraComp->SetRelativeScale3D(OpeningNiagaraScale);
          SpawnedNiagaraComp->Activate(true);
+      }
+   }
+}
+
+void ASeasonBossMonster::PlayBattleBGM()
+{
+   if (UAudioManager* AudioMgr = GetGameInstance()->GetSubsystem<UAudioManager>())
+   {
+      if (USoundBase* BGM = GetBattleBGM())
+      {
+         AudioMgr->PlayBGM(BGM);
       }
    }
 }

@@ -5,6 +5,7 @@
 #include "MonsterAI/Skills/RollingActor.h"
 #include "MonsterAI/Skills/FallingBombActor.h"
 #include "MonsterAI/Skills/ProjectileSlashActor.h"
+#include "MonsterAI/Skills/GroundShockActor.h"
 
 void UAnimNotify_SpawnActorAtSocket::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -95,5 +96,10 @@ void UAnimNotify_SpawnActorAtSocket::SpawnSkillActor(USkeletalMeshComponent* Mes
 	else if (AProjectileSlashActor* Slash = Cast<AProjectileSlashActor>(SkillActor))
 	{
 		Slash->InitializeMovement(LaunchSpeed, TravelDistance, SpawnLocation);
+	}
+	else if (AGroundShockActor* Shock = Cast<AGroundShockActor>(SkillActor))
+	{
+		const FRotator FacingRotation = Owner->GetActorRotation();
+		Shock->InitShock(FacingRotation);
 	}
 }

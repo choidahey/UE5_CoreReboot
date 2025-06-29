@@ -55,6 +55,7 @@ void UMainMenuWidget::CreateChildWidgets()
 	if (!SettingsWidgetInstance && SettingsWidgetClass)
 	{
 		SettingsWidgetInstance = CreateWidget<USettingsWidget>(GetWorld(), SettingsWidgetClass);
+		SettingsWidgetInstance->OnSettingsClosed.AddDynamic(this, &UMainMenuWidget::ShowMenuButtons);
 	}
 	if (!CreditsWidgetInstance && CreditsWidgetClass)
 	{
@@ -100,7 +101,7 @@ void UMainMenuWidget::OnSettingsButtonClicked()
 		}
 
 		HideMenuButtons();
-		SettingsWidgetInstance->MainMenuWidgetRef = this;
+
 		SettingsWidgetInstance->HandleOpenWindow();
 	}
 }
@@ -189,62 +190,64 @@ void UMainMenuWidget::ShowBackground()
 
 void UMainMenuWidget::ShowNextBackground()
 {
-	if (BackgroundImages.Num() == 0 || !BackgroundMID) return;
+	if (BackgroundImages.Num() == 0 || !IsValid(BackgroundMID)) return;
 
-	// 기존 타이머 클리어
-	GetWorld()->GetTimerManager().ClearTimer(DissolveTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(DissolveStepTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(NextBackgroundTimerHandle);
 
 	int32 NextIndex = (CurrentIndex + 1) % BackgroundImages.Num();
+
+	if (!BackgroundImages.IsValidIndex(CurrentIndex) || !BackgroundImages.IsValidIndex(NextIndex)) return;
 
 	BackgroundMID->SetTextureParameterValue("TextureA", BackgroundImages[CurrentIndex]);
 	BackgroundMID->SetTextureParameterValue("TextureB", BackgroundImages[NextIndex]);
 
-	float Duration = 1.5f; // 디졸브 시간
-	float Step = 0.05f;
+	const float Duration = 1.5f;
+	const float Step = 0.05f;
 
-	// 로컬 변수 ElapsedTime을 멤버 변수로 바꾸거나 static 유지 가능
-	static float ElapsedTime = 0.0f;
-	ElapsedTime = 0.0f; // 디졸브 시작 전 초기화
+	struct FDissolveContext
+	{
+		float ElapsedTime = 0.0f;
+	};
+	TSharedRef<FDissolveContext> DissolveContext = MakeShared<FDissolveContext>();
+
+	TWeakObjectPtr<UMainMenuWidget> WeakThis(this);
+	TWeakObjectPtr<UMaterialInstanceDynamic> WeakMID(BackgroundMID);
 
 	FTimerDelegate DissolveStepDelegate;
-	DissolveStepDelegate.BindLambda([this, Step, Duration]() mutable {
-		ElapsedTime += Step;
-		float Alpha = FMath::Clamp(ElapsedTime / Duration, 0.0f, 1.0f);
-		if (BackgroundMID)
-		{
-			BackgroundMID->SetScalarParameterValue("DissolveAlpha", Alpha);
-		}
+	DissolveStepDelegate.BindLambda([WeakThis, WeakMID, Step, Duration, DissolveContext]() mutable {
+		if (!WeakThis.IsValid() || !WeakMID.IsValid()) return;
+
+		DissolveContext->ElapsedTime += Step;
+		float Alpha = FMath::Clamp(DissolveContext->ElapsedTime / Duration, 0.0f, 1.0f);
+		WeakMID->SetScalarParameterValue("DissolveAlpha", Alpha);
 		});
 
-	// 디졸브 진행 타이머 시작
 	GetWorld()->GetTimerManager().SetTimer(
-		DissolveTimerHandle,
+		DissolveStepTimerHandle,
 		DissolveStepDelegate,
 		Step,
 		true
 	);
 
-	// 디졸브가 끝난 후 실행할 타이머 핸들러
-	FTimerHandle StopTimer;
 	GetWorld()->GetTimerManager().SetTimer(
-		StopTimer,
-		[this, NextIndex, Duration]() {
-			// 디졸브 타이머 정리
-			GetWorld()->GetTimerManager().ClearTimer(DissolveTimerHandle);
+		NextBackgroundTimerHandle,
+		[this, NextIndex]() {
+			GetWorld()->GetTimerManager().ClearTimer(DissolveStepTimerHandle);
 
-			if (BackgroundImages.IsValidIndex(NextIndex) && BackgroundMID)
+			if (!IsValid(BackgroundMID)) return;
+
+			if (BackgroundImages.IsValidIndex(NextIndex))
 			{
 				BackgroundMID->SetTextureParameterValue("TextureA", BackgroundImages[NextIndex]);
 				BackgroundMID->SetTextureParameterValue("TextureB", BackgroundImages[NextIndex]);
 				BackgroundMID->SetScalarParameterValue("DissolveAlpha", 0.0f);
 			}
 
-			// 인덱스 갱신
 			CurrentIndex = NextIndex;
 
-			// 여기서 다시 5초 뒤에 ShowNextBackground 호출하도록 타이머 재설정
 			GetWorld()->GetTimerManager().SetTimer(
-				DissolveTimerHandle,
+				NextBackgroundTimerHandle,
 				this,
 				&UMainMenuWidget::ShowNextBackground,
 				5.0f,
@@ -254,6 +257,19 @@ void UMainMenuWidget::ShowNextBackground()
 		Duration,
 		false
 	);
+}
+
+void UMainMenuWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (GetWorld())
+	{
+		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+		TimerManager.ClearTimer(DissolveTimerHandle);
+		TimerManager.ClearTimer(DissolveStepTimerHandle);
+		TimerManager.ClearTimer(NextBackgroundTimerHandle);
+	}
 }
 
 

@@ -4,13 +4,31 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Algo/RandomShuffle.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "FriendlyAI/AnimalMonster.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseConfig_Hearing.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/BaseMonster.h"
 
 AFAAIController::AFAAIController()
 {
 	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComp"));
 	BlackboardComponent   = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComp"));
+
+	AIPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComp"));
+	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
+
+	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+
+	AIPerceptionComp->ConfigureSense(*SightConfig);
+	AIPerceptionComp->ConfigureSense(*HearingConfig);
 }
 
 void AFAAIController::OnPossess(APawn* InPawn)
@@ -18,6 +36,11 @@ void AFAAIController::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 
 	AAnimalFlying* FlyingAnimal = Cast<AAnimalFlying>(InPawn);
+
+	AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
+			this, &AFAAIController::OnTargetPerceptionUpdated
+		);
+	
 	if (FlyingAnimal && FlyingAnimal->BehaviorTreeAsset)
 	{
 		UBehaviorTree* BTAsset = FlyingAnimal->BehaviorTreeAsset;
@@ -192,3 +215,188 @@ void AFAAIController::SetDoIFearTheEnemy()
 	Algo::RandomShuffle(FilteredPerchTargets);
 }
  
+void AFAAIController::SetAnimalState(EAnimalState NewState)
+{
+	if (ABaseAnimal* Animal = Cast<ABaseAnimal>(GetPawn()))
+	{
+		Animal->SetAnimalState(NewState);
+	}
+}
+
+void AFAAIController::ApplyPerceptionStats(const FAnimalStatsRow& Stats)
+{
+	SightConfig->SightRadius = Stats.SightRadius;
+	SightConfig->PeripheralVisionAngleDegrees = Stats.PeripheralVisionAngle;
+	HearingConfig->HearingRange = Stats.HearingRadius;
+
+	AIPerceptionComp->ConfigureSense(*SightConfig);
+	AIPerceptionComp->ConfigureSense(*HearingConfig);
+	AIPerceptionComp->RequestStimuliListenerUpdate();
+}
+
+void AFAAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+    if (AAnimalFlying* FlyingAnimal = Cast<AAnimalFlying>(GetPawn()))
+    {
+        if (Stimulus.WasSuccessfullySensed())
+        {
+            if (FlyingAnimal->BehaviorTypeEnum == EAnimalBehavior::Coward)
+            {
+                bool bShouldTarget = false;
+            	
+                if (Cast<APlayerCharacter>(Actor))
+                {
+                    bShouldTarget = true;
+                }
+                else if (AModularRobot* SensedRobot = Cast<AModularRobot>(Actor))
+                {
+                    if (SensedRobot->GetMountedCharacter())
+                    {
+                        bShouldTarget = true;
+                    }
+                }
+                else if (Cast<ABaseMonster>(Actor))
+                {
+                    bShouldTarget = true;
+                }
+                else if (ABaseAnimal* SensedAnimal = Cast<ABaseAnimal>(Actor))
+                {
+                    if (SensedAnimal->CurrentState != EAnimalState::Dead &&
+                        SensedAnimal->CurrentState != EAnimalState::Stun &&
+                        SensedAnimal->RowName != FlyingAnimal->RowName &&
+                        (SensedAnimal->BehaviorTypeEnum == EAnimalBehavior::Aggressive ||
+                         SensedAnimal->BehaviorTypeEnum == EAnimalBehavior::Monster))
+                    {
+                        bShouldTarget = true;
+                    }
+                }
+                
+                if (!bShouldTarget)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                if (FlyingAnimal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
+                {
+                    if (Cast<AAnimalMonster>(Actor) || Cast<ABaseMonster>(Actor))
+                    {
+                        return;
+                    }
+                }
+
+                if (ABaseAnimal* SensedAnimal = Cast<ABaseAnimal>(Actor))
+                {
+                    if (SensedAnimal->CurrentState == EAnimalState::Dead ||
+                        SensedAnimal->CurrentState == EAnimalState::Stun)
+                    {
+                        return;
+                    }
+
+                    if (SensedAnimal->RowName == FlyingAnimal->RowName)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            if (Cast<APlayerCharacter>(Actor))
+            {
+                AActor* PlayerTarget = GetCurrentPlayerTarget();
+                SetTargetActor(PlayerTarget);
+            }
+            else if (AModularRobot* SensedRobot = Cast<AModularRobot>(Actor))
+            {
+                if (SensedRobot->GetMountedCharacter())
+                {
+                    SetTargetActor(SensedRobot);
+                }
+            }
+            else
+            {
+                SetTargetActor(Actor);
+            }
+            
+            HandlePerceptionResponse(FlyingAnimal, Actor);
+        }
+        else
+        {
+            if (IsValid(FlyingAnimal->CurrentTarget))
+            {
+                float Distance = FVector::Dist(
+                    FlyingAnimal->GetActorLocation(),
+                    FlyingAnimal->CurrentTarget->GetActorLocation()
+                );
+
+                if (const FAnimalStatsRow* Stats = FlyingAnimal->GetStatsRowPtr())
+                {
+                    if (Distance >= Stats->TargetLostRange)
+                    {
+                        BlackboardComponent->ClearValue(TEXT("TargetActor"));
+                        FlyingAnimal->CurrentTarget = nullptr;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void AFAAIController::HandlePerceptionResponse(AAnimalFlying* Animal, AActor* SensedActor)
+{
+	if (!Animal || !Animal->bStatsReady) return;
+
+	switch (Animal->BehaviorTypeEnum)
+	{
+	case EAnimalBehavior::Aggressive:
+		if (BlackboardComponent.Get())
+		{
+			BlackboardComponent->SetValueAsEnum(TEXT("AnimalState"), static_cast<uint8>(EAnimalState::Chase));
+		}
+		break;
+
+	case EAnimalBehavior::Coward:
+		if (BlackboardComponent.Get())
+		{
+			BlackboardComponent->SetValueAsBool(TEXT("FlyAway"), true);
+			BlackboardComponent->SetValueAsEnum(TEXT("AnimalState"), static_cast<uint8>(EAnimalState::Flee));
+		}
+		break;
+	}
+}
+
+void AFAAIController::SetTargetActor(AActor* Target)
+{
+    if (AAnimalFlying* Animal = Cast<AAnimalFlying>(GetPawn()))
+    {
+        if (Animal->CurrentTarget == Target) return;
+
+        Animal->CurrentTarget = Target;
+        if (BlackboardComponent)
+        {
+            BlackboardComponent->SetValueAsObject(TEXT("TargetActor"), Target);
+        }
+    }
+}
+
+AActor* AFAAIController::GetCurrentPlayerTarget() const
+{
+    APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+    if (!IsValid(Player)) return nullptr;
+    
+    TArray<AActor*> FoundRobots;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AModularRobot::StaticClass(), FoundRobots);
+
+    for (AActor* RobotActor : FoundRobots)
+    {
+        if (AModularRobot* Robot = Cast<AModularRobot>(RobotActor))
+        {
+            APlayerCharacter* MountedChar = Robot->GetMountedCharacter();            
+            if (MountedChar == Player)
+            {
+                return Robot;
+            }
+        }
+    }
+    return Player;
+}
