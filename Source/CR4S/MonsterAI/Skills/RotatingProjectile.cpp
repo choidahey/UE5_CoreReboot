@@ -24,9 +24,9 @@ ARotatingProjectile::ARotatingProjectile()
 	LandingTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	LandingTrigger->SetGenerateOverlapEvents(false);
 
-	//TrailEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailEffect"));
-	//TrailEffectComp->SetupAttachment(StaticMesh);
-	//TrailEffectComp->SetAutoActivate(false);
+	TrailEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailEffect"));
+	TrailEffectComp->SetupAttachment(StaticMesh);
+	TrailEffectComp->SetAutoActivate(false);
 }
 
 void ARotatingProjectile::BeginPlay()
@@ -102,24 +102,7 @@ void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, floa
 	CollisionComp->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnOverlap);
 	LandingTrigger->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnLandingDetected);
 
-	//if (TrailEffect && TrailEffectComp)
-	//{
-	//	TrailEffectComp->SetAsset(TrailEffect);
-	//	TrailEffectComp->Activate(true);
-	//}
-
-	if (TrailEffect && !TrailEffectComp)
-	{
-		TrailEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			TrailEffect,
-			StaticMesh,
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset,
-			true
-		);
-	}
+	SpawnAndAttachTrailEffect();
 }
 
 FVector ARotatingProjectile::ComputeParabolicVelocity(const FVector& Start, const FVector& Target, float Speed) const
@@ -192,9 +175,24 @@ void ARotatingProjectile::HandleLanding()
 
 	if (TrailEffectComp && TrailEffectComp->IsActive())
 	{
-		// TrailEffectComp->Deactivate();
-		TrailEffectComp->DestroyComponent();
+		TrailEffectComp->Deactivate();
+
+		FTimerHandle DestroyTimer;
+		GetWorld()->GetTimerManager().SetTimer(
+			DestroyTimer,
+			FTimerDelegate::CreateLambda([this]()
+				{
+					if (IsValid(TrailEffectComp))
+					{
+						TrailEffectComp->DestroyComponent();
+					}
+				}),
+			1.0f,
+			false
+		);
 	}
+
+	PlayLandingEffect();
 
 	if (AKamishForestBoss* Boss = Cast<AKamishForestBoss>(GetOwner()))
 	{
@@ -220,6 +218,43 @@ void ARotatingProjectile::UpdateLandingCollision()
 	CollisionComp->SetCollisionResponseToAllChannels(ECR_Block);
 	CollisionComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	CollisionComp->SetGenerateOverlapEvents(false);
+}
+
+void ARotatingProjectile::SpawnAndAttachTrailEffect()
+{
+	if (!TrailEffect || !StaticMesh) return;
+
+	if (!TrailEffectComp)
+	{
+		TrailEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailEffect,
+			StaticMesh,
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
+	}
+	else
+	{
+		TrailEffectComp->SetAsset(TrailEffect);
+		TrailEffectComp->Activate(true);
+	}
+
+	if (TrailEffectComp)
+	{
+		UNiagaraParamUtils::ApplyParams(TrailEffectComp, TrailEffectParams);
+	}
+}
+
+void ARotatingProjectile::PlayLandingEffect()
+{
+	if (LandingEffect)
+	{
+		const FVector SpawnLocation = GetActorLocation() + LandingEffectOffset;
+		SpawnEffectAtLocationWithParams(LandingEffect, SpawnLocation, LandingEffectParams);
+	}
 }
 
 void ARotatingProjectile::Destroyed()

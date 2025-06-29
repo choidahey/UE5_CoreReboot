@@ -13,6 +13,12 @@ void AC4SurvivalGameMode::StartPlay()
     HandleStartGame();
 }
 
+void AC4SurvivalGameMode::ReturnToMenuWithDelay(float Delay)
+{
+    FTimerHandle TimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4SurvivalGameMode::ReturnToMenu, Delay, false);
+}
+
 void AC4SurvivalGameMode::ReturnToMenu()
 {
 	UGameplayStatics::OpenLevel(this, FName("MenuLevel"));

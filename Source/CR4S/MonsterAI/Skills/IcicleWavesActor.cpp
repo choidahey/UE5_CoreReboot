@@ -54,7 +54,7 @@ void AIcicleWavesActor::SpawnIcicleWaves()
 	float Dist = SpawnRadius[SpawnIndex++];
 
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
+	SpawnParams.Owner = BossPawn;
 	SpawnParams.Instigator = BossPawn;
 	
 	if (AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(

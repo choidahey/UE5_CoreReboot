@@ -42,3 +42,4 @@ void UPauseWidget::OnToMenuButtonClicked()
 		GM->ReturnToMenu();
 	}
 }
+
