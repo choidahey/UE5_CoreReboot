@@ -48,6 +48,13 @@ void ASurvivalHUD::ShowLoading()
 	ShowWidgetOnly(LoadingWidget);
 }
 
+void ASurvivalHUD::ShowMessage(const FText& InText, float Duration)
+{
+	NotificationWidget = CreateAndAddWidget<UNotificationWidget>(NotificationWidgetClass, 11, ESlateVisibility::Collapsed);
+
+	NotificationWidget->ShowNotification(InText, Duration);
+}
+
 void ASurvivalHUD::PlayEndingSequence()
 {
 	EndingWidget = CreateAndAddWidget<UEndingSummaryWidget>(EndingSummaryWidgetClass, 11, ESlateVisibility::Visible);
@@ -169,12 +176,9 @@ void ASurvivalHUD::ShowWidgetOnly(UUserWidget* TargetWidget)
 	{
 		if (!Widget) continue;
 
-		if (Widget->GetVisibility() == ESlateVisibility::Visible)
+		if (TargetWidget == nullptr || Widget != TargetWidget)
 		{
-			if (Widget != TargetWidget)
-			{
-				Widget->SetVisibility(ESlateVisibility::Collapsed);
-			}
+			Widget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 
@@ -183,4 +187,5 @@ void ASurvivalHUD::ShowWidgetOnly(UUserWidget* TargetWidget)
 		TargetWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 }
+
 
