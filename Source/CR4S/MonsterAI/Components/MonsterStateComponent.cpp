@@ -1,10 +1,15 @@
 #include "MonsterStateComponent.h"
+#include "AIController.h"
+#include "BrainComponent.h"
 #include "CR4S.h"
 #include "MonsterAnimComponent.h"
+#include "Character/Components/BaseStatusComponent.h"
+#include "Game/System/AudioManager.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Data/MonsterAttributeRow.h"
+#include "Perception/AIPerceptionComponent.h"
 
 UMonsterStateComponent::UMonsterStateComponent()
 	: MyHeader(TEXT("MonsterStateComp"))
@@ -29,6 +34,17 @@ void UMonsterStateComponent::BeginPlay()
 		*MyHeader,
 		*UEnum::GetValueAsString(CurrentState)
 	);
+
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (APawn* PlayerPawn = PC->GetPawn())
+		{
+			if (UBaseStatusComponent* StatusComp = PlayerPawn->FindComponentByClass<UBaseStatusComponent>())
+			{
+				StatusComp->OnDeathState.AddUObject(this, &UMonsterStateComponent::HandlePlayerDeath);
+			}
+		}
+	}
 }
 
 void UMonsterStateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -189,4 +205,48 @@ void UMonsterStateComponent::InitializeStunData(const FMonsterAttributeRow& Data
 	   StunRecoveryMax,
 	   StunRecoveryRampUpTime
    );
+}
+
+
+void UMonsterStateComponent::HandlePlayerDeath()
+{
+	SetState(EMonsterState::Idle);
+	
+	if (ACharacter* OwnerChar = Cast<ACharacter>(GetOwner()))
+	{
+		if (UCharacterMovementComponent* MoveComp = OwnerChar->GetCharacterMovement())
+		{
+			MoveComp->DisableMovement();
+		}
+	}
+
+	if (AController* C = Cast<AController>(GetOwner()->GetInstigatorController()))
+	{
+		if (AAIController* AICon = Cast<AAIController>(C))
+		{
+			if (UBrainComponent* Brain = AICon->GetBrainComponent())
+			{
+				Brain->StopLogic("PlayerDead");
+			}
+			if (UAIPerceptionComponent* Percep = AICon->FindComponentByClass<UAIPerceptionComponent>())
+			{
+				Percep->Deactivate();
+			}
+		}
+	}
+	
+	if (ABaseMonster* Monster = Cast<ABaseMonster>(GetOwner()))
+	{
+		if (Monster->AnimComponent)
+		{
+			Monster->AnimComponent->StopAllMontages();
+		}
+	}
+
+	if (UAudioManager* AudioMgr = GetWorld()->GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioMgr->StopBGM();
+	}
+	
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }

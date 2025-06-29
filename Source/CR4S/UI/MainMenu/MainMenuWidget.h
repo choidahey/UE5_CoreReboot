@@ -26,6 +26,7 @@ protected:
 	void InitMainMenu();
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 #pragma endregion
 
@@ -95,7 +96,9 @@ public:
 
 	void ShowBackground();
 
+	UFUNCTION()
 	void HideMenuButtons();
+	UFUNCTION()
 	void ShowMenuButtons();
 
 protected:

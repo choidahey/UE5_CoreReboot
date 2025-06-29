@@ -3,6 +3,7 @@
 #include "Character/Components/BaseStatusComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "Inventory/UI/InventoryContainerWidget.h"
 
 void ASurvivalHUD::BeginPlay()
 {
@@ -12,6 +13,8 @@ void ASurvivalHUD::BeginPlay()
 
 	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 10, ESlateVisibility::Collapsed);
 	PauseWidget->OnResumeRequested.BindUObject(this, &ASurvivalHUD::HandlePauseToggle);
+
+	InventoryContainerWidget = CreateAndAddWidget(InventoryContainerWidgetClass, 0, ESlateVisibility::Visible);
 
 	BindGameOverWidget();
 }
@@ -46,6 +49,13 @@ void ASurvivalHUD::ShowLoading()
 {
 	ULoadingWidget* LoadingWidget = CreateAndAddWidget<ULoadingWidget>(LoadingWidgetClass, 12, ESlateVisibility::Visible);
 	ShowWidgetOnly(LoadingWidget);
+}
+
+void ASurvivalHUD::ShowMessage(const FText& InText, float Duration)
+{
+	NotificationWidget = CreateAndAddWidget<UNotificationWidget>(NotificationWidgetClass, 11, ESlateVisibility::Collapsed);
+
+	NotificationWidget->ShowNotification(InText, Duration);
 }
 
 void ASurvivalHUD::PlayEndingSequence()
@@ -163,18 +173,15 @@ void ASurvivalHUD::SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidge
 
 void ASurvivalHUD::ShowWidgetOnly(UUserWidget* TargetWidget)
 {
-	TArray<UUserWidget*> AllWidgets = { InGameWidget, PauseWidget, GameOverWidget, EndingWidget };
+	TArray<UUserWidget*> AllWidgets = { InGameWidget, PauseWidget, GameOverWidget, EndingWidget, InventoryContainerWidget };
 
 	for (UUserWidget* Widget : AllWidgets)
 	{
 		if (!Widget) continue;
 
-		if (Widget->GetVisibility() == ESlateVisibility::Visible)
+		if (TargetWidget == nullptr || Widget != TargetWidget)
 		{
-			if (Widget != TargetWidget)
-			{
-				Widget->SetVisibility(ESlateVisibility::Collapsed);
-			}
+			Widget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 
@@ -183,4 +190,5 @@ void ASurvivalHUD::ShowWidgetOnly(UUserWidget* TargetWidget)
 		TargetWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 }
+
 
