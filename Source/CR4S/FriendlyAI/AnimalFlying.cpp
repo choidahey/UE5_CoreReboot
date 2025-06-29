@@ -18,6 +18,11 @@ void AAnimalFlying::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (AFAAIController* C = Cast<AFAAIController>(GetController()))
+	{
+		C->SetAnimalState(EAnimalState::Patrol);
+	}
+
 	if (AAIController* AIController = Cast<AAIController>(GetController()))
 	{
 		BlackboardComponent = AIController->FindComponentByClass<UBlackboardComponent>();
@@ -89,6 +94,38 @@ void AAnimalFlying::BeginPlay()
 
 }
 
+void AAnimalFlying::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	    
+	if (USkeletalMeshComponent* MeshComp1 = GetMesh())
+	{
+		ECollisionResponse Response = MeshComp1->GetCollisionResponseToChannel(ECC_GameTraceChannel1);
+	}
+}
+
+void AAnimalFlying::SetAnimalState(EAnimalState NewState)
+{
+	CurrentState = NewState;
+    
+	if (USkeletalMeshComponent* Skeletal = GetMesh())
+	{
+		const bool bEnableInteraction = (NewState == EAnimalState::Stun || NewState == EAnimalState::Dead);
+		Skeletal->SetCollisionResponseToChannel(ECC_GameTraceChannel1, bEnableInteraction ? ECR_Block : ECR_Ignore);
+	}
+    
+	AAIController* AFAIController = Cast<AAIController>(Controller);
+	if (AFAIController)
+	{
+		UBlackboardComponent* BB = AFAIController->GetBlackboardComponent();
+		if (BB)
+		{
+			BB->SetValueAsEnum(TEXT("AnimalState"), static_cast<uint8>(NewState));
+		}
+	}
+}
+
+
 void AAnimalFlying::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (bDisableCollisionDuringFlight)
@@ -136,46 +173,6 @@ void AAnimalFlying::SetMovementToWalking()
 		MoveComp->SetMovementMode(MOVE_Walking);
 	}
 }
-
-#pragma region Stun
-void AAnimalFlying::ApplyStun(float Amount)
-{
-	Super::ApplyStun(Amount);
-
-	if (!bIsStunned) return;
-
-	if (USkeletalMeshComponent* SkelMesh = GetMesh())
-	{
-		SkelMesh->SetAllBodiesSimulatePhysics(true);
-		SkelMesh->SetSimulatePhysics(true);
-		//SkelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	}
-	
-	if (GetCharacterMovement())
-	{
-		GetCharacterMovement()->StopMovementImmediately();
-		GetCharacterMovement()->DisableMovement();
-	}
-}
-
-void AAnimalFlying::RecoverFromStun()
-{
-	Super::RecoverFromStun();
-
-	if (USkeletalMeshComponent* SkelMesh = GetMesh())
-	{
-		SkelMesh->SetSimulatePhysics(false);
-		SkelMesh->SetAllBodiesSimulatePhysics(false);
-		//SkelMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		SkelMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	}
-
-	if (GetCharacterMovement())
-	{
-		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	}
-}
-#pragma endregion
 
 #pragma region Attack
 void AAnimalFlying::PerformChargeAttack()

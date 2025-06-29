@@ -69,6 +69,13 @@ void AAnimalMonsterAIController::EvaluateTargetPriority()
 {
     if (!IsValid(ControlledMonster)) return;
     
+    if (ControlledMonster->bPlayerDead)
+    {
+        ClearTargetActor();
+        SetMonsterState(EAnimalState::Patrol);
+        return;
+    }
+    
     AActor* PlayerTarget = ControlledMonster->GetCurrentPlayerTarget();
         
     AActor* CurrentPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
