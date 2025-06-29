@@ -19,7 +19,7 @@ void ACubeDamageSkillActor::BeginPlay()
 		Box->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 		Box->SetGenerateOverlapEvents(true);
 
-		Box->OnComponentBeginOverlap.AddDynamic(this, &ACubeDamageSkillActor::OnOverlap);
+		Box->OnComponentBeginOverlap.AddUniqueDynamic(this, &ACubeDamageSkillActor::OnOverlap);
 	}
 
 #if WITH_EDITOR
@@ -39,5 +39,5 @@ void ACubeDamageSkillActor::BeginPlay()
 
 void ACubeDamageSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ApplyEffectToActor(OtherActor);
+	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }

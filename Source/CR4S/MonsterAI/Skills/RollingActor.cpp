@@ -4,6 +4,7 @@
 #include "GeometryCollection/GeometryCollectionActor.h"
 #include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "CR4S.h"
 
 ARollingActor::ARollingActor()
 {
@@ -54,7 +55,10 @@ void ARollingActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	LastKnownVelocity = RollingMesh->GetPhysicsLinearVelocity();
+	if (IsValid(RollingMesh))
+	{
+		LastKnownVelocity = RollingMesh->GetPhysicsLinearVelocity();
+	}
 
 	const float Distance = FVector::DistSquared(StartLocation, GetActorLocation());
 	if (Distance >= FMath::Square(MaxDistance))
@@ -100,7 +104,7 @@ void ARollingActor::BreakAndDestroy()
 	if (GIsEditor && !GetWorld()->IsPlayInEditor())
 	{
 		// Prevent crash in Animation Preview or Fracture Editor
-		UE_LOG(LogTemp, Warning, TEXT("[RollingActor] Skipped BreakAndDestroy during editor preview."));
+		UE_LOG(LogMonster, Warning, TEXT("[RollingActor] Skipped BreakAndDestroy during editor preview."));
 		Destroy();
 		return;
 	}
