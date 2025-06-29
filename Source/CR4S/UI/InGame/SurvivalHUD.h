@@ -3,6 +3,8 @@
 #include "DefaultInGameWidget.h"
 #include "PauseWidget.h"
 #include "EndingSummaryWidget.h"
+#include "GameOverWidget.h"
+#include "UI/Common/LoadingWidget.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "SurvivalHUD.generated.h"
@@ -53,7 +55,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
 	TSubclassOf<UPauseWidget> PauseWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UGameOverWidget> GameOverWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UEndingSummaryWidget> EndingSummaryWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<ULoadingWidget> LoadingWidgetClass;
 
 #pragma endregion
 
@@ -63,6 +69,8 @@ protected:
 	TObjectPtr<UDefaultInGameWidget> InGameWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UPauseWidget> PauseWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UGameOverWidget> GameOverWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UEndingSummaryWidget> EndingWidget;
 
@@ -77,17 +85,23 @@ public:
 	// Supports GameOnly, GameAndUI, and UIOnly modes with optional widget focus and mouse lock.
 	void SetInputMode(ESurvivalInputMode Mode, UUserWidget* FocusWidget = nullptr, bool bShowCursor = true, bool bLockMouse = false);
 
+	void ShowWidgetOnly(UUserWidget* TargetWidget);
 #pragma endregion
 
 #pragma region WidgetHandlers
 public:
 	UFUNCTION(BlueprintCallable) //for prototype
 	void HandlePauseToggle();
+	UFUNCTION(BlueprintCallable)
+	void HandleGameOverToggle();
 
+	void ShowLoading();
 	void PlayEndingSequence();
+	void BindGameOverWidget();
 
 #pragma endregion
 
 private:
 	virtual void BeginPlay() override;
+
 };
