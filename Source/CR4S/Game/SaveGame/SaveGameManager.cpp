@@ -36,6 +36,7 @@ bool USaveGameManager::SaveAll(const FString& SlotName)
 
     bSuccess &= SaveCore(SlotName);
     bSuccess &= SaveWorld(SlotName);
+    bSuccess &= SaveBuilding(SlotName);
 
     if (!MetaSave)
         MetaSave = NewObject<UC4MetaSaveGame>();
@@ -61,6 +62,15 @@ void USaveGameManager::PreloadSaveData(const FString& SlotName)
     if (UGameplayStatics::DoesSaveGameExist(SlotName + "_World", 0))
     {
         WorldSave = Cast<UWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName + "_World", 0));
+    }
+    if (UGameplayStatics::DoesSaveGameExist(SlotName + "_Building", 0))
+    {
+        BuildingSave = UGameplayStatics::LoadGameFromSlot(SlotName + "_Building", 0);
+
+        if (UItemGimmickSubsystem* GimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>())
+        {
+            GimmickSubsystem->SetBuildingSaveGame(BuildingSave);
+        }
     }
 }
 
@@ -187,6 +197,7 @@ void USaveGameManager::DeleteSlot(const FString& SlotName)
         UGameplayStatics::DeleteGameInSlot(SlotName + "_World", 0);
         UGameplayStatics::DeleteGameInSlot(SlotName + "_Settings", 0);
         UGameplayStatics::DeleteGameInSlot(SlotName + "_Core", 0);
+        UGameplayStatics::DeleteGameInSlot(SlotName + "_Building", 0);
 
         SaveMeta();
 	}
@@ -285,7 +296,28 @@ bool USaveGameManager::SaveWorld(const FString& SlotName)
     return bSuccess;
 }
 
+bool USaveGameManager::SaveBuilding(const FString& SlotName)
+{
+    UItemGimmickSubsystem* GimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>();
+    if (!CR4S_VALIDATE(LogSave, GimmickSubsystem)) return false;
 
+    BuildingSave = GimmickSubsystem->GetBuildingSaveGame();
+    if (!CR4S_VALIDATE(LogSave, BuildingSave)) return false;
+
+    const FString FullSlotName = SlotName + TEXT("_Building");
+    const bool bSuccess = UGameplayStatics::SaveGameToSlot(BuildingSave, FullSlotName, 0);
+
+    if (bSuccess)
+    {
+        CR4S_Log(LogSave, Log, TEXT("BuildingSave successfully saved to slot: %s"), *FullSlotName);
+    }
+    else
+    {
+        CR4S_Log(LogSave, Error, TEXT("Failed to save BuildingSave to slot: %s"), *FullSlotName);
+    }
+
+    return bSuccess;
+}
 
 bool USaveGameManager::IsNewGame() const
 {
@@ -301,7 +333,8 @@ bool USaveGameManager::IsNewGame() const
     const FString SlotName = GameInstance->CurrentSlotName;
     const bool bHasCore = UGameplayStatics::DoesSaveGameExist(SlotName + TEXT("_Core"), 0);
     const bool bHasWorld = UGameplayStatics::DoesSaveGameExist(SlotName + TEXT("_World"), 0);
-    const bool bIsNew = !(bHasCore && bHasWorld);
+    const bool bHasBuilding = UGameplayStatics::DoesSaveGameExist(SlotName + TEXT("_Building"), 0);
+    const bool bIsNew = !(bHasCore && bHasWorld && bHasBuilding);
 
     CR4S_Log(LogSave, Log, TEXT("SlotName: %s, HasCore: %s, HasWorld: %s, IsNewGame: %s"),
         *SlotName,
@@ -318,9 +351,11 @@ void USaveGameManager::ApplyAll()
     CR4S_SIMPLE_SCOPE_LOG;
     if (!CR4S_VALIDATE(LogSave, CoreSave)) return;
     if (!CR4S_VALIDATE(LogSave, WorldSave)) return;
+    if (!CR4S_VALIDATE(LogSave, BuildingSave)) return;
 
     ApplyCoreData();
     ApplyWorldData();
+    ApplyBuildingData();
 }
 
 void USaveGameManager::ApplyCoreData()
@@ -428,4 +463,15 @@ void USaveGameManager::ApplyWorldData()
         WorldSave->DuskTime,
         *UEnum::GetValueAsString(WorldSave->Season)
     );
+}
+
+void USaveGameManager::ApplyBuildingData()
+{
+    UItemGimmickSubsystem* GimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>();
+    if (!CR4S_VALIDATE(LogSave, GimmickSubsystem)) return;
+    if (!CR4S_VALIDATE(LogSave, BuildingSave)) return;
+
+    GimmickSubsystem->LoadBuildingSaveGame(BuildingSave);
+
+    CR4S_Log(LogSave, Log, TEXT("Applied BuildingSaveGame."));
 }
