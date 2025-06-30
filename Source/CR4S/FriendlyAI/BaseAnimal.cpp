@@ -404,7 +404,7 @@ void ABaseAnimal::Die()
         ActiveInteractWidget->RemoveFromParent();
         ActiveInteractWidget = nullptr;
     }
-    OnDied.Broadcast(this);
+    OnSpawnableDestroyed.Broadcast(this);
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
     {

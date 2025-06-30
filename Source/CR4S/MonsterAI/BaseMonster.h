@@ -137,9 +137,9 @@ protected:
 	UFUNCTION()
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
 	
-	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
+	virtual FOnSpawnableDestroyed* GetOnSpawnableDestroyedDelegate() override { return &OnDied; }
 	
-	FOnDied OnDied;
+	FOnSpawnableDestroyed OnDied;
 
 #pragma endregion
 

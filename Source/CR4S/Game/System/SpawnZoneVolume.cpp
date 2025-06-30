@@ -94,7 +94,7 @@ AActor* ASpawnZoneVolume::SpawnActorsAndTrack(TSubclassOf<AActor> SpawnClass, co
             ISpawnable* Spawnable = Cast<ISpawnable>(Spawned);
             if (Spawnable)
             {
-                if (FOnDied* Delegate = Spawnable->GetOnDiedDelegate())
+                if (FOnSpawnableDestroyed* Delegate = Spawnable->GetOnSpawnableDestroyedDelegate())
                 {
                     Delegate->AddUObject(this, &ASpawnZoneVolume::HandleActorDeath);
                 }
@@ -141,10 +141,13 @@ void ASpawnZoneVolume::SpawnCreatures()
             for (int32 i = 0; i < SpawnInfo.SpawnCount; ++i)
             {
                 FTimerHandle TimerHandle;
+                FSpawnClassInfo SpawnInfoCopy = SpawnInfo;
                 FTimerDelegate TimerDel;
 
-                TimerDel.BindLambda([this, SpawnInfo, Polygon]()
+                TimerDel.BindLambda([this, SpawnInfoCopy, Polygon]()
                     {
+                        if (!IsValid(this)) return;
+
                         FVector2D RandomPoint2D;
                         if (GetRandomPointInPolygon(Polygon, RandomPoint2D))
                         {
@@ -154,7 +157,7 @@ void ASpawnZoneVolume::SpawnCreatures()
                                 SpawnLocation = FVector(RandomPoint2D.X, RandomPoint2D.Y, SpawnHeight);
                             }
 
-                            AActor* Spawned = SpawnActorsAndTrack(SpawnInfo.SpawnClass, SpawnLocation);
+                            AActor* Spawned = SpawnActorsAndTrack(SpawnInfoCopy.SpawnClass, SpawnLocation);
                             if (Spawned)
                             {
                                 SpawnedActors.Add(Spawned);
@@ -220,7 +223,7 @@ void ASpawnZoneVolume::SpawnCrops()
                     SpawnLocation = FVector(RandomPoint2D.X, RandomPoint2D.Y, SpawnHeight);
                 }
 
-                AActor* Spawned = GetWorld()->SpawnActor<AActor>(SpawnInfo.SpawnClass, SpawnLocation, FRotator::ZeroRotator);
+                AActor* Spawned = SpawnActorsAndTrack(SpawnInfo.SpawnClass, SpawnLocation);
                 if (Spawned)
                 {
                     SpawnedActors.Add(Spawned);
@@ -229,6 +232,7 @@ void ASpawnZoneVolume::SpawnCrops()
         }
     }
 }
+
 
 
 void ASpawnZoneVolume::DespawnActorsInZone()
@@ -382,7 +386,11 @@ TArray<FVector2D> ASpawnZoneVolume::GetPolygonFromSpline() const
 bool ASpawnZoneVolume::TryGetGroundSpawnLocation(const FVector2D& Point2D, FVector& OutLocation) const
 {
     UWorld* World = GetWorld();
-    if (!World) return false;
+    if (!IsValid(World))
+    {
+        UE_LOG(LogTemp, Error, TEXT("TryGetGroundSpawnLocation: World is nullptr! Zone: %s"), *GetName());
+        return false;
+    }
 
     FVector Start(Point2D.X, Point2D.Y, 0.0f);
     FVector End(Point2D.X, Point2D.Y, -30000.f);
