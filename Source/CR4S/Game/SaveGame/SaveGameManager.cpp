@@ -2,13 +2,14 @@
 #include "Game/System/AudioManager.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Game/System/SeasonManager.h"
+#include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 
 #include "Game/SaveGame/C4MetaSaveGame.h"
 #include "Game/SaveGame/WorldSaveGame.h"
 #include "Game/SaveGame/SettingsSaveGame.h"
 #include "Game/SaveGame/CoreSaveGame.h"
 //#include "Game/SaveGame/BuildingSaveGame.h"
-
 
 #include "Game/GameInstance/C4GameInstance.h"
 #include "Kismet/GameplayStatics.h"
@@ -264,6 +265,11 @@ bool USaveGameManager::SaveWorld(const FString& SlotName)
         WorldSave->TotalGameTime,
         WorldSave->DayCycleLength);
 
+    UItemGimmickSubsystem* GimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>();
+    if (!CR4S_VALIDATE(LogSave, GimmickSubsystem)) return false;
+
+    WorldSave->GimmickSaveGame = GimmickSubsystem->GetGimmickSaveGame();
+
     const FString FullSlotName = SlotName + TEXT("_World");
     const bool bSuccess = UGameplayStatics::SaveGameToSlot(WorldSave, FullSlotName, 0);
 
@@ -351,7 +357,6 @@ void USaveGameManager::ApplyCoreData()
             continue; // 타입이 없으면 건너뛰기
         }
 
-        
         if (ActorClassToSpawn)
         {
             UE_LOG(LogHong1, Log, TEXT("Spawn Actor: %s"), *ActorClassToSpawn->GetName());
@@ -375,8 +380,7 @@ void USaveGameManager::ApplyCoreData()
                 }
             }
         }
-    }
-    
+    }  
 }
 
 void USaveGameManager::ApplyWorldData()
@@ -397,6 +401,12 @@ void USaveGameManager::ApplyWorldData()
     SeasonManager->SetCurrentSeason(WorldSave->Season);
 
     TimeManager->UpdateTimeWidget();
+
+    UItemGimmickSubsystem* GimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>();
+    if (!CR4S_VALIDATE(LogSave, GimmickSubsystem)) return;
+
+    GimmickSubsystem->LoadGimmickSaveGame(WorldSave->GimmickSaveGame);
+
 
     CR4S_Log(LogSave, Log, TEXT(
         "Applied World Data:\n"
