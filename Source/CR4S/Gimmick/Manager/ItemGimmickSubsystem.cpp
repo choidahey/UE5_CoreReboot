@@ -206,3 +206,15 @@ void UItemGimmickSubsystem::LoadGimmickSaveGame(const FGimmickSaveGame& GimmickS
 		}
 	}
 }
+
+USaveGame* UItemGimmickSubsystem::GetBuildingSaveGame() const
+{
+	OnCreateBuildingSaveGame.Broadcast();
+	
+	return BuildingSaveGame;
+}
+
+void UItemGimmickSubsystem::LoadBuildingSaveGame(USaveGame* NewBuildingSaveGame) const
+{
+	OnLoadBuildingSaveGame.Broadcast(NewBuildingSaveGame);
+}
