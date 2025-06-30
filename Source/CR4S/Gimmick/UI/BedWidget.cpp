@@ -80,6 +80,11 @@ void UBedWidget::PlaySleepingAnimation_Implementation()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void UBedWidget::SaveGame()
 {
+	if (!CR4S_VALIDATE(LogGimmickUI, IsValid(SurvivalHUD)))
+	{
+		return;
+	}
+	
 	UC4GameInstance* GameInstance = Cast<UC4GameInstance>(GetGameInstance());
 	if (!CR4S_VALIDATE(LogGimmickUI, IsValid(GameInstance)))
 	{
@@ -92,7 +97,17 @@ void UBedWidget::SaveGame()
 		return;
 	}
 	
-	SaveGameManager->SaveAll(GameInstance->CurrentSlotName);
+	const bool bSuccess = SaveGameManager->SaveAll(GameInstance->CurrentSlotName);
+
+	SurvivalHUD->ShowMessage(bSuccess ? SaveSuccessText : SaveFailedText, MessageDuration);
+}
+
+void UBedWidget::DoNotSleepNotify()
+{
+	if (CR4S_VALIDATE(LogGimmickUI, IsValid(SurvivalHUD)))
+	{
+		SurvivalHUD->ShowMessage(DoNotSleepText, MessageDuration);
+	}
 }
 
 void UBedWidget::PlayAwakingAnimation()
@@ -140,14 +155,6 @@ bool UBedWidget::CanSleep() const
 	}
 
 	return true;
-}
-
-void UBedWidget::PlayCanNotSleepNotifyAnim()
-{
-	if (IsValid(CanNotSleepNotifyAnim) && !IsAnimationPlaying(CanNotSleepNotifyAnim))
-	{
-		PlayAnimation(CanNotSleepNotifyAnim, 0.f, 1, EUMGSequencePlayMode::Forward);
-	}
 }
 
 void UBedWidget::ModifyStat(float SleepingTime) const
