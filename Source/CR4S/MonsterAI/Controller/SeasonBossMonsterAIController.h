@@ -17,5 +17,11 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 private:
-	FString MyHeader;
+	UFUNCTION()
+	void HandleStunStarted();
+
+	UFUNCTION()
+	void HandleStunEnded();
+
+	TWeakObjectPtr<AActor> LastFocusedTarget;
 };

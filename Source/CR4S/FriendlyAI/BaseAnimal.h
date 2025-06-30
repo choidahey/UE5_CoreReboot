@@ -125,10 +125,10 @@ public:
 	virtual void SetAnimalState(EAnimalState NewState);
 	void ClearTarget();
 
-	FOnDied OnDied;
+	FOnSpawnableDestroyed OnSpawnableDestroyed;
 
 	//Function to Return OnDied Delegate by Spawnable Interface
-	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
+	virtual FOnSpawnableDestroyed* GetOnSpawnableDestroyedDelegate() override { return &OnSpawnableDestroyed; }
 
 public:
 		

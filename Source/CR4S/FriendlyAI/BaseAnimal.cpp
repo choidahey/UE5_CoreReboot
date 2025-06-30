@@ -81,7 +81,7 @@ void ABaseAnimal::BeginPlay()
     {
         if (UBaseStatusComponent* StatusComp = Player->FindComponentByClass<UBaseStatusComponent>())
         {
-            StatusComp->OnDeathState.AddLambda([this]()
+            StatusComp->OnDeathState.AddWeakLambda(this, [this]()
             {
                 bPlayerDead = true;
 
@@ -404,7 +404,7 @@ void ABaseAnimal::Die()
         ActiveInteractWidget->RemoveFromParent();
         ActiveInteractWidget = nullptr;
     }
-    OnDied.Broadcast(this);
+    OnSpawnableDestroyed.Broadcast(this);
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
     {
@@ -706,7 +706,7 @@ float ABaseAnimal::PlayRangedAttackMontage()
 
 void ABaseAnimal::PerformMeleeAttack()
 {
-    if (!CurrentTarget || !bCanMelee || bIsMeleeOnCooldown) return;
+    if (!IsValid(CurrentTarget) || !bCanMelee || bIsMeleeOnCooldown) return;
 
     const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
     if (Distance > MeleeRange) return;

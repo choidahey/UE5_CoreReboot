@@ -56,15 +56,20 @@ public:
 #pragma region BaseMonster Components
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	TObjectPtr<UMonsterAnimComponent> AnimComponent;
+	FORCEINLINE UMonsterAnimComponent* GetMonsterAnimComp() const { return AnimComponent;	}
+	FORCEINLINE UMonsterSkillComponent* GetMonsterSkillComp() const { return SkillComponent;	}
+	FORCEINLINE UMonsterAttributeComponent* GetMonsterAttribute() const { return AttributeComponent;	}
+	FORCEINLINE UMonsterStateComponent* GetMonsterStateComp() const { return StateComponent;	}
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
-	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
+	TObjectPtr<UMonsterAnimComponent> AnimComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterSkillComponent> SkillComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
+	TObjectPtr<UMonsterAttributeComponent> AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Component")
 	TObjectPtr<UMonsterStateComponent> StateComponent;
@@ -132,9 +137,9 @@ protected:
 	UFUNCTION()
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current);
 	
-	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
+	virtual FOnSpawnableDestroyed* GetOnSpawnableDestroyedDelegate() override { return &OnDied; }
 	
-	FOnDied OnDied;
+	FOnSpawnableDestroyed OnDied;
 
 #pragma endregion
 

@@ -142,11 +142,6 @@ void UMainMenuWidget::OnQuitButtonClicked()
 	}
 }
 
-void UMainMenuWidget::OnSettingsClosed()
-{
-
-}
-
 void UMainMenuWidget::PlayIntroSequence()
 {
 	UC4GameInstance* MyGI = GetGameInstance<UC4GameInstance>();
@@ -209,17 +204,22 @@ void UMainMenuWidget::ShowNextBackground()
 
 	const float Duration = 1.5f;
 	const float Step = 0.05f;
-	float ElapsedTime = 0.0f;
+
+	struct FDissolveContext
+	{
+		float ElapsedTime = 0.0f;
+	};
+	TSharedRef<FDissolveContext> DissolveContext = MakeShared<FDissolveContext>();
 
 	TWeakObjectPtr<UMainMenuWidget> WeakThis(this);
 	TWeakObjectPtr<UMaterialInstanceDynamic> WeakMID(BackgroundMID);
 
 	FTimerDelegate DissolveStepDelegate;
-	DissolveStepDelegate.BindLambda([WeakThis, WeakMID, Step, Duration, &ElapsedTime]() mutable {
+	DissolveStepDelegate.BindLambda([WeakThis, WeakMID, Step, Duration, DissolveContext]() mutable {
 		if (!WeakThis.IsValid() || !WeakMID.IsValid()) return;
 
-		ElapsedTime += Step;
-		float Alpha = FMath::Clamp(ElapsedTime / Duration, 0.0f, 1.0f);
+		DissolveContext->ElapsedTime += Step;
+		float Alpha = FMath::Clamp(DissolveContext->ElapsedTime / Duration, 0.0f, 1.0f);
 		WeakMID->SetScalarParameterValue("DissolveAlpha", Alpha);
 		});
 
@@ -259,6 +259,18 @@ void UMainMenuWidget::ShowNextBackground()
 	);
 }
 
+void UMainMenuWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (GetWorld())
+	{
+		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+		TimerManager.ClearTimer(DissolveTimerHandle);
+		TimerManager.ClearTimer(DissolveStepTimerHandle);
+		TimerManager.ClearTimer(NextBackgroundTimerHandle);
+	}
+}
 
 
 

@@ -9,6 +9,7 @@
 #include "MonsterAI/Components/MonsterAnimComponent.h"
 #include "Utility/CombatStatics.h"
 #include "CR4S.h"
+#include "MonsterStateComponent.h"
 
 UMonsterSkillComponent::UMonsterSkillComponent()
 	: MyHeader(TEXT("MonsterSkillComp"))
@@ -39,12 +40,16 @@ void UMonsterSkillComponent::BeginPlay()
 			}
 		}
 	}
+
+	SpawnHandle = GetWorld()->AddOnActorSpawnedHandler(
+			FOnActorSpawned::FDelegate::CreateUObject(
+				this, &UMonsterSkillComponent::OnSkillActorSpawned
+			)
+		);
 }
 
 void UMonsterSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::EndPlay(EndPlayReason);
-
 	UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -60,6 +65,10 @@ void UMonsterSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			TimerManager.ClearTimer(Handle);
 		}
 	}
+
+	GetWorld()->RemoveOnActorSpawnedHandler(SpawnHandle);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UMonsterSkillComponent::InitializeMonsterSkills(const FName MonsterID)
@@ -245,7 +254,7 @@ void UMonsterSkillComponent::OnAttackHit(
 	const FString VictimName = OtherActor->GetName();
 	const FString SkillIndexStr = FString::Printf(TEXT("Skill_%d"), CurrentSkillIndex);
 
-	UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s ¡æ Damage: %.1f, Stun: %.1f"),
+	UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s Damage: %.1f, Stun: %.1f"),
 		*AttackerName,
 		*SkillIndexStr,
 		*VictimName,
@@ -256,4 +265,36 @@ void UMonsterSkillComponent::OnAttackHit(
 #endif
 
 	AlreadyHitActors.Add(OtherActor);
+}
+
+void UMonsterSkillComponent::OnSkillActorSpawned(AActor* NewActor)
+{
+	if (!NewActor) 
+		return;
+	
+	if (NewActor->GetInstigator() == Cast<APawn>(GetOwner()))
+	{
+		ActiveSkillActors.Add(NewActor);
+	}
+	else if (NewActor->GetOwner() == GetOwner())
+	{
+		ActiveSkillActors.Add(NewActor);
+	}
+}
+
+void UMonsterSkillComponent::CancelAllSkills()
+{
+	for (TWeakObjectPtr<AActor> WeakA : ActiveSkillActors)
+	{
+		if (AActor* A = WeakA.Get())
+		{
+			A->Destroy();
+		}
+	}
+	ActiveSkillActors.Empty();
+	
+	if (UWorld* W = GetWorld())
+	{
+		W->GetTimerManager().ClearAllTimersForObject(this);
+	}
 }

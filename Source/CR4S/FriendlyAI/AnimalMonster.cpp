@@ -113,7 +113,7 @@ void AAnimalMonster::PerformMeleeAttack()
 {
     Super::PerformMeleeAttack();
     
-    if (!CurrentTarget) return;
+    if (!IsValid(CurrentTarget)) return;
     
     if (!AttackRange || !AttackRange->IsOverlappingActor(CurrentTarget))
     {
@@ -131,7 +131,7 @@ void AAnimalMonster::PerformMeleeAttack()
 
 void AAnimalMonster::PerformChargeAttack()
 {
-    if (!bCanCharge || bIsChargeOnCooldown || !CurrentTarget) return;
+    if (!bCanCharge || bIsChargeOnCooldown || !IsValid(CurrentTarget)) return;
     
     ApplyDamageToTarget(CurrentTarget);
 }
