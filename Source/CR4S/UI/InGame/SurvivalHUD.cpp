@@ -191,4 +191,13 @@ void ASurvivalHUD::ShowWidgetOnly(UUserWidget* TargetWidget)
 	}
 }
 
+void ASurvivalHUD::HideHUD()
+{
+	ShowWidgetOnly(nullptr);
+}
+
+void ASurvivalHUD::OnlyShowDefaults()
+{
+	ShowWidgetOnly(InGameWidget);
+}
 
