@@ -97,18 +97,18 @@ void ABreathActor::DoDamage()
 		ApplyEffectToActor(Target);
 	}
 
-#if WITH_EDITOR
-	DrawDebugCone(
-		GetWorld(),
-		Origin,
-		Forward,
-		Range,
-		FMath::DegreesToRadians(Angle / 2.f),
-		FMath::DegreesToRadians(Angle / 2.f),
-		16,
-		FColor::Red,
-		false,
-		0.1f
-	);
-#endif
+//#if WITH_EDITOR
+//	DrawDebugCone(
+//		GetWorld(),
+//		Origin,
+//		Forward,
+//		Range,
+//		FMath::DegreesToRadians(Angle / 2.f),
+//		FMath::DegreesToRadians(Angle / 2.f),
+//		16,
+//		FColor::Red,
+//		false,
+//		0.1f
+//	);
+//#endif
 }
