@@ -9,6 +9,7 @@
 #include "../../Inventory/Components/PlayerInventoryComponent.h"
 #include "Gimmick/GimmickObjects/ResourceGimmick/TreeGimmick.h"
 #include "../Controller/HelperBotAIController.h"
+#include "FriendlyAI/Component/AIJumpComponent.h"
 
 UBTTask_HelperChopWood::UBTTask_HelperChopWood()
 {
@@ -46,6 +47,11 @@ EBTNodeResult::Type UBTTask_HelperChopWood::ExecuteTask(UBehaviorTreeComponent& 
 
 	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(Pawn);
 	if (!Helper) return EBTNodeResult::Failed;
+
+	if (UAIJumpComponent* JumpComp = Helper->FindComponentByClass<UAIJumpComponent>())
+	{
+		JumpComp->DeactivateJumpComponent();
+	}
 
 	MyMemory->CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
 	Helper->SetIsWorking(true);
@@ -149,6 +155,11 @@ void UBTTask_HelperChopWood::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp,
 		{
 			Helper->SetIsWorking(false);
 			Helper->StopEyeBeamWork();
+        
+			if (UAIJumpComponent* JumpComp = Helper->FindComponentByClass<UAIJumpComponent>())
+			{
+				JumpComp->DeactivateJumpComponent();
+			}
 		}
 	}
     

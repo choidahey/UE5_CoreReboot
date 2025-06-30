@@ -76,39 +76,46 @@ EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::ExecuteTask(UBehaviorTreeC
 
 void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprintWrapper* Wrapper, EEnvQueryStatus::Type Status)
 {
-    //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: EQS Query finished with status: %d"), (int32)Status);
-    
     if (!IsValid(Wrapper))
     {
         return;
     }
     
     FBTMoveToResourceMemory* MyMemory = nullptr;
-
+    
     for (TObjectIterator<UBehaviorTreeComponent> It; It; ++It)
     {
         UBehaviorTreeComponent* BTComp = *It;
-        if (BTComp && BTComp->IsA<UBehaviorTreeComponent>())
+        if (!BTComp || !IsValid(BTComp))
         {
-            uint8* NodeMem = BTComp->GetNodeMemory(this, BTComp->GetActiveInstanceIdx());
-            if (NodeMem)
-            {
-                FBTMoveToResourceMemory* TempMemory = reinterpret_cast<FBTMoveToResourceMemory*>(NodeMem);
-                if (TempMemory->QueryInstance == Wrapper)
-                {
-                    MyMemory = TempMemory;
-                    break;
-                }
-            }
+            continue;
+        }
+        
+        uint8* NodeMem = BTComp->GetNodeMemory(this, BTComp->GetActiveInstanceIdx());
+        if (!NodeMem)
+        {
+            continue;
+        }
+        
+        FBTMoveToResourceMemory* TempMemory = reinterpret_cast<FBTMoveToResourceMemory*>(NodeMem);
+        if (!TempMemory)
+        {
+            continue;
+        }
+        
+        if (TempMemory->QueryInstance == Wrapper)
+        {
+            MyMemory = TempMemory;
+            break;
         }
     }
-
+    
     if (!MyMemory || Status != EEnvQueryStatus::Success)
     {
         //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: Query failed or memory not found"));
         if (MyMemory && MyMemory->OwnerCompPtr)
         {
-            if (MyMemory->QueryInstance)
+            if (MyMemory->QueryInstance && MyMemory->QueryInstance->IsValidLowLevel())
             {
                 MyMemory->QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
                 MyMemory->QueryInstance = nullptr;
@@ -126,7 +133,7 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
     if (ResultActors.Num() == 0)
     {
         //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: No actors found in EQS results"));
-        if (MyMemory->QueryInstance)
+        if (MyMemory->QueryInstance && MyMemory->QueryInstance->IsValidLowLevel())
         {
             MyMemory->QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
             MyMemory->QueryInstance = nullptr;
@@ -166,11 +173,12 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
         }
     }
 
-    if (MyMemory->QueryInstance)
+    if (MyMemory->QueryInstance && MyMemory->QueryInstance->IsValidLowLevel())
     {
         MyMemory->QueryInstance->GetOnQueryFinishedEvent().RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
         MyMemory->QueryInstance = nullptr;
     }
+
     FTimerDelegate TimerDelegate = FTimerDelegate::CreateUObject(this, &UBTTask_HelperBotBMoveToResource::CheckReachedTarget, MyMemory);
     MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().SetTimer(MyMemory->CheckTimer, TimerDelegate, 0.5f, true);
     
@@ -187,16 +195,20 @@ void UBTTask_HelperBotBMoveToResource::CheckReachedTarget(FBTMoveToResourceMemor
 
     if (bReached)
     {
-        //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Target reached! Clearing timer and deactivating jump component"));
         MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->CheckTimer);
         MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->RotationTimer);
         MyMemory->JumpComponent->DeactivateJumpComponent();
-        
-        //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Starting rotation timer"));
-        FTimerDelegate RotationDelegate = FTimerDelegate::CreateUObject(this, &UBTTask_HelperBotBMoveToResource::HandleTargetRotation, MyMemory);
-        MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().SetTimer(MyMemory->RotationTimer, RotationDelegate, 0.016f, true); // 60fps
-       
-        //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Finishing task with SUCCESS"));
+
+        if (ABaseHelperBot* HelperBot = Cast<ABaseHelperBot>(MyMemory->OwnerCompPtr->GetAIOwner()->GetPawn()))
+        {
+            if (HelperBot->WorkTargetParticle)
+            {
+                HelperBot->WorkTargetParticle->Deactivate();
+            }
+        }
+
+        HandleTargetRotation(MyMemory);
+    
         FinishLatentTask(*MyMemory->OwnerCompPtr, EBTNodeResult::Succeeded);
     }
 }

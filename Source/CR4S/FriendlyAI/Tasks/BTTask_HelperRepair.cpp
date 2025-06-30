@@ -67,7 +67,20 @@ EBTNodeResult::Type UBTTask_HelperRepair::ExecuteTask(UBehaviorTreeComponent& Ow
 	MyMemory->CachedRepairPerSecond = Helper->GetRepairingPerSecond();
 	Helper->SetIsWorking(true);
 	Helper->UpdateEyeBeamWorkTarget(TargetActor);
-	
+
+	GetWorld()->GetTimerManager().SetTimer(
+		MyMemory->BeamUpdateTimer,
+		FTimerDelegate::CreateLambda([Helper, TargetActor]()
+		{
+			if (Helper && TargetActor)
+			{
+				Helper->UpdateEyeBeamWorkTarget(TargetActor);
+			}
+		}),
+		1.0f,
+		true
+	);
+
 	return EBTNodeResult::InProgress;
 }
 
@@ -132,6 +145,11 @@ void UBTTask_HelperRepair::OnTargetDestroyed(AActor* DestroyedActor)
 		
 		if (MyMemory->CachedTarget.Get() == DestroyedActor)
 		{
+			if (MyMemory->BeamUpdateTimer.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(MyMemory->BeamUpdateTimer);
+			}
+
 			if (MyMemory->CachedHelper.IsValid())
 			{
 				ABaseHelperBot* Helper = Cast<ABaseHelperBot>(MyMemory->CachedHelper.Get());
@@ -159,6 +177,11 @@ void UBTTask_HelperRepair::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp, u
 	{
 		FinishLatentTask(OwnerComp, Result);
 		return;
+	}
+
+	if (MyMemory->BeamUpdateTimer.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(MyMemory->BeamUpdateTimer);
 	}
 
 	if (MyMemory->CachedHelper.IsValid())
