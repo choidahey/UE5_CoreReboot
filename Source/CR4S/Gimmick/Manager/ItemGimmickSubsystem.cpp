@@ -7,7 +7,12 @@
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "Gimmick/GimmickObjects/ItemPouchGimmick.h"
 #include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
+#include "Inventory/InventoryItem/ConsumableInventoryItem.h"
+#include "Inventory/InventoryItem/HelperBotInventoryItem.h"
+#include "Inventory/InventoryItem/RobotPartsInventoryItem.h"
+#include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Utility/Cr4sGameplayTags.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
 	: ItemInfoDataTable(nullptr)
@@ -71,6 +76,31 @@ const FGimmickInfoData* UItemGimmickSubsystem::FindGimmickInfoData(const FName& 
 void UItemGimmickSubsystem::GetGimmickInfoData(const FName& RowName, FGimmickInfoData& OutGimmickInfoData) const
 {
 	OutGimmickInfoData = *FindGimmickInfoData(RowName);
+}
+
+UBaseInventoryItem* UItemGimmickSubsystem::CreateInventoryItem(UObject* Outer, const FGameplayTagContainer& ItemTags)
+{
+	if (ItemTags.HasTag(ItemTags::Tools))
+	{
+		return NewObject<UToolInventoryItem>(Outer);
+	}
+	
+	if (ItemTags.HasTag(ItemTags::Consumable))
+	{
+		return NewObject<UConsumableInventoryItem>(Outer);
+	}
+	
+	if (ItemTags.HasTag(ItemTags::HelperBot))
+	{
+		return NewObject<UHelperBotInventoryItem>(Outer);
+	}
+
+	if (ItemTags.HasTag(ItemTags::RobotParts) || ItemTags.HasTag(ItemTags::Weapon))
+	{
+		return NewObject<URobotPartsInventoryItem>(Outer);
+	}
+
+	return NewObject<UBaseInventoryItem>(Outer);
 }
 
 void UItemGimmickSubsystem::SpawnItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems,

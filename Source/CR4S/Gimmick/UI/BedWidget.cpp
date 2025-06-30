@@ -70,9 +70,9 @@ void UBedWidget::PlaySleepingAnimation_Implementation()
 		{
 			SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this, false);
 		}
-
+	
 		PlayAnimation(SleepingAnim, 0.f, 1, EUMGSequencePlayMode::Forward);
-
+	
 		bIsSleeping = true;
 	}
 }

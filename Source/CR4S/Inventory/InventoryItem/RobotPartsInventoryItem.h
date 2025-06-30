@@ -20,8 +20,9 @@ public:
 
 #pragma region Data
 
-private:
+public:
 	void InitTextFormat();
+private:
 	void InitRobotPartsInfoData(const FGameplayTag& Tag);
 
 	FTextFormat TextFormat;

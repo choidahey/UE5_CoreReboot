@@ -15,6 +15,7 @@ ABaseDestructObject::ABaseDestructObject()
 	SetRootComponent(GeometryCollectionComponent);
 	
 	GeometryCollectionComponent->DamageThreshold.Init(0.f, 1);
+	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
