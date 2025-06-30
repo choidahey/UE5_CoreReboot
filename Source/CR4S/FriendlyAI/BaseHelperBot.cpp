@@ -225,6 +225,17 @@ void ABaseHelperBot::HandleInteract(AActor* InteractableActor)
 
 	if (BotAI)
 	{
+		if (UBlackboardComponent* BB = BotAI->GetBlackboardComponent())
+		{
+			if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+			{
+				if (APawn* Player = PC->GetPawn())
+				{
+					BB->SetValueAsObject("TargetActor", Player);
+				}
+			}
+		}
+    
 		if (SoundData && SoundData->InteractSound)
 		{
 			PlayBotSound(SoundData->InteractSound);

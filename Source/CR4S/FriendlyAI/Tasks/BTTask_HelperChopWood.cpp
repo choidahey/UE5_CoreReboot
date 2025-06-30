@@ -154,3 +154,9 @@ void UBTTask_HelperChopWood::CleanupAndFinish(UBehaviorTreeComponent& OwnerComp,
     
 	FinishLatentTask(OwnerComp, Result);
 }
+
+EBTNodeResult::Type UBTTask_HelperChopWood::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	CleanupAndFinish(OwnerComp, NodeMemory, EBTNodeResult::Aborted);
+	return EBTNodeResult::Aborted;
+}

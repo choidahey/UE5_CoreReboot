@@ -78,6 +78,11 @@ void UBTTask_HelperBotBMoveToResource::OnQueryFinished(UEnvQueryInstanceBlueprin
 {
     //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: EQS Query finished with status: %d"), (int32)Status);
     
+    if (!IsValid(Wrapper))
+    {
+        return;
+    }
+    
     FBTMoveToResourceMemory* MyMemory = nullptr;
 
     for (TObjectIterator<UBehaviorTreeComponent> It; It; ++It)
@@ -184,6 +189,7 @@ void UBTTask_HelperBotBMoveToResource::CheckReachedTarget(FBTMoveToResourceMemor
     {
         //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Target reached! Clearing timer and deactivating jump component"));
         MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->CheckTimer);
+        MyMemory->OwnerCompPtr->GetWorld()->GetTimerManager().ClearTimer(MyMemory->RotationTimer);
         MyMemory->JumpComponent->DeactivateJumpComponent();
         
         //UE_LOG(LogTemp, Warning, TEXT("CheckReachedTarget: Starting rotation timer"));
@@ -197,20 +203,34 @@ void UBTTask_HelperBotBMoveToResource::CheckReachedTarget(FBTMoveToResourceMemor
 
 void UBTTask_HelperBotBMoveToResource::HandleTargetRotation(FBTMoveToResourceMemory* MyMemory)
 {
-    if (!MyMemory || !MyMemory->OwnerCompPtr)
+    if (!MyMemory || !MyMemory->OwnerCompPtr || !IsValid(MyMemory->OwnerCompPtr))
+    {
         return;
+    }
        
     AAIController* AICon = MyMemory->OwnerCompPtr->GetAIOwner();
-    if (!AICon)
+    if (!AICon || !IsValid(AICon))
+    {
         return;
+    }
        
     APawn* Pawn = AICon->GetPawn();
-    if (!Pawn)
+    if (!Pawn || !IsValid(Pawn))
+    {
         return;
+    }
+    
+    UBlackboardComponent* BlackboardComp = MyMemory->OwnerCompPtr->GetBlackboardComponent();
+    if (!BlackboardComp || !IsValid(BlackboardComp))
+    {
+        return;
+    }
        
-    AActor* TargetActor = Cast<AActor>(MyMemory->OwnerCompPtr->GetBlackboardComponent()->GetValueAsObject("TargetActor"));
-    if (!TargetActor)
+    AActor* TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject("TargetActor"));
+    if (!TargetActor || !IsValid(TargetActor))
+    {
         return;
+    }
 
     float Distance = FVector::Dist(Pawn->GetActorLocation(), TargetActor->GetActorLocation());
     //UE_LOG(LogTemp, Warning, TEXT("HandleTargetRotation: Distance to target = %.2f"), Distance);
