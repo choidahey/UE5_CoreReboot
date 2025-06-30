@@ -1,7 +1,6 @@
 ﻿#include "ConsumableInventoryItem.h"
 
 #include "CR4S.h"
-#include "Character/Characters/PlayerCharacter.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Game/SaveGame/InventorySaveGame.h"
 #include "Game/System/WorldTimeManager.h"
