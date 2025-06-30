@@ -63,23 +63,23 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 		NiagaraComp->Activate(true);
 	}
 
-#if WITH_EDITOR
-	if (IsValid(CollisionComp))
-	{
-		DrawDebugCapsule(
-			GetWorld(),
-			CollisionComp->GetComponentLocation(),
-			CapsuleHalfHeight,
-			CapsuleRadius,
-			CollisionComp->GetComponentQuat(),
-			FColor::Red,
-			false,
-			2.f,
-			0,
-			2.f
-		);
-	}
-#endif
+//#if WITH_EDITOR
+//	if (IsValid(CollisionComp))
+//	{
+//		DrawDebugCapsule(
+//			GetWorld(),
+//			CollisionComp->GetComponentLocation(),
+//			CapsuleHalfHeight,
+//			CapsuleRadius,
+//			CollisionComp->GetComponentQuat(),
+//			FColor::Red,
+//			false,
+//			2.f,
+//			0,
+//			2.f
+//		);
+//	}
+//#endif
 
 	FTimerHandle DestroyHandle;
 	GetWorld()->GetTimerManager().SetTimer(

@@ -82,21 +82,21 @@ void AFieldActor::UpdateDynamicScale(float DeltaTime)
 
 	SetActorScale3D(CalculateScale);
 	
-	if (bDrawLine)
-	{
-		DrawDebugCapsule(
-			GetWorld(),
-			CollisionComp->GetComponentLocation(),
-			Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleHalfHeight(),
-			Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleRadius(),
-			CollisionComp->GetComponentQuat(),
-			FColor::Blue,
-			false,
-			LifeTime,
-			0,
-			2.f
-		);
-	}
+	//if (bDrawLine)
+	//{
+	//	DrawDebugCapsule(
+	//		GetWorld(),
+	//		CollisionComp->GetComponentLocation(),
+	//		Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleHalfHeight(),
+	//		Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleRadius(),
+	//		CollisionComp->GetComponentQuat(),
+	//		FColor::Blue,
+	//		false,
+	//		LifeTime,
+	//		0,
+	//		2.f
+	//	);
+	//}
 }
 
 void AFieldActor::AttachGround()
@@ -133,24 +133,24 @@ void AFieldActor::FollowTarget()
 	
 	SetActorLocation(TargetLocation);
 
-	if (bDrawLine)
-	{
-		if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(CollisionComp))
-		{
-			DrawDebugCapsule(
-				GetWorld(),
-				CollisionComp->GetComponentLocation(),
-				CapsuleComp->GetScaledCapsuleHalfHeight(),
-				CapsuleComp->GetScaledCapsuleRadius(),
-				CollisionComp->GetComponentQuat(),
-				FColor::Red,
-				false,
-				LifeTime,
-				0,
-				2.f
-			);
-		}
-	}
+	//if (bDrawLine)
+	//{
+	//	if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(CollisionComp))
+	//	{
+	//		DrawDebugCapsule(
+	//			GetWorld(),
+	//			CollisionComp->GetComponentLocation(),
+	//			CapsuleComp->GetScaledCapsuleHalfHeight(),
+	//			CapsuleComp->GetScaledCapsuleRadius(),
+	//			CollisionComp->GetComponentQuat(),
+	//			FColor::Red,
+	//			false,
+	//			LifeTime,
+	//			0,
+	//			2.f
+	//		);
+	//	}
+	//}
 }
 
 void AFieldActor::OnOverlap(
