@@ -3,14 +3,14 @@
 #include "CoreMinimal.h"
 #include "IngredientsWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "Gimmick/Data/ItemData.h"
 #include "Gimmick/Data/ItemRecipeData.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
 #include "CraftingWidget.generated.h"
 
-struct FRecipeIngredient;
-class UButton;
 struct FRecipeSelectData;
+class UButton;
 class UIngredientsWidget;
 class UCraftingContainerWidget;
 class UTextBlock;
@@ -25,6 +25,8 @@ class CR4S_API UCraftingWidget : public UUserWidget
 
 public:
 	UCraftingWidget(const FObjectInitializer& ObjectInitializer);
+
+	virtual void NativeConstruct() override;
 	
 #pragma endregion 
 	
@@ -32,6 +34,7 @@ public:
 
 public:
 	void InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent);
+	void UpdateResultItem() const;
 
 private:
 	UPROPERTY()
@@ -68,6 +71,9 @@ private:
 
 #pragma region Crafting
 
+public:
+	void CreateResultItem(const FGameplayTagContainer& ItemTags);
+	
 private:
 	UFUNCTION()
 	void CraftItem();
@@ -82,8 +88,25 @@ private:
 	FItemRecipeData ItemRecipeData;
 
 	TArray<FIngredientData> CurrentIngredients;
+
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryItem> ResultItem;
 	
 #pragma endregion
+
+#pragma region Tooltip
+
+private:
+	UFUNCTION()
+	UWidget* ShowToolTip();
+
+	UPROPERTY(EditDefaultsOnly, Category = "ItemTooltip")
+	TSubclassOf<UItemTooltipWidget> ItemTooltipWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UItemTooltipWidget> ItemTooltipWidget;
+	
+#pragma endregion 
 
 #pragma region Delegate
 

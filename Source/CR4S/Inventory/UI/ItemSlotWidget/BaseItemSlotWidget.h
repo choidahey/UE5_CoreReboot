@@ -116,7 +116,6 @@ public:
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                                  UDragDropOperation*& OutOperation) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
@@ -151,24 +150,6 @@ protected:
 	static const TArray<FKey> QuickSlotKeys;
 	
 #pragma endregion
-
-#pragma region DivideItem
-	
-protected:
-	void OnShortClick();
-	void OnLongPressDetected();
-	void OnLongPress();
-	
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	float LongPressThreshold;
-	
-	FTimerHandle LongPressTimerHandle;
-	
-	double PressStartTime;
-	
-	bool bLongPressTriggered;
-	
-#pragma endregion 
 
 #pragma region ToolTip
 

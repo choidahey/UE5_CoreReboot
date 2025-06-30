@@ -18,10 +18,10 @@ void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
-	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	if (IsValid(Pawn))
+	const AActor* PlayerCharacter = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass());
+	if (IsValid(PlayerCharacter))
 	{
-		PlayerInventoryComponent = Pawn->FindComponentByClass<UPlayerInventoryComponent>();
+		PlayerInventoryComponent = PlayerCharacter->FindComponentByClass<UPlayerInventoryComponent>();
 	}
 	
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;

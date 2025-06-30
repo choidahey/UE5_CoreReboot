@@ -7,6 +7,7 @@
 
 #include "ItemGimmickSubsystem.generated.h"
 
+class UBaseInventoryItem;
 class USaveGame;
 class UProjectilePoolSubsystem;
 struct FGimmickSaveGameData;
@@ -62,6 +63,13 @@ private:
 
 #pragma endregion
 
+#pragma region Create Inventory Item
+
+public:
+	static UBaseInventoryItem* CreateInventoryItem(UObject* Outer, const FGameplayTagContainer& ItemTags);
+	
+#pragma endregion 
+	
 #pragma region Gimmick Spawn
 
 public:
