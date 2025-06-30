@@ -50,11 +50,11 @@ void AC4MenuGameMode::OpenSurvivalLevel(int32 SlotIndex)
 	}
 
 	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4MenuGameMode::LoadSurvivalLevel, 1.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4MenuGameMode::LoadInGameLevel, 1.0f, false);
 
 }
 
-void AC4MenuGameMode::LoadSurvivalLevel()
+void AC4MenuGameMode::LoadInGameLevel()
 {
-    UGameplayStatics::OpenLevel(this, FName("MainMap"));
+    UGameplayStatics::OpenLevel(this, FName("InGameMap"));
 }

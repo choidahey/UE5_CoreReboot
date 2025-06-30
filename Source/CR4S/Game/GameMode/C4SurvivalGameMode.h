@@ -15,15 +15,29 @@ public:
 	void ReturnToMenu();
 
 protected:
-	
+	UFUNCTION()
+	void OnCinematicLevelLoaded();
+	UFUNCTION()
+	void OnCinematicLevelUnloaded();
+
+	UFUNCTION(BlueprintCallable)
+	void HandleStartNewGame();
+
+	UFUNCTION(BlueprintCallable)
+	void NotifyMainMapReady();
+
 	UFUNCTION(BlueprintCallable)
 	void EndGameSequence();
+
 	virtual void StartPlay() override;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
 	USoundBase* GameStartSFX;
 
+	UPROPERTY()
+	bool bIsTransitioningLevel = false;
 private:
 
 	void HandleStartGame();
+
 };
