@@ -1,39 +1,23 @@
 ﻿#include "DestructibleGimmick.h"
 
+#include "BaseDestructObject.h"
 #include "CR4S.h"
-#include "GeometryCollection/GeometryCollectionComponent.h"
+#include "Game/System/AudioManager.h"
 #include "Gimmick/Components/DestructibleComponent.h"
+#include "Gimmick/Components/ObjectShakeComponent.h"
 #include "Gimmick/Data/GimmickData.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
 ADestructibleGimmick::ADestructibleGimmick()
-	: bIsDestroyed(false),
-	  DestroyDelay(1.f),
-	  DestroyImpulseRadius(50.f),
-	  DestroyImpulseStrength(50.f),
-	  ToolBonusDamageMultiplier(2.f),
-	  bCanShake(true),
-	  ShakeDuration(0.5f),
-	  ShakeInterval(0.02f),
-	  ShakeIntensity(2.5f),
-	  OriginalLocation(FVector::ZeroVector),
-	  ElapsedTime(0.f)
+	: DestroyDelay(1.f),
+	  ToolBonusDamageMultiplier(2.f)
+	  
 {
 	PrimaryActorTick.bCanEverTick = false;
 
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("DestructibleComponent"));
-
-	GeometryCollectionComponent
-		= CreateDefaultSubobject<UGeometryCollectionComponent>(TEXT("GeometryCollectionComponent"));
-	GeometryCollectionComponent->SetupAttachment(RootComponent);
-	GeometryCollectionComponent->SetVisibility(false);
-	GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GeometryCollectionComponent->SetSimulatePhysics(false);
-	GeometryCollectionComponent->DamageThreshold.Init(0.f, 1);
-	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
-	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	GeometryCollectionComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
+	ShakeComponent = CreateDefaultSubobject<UObjectShakeComponent>(TEXT("ShakeComponent"));
 }
 
 void ADestructibleGimmick::BeginPlay()
@@ -51,17 +35,13 @@ void ADestructibleGimmick::BeginPlay()
 				FindGimmickInfoData(GetGimmickDataRowName()))
 			{
 				DestructibleComponent->SetMaxHealth(GimmickInfoData->GimmickMaxHealth);
+				DestructibleComponent->SetCurrentHealth(GimmickInfoData->GimmickMaxHealth);
+
+				TakeDamageSound = GimmickInfoData->TakeDamageSound;
+				DestroySound = GimmickInfoData->DestroySound;
 			}
 		}
 	}
-
-	if (CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent)))
-	{
-		GeometryCollectionComponent->SetVisibility(false);
-		GeometryCollectionComponent->SetSimulatePhysics(false);
-	}
-
-	OriginalLocation = GetActorLocation();
 }
 
 float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -86,81 +66,74 @@ float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageE
 	return Damage;
 }
 
+void ADestructibleGimmick::LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData)
+{
+	Super::LoadGimmickSaveGameData_Implementation(GimmickSaveGameData);
+
+	if (IsValid(ShakeComponent))
+	{
+		ShakeComponent->SetOriginalLocation(GetActorLocation());
+	}
+}
+
+void ADestructibleGimmick::GetGimmickHealthData(bool& bOutSuccess, float& OutCurrentHealth, float& OutMaxHealth) const
+{
+	if (IsValid(DestructibleComponent))
+	{
+		bOutSuccess = true;
+		OutCurrentHealth = DestructibleComponent->GetCurrentHealth();
+		OutMaxHealth = DestructibleComponent->GetMaxHealth();
+	}
+	else
+	{
+		bOutSuccess = false;
+	}
+}
+
+void ADestructibleGimmick::SetGimmickHealthData(const float NewCurrentHealth, const float NewMaxHealth)
+{
+	if (IsValid(DestructibleComponent))
+	{
+		DestructibleComponent->SetMaxHealth(NewMaxHealth);
+		DestructibleComponent->SetCurrentHealth(NewCurrentHealth);
+	}
+}
+
 void ADestructibleGimmick::OnGimmickTakeDamage(AActor* DamageCauser, const float DamageAmount,
                                                const float CurrentHealth)
 {
+	PlaySFX(TakeDamageSound, GetActorLocation(), EConcurrencyType::Default);
+	
 	CR4S_Log(LogGimmick, Warning, TEXT("Gimmick is damaged / DamageAmount: %.1f / CurrentHealth: %.1f"), DamageAmount,
 	         CurrentHealth);
 
-	if (bCanShake)
+	if (IsValid(ShakeComponent))
 	{
-		StartShake();
+		ShakeComponent->Shake();
 	}
 }
 
 void ADestructibleGimmick::OnGimmickDestroy(AActor* DamageCauser)
 {
+	PlaySFX(DestroySound, GetActorLocation(), EConcurrencyType::Default);
+	
 	GetResources(DamageCauser);
 
-	if (CR4S_VALIDATE(LogGimmick, IsValid(GimmickMeshComponent)) &&
-		CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent)) &&
-		CR4S_VALIDATE(LogGimmick, IsValid(GeometryCollectionComponent->GetRestCollection())))
+	Destroy();
+
+	if (CR4S_VALIDATE(LogGimmick, DestructObjectClass))
 	{
-		GimmickMeshComponent->SetVisibility(false);
-		GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride
+			= ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		GeometryCollectionComponent->SetVisibility(true);
-		GeometryCollectionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		GeometryCollectionComponent->SetSimulatePhysics(true);
-		GeometryCollectionComponent->AddRadialImpulse(
-			GeometryCollectionComponent->GetComponentLocation(),
-			DestroyImpulseRadius,
-			DestroyImpulseStrength,
-			RIF_Linear,
-			true
-		);
+		FTransform SpawnTransform;
+		SpawnTransform.SetLocation(GetActorLocation());
+		SpawnTransform.SetRotation(GetActorRotation().Quaternion());
+		SpawnTransform.SetScale3D(GetActorScale());
+
+		GetWorld()->SpawnActor<ABaseDestructObject>(DestructObjectClass,
+		                                            SpawnTransform,
+		                                            SpawnParameters);
 	}
-
-	bIsDestroyed = true;
-
-	if (DestroyDelay == 0.f)
-	{
-		GimmickDestroy();
-	}
-
-	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::GimmickDestroy, DestroyDelay, false);
-}
-
-void ADestructibleGimmick::StartShake()
-{
-	GetWorldTimerManager().SetTimer(
-		ShakeTimerHandle,
-		this,
-		&ThisClass::PerformShake,
-		ShakeInterval,
-		true
-	);
-}
-
-void ADestructibleGimmick::PerformShake()
-{
-	ElapsedTime += ShakeInterval;
-
-	if (ElapsedTime >= ShakeDuration)
-	{
-		StopShake();
-		return;
-	}
-
-	const FVector RandomOffset = FMath::VRand() * ShakeIntensity;
-
-	SetActorLocation(OriginalLocation + RandomOffset, false, nullptr, ETeleportType::TeleportPhysics);
-}
-
-void ADestructibleGimmick::StopShake()
-{
-	ElapsedTime = 0.f;
-	GetWorldTimerManager().ClearTimer(ShakeTimerHandle);
-
-	SetActorLocation(OriginalLocation, false, nullptr, ETeleportType::TeleportPhysics);
 }

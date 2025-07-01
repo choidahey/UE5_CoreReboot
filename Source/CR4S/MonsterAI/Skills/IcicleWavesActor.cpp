@@ -4,13 +4,10 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 
-void AIcicleWavesActor::InitIcicleWaves(
-	int32 SpawnCount,
-	float BaseDistance,
-	float DistanceStep,
-	float Interval,
-	bool bForwardIn)
+void AIcicleWavesActor::InitIcicleWaves(int32 SpawnCount, float BaseDistance, float DistanceStep, float Interval, bool bForwardIn)
 {
+	if (SpawnCount <= 0) return;
+	
 	ACharacter* BossChar = Cast<ACharacter>(GetOwner());
 	if (BossChar)
 	{
@@ -57,7 +54,7 @@ void AIcicleWavesActor::SpawnIcicleWaves()
 	float Dist = SpawnRadius[SpawnIndex++];
 
 	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
+	SpawnParams.Owner = BossPawn;
 	SpawnParams.Instigator = BossPawn;
 	
 	if (AActor* SpawnActor = GetWorld()->SpawnActor<AActor>(

@@ -5,6 +5,10 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AnimalProjectile.generated.h"
 
+class UObjectPoolComponent;
+class UCapsuleComponent;
+class UNiagaraComponent;
+
 UCLASS()
 class CR4S_API AAnimalProjectile : public AActor
 {
@@ -12,22 +16,52 @@ class CR4S_API AAnimalProjectile : public AActor
 
 public:
 	AAnimalProjectile();
+	virtual void BeginPlay() override;
+	void SetProjectileDamage(float InDamage) { Damage = InDamage; }
 
 protected:
-	virtual void BeginPlay() override;
+	UFUNCTION()
+	virtual void OnCapsuleOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+										UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+										bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void OnProjectileHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
-						 UPrimitiveComponent* OtherComp, FVector NormalImpulse,
-						 const FHitResult& Hit);
+	void ResetProjectile();
+
+	UFUNCTION()
+	void OnNiagaraFinished(UNiagaraComponent* PSystem);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* MeshComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* RootSceneComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovement;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UObjectPoolComponent* PoolComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UCapsuleComponent* CapsuleCollision;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UNiagaraComponent* HitEffect;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UNiagaraComponent* ProjectileNiagaraComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage Rule")
+	bool bIgnoreSameSpeciesOverlap = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage Rule")
+	bool bCanHitBuilding = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Damage Rule")
+	virtual bool ShouldDamageActor(AActor* OtherActor) const;
 };

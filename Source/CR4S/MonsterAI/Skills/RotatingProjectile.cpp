@@ -3,7 +3,10 @@
 #include "Components/CapsuleComponent.h"
 #include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "MonsterAI/BaseMonster.h"
+#include "MonsterAI/Region/KamishForestBoss.h"
 
 ARotatingProjectile::ARotatingProjectile()
 {
@@ -20,6 +23,10 @@ ARotatingProjectile::ARotatingProjectile()
 	LandingTrigger->SetupAttachment(RootComp);
 	LandingTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	LandingTrigger->SetGenerateOverlapEvents(false);
+
+	TrailEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailEffect"));
+	TrailEffectComp->SetupAttachment(StaticMesh);
+	TrailEffectComp->SetAutoActivate(false);
 }
 
 void ARotatingProjectile::BeginPlay()
@@ -94,6 +101,8 @@ void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, floa
 
 	CollisionComp->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnOverlap);
 	LandingTrigger->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnLandingDetected);
+
+	SpawnAndAttachTrailEffect();
 }
 
 FVector ARotatingProjectile::ComputeParabolicVelocity(const FVector& Start, const FVector& Target, float Speed) const
@@ -164,6 +173,33 @@ void ARotatingProjectile::HandleLanding()
 	bHasLanded = true;
 	MoveSpeed = 0.f;
 
+	if (TrailEffectComp && TrailEffectComp->IsActive())
+	{
+		TrailEffectComp->Deactivate();
+
+		FTimerHandle DestroyTimer;
+		GetWorld()->GetTimerManager().SetTimer(
+			DestroyTimer,
+			FTimerDelegate::CreateLambda([this]()
+				{
+					if (IsValid(TrailEffectComp))
+					{
+						TrailEffectComp->DestroyComponent();
+					}
+				}),
+			1.0f,
+			false
+		);
+	}
+
+	PlayLandingEffect();
+
+	if (AKamishForestBoss* Boss = Cast<AKamishForestBoss>(GetOwner()))
+	{
+		Boss->SetWeaponLandingLocation(GetActorLocation());
+		UE_LOG(LogTemp, Log, TEXT("[Projectile] Landing location sent to boss: %s"), *GetActorLocation().ToString());
+	}
+
 	FTimerHandle CollisionUpdateTimer;
 	GetWorld()->GetTimerManager().SetTimer(
 		CollisionUpdateTimer,
@@ -173,10 +209,7 @@ void ARotatingProjectile::HandleLanding()
 		false
 	);
 
-	if (!bDestroyOnBossApproach)
-	{
-		SetLifeSpan(AutoDestroyDelay);
-	}
+	SetLifeSpan(AutoDestroyDelay);
 }
 
 void ARotatingProjectile::UpdateLandingCollision()
@@ -187,15 +220,62 @@ void ARotatingProjectile::UpdateLandingCollision()
 	CollisionComp->SetGenerateOverlapEvents(false);
 }
 
+void ARotatingProjectile::SpawnAndAttachTrailEffect()
+{
+	if (!TrailEffect || !StaticMesh) return;
+
+	if (!TrailEffectComp)
+	{
+		TrailEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailEffect,
+			StaticMesh,
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
+	}
+	else
+	{
+		TrailEffectComp->SetAsset(TrailEffect);
+		TrailEffectComp->Activate(true);
+	}
+
+	if (TrailEffectComp)
+	{
+		UNiagaraParamUtils::ApplyParams(TrailEffectComp, TrailEffectParams);
+	}
+}
+
+void ARotatingProjectile::PlayLandingEffect()
+{
+	if (LandingEffect)
+	{
+		const FVector SpawnLocation = GetActorLocation() + LandingEffectOffset;
+		SpawnEffectAtLocationWithParams(LandingEffect, SpawnLocation, LandingEffectParams);
+	}
+}
+
 void ARotatingProjectile::Destroyed()
 {
 	if (!IsValid(BossActor)) return;
 
 	USkeletalMeshComponent* Mesh = BossActor->FindComponentByClass<USkeletalMeshComponent>();
-	if (Mesh && Mesh->DoesSocketExist(RestoreSocketName))
+	if (Mesh && Mesh->DoesSocketExist(RestoreSocketName) && VisualWeaponClass)
 	{
-		const FName BoneName = Mesh->GetSocketBoneName(RestoreSocketName);
-		Mesh->UnHideBoneByName(BoneName);
+		FVector Location = Mesh->GetSocketLocation(RestoreSocketName);
+		FRotator Rotation = Mesh->GetSocketRotation(RestoreSocketName);
+
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.Owner = BossActor;
+
+		AActor* VisualWeapon = GetWorld()->SpawnActor<AActor>(VisualWeaponClass, Location, Rotation, Params);
+		if (VisualWeapon)
+		{
+			VisualWeapon->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, RestoreSocketName);
+		}
 	}
 
 	Super::Destroyed();

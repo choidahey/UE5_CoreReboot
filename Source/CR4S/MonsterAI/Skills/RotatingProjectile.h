@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "MonsterAI/Skills/BaseSkillActor.h"
+#include "Utility/NiagaraParamHelper.h"
 #include "RotatingProjectile.generated.h"
 
 class UCapsuleComponent;
@@ -53,6 +54,9 @@ public:
 	FVector ProjectileScale = FVector(1.0f);
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "VisualWeapon")
+	TSubclassOf<AActor> VisualWeaponClass;
+
 	UPROPERTY(VisibleAnywhere, Category = "Projectile|Collision")
 	TObjectPtr<UCapsuleComponent> LandingTrigger;
 
@@ -91,5 +95,40 @@ private:
 	float MoveSpeed = 0.f;
 
 	FString MyHeader;
+
+#pragma region Trail Effect
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Trail")
+	TObjectPtr<UNiagaraSystem> TrailEffect = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UNiagaraComponent> TrailEffectComp = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile|Trail")
+	FNiagaraParamSet TrailEffectParams;
+
+private:
+	void SpawnAndAttachTrailEffect();
+
+#pragma endregion
+
+#pragma region Landing Effect
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Landing")
+	TObjectPtr<UNiagaraSystem> LandingEffect = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile|Landing")
+	FVector LandingEffectOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile|Landing")
+	FNiagaraParamSet LandingEffectParams;
+
+private:
+	void PlayLandingEffect();
+
+#pragma endregion
 
 };

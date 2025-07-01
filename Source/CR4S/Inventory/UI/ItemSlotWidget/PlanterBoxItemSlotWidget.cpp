@@ -14,7 +14,7 @@ bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 		InventoryComponent);
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryComponent)) ||
 		!CR4S_VALIDATE(LogInventoryUI, bCanDrop) ||
-		CR4S_VALIDATE(LogInventoryUI, IsValid(CurrentItem)) ||
+		IsValid(CurrentItem) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(InOperation)))
 	{
 		return false;
@@ -35,6 +35,9 @@ bool UPlanterBoxItemSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const 
 
 	const FAddItemResult Result = PlanterBoxInventoryComponent->AddItem(FromItem->GetInventoryItemData()->RowName,
 	                                                                    FromItem->GetCurrentStackCount());
+
+	FromItem->EndPassiveEffect();
+	
 	if (Result.AddedCount > 0)
 	{
 		FromSlot->GetInventoryComponent()->RemoveItemByIndex(FromSlot->GetSlotIndex(), 1);

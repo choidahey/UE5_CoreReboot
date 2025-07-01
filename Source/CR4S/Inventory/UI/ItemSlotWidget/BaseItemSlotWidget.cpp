@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/InventoryItem/ConsumableInventoryItem.h"
 #include "Inventory/InventoryItem/ToolInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "Inventory/UI/ItemTooltipWidget.h"
@@ -30,11 +31,9 @@ UBaseItemSlotWidget::UBaseItemSlotWidget(const FObjectInitializer& ObjectInitial
 	  bIsPlayerItemSlot(false),
 	  bCanDrag(true),
 	  bCanDrop(true),
+	  bCanRightClick(true),
 	  bCanRemoveItem(true),
 	  bCanMoveItem(true),
-	  LongPressThreshold(0.5f),
-	  PressStartTime(0.0),
-	  bLongPressTriggered(false),
 	  bCanUseItemTooltip(true)
 {
 }
@@ -63,9 +62,11 @@ void UBaseItemSlotWidget::InitSlotWidget(const int32 NewSlotIndex)
 	{
 		RootWidget->ToolTipWidgetDelegate.BindDynamic(this, &ThisClass::ShowToolTip);
 	}
+
+	ResetFreshnessImage();
 }
 
-void UBaseItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget,
+void UBaseItemSlotWidget::InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget,
                                              UBaseInventoryItem* NewItem)
 {
 	if (IsValid(NewInventoryWidget))
@@ -81,8 +82,50 @@ void UBaseItemSlotWidget::InitSlotWidgetData(const UBaseInventoryWidget* NewInve
 	SetItem(NewItem);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UBaseItemSlotWidget::UpdateFreshness(const float Freshness)
+{
+	if (IsValid(FreshnessImage))
+	{
+		const FLinearColor CurColor = FLinearColor::LerpUsingHSV(MinFreshnessColor, MaxFreshnessColor, Freshness);
+		FreshnessImage->SetColorAndOpacity(CurColor);
+	}
+}
+
+void UBaseItemSlotWidget::ResetFreshnessImage()
+{
+	if (IsValid(FreshnessImage))
+	{
+		FreshnessImage->SetColorAndOpacity(MaxFreshnessColor);
+	}
+
+	UnBoundFreshnessDelegate(CurrentItem);
+}
+
+void UBaseItemSlotWidget::BoundFreshnessDelegate()
+{
+	UConsumableInventoryItem* ConsumableInventoryItem = Cast<UConsumableInventoryItem>(CurrentItem);
+	if (IsValid(ConsumableInventoryItem))
+	{
+		ConsumableInventoryItem->OnFreshnessChanged.AddUniqueDynamic(this, &ThisClass::UpdateFreshness);
+		UpdateFreshness(ConsumableInventoryItem->GetFreshnessPercent());
+	}
+}
+
+void UBaseItemSlotWidget::UnBoundFreshnessDelegate(UBaseInventoryItem* Item)
+{
+	UConsumableInventoryItem* ConsumableInventoryItem = Cast<UConsumableInventoryItem>(Item);
+	if (IsValid(ConsumableInventoryItem) &&
+		ConsumableInventoryItem->OnFreshnessChanged.IsAlreadyBound(this, &ThisClass::UpdateFreshness))
+	{
+		ConsumableInventoryItem->OnFreshnessChanged.RemoveDynamic(this, &ThisClass::UpdateFreshness);
+	}
+}
+
 void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 {
+	ResetFreshnessImage();
+	
 	CurrentItem = InItem;
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(IconImage)) ||
@@ -110,6 +153,8 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 		{
 			InventoryComponent->AddOccupiedSlot(SlotIndex);
 		}
+
+		BoundFreshnessDelegate();
 	}
 	else
 	{
@@ -128,7 +173,13 @@ void UBaseItemSlotWidget::SetItem(UBaseInventoryItem* InItem)
 void UBaseItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-
+	
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
+		!InventoryContainerWidget->IsOpen())
+	{
+		return;
+	}
+	
 	if (IsValid(HoverImage))
 	{
 		HoverImage->SetVisibility(ESlateVisibility::Visible);
@@ -180,67 +231,12 @@ FReply UBaseItemSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry,
 		return FReply::Unhandled();
 	}
 
-	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
-	{
-		bLongPressTriggered = false;
-
-		if (GetWorld())
-		{
-			GetWorld()->GetTimerManager().SetTimer(
-				LongPressTimerHandle,
-				this,
-				&ThisClass::OnLongPressDetected,
-				LongPressThreshold,
-				false
-			);
-		}
-
-		PressStartTime = FPlatformTime::Seconds();
-
-		return FReply::Handled().PreventThrottling();
-	}
-
-
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
 		return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
 	}
 
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
-}
-
-FReply UBaseItemSlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-	if (!IsValid(CurrentItem))
-	{
-		return FReply::Unhandled();
-	}
-
-	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
-	{
-		if (GetWorld() && GetWorld()->GetTimerManager().IsTimerActive(LongPressTimerHandle))
-		{
-			GetWorld()->GetTimerManager().ClearTimer(LongPressTimerHandle);
-			OnShortClick();
-		}
-		else if (!bLongPressTriggered)
-		{
-			const double Duration = FPlatformTime::Seconds() - PressStartTime;
-			if (Duration >= LongPressThreshold)
-			{
-				bLongPressTriggered = true;
-				OnLongPress();
-			}
-			else
-			{
-				OnShortClick();
-			}
-		}
-
-		return FReply::Handled();
-	}
-
-	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
 }
 
 void UBaseItemSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
@@ -364,22 +360,6 @@ void UBaseItemSlotWidget::UnEquipItem(const UBaseInventoryComponent* QuickSlotIn
 	}
 }
 
-void UBaseItemSlotWidget::OnShortClick()
-{
-	CR4S_Log(LogInventoryUI, Warning, TEXT("ShortClick!"));
-}
-
-void UBaseItemSlotWidget::OnLongPressDetected()
-{
-	bLongPressTriggered = true;
-	OnLongPress();
-}
-
-void UBaseItemSlotWidget::OnLongPress()
-{
-	CR4S_Log(LogInventoryUI, Warning, TEXT("LongPressed!!!"));
-}
-
 UWidget* UBaseItemSlotWidget::ShowToolTip()
 {
 	if (!bCanUseItemTooltip ||
@@ -394,7 +374,7 @@ UWidget* UBaseItemSlotWidget::ShowToolTip()
 		ItemTooltipWidget = CreateWidget<UItemTooltipWidget>(this, ItemTooltipWidgetClass);
 	}
 
-	ItemTooltipWidget->InitWidget(CurrentItem->GetInventoryItemData()->ItemInfoData);
+	ItemTooltipWidget->InitWidget(CurrentItem);
 
 	return ItemTooltipWidget;
 }

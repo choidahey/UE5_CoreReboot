@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "CR4S/MonsterAI/Data/MonsterAttributeRow.h"
+#include "MonsterAI/Data/MonsterAttributeRow.h"
 #include "MonsterAttributeComponent.generated.h"
 
 class UDataTable;
@@ -33,9 +33,9 @@ public:
 	/* Broadcasts on monster death */
 	UPROPERTY(BlueprintAssignable, Category = "Attributes")
 	FOnMonsterDeath OnDeath;
-	
+
 	FORCEINLINE float GetCurrentHP() const { return CurrentHP; }
-	FORCEINLINE void SetCurrentHP(const float NewHealth) { CurrentHP = NewHealth; }
+	FORCEINLINE void SetCurrentHP(const float NewHealth);
 	FORCEINLINE void RecoverToFull() { CurrentHP = CurrentAttribute.MaxHP; }
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
@@ -54,7 +54,6 @@ protected:
 
 private:
 	void ChangeHP(float Delta);
-
 	FString MyHeader;
 	
 };

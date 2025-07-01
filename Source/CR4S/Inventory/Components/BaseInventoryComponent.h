@@ -6,6 +6,9 @@
 
 #include "BaseInventoryComponent.generated.h"
 
+struct FInventorySaveGame;
+struct FHelperPickUpData;
+struct FInventoryItemData;
 class UInventoryFilterData;
 class UBaseInventoryWidget;
 class UQuickSlotBarWidget;
@@ -18,19 +21,14 @@ struct FAddItemResult
 {
 	GENERATED_BODY()
 
-	FAddItemResult()
-		: bSuccess(false),
-		  AddedCount(0),
-		  RemainingCount(0)
-	{
-	}
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bSuccess;
+	bool bSuccess = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 AddedCount;
+	int32 AddedCount = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 RemainingCount;
+	int32 RemainingCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSet<int32> ChangedItemSlots;
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -44,13 +42,13 @@ public:
 	UBaseInventoryComponent();
 
 	virtual void BeginPlay() override;
-
+ 
 #pragma endregion
 
 #pragma region Initialize
 
 public:
-	void InitInventory();
+	virtual void InitInventory();
 
 #pragma endregion
 
@@ -60,12 +58,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void AddItems(const TMap<FName, int32>& Items);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	virtual FAddItemResult AddItem(FName RowName, int32 Count);
+	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr);
+	virtual FAddItemResult AddHelperBotItem(FName RowName, int32 Count, const FHelperPickUpData& HelperBotData);
 
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	void RemoveItemByRowName(const FName RowName, const int32 Count);
+	virtual int32 RemoveItemByRowName(const FName RowName, const int32 Count);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	void RemoveAllItemByRowName(const FName RowName);
+	virtual void RemoveAllItemByRowName(const FName RowName);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void RemoveItemByIndex(const int32 Index, const int32 Count = -1);
 
@@ -73,10 +72,18 @@ public:
 	UBaseInventoryItem* GetInventoryItemByIndex(const int32 Index) const;
 
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	int32 GetItemCountByRowName(const FName RowName) const;
+	virtual int32 GetItemCountByRowName(const FName RowName) const;
 
 	void SwapItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
 	void MergeItem(UBaseInventoryComponent* FromInventoryComponent, const int32 FromItemIndex, const int32 ToItemIndex);
+
+	static void PostStackItems(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	static void PostFillEmptySlots(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+
+	static bool CheckRottenItem(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	static void AveragingFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	static void UpdateFreshness(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
+	static void SetHelperBotPickUpDate(UBaseInventoryItem* OriginItem, UBaseInventoryItem* TargetItem);
 
 	FORCEINLINE const TArray<TObjectPtr<UBaseInventoryItem>>& GetInventoryItems() const { return InventoryItems; }
 
@@ -94,14 +101,20 @@ public:
 	FORCEINLINE void SetMaxInventorySize(const int32 InMaxInventorySlot) { MaxInventorySize = InMaxInventorySlot; }
 	FORCEINLINE void AddOccupiedSlot(const int32 SlotIndex)
 	{
-		OccupiedSlots.Add(SlotIndex);
-		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
+		OccupiedSlots.Emplace(SlotIndex);
+		if (OnOccupiedSlotsChange.IsBound())
+		{
+			OnOccupiedSlotsChange.Broadcast(OccupiedSlots.Num());
+		}
 	}
 
 	FORCEINLINE void RemoveOccupiedSlot(const int32 SlotIndex)
 	{
 		OccupiedSlots.Remove(SlotIndex);
-		OnOccupiedSlotsChanged.ExecuteIfBound(OccupiedSlots.Num());
+		if (OnOccupiedSlotsChange.IsBound())
+		{
+			OnOccupiedSlotsChange.Broadcast(OccupiedSlots.Num());
+		}
 	}
 
 	int32 GetUseSlotCount();
@@ -122,9 +135,9 @@ protected:
 	void StackItemsAndFillEmptySlots(FName RowName,
 	                                 int32 Count,
 	                                 FAddItemResult& Result,
-	                                 TSet<int32>& ChangedItemSlots);
+	                                 TSet<int32>& ChangedItemSlots,
+	                                 UBaseInventoryItem* OriginItem);
 
-	UBaseInventoryItem* CreateInventoryItem(const FGameplayTagContainer& ItemTags);
 
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
 	int32 MaxInventorySize;
@@ -144,6 +157,17 @@ protected:
 
 #pragma endregion
 
+#pragma region Freshness
+
+public:
+	FORCEINLINE bool HasRefrigeration() const { return bHasRefrigeration; }
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem|Freshness")
+	bool bHasRefrigeration;
+
+#pragma endregion
+
 #pragma region Filter
 
 public:
@@ -155,22 +179,30 @@ private:
 
 #pragma endregion
 
+#pragma region Save & Load
+
+public:
+	UFUNCTION(BlueprintPure, Category = "InventorySystem|SaveData")
+	virtual FInventorySaveGame GetInventorySaveGame();
+	UFUNCTION(BlueprintCallable, Category = "InventorySystem|LoadData")
+	virtual void LoadInventorySaveGame(const FInventorySaveGame& SaveGameData);
+
+private:
+	void ClearInventoryItems();
+
+#pragma endregion
+
 #pragma region Delegate
 
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemSlotChanged, const int32, SlotIndex, UBaseInventoryItem*, Item);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemSlotChange, const int32, SlotIndex, UBaseInventoryItem*, Item);
 
-	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegates")
-	FOnItemSlotChanged OnItemSlotChanged;
+	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegate")
+	FOnItemSlotChange OnItemSlotChange;
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryClosed);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOccupiedSlotsChanged, const int32, NumOccupiedSlots);
 
-	UPROPERTY(BlueprintAssignable, Category = "InventoryComponent|Delegates")
-	FOnInventoryClosed OnInventoryClosed;
-
-	DECLARE_DYNAMIC_DELEGATE_OneParam(FOnOccupiedSlotsChanged, const int32, NumOccupiedSlots);
-
-	FOnOccupiedSlotsChanged OnOccupiedSlotsChanged;
+	FOnOccupiedSlotsChanged OnOccupiedSlotsChange;
 
 protected:
 	void NotifyInventoryItemChanged(const int32 ItemIndex) const;

@@ -6,6 +6,8 @@
 
 #include "DestructibleGimmick.generated.h"
 
+class UObjectShakeComponent;
+class ABaseDestructObject;
 class UDestructibleComponent;
 
 UCLASS(BlueprintType)
@@ -21,16 +23,19 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData) override;
 	
 #pragma endregion
 	
 #pragma region UDestructibleComponent
 
 public:
-	UFUNCTION(BlueprintPure, Category = "ADestructibleResourceGimmick|Components")
-	FORCEINLINE UDestructibleComponent* GetDestructibleComponent() const { return DestructibleComponent; }
-
-	FORCEINLINE bool IsDestroyed() const { return bIsDestroyed; }
+	UFUNCTION(BlueprintPure, Category = "DestructibleComponent|Health")
+	void GetGimmickHealthData(bool& bOutSuccess, float& OutCurrentHealth, float& OutMaxHealth) const;
+	UFUNCTION(BlueprintCallable, Category = "DestructibleComponent|Health")
+	void SetGimmickHealthData(const float NewCurrentHealth, const float NewMaxHealth);
+	
 	FORCEINLINE void SetDestroyDelay(const float NewDelay) { DestroyDelay = NewDelay; }
 	
 protected:
@@ -42,20 +47,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UDestructibleComponent> DestructibleComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UGeometryCollectionComponent> GeometryCollectionComponent;
-	
 private:
-	bool bIsDestroyed;
+	UPROPERTY(EditDefaultsOnly, Category = "Destroy")
+	TSubclassOf<ABaseDestructObject> DestructObjectClass;
 	
 	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
 	float DestroyDelay;
-	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
-	float DestroyImpulseRadius;
-	UPROPERTY(EditAnywhere, Category = "Destroy", meta = (ClampMin = 0.0))
-	float DestroyImpulseStrength;
-	
-	FTimerHandle DestroyTimerHandle;
 	
 #pragma endregion
 
@@ -69,29 +66,22 @@ protected:
 	float ToolBonusDamageMultiplier;
 	
 #pragma endregion
-	
-#pragma region Shake
+
+#pragma region ShakeComponent
 
 private:
-	void StartShake();
-	void PerformShake();
-	void StopShake();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UObjectShakeComponent> ShakeComponent;
+	
+#pragma endregion
 
-	FTimerHandle ShakeTimerHandle;
+#pragma region Sound
 
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	bool bCanShake;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeDuration;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeInterval;
-	UPROPERTY(EditDefaultsOnly, Category = "Shake")
-	float ShakeIntensity;
-
-	UPROPERTY(VisibleAnywhere, Category = "Shake")
-	FVector OriginalLocation;
-	UPROPERTY(VisibleAnywhere, Category = "Shake")
-	float ElapsedTime;
+private:
+	UPROPERTY()
+	TObjectPtr<USoundBase> TakeDamageSound;
+	UPROPERTY()
+	TObjectPtr<USoundBase> DestroySound;
 	
 #pragma endregion
 	

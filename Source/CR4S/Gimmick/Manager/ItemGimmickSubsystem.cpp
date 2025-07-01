@@ -2,8 +2,17 @@
 
 #include "CR4S.h"
 #include "DeveloperSettings/CR4SDataTableSettings.h"
+#include "Game/SaveGame/GimmickSaveGame.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
 #include "Gimmick/GimmickObjects/BaseGimmick.h"
 #include "Gimmick/GimmickObjects/ItemPouchGimmick.h"
+#include "Gimmick/GimmickObjects/Farming/CropsGimmick.h"
+#include "Inventory/InventoryItem/ConsumableInventoryItem.h"
+#include "Inventory/InventoryItem/HelperBotInventoryItem.h"
+#include "Inventory/InventoryItem/RobotPartsInventoryItem.h"
+#include "Inventory/InventoryItem/ToolInventoryItem.h"
+#include "Kismet/GameplayStatics.h"
+#include "Utility/Cr4sGameplayTags.h"
 
 UItemGimmickSubsystem::UItemGimmickSubsystem()
 	: ItemInfoDataTable(nullptr)
@@ -19,11 +28,10 @@ bool UItemGimmickSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 		return false;
 	}
 
-	// if (!CR4S_VALIDATE(LogGimmick, World->GetName() == TEXT("SurvivalLevel")) &&
-	// 	!CR4S_VALIDATE(LogGimmick, World->GetName() == TEXT("GimmickTestMap")))
-	// {
-	// 	return false;
-	// }
+	if (World->GetName().Contains("MenuLevel"))
+	{
+		return false;
+	}
 
 	CR4S_Log(LogGimmick, Warning, TEXT("Create ItemGimmickSubsystem for %s"), *World->GetName());
 	return true;
@@ -43,6 +51,13 @@ void UItemGimmickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	GimmickInfoDataTable = Settings->GetDataTableByName(TEXT("GimmickInfoData"));
 }
 
+void UItemGimmickSubsystem::PostInitialize()
+{
+	Super::PostInitialize();
+
+	PoolSubsystem = GetWorld()->GetSubsystem<UProjectilePoolSubsystem>();
+}
+
 TArray<FName> UItemGimmickSubsystem::GetItemDataRowNames() const
 {
 	return IsValid(ItemInfoDataTable) ? ItemInfoDataTable->GetRowNames() : TArray<FName>();
@@ -58,9 +73,53 @@ const FGimmickInfoData* UItemGimmickSubsystem::FindGimmickInfoData(const FName& 
 	return FindDataFromDataTable<FGimmickInfoData>(GimmickInfoDataTable, RowName, TEXT("Load Gimmick Data"));
 }
 
+void UItemGimmickSubsystem::GetItemInfoData(const FName& RowName, FItemInfoData& OutItemInfoData) const
+{
+	if (const FItemInfoData* ItemInfoData = FindItemInfoData(RowName))
+	{
+		OutItemInfoData = *ItemInfoData;
+	}
+	else
+	{
+		CR4S_Log(LogGimmick, Warning, TEXT("ItemInfoData not found"));
+	}
+}
+
 void UItemGimmickSubsystem::GetGimmickInfoData(const FName& RowName, FGimmickInfoData& OutGimmickInfoData) const
 {
-	OutGimmickInfoData = *FindGimmickInfoData(RowName);
+	if (const FGimmickInfoData* GimmickInfoData = FindGimmickInfoData(RowName))
+	{
+		OutGimmickInfoData = *GimmickInfoData;
+	}
+	else
+	{
+		CR4S_Log(LogGimmick, Warning, TEXT("GimmickInfoData not found"));
+	}
+}
+
+UBaseInventoryItem* UItemGimmickSubsystem::CreateInventoryItem(UObject* Outer, const FGameplayTagContainer& ItemTags)
+{
+	if (ItemTags.HasTag(ItemTags::Tools))
+	{
+		return NewObject<UToolInventoryItem>(Outer);
+	}
+
+	if (ItemTags.HasTag(ItemTags::Consumable))
+	{
+		return NewObject<UConsumableInventoryItem>(Outer);
+	}
+
+	if (ItemTags.HasTag(ItemTags::HelperBot))
+	{
+		return NewObject<UHelperBotInventoryItem>(Outer);
+	}
+
+	if (ItemTags.HasTag(ItemTags::RobotParts) || ItemTags.HasTag(ItemTags::Weapon))
+	{
+		return NewObject<URobotPartsInventoryItem>(Outer);
+	}
+
+	return NewObject<UBaseInventoryItem>(Outer);
 }
 
 void UItemGimmickSubsystem::SpawnItemPouch(const AActor* SourceActor, const TMap<FName, int32>& RemainingItems,
@@ -101,13 +160,21 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 	{
 		return nullptr;
 	}
+	//
+	// FActorSpawnParameters SpawnParams;
+	// SpawnParams.SpawnCollisionHandlingOverride =
+	// 	ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	//
+	//
+	// ABaseGimmick* Gimmick
+	// 	= GetWorld()->SpawnActor<ABaseGimmick>(GimmickClass, SpawnLocation, SpawnRotation, SpawnParams);
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride =
-		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	AActor* SpawnedActor
+		= PoolSubsystem->SpawnFromPool(GimmickClass,
+		                               SpawnLocation,
+		                               SpawnRotation);
 
-	ABaseGimmick* Gimmick
-		= GetWorld()->SpawnActor<ABaseGimmick>(GimmickClass, SpawnLocation, SpawnRotation, SpawnParams);
+	ABaseGimmick* Gimmick = Cast<ABaseGimmick>(SpawnedActor);
 	if (!CR4S_VALIDATE(LogGimmick, IsValid(Gimmick)))
 	{
 		return nullptr;
@@ -117,4 +184,86 @@ ABaseGimmick* UItemGimmickSubsystem::SpawnGimmick(const FName& RowName, const FV
 
 	Gimmick->SetGimmickDataRowName(RowName);
 	return Gimmick;
+}
+
+FGimmickSaveGame UItemGimmickSubsystem::GetGimmickSaveGame() const
+{
+	FGimmickSaveGame SaveGame;
+
+	TArray<AActor*> Gimmicks;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseGimmick::StaticClass(), Gimmicks);
+
+	for (AActor* GimmickActor : Gimmicks)
+	{
+		if (GimmickActor->IsHidden())
+		{
+			continue;
+		}
+
+		ABaseGimmick* Gimmick = Cast<ABaseGimmick>(GimmickActor);
+		if (IsValid(Gimmick))
+		{
+			bool bSuccess = false;
+			const FGimmickSaveGameData& GimmickSaveGameData = Gimmick->GetGimmickSaveGameData(bSuccess);
+
+			if (bSuccess)
+			{
+				SaveGame.GimmickSaveGameDataArray.Emplace(GimmickSaveGameData);
+			}
+		}
+	}
+
+	return SaveGame;
+}
+
+void UItemGimmickSubsystem::LoadGimmickSaveGame(const FGimmickSaveGame& GimmickSaveGame)
+{
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(PoolSubsystem)))
+	{
+		return;
+	}
+
+	TArray<AActor*> Gimmicks;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseGimmick::StaticClass(), Gimmicks);
+	for (AActor* GimmickActor : Gimmicks)
+	{
+		ACropsGimmick* CropsGimmick = Cast<ACropsGimmick>(GimmickActor);
+		if (IsValid(CropsGimmick) && CropsGimmick->IsPlanted())
+		{
+			continue;
+		}
+
+		ABaseGimmick* Gimmick = Cast<ABaseGimmick>(GimmickActor);
+		if (IsValid(Gimmick))
+		{
+			Gimmick->GimmickDestroy();
+		}
+	}
+
+	TArray<FGimmickSaveGameData> GimmickSaveGameDataArray = GimmickSaveGame.GimmickSaveGameDataArray;
+	for (const FGimmickSaveGameData& GimmickSaveGameData : GimmickSaveGameDataArray)
+	{
+		AActor* SpawnedActor
+			= PoolSubsystem->SpawnFromPool(GimmickSaveGameData.GimmickClass,
+			                               GimmickSaveGameData.Transform.GetLocation(),
+			                               GimmickSaveGameData.Transform.Rotator());
+
+		ABaseGimmick* Gimmick = Cast<ABaseGimmick>(SpawnedActor);
+		if (IsValid(Gimmick))
+		{
+			Gimmick->LoadGimmickSaveGameData(GimmickSaveGameData);
+		}
+	}
+}
+
+USaveGame* UItemGimmickSubsystem::GetBuildingSaveGame() const
+{
+	OnCreateBuildingSaveGame.Broadcast();
+
+	return BuildingSaveGame;
+}
+
+void UItemGimmickSubsystem::LoadBuildingSaveGame(USaveGame* NewBuildingSaveGame) const
+{
+	OnLoadBuildingSaveGame.Broadcast(NewBuildingSaveGame);
 }

@@ -3,6 +3,8 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterEnvironmentStatusWidget.generated.h"
 
+class UBaseStatusComponent;
+class UEnvironmentalStatusComponent;
 class UProgressBar;
 class UTextBlock;
 class AEnvironmentManager;
@@ -11,16 +13,33 @@ UCLASS()
 class CR4S_API UCharacterEnvironmentStatusWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	void InitializeWidget(UBaseStatusComponent* InStatus);
+	void InitializeWidget(UEnvironmentalStatusComponent* InEnvStatus);
+
+	void ClearBindingsToStatusComp();
+	void ClearBindingsToEnvStatusComp();
 	
-protected:
-	virtual void NativeConstruct() override;
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	UFUNCTION()
 	void OnTemperatureChanged(float NewTemperature);
 	UFUNCTION()
 	void OnHumidityChanged(float NewHumidity);
+	UFUNCTION()
+	void UpdateColdThreshold(float NewThreshold);
+	UFUNCTION()
+	void UpdateHeatThreshold(float NewThreshold);
+	UFUNCTION()
+	void UpdateHumidityThreshold(float NewThreshold);
+	UFUNCTION()
+	void UpdateTemperatureProgressBar();
+	UFUNCTION()
+	void UpdateHumidityProgressBar();
+	// bool InitializeWidget(ACharacter* NewPawn);
+protected:
+	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-	bool TryBindToPlayerCharacter();
 
 	UPROPERTY(meta = (BindWidget))
 	UProgressBar* TemperatureProgressBar;
@@ -41,5 +60,11 @@ protected:
 	TWeakObjectPtr<AEnvironmentManager> EnvironmentManager;
 
 	bool bIsBoundToEnvironment = false;
-
+	
+#pragma region Cached
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UBaseStatusComponent> CachedStatusComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UEnvironmentalStatusComponent> CachedEnvironmentalStatusComp;
+#pragma endregion
 };

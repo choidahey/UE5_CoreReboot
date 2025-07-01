@@ -26,15 +26,15 @@ void UBaseInventoryWidget::NativeConstruct()
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
 
 	SetIsFocusable(true);
-
-	bCanSort = true;
 }
 
 void UBaseInventoryWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
-	if (CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)))
+	if (CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerController)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(InventoryContainerWidget)) ||
+		!InventoryContainerWidget->IsOpen())
 	{
 		PlayerController->SetInputMode(FInputModeUIOnly()
 		                               .SetWidgetToFocus(this->TakeWidget())
@@ -60,7 +60,8 @@ void UBaseInventoryWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 void UBaseInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNewCanSort)
 {
-	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)))
+	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemSlotWidgetContainer)))
 	{
 		return;
 	}
@@ -95,7 +96,7 @@ void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* Ne
 		InventoryTitleTextBlock->SetText(InventoryComponent->GetInventoryTitleText());
 	}
 
-	InventoryComponent->OnItemSlotChanged.AddUniqueDynamic(this, &ThisClass::UpdateItemSlotWidget);
+	InventoryComponent->OnItemSlotChange.AddUniqueDynamic(this, &ThisClass::UpdateItemSlotWidget);
 
 	int32 SlotIndex = 0;
 	for (UBaseItemSlotWidget* ItemSlotWidget : ItemSlotWidgets)
@@ -113,10 +114,14 @@ void UBaseInventoryWidget::ConnectInventoryComponent(UBaseInventoryComponent* Ne
 void UBaseInventoryWidget::UnBoundWidgetDelegate()
 {
 	if (IsValid(InventoryComponent) &&
-		InventoryComponent->OnItemSlotChanged.IsAlreadyBound(this, &ThisClass::UpdateItemSlotWidget))
+		InventoryComponent->OnItemSlotChange.IsAlreadyBound(this, &ThisClass::UpdateItemSlotWidget))
 	{
-		InventoryComponent->OnItemSlotChanged.RemoveDynamic(this, &ThisClass::UpdateItemSlotWidget);
+		InventoryComponent->OnItemSlotChange.RemoveDynamic(this, &ThisClass::UpdateItemSlotWidget);
 	}
+}
+
+void UBaseInventoryWidget::CloseSlotWidgets()
+{
 }
 
 void UBaseInventoryWidget::UpdateItemSlotWidget(const int32 SlotIndex, UBaseInventoryItem* Item)

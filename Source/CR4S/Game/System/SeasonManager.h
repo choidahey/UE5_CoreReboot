@@ -1,12 +1,12 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "MonsterAI/Data/SeasonWave.h"
 #include "Game/System/SeasonType.h"
 #include "SeasonManager.generated.h"
 
 class AEnvironmentManager;
-class USeasonBossDataAsset;
+class USeasonWave;
 class ASeasonBossMonster;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDayChanged, float, DawnTime, float, DuskTime);
@@ -30,21 +30,26 @@ protected:
 
 #pragma region Getters & Setters
 public:
-	FORCEINLINE ESeasonType GetCurrentSeason() const { return CurrentSeason; }
 	FORCEINLINE int32 GetSeasonLength() const { return SeasonLength; }
+
+	FORCEINLINE ESeasonType GetCurrentSeason() const { return CurrentSeason; }
+	FORCEINLINE int32 GetCurrentSeasonDay() const { return CurrentSeasonDay; }
+
 	FORCEINLINE float GetCurrentDawnTime() const { return CurrentDawnTime; }
 	FORCEINLINE float GetCurrentDuskTime() const { return CurrentDuskTime; }
-	FORCEINLINE void SetSeasonLength(int32 Length) { SeasonLength = Length; }
 
 	void GetTargetDawnDuskTimeForSeason(ESeasonType Season, float& OutDawnTime, float& OutDuskTime);
+
+	FORCEINLINE void SetSeasonLength(int32 Length) { SeasonLength = Length; }
+	FORCEINLINE void SetCurrentSeasonDay(int32 Day) { CurrentSeasonDay = Day; }
+	void SetCurrentDawnDuskTime(float Dawn, float Dusk);
 	void SetCurrentSeason(ESeasonType NewSeason);
 
-
-	
 	void HandleDayChange();
 
 	void ChangeToNextSeason();
-
+	UFUNCTION()
+	FString GetSeasonAsString(ESeasonType Season) const;
 #pragma endregion
 
 #pragma region Internal Season Logic
@@ -72,18 +77,26 @@ private:
 
 #pragma region Events
 public:
-	TSubclassOf<ASeasonBossMonster> GetSeasonBossClass(ESeasonType Season) const;
+	TArray<FMonsterWaveEntry> GetMonsterWaveEntriesForSeason(ESeasonType Season) const;
 
-	void SpawnSeasonBoss();
+	TSubclassOf<ASeasonBossMonster> GetSeasonBossClass(ESeasonType Season) const;
 
 protected:
 
-
 	UPROPERTY()
-	USeasonBossDataAsset* SeasonBossData;
+	USeasonWave* SeasonWaveData;
 
 	UPROPERTY()
 	ASeasonBossMonster* SpawnedBoss;
+
+private:
+	void SpawnSeasonBoss();
+
+	void SpawnSeasonMonsters();
+
+	FVector GetRandomSpawnLocationAroundPlayer(float MinRadius, float MaxRadius, int32 MaxAttempts);
+
+
 
 #pragma endregion
 

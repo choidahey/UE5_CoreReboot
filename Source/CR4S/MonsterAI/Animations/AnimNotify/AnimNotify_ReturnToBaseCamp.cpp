@@ -25,6 +25,7 @@ void UAnimNotify_ReturnToBaseCamp::Notify(USkeletalMeshComponent* MeshComp, UAni
 	if (UMonsterStateComponent* StateComp = Monster->FindComponentByClass<UMonsterStateComponent>())
 	{
 		StateComp->SetState(EMonsterState::Patrol);	
+		StateComp->SetPhase(EBossPhase::Normal);
 	}
 
 	if (UMonsterAttributeComponent* AttrComp = Monster->FindComponentByClass<UMonsterAttributeComponent>())

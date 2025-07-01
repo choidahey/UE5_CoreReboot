@@ -18,7 +18,7 @@ public:
 	UPlayerInputBufferComponent();
 
 public:
-	void SetCurrentTool(APlayerTool* InTool);
+	virtual void SetCurrentTool(APlayerTool* InTool) override;
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;

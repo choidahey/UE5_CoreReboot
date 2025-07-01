@@ -10,6 +10,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NavigationInvokerComponent.h"
+#include "CR4S.h"
 
 ARegionBossMonster::ARegionBossMonster()
 	: MyHeader(TEXT("RegionBossMonster"))
@@ -34,6 +35,7 @@ void ARegionBossMonster::BeginPlay()
 	if (UMonsterStateComponent* StateComp = FindComponentByClass<UMonsterStateComponent>())
 	{
 		StateComp->SetState(EMonsterState::Patrol);
+		StateComp->SetPhase(EBossPhase::Normal);
 		StateComp->OnPhaseChanged.AddUniqueDynamic(this, &ARegionBossMonster::HandlePhaseChanged);
 	}
 
@@ -121,29 +123,28 @@ FVector ARegionBossMonster::GetNextPatrolLocation()
 	return NextPoint;
 }
 
-const TArray<EApproachType>& ARegionBossMonster::GetApproachCandidates(int32 SkillIndex) const
+void ARegionBossMonster::Landed(const FHitResult& Hit)
 {
-	static TArray<EApproachType> Empty;
+	Super::Landed(Hit);
 
-	const FRegionSkillApproachEntry* Entry = SkillApproachList.FindByPredicate(
-		[SkillIndex](const FRegionSkillApproachEntry& E)
-		{
-			return E.SkillIndex == SkillIndex;
-		}
-	);
-
-	if (!Entry) return Empty;
-
-	return Entry->ApproachCandidates;
-}
-
-UEnvQuery* ARegionBossMonster::GetEQSByApproachType(EApproachType Type) const
-{
-	if (ApproachEQSMap.Contains(Type))
+	if (bJumpFromNotify)
 	{
-		return ApproachEQSMap[Type];
+		FHitResult GroundHit;
+		const FVector Start = GetActorLocation();
+		const FVector End = Start - FVector(0.f, 0.f, 2000.f);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		if (GetWorld()->LineTraceSingleByChannel(GroundHit, Start, End, ECC_Visibility, Params))
+		{
+			SetActorLocation(GroundHit.ImpactPoint);
+			UE_LOG(LogTemp, Log, TEXT("[JumpFix] Forced ground snap."));
+		}
 	}
-	return nullptr;
+
+	GetCharacterMovement()->StopMovementImmediately();
+	bJumpFromNotify = false;
 }
 
 void ARegionBossMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current)	 
@@ -166,6 +167,7 @@ void ARegionBossMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterS
 	case EMonsterState::Combat:
 		SetCombatStartLocation();
 		ShowCombatRange();
+		AttributeComponent->InitializeMonsterAttribute(MonsterID);
 		break;
 	case EMonsterState::Return:
 		if (Previous == EMonsterState::Combat)
@@ -187,7 +189,29 @@ void ARegionBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
 	{
 		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
 		{
-			BB->SetValueAsInt(TEXT("CurrentPhase"), static_cast<int32>(NewPhase));
+			BB->SetValueAsEnum(FRegionBossAIKeys::CurrentPhase, static_cast<int32>(NewPhase));
+			BB->SetValueAsInt(FRegionBossAIKeys::CurrentPatternID, 0);
+			BB->SetValueAsInt(FRegionBossAIKeys::PatternStepIndex, 0);
 		}
 	}
+
+	if (!AttributeComponent || !StateComponent) return;
+
+	if (NewPhase == EBossPhase::Normal)
+	{
+		AttributeComponent->InitializeMonsterAttribute(MonsterID);
+	}
+	else
+	{
+		const float BaseSpeed = AttributeComponent->GetMonsterAttribute().MoveSpeed;
+		const float SpeedMultiplier = StateComponent->GetCurrentSpeedMultiplier();
+
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->MaxWalkSpeed = BaseSpeed * SpeedMultiplier;
+		}
+	}
+
+	UE_LOG(LogMonster, Log, TEXT("[%s] HandlePhaseChanged : Current phase changed to %s"), *MyHeader,
+		*UEnum::GetDisplayValueAsText(NewPhase).ToString());
 }

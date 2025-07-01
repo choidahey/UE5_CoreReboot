@@ -23,10 +23,10 @@ public:
 #pragma endregion
 
 #pragma region Initialize
-	
-private:
+public:
 	void InitComponent();
 	
+private:
 	UPROPERTY()
 	TObjectPtr<APlayerController> OwnerPlayerController;
 
@@ -38,7 +38,9 @@ private:
 #pragma region Interaction
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StartDetectProcess();
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void StopDetectProcess();
 	
 	void ShowInteractionWidget() const;

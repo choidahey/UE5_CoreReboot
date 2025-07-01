@@ -4,40 +4,67 @@
 #include "Animation/AnimInstance.h"
 #include "FlyingAnimalAnimInstance.generated.h"
 
+class AAnimalFlying;
 
 UCLASS()
 class CR4S_API UFlyingAnimalAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-	
+
 public:
-	virtual void NativeUpdateAnimation(float DeltaSeconds);
-	
-public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bFlapFast : 1;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bFlyingDownward : 1;
+	UFlyingAnimalAnimInstance();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bIdleLoop : 1;
+protected:
+	virtual void NativeBeginPlay() override;
+	virtual void NativeUpdateAnimation(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bIsWalking : 1;
+	UPROPERTY()
+	AAnimalFlying* OwningAnimal;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bIsFlying : 1;
+	// State Transition Parameters
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool AreWeWalking = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bIsAir : 1;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool AreWeFlying = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float WalkingSpeed = 0.f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool PlayIdleLoop = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float Direction = 0.f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool IsInAir = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 RandomIdleAnim = 0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool PlayTakeOffAnimation = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool FlyToPerch = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool LandOnPerch = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	bool AreWePerched = false;
+
+	// Movement Parameters
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float Direction = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float WalkingSpeed = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	int32 RandomIdleAnimation = 0;
+
+	// Flying Parameters
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Flying")
+	bool FlapFast = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Flying")
+	bool FlyingDownward = false;
+
+private:
+	void UpdateMovementParameters();
+	void UpdateStateParameters();
+	void UpdateFlyingParameters();
 };

@@ -1,6 +1,7 @@
 ﻿#include "PlayerInventoryComponent.h"
 
 #include "CR4S.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
@@ -8,16 +9,16 @@
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
 	: InventoryContainerWidgetOrder(20),
-	  HeldToolTag(FGameplayTag())
+	  HeldToolTag(FGameplayTag::EmptyTag)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
 	MaxInventorySize = 50;
 }
 
-void UPlayerInventoryComponent::BeginPlay()
+void UPlayerInventoryComponent::InitInventory()
 {
-	Super::BeginPlay();
+	Super::InitInventory();
 
 	QuickSlotInventoryComponent = NewObject<UBaseInventoryComponent>(this);
 	QuickSlotInventoryComponent->SetMaxInventorySize(10);
@@ -36,9 +37,7 @@ void UPlayerInventoryComponent::BeginPlay()
 		return;
 	}
 
-	InventoryContainerWidgetInstance = SurvivalHUD->CreateAndAddWidget(InventoryContainerWidgetClass,
-	                                                                   0,
-	                                                                   ESlateVisibility::Visible);
+	InventoryContainerWidgetInstance = SurvivalHUD->GetInventoryContainerWidget();
 
 	if (CR4S_VALIDATE(LogInventory, IsValid(InventoryContainerWidgetInstance)))
 	{
@@ -48,9 +47,10 @@ void UPlayerInventoryComponent::BeginPlay()
 	AddItem(FName("StoneAxe"), 1);
 }
 
-FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count)
+FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count,
+                                                  UBaseInventoryItem* OriginItem)
 {
-	const FAddItemResult Result = Super::AddItem(RowName, Count);
+	const FAddItemResult Result = Super::AddItem(RowName, Count, OriginItem);
 
 	if (!Result.bSuccess ||
 		Result.RemainingCount <= 0)
@@ -58,14 +58,58 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 		return Result;
 	}
 
-	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount);
+	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount, OriginItem);
+}
+
+int32 UPlayerInventoryComponent::RemoveItemByRowName(const FName RowName, const int32 Count)
+{
+	int32 RemainingCount = Super::RemoveItemByRowName(RowName, Count);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		RemainingCount = QuickSlotInventoryComponent->RemoveItemByRowName(RowName, RemainingCount);
+	}
+
+	return RemainingCount;
+}
+
+void UPlayerInventoryComponent::RemoveAllItemByRowName(const FName RowName)
+{
+	Super::RemoveAllItemByRowName(RowName);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		QuickSlotInventoryComponent->RemoveAllItemByRowName(RowName);
+	}
+}
+
+int32 UPlayerInventoryComponent::GetItemCountByRowName(const FName RowName) const
+{
+	int32 Count = Super::GetItemCountByRowName(RowName);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		Count += QuickSlotInventoryComponent->GetItemCountByRowName(RowName);
+	}
+
+	return Count;
 }
 
 UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWidget() const
 {
 	if (IsValid(InventoryContainerWidgetInstance))
 	{
-		return InventoryContainerWidgetInstance->GetPlanterBoxInventoryWidget(); 
+		return InventoryContainerWidgetInstance->GetPlanterBoxInventoryWidget();
+	}
+
+	return nullptr;
+}
+
+URobotInventoryWidget* UPlayerInventoryComponent::GetRobotInventoryWidget() const
+{
+	if (IsValid(InventoryContainerWidgetInstance))
+	{
+		return InventoryContainerWidgetInstance->GetRobotInventoryWidget();
 	}
 
 	return nullptr;
@@ -96,9 +140,14 @@ void UPlayerInventoryComponent::OpenPlayerInventoryWidget(const int32 CraftingDi
 	}
 
 	InventoryContainerWidgetInstance->OpenPlayerInventoryWidget(true, CraftingDifficulty);
+
+	if (OnInventoryOpen.IsBound())
+	{
+		OnInventoryOpen.Broadcast();
+	}
 }
 
-void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EInventoryType InventoryType,
+void UPlayerInventoryComponent::OpenOtherInventoryWidget(const EOpenWidgetType InventoryType,
                                                          UBaseInventoryComponent* InventoryComponent) const
 {
 	if (!PrepareOpenInventory())
@@ -117,17 +166,17 @@ void UPlayerInventoryComponent::CloseInventoryWidget() const
 		return;
 	}
 
+	if (OnInventoryClose.IsBound())
+	{
+		OnInventoryClose.Broadcast();
+	}
+
 	InventoryContainerWidgetInstance->CloseInventoryWidget();
 
 	InteractionComponent = OwnerActor->FindComponentByClass<UInteractionComponent>();
 	if (IsValid(InteractionComponent))
 	{
 		InteractionComponent->StartDetectProcess();
-	}
-
-	if (OnInventoryClosed.IsBound())
-	{
-		OnInventoryClosed.Broadcast();
 	}
 }
 
@@ -148,5 +197,27 @@ void UPlayerInventoryComponent::UseItem(const int32 Index) const
 		{
 			Item->UseItem(Index);
 		}
+	}
+}
+
+void UPlayerInventoryComponent::GetPlayerInventorySaveGame(FInventorySaveGame& OutPlayerInventorySaveGame,
+                                                           FInventorySaveGame& OutQuickSlotSaveGame)
+{
+	OutPlayerInventorySaveGame = Super::GetInventorySaveGame();
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		OutQuickSlotSaveGame = QuickSlotInventoryComponent->GetInventorySaveGame();
+	}
+}
+
+void UPlayerInventoryComponent::LoadPlayerInventorySaveGame(const FInventorySaveGame& PlayerInventorySaveGame,
+                                                            const FInventorySaveGame& QuickSlotSaveGame)
+{
+	Super::LoadInventorySaveGame(PlayerInventorySaveGame);
+
+	if (IsValid(QuickSlotInventoryComponent))
+	{
+		QuickSlotInventoryComponent->LoadInventorySaveGame(QuickSlotSaveGame);
 	}
 }

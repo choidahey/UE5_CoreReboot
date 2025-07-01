@@ -11,7 +11,7 @@ UPlayerInputBufferComponent::UPlayerInputBufferComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	
 }
 
@@ -44,7 +44,7 @@ void UPlayerInputBufferComponent::ExecuteInputQueue() const
 	case EInputType::None:
 		break;
 	case EInputType::Attack:
-		if (!CR4S_ENSURE(LogHong1,CurrentTool)) return;
+		if (!CurrentTool) return;
 		CurrentTool->OnAttack();
 		break;
 	default:

@@ -1,12 +1,15 @@
 ﻿#include "InventoryContainerWidget.h"
 
 #include "CR4S.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
+#include "Game/System/AudioManager.h"
 #include "Gimmick/UI/CompostBinWidget.h"
-#include "Inventory/InventoryType.h"
+#include "Inventory/OpenWidgetType.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 #include "InventoryWidget/BaseInventoryWidget.h"
 #include "InventoryWidget/PlanterBoxInventoryWidget.h"
+#include "InventoryWidget/RobotInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -26,12 +29,12 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	PlayerInventoryComponent = InPlayerInventoryComponent;
 
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(SurvivalHUD)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlayerInventoryComponent)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(InputGuideContainer)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(CompostBinWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)))
 	{
 		return;
@@ -52,12 +55,11 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
 	RobotWorkshopWidget->InitWidget(SurvivalHUD, false);
-
+	
 	InitToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
 	InitToggleWidget(StorageInventoryWidget);
 	InitToggleWidget(PlanterBoxInventoryWidget);
-	InitToggleWidget(CompostBinWidget);
 	InitToggleWidget(CraftingContainerWidget);
 	InitToggleWidget(RobotWorkshopWidget);
 }
@@ -72,8 +74,11 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 		return;
 	}
 
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Open!"));
+
+	PlaySound(OpenSound);
+
 	BackgroundBorder->SetVisibility(ESlateVisibility::Visible);
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 	SurvivalHUD->ToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Visible);
 
@@ -88,9 +93,11 @@ void UInventoryContainerWidget::OpenPlayerInventoryWidget(const bool bOpenCrafti
 	{
 		ChangeWidgetOrder(PlayerInventoryComponent->GetInventoryContainerWidgetOrder());
 	}
+
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::UIOnly, this);
 }
 
-void UInventoryContainerWidget::OpenOtherInventoryWidget(const EInventoryType InventoryType,
+void UInventoryContainerWidget::OpenOtherInventoryWidget(const EOpenWidgetType InventoryType,
                                                          UBaseInventoryComponent* InventoryComponent)
 {
 	OpenPlayerInventoryWidget();
@@ -149,11 +156,17 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	bIsOpen = false;
 
+	UWidgetBlueprintLibrary::CancelDragDrop();
+
+	PlaySound(CloseSound);
+
+	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+
 	ChangeWidgetOrder(0);
 
-	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChanged.IsBound())
+	if (IsValid(OtherInventoryComponent) && OtherInventoryComponent->OnOccupiedSlotsChange.IsBound())
 	{
-		OtherInventoryComponent->OnOccupiedSlotsChanged.Clear();
+		OtherInventoryComponent->OnOccupiedSlotsChange.Clear();
 	}
 
 	if (IsValid(QuickSlotBarWidget) && QuickSlotBarWidget->GetVisibility() == ESlateVisibility::Collapsed)
@@ -173,6 +186,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 	UBaseInventoryWidget* OtherInventoryWidget = Cast<UBaseInventoryWidget>(OpenOtherWidget);
 	if (IsValid(OtherInventoryWidget))
 	{
+		OtherInventoryWidget->CloseSlotWidgets();
 		OtherInventoryWidget->UnBoundWidgetDelegate();
 	}
 
@@ -181,7 +195,7 @@ void UInventoryContainerWidget::CloseInventoryWidget()
 
 	BackgroundBorder->SetVisibility(ESlateVisibility::Collapsed);
 
-	SurvivalHUD->SetInputMode(ESurvivalInputMode::GameOnly, nullptr, false);
+	CR4S_Log(LogInventoryUI, Warning, TEXT("Inventory Close!"));
 }
 
 void UInventoryContainerWidget::ChangeWidgetOrder(const int32 NewOrder)
@@ -199,16 +213,15 @@ void UInventoryContainerWidget::InitToggleWidget(UUserWidget* Widget) const
 }
 
 UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
-	const EInventoryType InventoryType) const
+	const EOpenWidgetType OpenWidgetType) const
 {
 	UUserWidget* TargetWidget = nullptr;
 
-	switch (InventoryType)
+	switch (OpenWidgetType)
 	{
-	case EInventoryType::Player:
-	case EInventoryType::Greenhouse:
+	case EOpenWidgetType::Player:
 		return nullptr;
-	case EInventoryType::Storage:
+	case EOpenWidgetType::Storage:
 		{
 			if (IsValid(StorageInventoryWidget))
 			{
@@ -218,7 +231,7 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 			TargetWidget = StorageInventoryWidget;
 			break;
 		}
-	case EInventoryType::ItemPouch:
+	case EOpenWidgetType::ItemPouch:
 		{
 			if (IsValid(StorageInventoryWidget))
 			{
@@ -228,18 +241,33 @@ UUserWidget* UInventoryContainerWidget::GetTargetInventoryWidget(
 			TargetWidget = StorageInventoryWidget;
 			break;
 		}
-	case EInventoryType::PlantBox:
+	case EOpenWidgetType::PlantBox:
 		TargetWidget = PlanterBoxInventoryWidget;
 		break;
-	case EInventoryType::CompostBin:
-		TargetWidget = CompostBinWidget;
-		break;
-	case EInventoryType::RobotWorkshop:
+	case EOpenWidgetType::RobotWorkshop:
 		TargetWidget = RobotWorkshopWidget;
 		break;
 	}
 
 	return TargetWidget;
+}
+
+void UInventoryContainerWidget::PlaySound2D(USoundBase* Sound,
+                                            const float VolumeMultiplier,
+                                            const float PitchMultiplier,
+                                            const float StartTime) const
+{
+	const UGameInstance* GameInstance = GetGameInstance();
+	if (!CR4S_VALIDATE(LogGimmick, IsValid(GameInstance)))
+	{
+		return;
+	}
+
+	UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
+	if (IsValid(AudioManager))
+	{
+		AudioManager->PlayUISound(Sound, PitchMultiplier, StartTime);
+	}
 }
 
 FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
@@ -264,7 +292,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		return;
 	}
 
-	const UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
+	UBaseInventoryItem* Item = ItemSlot->GetCurrentItem();
 	if (!CR4S_VALIDATE(LogInventoryUI, IsValid(Item)))
 	{
 		return;
@@ -278,7 +306,7 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		                                                ? PlayerInventoryComponent
 		                                                : OtherInventoryComponent;
 
-	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount());
+	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount(), Item);
 
 	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }

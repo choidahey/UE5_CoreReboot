@@ -17,18 +17,14 @@ public:
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component", meta = (AllowPrivateAccess = "true"))
 	UAIJumpComponent* AIJumpComponent;
-	
-#pragma region Stun
-	
-public:
-	void ApplyStun(float Amount) override;
-	void RecoverFromStun() override;
-	
-#pragma endregion
 
 #pragma region Attack
-	
-	void PerformChargeAttack() override;
+	virtual float PlayAttackMontage() override;
+	virtual float PlayChargeAttackMontage() override;
+	virtual float PlayRangedAttackMontage() override;
+	virtual void ResetAttackFlag() override;
+	virtual void PerformMeleeAttack() override;
+	virtual void PerformChargeAttack() override;
 	
 #pragma endregion
 };

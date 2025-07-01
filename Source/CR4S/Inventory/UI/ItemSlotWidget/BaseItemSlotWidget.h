@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class UProgressBar;
 class UItemTooltipWidget;
 class UBaseInventoryWidget;
 class UInventoryContainerWidget;
@@ -32,7 +33,7 @@ public:
 
 public:
 	void InitSlotWidget(int32 NewSlotIndex);
-	virtual void InitSlotWidgetData(const UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem);
+	virtual void InitSlotWidgetData(UBaseInventoryWidget* NewInventoryWidget, UBaseInventoryItem* NewItem);
 
 	FORCEINLINE int32 GetSlotIndex() const { return SlotIndex; }
 	FORCEINLINE UBaseInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
@@ -57,7 +58,7 @@ protected:
 
 #pragma region BindWidget
 
-private:
+protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWidget> RootWidget;
 	UPROPERTY(meta = (BindWidget))
@@ -66,13 +67,31 @@ private:
 	TObjectPtr<UImage> IconImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> CountTextBlock;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UImage> FreshnessImage;
 
 #pragma endregion
+
+#pragma region Freshness
+
+private:
+	UFUNCTION()
+	void UpdateFreshness(const float Freshness);
+	void ResetFreshnessImage();
+	void BoundFreshnessDelegate();
+	void UnBoundFreshnessDelegate(UBaseInventoryItem* Item);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
+	FLinearColor MaxFreshnessColor = FLinearColor::Green;
+	UPROPERTY(EditDefaultsOnly, Category = "Freshness")
+	FLinearColor MinFreshnessColor = FLinearColor::Red;
+	
+#pragma endregion 
 
 #pragma region Item
 
 public:
-	void SetItem(UBaseInventoryItem* InItem);
+	virtual void SetItem(UBaseInventoryItem* InItem);
 
 	FORCEINLINE UBaseInventoryItem* GetCurrentItem() const { return CurrentItem; }
 
@@ -97,7 +116,6 @@ public:
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
 	                                  UDragDropOperation*& OutOperation) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
@@ -123,6 +141,8 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
+	bool bCanRightClick;
+	UPROPERTY(VisibleAnywhere, Category = "Input")
 	bool bCanRemoveItem;
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	bool bCanMoveItem;
@@ -130,24 +150,6 @@ protected:
 	static const TArray<FKey> QuickSlotKeys;
 	
 #pragma endregion
-
-#pragma region DivideItem
-	
-protected:
-	void OnShortClick();
-	void OnLongPressDetected();
-	void OnLongPress();
-	
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	float LongPressThreshold;
-	
-	FTimerHandle LongPressTimerHandle;
-	
-	double PressStartTime;
-	
-	bool bLongPressTriggered;
-	
-#pragma endregion 
 
 #pragma region ToolTip
 
@@ -169,5 +171,5 @@ private:
 	UPROPERTY()
 	TObjectPtr<UItemTooltipWidget> ItemTooltipWidget;
 
-#pragma endregion 
+#pragma endregion
 };

@@ -5,6 +5,8 @@
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "CR4S.h"
+#include "Character/Components/BaseStatusComponent.h"
+#include "GameFramework/Character.h"
 
 void UCharacterEnvironmentStatusWidget::NativeConstruct()
 {
@@ -18,51 +20,84 @@ void UCharacterEnvironmentStatusWidget::NativeTick(const FGeometry& MyGeometry, 
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (!bIsBoundToEnvironment && TryBindToPlayerCharacter())
-	{
-		bIsBoundToEnvironment = true;
-		UE_LOG(LogEnvironment, Warning, TEXT("Environment Status Widget Binded To Player Character"));
-	}
+	// if (!bIsBoundToEnvironment && TryBindToPlayerCharacter())
+	// {
+	// 	bIsBoundToEnvironment = true;
+	// 	UE_LOG(LogEnvironment, Warning, TEXT("Environment Status Widget Binded To Player Character"));
+	// }
 }
 
 
-bool UCharacterEnvironmentStatusWidget::TryBindToPlayerCharacter()
+// bool UCharacterEnvironmentStatusWidget::InitializeWidget(ACharacter* NewCharacter)
+// {
+// 	if (!CR4S_ENSURE(LogHong1,NewCharacter)) return false;
+//
+// 	CurrentCharacter=NewCharacter;
+// 	UEnvironmentalStatusComponent* EnvComp = NewCharacter->FindComponentByClass<UEnvironmentalStatusComponent>();
+// 	if (!CR4S_ENSURE(LogHong1,EnvComp)) return false;
+//
+// 	OnTemperatureChanged(EnvComp->GetCurrentTemperature());
+// 	OnHumidityChanged(EnvComp->GetCurrentHumidity());
+//
+// 	UBaseStatusComponent* StatusComp=NewCharacter->FindComponentByClass<UBaseStatusComponent>();
+// 	if (!CR4S_ENSURE(LogHong1,StatusComp)) return false;
+// 	
+// 	MinTempText->SetText(FText::AsNumber(StatusComp->GetColdThreshold()));
+// 	MaxTempText->SetText(FText::AsNumber(StatusComp->GetHeatThreshold()));
+// 	MinHuText->SetText(FText::AsNumber(0));
+// 	MaxHuText->SetText(FText::AsNumber(StatusComp->GetHumidityThreshold()));
+// 	
+// 	return true;
+// }
+
+void UCharacterEnvironmentStatusWidget::InitializeWidget(UBaseStatusComponent* InStatus)
 {
-	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (!PC) return false;
+	CachedStatusComp = InStatus;
+	InStatus->OnColdThresholdChanged.AddDynamic(this,&UCharacterEnvironmentStatusWidget::UpdateColdThreshold);
+	InStatus->OnHeatThresholdChanged.AddDynamic(this,&UCharacterEnvironmentStatusWidget::UpdateHeatThreshold);
+	InStatus->OnHumidityThresholdChanged.AddDynamic(this,&UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold);
 
-	APawn* Pawn = PC->GetPawn();
-	if (!Pawn) return false;
+	MinTempText->SetText(FText::AsNumber(CachedStatusComp->GetColdThreshold()));
+	MaxTempText->SetText(FText::AsNumber(CachedStatusComp->GetHeatThreshold()));
+	MaxHuText->SetText(FText::AsNumber(CachedStatusComp->GetHumidityThreshold()));
+}
 
-	UEnvironmentalStatusComponent* EnvComp = Pawn->FindComponentByClass<UEnvironmentalStatusComponent>();
-	if (!EnvComp) return false;
+void UCharacterEnvironmentStatusWidget::InitializeWidget(UEnvironmentalStatusComponent* InEnvStatus)
+{
+	CachedEnvironmentalStatusComp = InEnvStatus;
+	InEnvStatus->OnTemperatureChanged.AddDynamic(this, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
+	InEnvStatus->OnHumidityChanged.AddDynamic(this, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
 
-	EnvComp->OnTemperatureChanged.AddDynamic(this, &UCharacterEnvironmentStatusWidget::OnTemperatureChanged);
-	EnvComp->OnHumidityChanged.AddDynamic(this, &UCharacterEnvironmentStatusWidget::OnHumidityChanged);
+	OnTemperatureChanged(InEnvStatus->GetCurrentTemperature());
+	OnHumidityChanged(InEnvStatus->GetCurrentHumidity());
+}
 
-	OnTemperatureChanged(EnvComp->GetCurrentTemperature());
-	OnHumidityChanged(EnvComp->GetCurrentHumidity());
+void UCharacterEnvironmentStatusWidget::ClearBindingsToStatusComp()
+{
+	CachedStatusComp->OnColdThresholdChanged.RemoveAll(this);
+	CachedStatusComp->OnHeatThresholdChanged.RemoveAll(this);
+	CachedStatusComp->OnHumidityThresholdChanged.RemoveAll(this);
+	CachedStatusComp=nullptr;
+}
 
-	MinTempText->SetText(FText::AsNumber(EnvComp->GetMinTemperature()));
-	MaxTempText->SetText(FText::AsNumber(EnvComp->GetMaxTemperature()));
-	MinHuText->SetText(FText::AsNumber(EnvComp->GetMinHumidity()));
-	MaxHuText->SetText(FText::AsNumber(EnvComp->GetMaxHumidity()));
-
-	return true;
+void UCharacterEnvironmentStatusWidget::ClearBindingsToEnvStatusComp()
+{
+	CachedEnvironmentalStatusComp->OnTemperatureChanged.RemoveAll(this);
+	CachedEnvironmentalStatusComp->OnHumidityChanged.RemoveAll(this);
+	CachedEnvironmentalStatusComp=nullptr;
 }
 
 void UCharacterEnvironmentStatusWidget::OnTemperatureChanged(float NewTemperature)
 {
-	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (!PC) return;
-
-	APawn* Pawn = PC->GetPawn();
-	if (!Pawn) return;
-
-	UEnvironmentalStatusComponent* EnvComp = Pawn->FindComponentByClass<UEnvironmentalStatusComponent>();
-	if (EnvComp)
+	if (CachedEnvironmentalStatusComp && CachedStatusComp)
 	{
-		float NormalizedTemperature = (NewTemperature + 20.0f) / (30.0f + 20.0f);
+
+		float HeatThreshold=CachedStatusComp->GetHeatThreshold();
+		float ColdThreshold=CachedStatusComp->GetColdThreshold();
+
+		if (FMath::IsNearlyEqual(HeatThreshold,ColdThreshold)) return;
+		
+		float NormalizedTemperature = FMath::Clamp((NewTemperature -ColdThreshold) / (HeatThreshold - ColdThreshold),0,1);
 		TemperatureProgressBar->SetPercent(NormalizedTemperature);
 
 		FLinearColor ColdColor = FLinearColor(0.0f, 0.75f, 1.0f);
@@ -84,25 +119,59 @@ void UCharacterEnvironmentStatusWidget::OnTemperatureChanged(float NewTemperatur
 
 		TemperatureProgressBar->SetFillColorAndOpacity(InterpolatedColor);
 
-		int32 RoundedTemp = FMath::RoundToInt(EnvComp->GetCurrentTemperature());
+		int32 RoundedTemp = FMath::RoundToInt(CachedEnvironmentalStatusComp->GetCurrentTemperature());
 		CurrentTempText->SetText(FText::AsNumber(RoundedTemp));
 	}
 }
 
 void UCharacterEnvironmentStatusWidget::OnHumidityChanged(float NewHumidity)
 {
-	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (!PC) return;
+	if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp && CachedStatusComp)) return;
 
-	APawn* Pawn = PC->GetPawn();
-	if (!Pawn) return;
+	const float HumidityThreshold = CachedStatusComp->GetHumidityThreshold();
+	HumidityProgressBar->SetPercent(NewHumidity / HumidityThreshold);
 
-	UEnvironmentalStatusComponent* EnvComp = Pawn->FindComponentByClass<UEnvironmentalStatusComponent>();
-	if (EnvComp)
+	int32 RoundedHu = FMath::RoundToInt(NewHumidity);
+	CurrentHuText->SetText(FText::AsNumber(RoundedHu));
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateColdThreshold(float NewThreshold)
+{
+	MinTempText->SetText(FText::AsNumber(NewThreshold));
+	if (CachedEnvironmentalStatusComp)
 	{
-		HumidityProgressBar->SetPercent(NewHumidity / 100.0f);
-
-		int32 RoundedHu = FMath::RoundToInt(EnvComp->GetCurrentHumidity());
-		CurrentHuText->SetText(FText::AsNumber(RoundedHu));
+		OnTemperatureChanged(CachedEnvironmentalStatusComp->GetCurrentTemperature());
 	}
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateHeatThreshold(float NewThreshold)
+{
+	MaxTempText->SetText(FText::AsNumber(NewThreshold));
+	if (CachedEnvironmentalStatusComp)
+	{
+		OnTemperatureChanged(CachedEnvironmentalStatusComp->GetCurrentTemperature());
+	}
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold(float NewThreshold)
+{
+	MaxHuText->SetText(FText::AsNumber(NewThreshold));
+	if (CachedEnvironmentalStatusComp)
+	{
+		OnHumidityChanged(CachedEnvironmentalStatusComp->GetCurrentHumidity());
+	}
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateTemperatureProgressBar()
+{
+	if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp)) return;
+
+	OnTemperatureChanged(CachedEnvironmentalStatusComp->GetCurrentTemperature());
+}
+
+void UCharacterEnvironmentStatusWidget::UpdateHumidityProgressBar()
+{
+    if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp)) return;
+    
+    OnHumidityChanged(CachedEnvironmentalStatusComp->GetCurrentHumidity());
 }

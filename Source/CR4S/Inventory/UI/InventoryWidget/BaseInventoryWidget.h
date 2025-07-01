@@ -60,6 +60,9 @@ protected:
 
 #pragma region ItemSlotWidget
 
+public:
+	virtual void CloseSlotWidgets();
+	
 protected:
 	UFUNCTION()
 	virtual void UpdateItemSlotWidget(int32 SlotIndex, UBaseInventoryItem* Item);
@@ -88,17 +91,17 @@ public:
 
 protected:
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, Category = "Input")
 	bool bCanSort;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, Category = "Input")
 	bool bCanDrag;
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, Category = "Input")
 	bool bCanDrop;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, Category = "Input")
 	bool bCanRemoveItem;
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, Category = "Input")
 	bool bCanMoveItem;
 
 #pragma endregion

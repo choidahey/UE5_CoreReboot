@@ -1,7 +1,7 @@
 #include "MonsterAttributeComponent.h"
 #include "CR4S/MonsterAI/Data/MonsterAttributeRow.h"
 #include "CR4S/MonsterAI/Data/MonsterDataSubsystem.h"
-
+#include "MonsterAI/Components/MonsterStateComponent.h"
 
 UMonsterAttributeComponent::UMonsterAttributeComponent()
 	: MyHeader(TEXT("MonsterAttrComp"))
@@ -57,6 +57,11 @@ void UMonsterAttributeComponent::ChangeHP(float Delta)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + Delta, 0.0f, CurrentAttribute.MaxHP);
 	
+	if (UMonsterStateComponent* StateComp = GetOwner()->FindComponentByClass<UMonsterStateComponent>())
+	{
+		StateComp->CheckPhaseTransition(CurrentHP, CurrentAttribute.MaxHP);
+	}
+
 	if (IsDead())
 	{
 		if (OnDeath.IsBound())
@@ -69,6 +74,12 @@ void UMonsterAttributeComponent::ChangeHP(float Delta)
 bool UMonsterAttributeComponent::IsDead() const
 {
 	return CurrentHP <= 0.0f;
+}
+
+void UMonsterAttributeComponent::SetCurrentHP(const float NewHealth)
+{
+	const float Delta = NewHealth - CurrentHP;
+	ChangeHP(Delta);
 }
 
 

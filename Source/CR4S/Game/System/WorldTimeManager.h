@@ -19,6 +19,11 @@ struct FWorldTimeData
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Second = 0;
+
+	FString ToString() const
+	{
+		return FString::Printf(TEXT("%02d Days %02d Minutes %02d Seconds"), Day, Minute, Second);
+	}
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWorldTimeUpdated, int64, PlayTime);
@@ -31,14 +36,18 @@ class CR4S_API UWorldTimeManager : public UWorldSubsystem
 
 
 
-#pragma region Getters & Setters & Subsystem Setup
+#pragma region Getters & Setters
 public:
 	FORCEINLINE FWorldTimeData GetCurrentTimeData() const { return CurrentTimeData; }
 	FORCEINLINE int64 GetTotalPlayTime() const { return TotalPlayTime; }
 	FORCEINLINE int32 GetDayCycleLength() const { return DayCycleLength; }
 
 	FORCEINLINE void SetWorldTimeMultiplier(int32 Multiplier) { WorldTimeMultiplier = Multiplier; }
-
+	FORCEINLINE void SetTotalPlayTime(int64 Time) { TotalPlayTime = Time; }
+	FORCEINLINE void SetDayCycleLength(int32 Length) { DayCycleLength = Length ; }
+	
+	FString CalculateSecondToStr(int64 Time) const;
+	void SetWorldTime(FWorldTimeData NewTimeData);
 
 
 #pragma endregion
@@ -63,19 +72,14 @@ public:
 
 #pragma endregion
 
-#pragma region Load
-
-
-	void LoadTimeData();
-
-#pragma endregion
-
 #pragma region Internal Time Logic
+public:
+	void UpdateTimeWidget();
 protected:
 
 	void UpdateTime();
 	void AdvanceSkyTime(int32 Min, int32 Sec);
-	void UpdateTimeWidget();
+
 
 #pragma endregion
 

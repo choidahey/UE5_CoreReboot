@@ -7,6 +7,11 @@
 #include "NiagaraFunctionLibrary.h"
 #include "FriendlyAI/AnimalMonster.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterAI/Components/MonsterAttributeComponent.h"
+#include "MonsterAI/Components/MonsterStateComponent.h"
+#include "Utility/CombatStatics.h"
+#include "Utility/NiagaraParamHelper.h"
+#include "CR4S.h"
 
 ABaseSkillActor::ABaseSkillActor()
 {
@@ -29,15 +34,36 @@ void ABaseSkillActor::BeginPlay()
 	Super::BeginPlay();
 	InitializeSkillData();
 
+	PlaySkillSound(LaunchSkillSound);
+
+}
+
+void ABaseSkillActor::PlaySkillSound(USoundBase* Sound)
+{
+	if (!Sound) return;
+
+	if (UAudioManager* AudioMgr = GetWorld()->GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioMgr->PlaySFX(Sound, GetActorLocation(), StartSoundType);
+	}
 }
 
 void ABaseSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	FVector HitLocation = OtherActor ? OtherActor->GetActorLocation() : GetActorLocation();
+	PlayEffectAtLocation(HitLocation);
+	PlaySoundAtLocation(HitLocation);
+	
+	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
 
 void ABaseSkillActor::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	PlayEffectAtLocation(Hit.Location);
+	PlaySoundAtLocation(Hit.Location);
+	
+	if (OtherComp && OtherComp->GetCollisionObjectType() == ECC_WorldStatic) return;
 	ApplyEffectToActor(OtherActor);
 }
 
@@ -55,19 +81,59 @@ void ABaseSkillActor::InitializeSkillData()
 	}
 }
 
+void ABaseSkillActor::ApplyInitialOverlapDamage()
+{
+	if (!IsValid(CollisionComp)) return;
+
+	TArray<AActor*> OverlappingActors;
+	CollisionComp->GetOverlappingActors(OverlappingActors);
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		ApplyEffectToActor(Actor);
+	}
+}
+
 void ABaseSkillActor::ApplyEffectToActor(AActor* Target)
 {
 	if (!IsValid(Target) || Target == GetOwner() || Target == GetInstigator()) return;
 	if (Cast<ABaseMonster>(Target) || Cast<AAnimalMonster>(Target) || Cast<ABaseSkillActor>(Target)) return;
 	if (!bAllowMultipleHits && AlreadyDamaged.Contains(Target)) return;
 
+	if (UMonsterStateComponent* StateComp = Target->FindComponentByClass<UMonsterStateComponent>())
+		bIsStunned = StateComp->IsStunned();
+
+	if (UMonsterAttributeComponent* AttrComp = Target->FindComponentByClass<UMonsterAttributeComponent>())
+	{
+		const FMonsterAttributeRow& AttrData = AttrComp->GetMonsterAttribute();
+		StunDamageMultiplier = AttrData.StunDamageMultiplier;
+	}
+	
 	if (Damage > 0.f)
 	{
+		if (bIsStunned && StunDamageMultiplier > 0.f)
+			Damage *= StunDamageMultiplier;
+
 		UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+
+#if WITH_EDITOR
+		const FString AttackerName = GetOwner() ? GetOwner()->GetName() : TEXT("UnknownOwner");
+		const FString SkillName = GetName();
+		const FString VictimName = Target->GetName();
+
+		UE_LOG(LogMonster, Log, TEXT("[SkillHit] %s used %s on %s �� Damage: %.1f, Stun: %.1f"),
+			*AttackerName,
+			*SkillName,
+			*VictimName,
+			Damage,
+			StunGaugeAmount
+		);
+#endif
+
 	}
 
-	// TODO: 
-	// Target->ApplyStuntGauge(StuntGauge);
+	if (Target->GetClass()->ImplementsInterface(UStunnableInterface::StaticClass()))
+		UCombatStatics::ApplyStun(Target, StunGaugeAmount);
 
 	AlreadyDamaged.Add(Target);
 
@@ -85,9 +151,33 @@ void ABaseSkillActor::PlayEffectAtLocation(const FVector& Location)
 
 void ABaseSkillActor::PlaySoundAtLocation(const FVector& Location)
 {
-	if (HitSound)
+	// if (HitSound)
+	// {
+	// 	UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
+	// }
+
+	if (!IsValid(HitSound)) return;
+	
+	if (UWorld* World = GetWorld())
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location);
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UAudioManager* AudioMgr = GI->GetSubsystem<UAudioManager>())
+			{
+				AudioMgr->PlaySFX(HitSound, GetActorLocation(), StartSoundType);
+			}
+		}
 	}
 }
 
+void ABaseSkillActor::SpawnEffectAtLocationWithParams(UNiagaraSystem* System, const FVector& Location, const FNiagaraParamSet& Params)
+{
+	if (!System) return;
+
+	UNiagaraComponent* SpawnedNiagara = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, System, Location);
+
+	if (SpawnedNiagara)
+	{
+		UNiagaraParamUtils::ApplyParams(SpawnedNiagara, Params);
+	}
+}

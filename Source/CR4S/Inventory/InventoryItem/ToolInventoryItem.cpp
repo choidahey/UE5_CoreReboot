@@ -4,6 +4,7 @@
 #include "Character/Characters/PlayerCharacter.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UToolInventoryItem::UToolInventoryItem()
 {
@@ -13,10 +14,16 @@ UToolInventoryItem::UToolInventoryItem()
 }
 
 void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
-										   const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
+                                           const FInventoryItemData& NewInventoryItemData, const int32 StackCount)
 {
 	Super::InitInventoryItem(NewInventoryComponent, NewInventoryItemData, StackCount);
 
+	const AActor* PlayerCharacter = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass());
+	if (IsValid(PlayerCharacter))
+	{
+		PlayerInventoryComponent = PlayerCharacter->FindComponentByClass<UPlayerInventoryComponent>();
+	}
+	
 	const UDataTable* DataTable = NewInventoryItemData.ItemInfoData.DetailData.DataTable;
 	if (!CR4S_VALIDATE(LogInventory, IsValid(DataTable)))
 	{
@@ -28,18 +35,16 @@ void UToolInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventory
 	{
 		ToolItemData = *FindItemData;
 	}
+
+	if (IsValid(OwnerPlayer))
+	{
+		StatusComponent = OwnerPlayer->FindComponentByClass<UBaseStatusComponent>();
+	}
 }
 
 void UToolInventoryItem::UseItem(const int32 Index)
 {
 	Super::UseItem(Index);
-
-	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
-	{
-		return;
-	}
-
-	CR4S_Log(LogInventory, Warning, TEXT("%s"), *OwnerPlayer->GetOverlayMode().ToString());
 
 	if (OwnerPlayer->GetOverlayMode() == ToolItemData.ToolTag)
 	{
@@ -53,20 +58,21 @@ void UToolInventoryItem::UseItem(const int32 Index)
 
 void UToolInventoryItem::EquipItem() const
 {
-	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
+	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
+		IsValid(PlayerInventoryComponent))
 	{
-		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
 		PlayerInventoryComponent->SetHeldToolTag(ToolItemData.ToolTag);
-
+		OwnerPlayer->SetCurrentToolByTag(ToolItemData.ToolTag);
 	}
 }
 
 void UToolInventoryItem::UnEquipItem() const
 {
-	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)))
+	if (CR4S_VALIDATE(LogInventory, IsValid(OwnerPlayer)) &&
+		IsValid(PlayerInventoryComponent) &&
+		PlayerInventoryComponent->GetHeldToolTag() != FGameplayTag::EmptyTag)
 	{
+		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag::EmptyTag);
 		OwnerPlayer->SetCurrentToolByTag(DefaultTag);
-		PlayerInventoryComponent->SetHeldToolTag(FGameplayTag());
-
 	}
 }

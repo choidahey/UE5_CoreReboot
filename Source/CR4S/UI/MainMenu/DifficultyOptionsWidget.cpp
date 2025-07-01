@@ -4,6 +4,7 @@
 #include "UI/Common/BaseWindowWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Button.h"
+#include "Game/System/AudioManager.h"
 
 void UDifficultyOptionsWidget::NativeConstruct()
 {
@@ -54,9 +55,11 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 		LoadingWidgetInstance = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
 	}	
 
-	if (MainMenuWidgetRef)
+	if (UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>())
 	{
-		MainMenuWidgetRef->FadeOutBGM(1.0f); // 1초 페이드 아웃
+
+		AudioManager->StopBGM();
+
 	}
 
 
@@ -67,14 +70,14 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
 		this,
-		&UDifficultyOptionsWidget::OpenSurvivalLevel,
+		&UDifficultyOptionsWidget::OpenInGameLevel,
 		1.0f,
 		false
 	);
 }
 
 
-void UDifficultyOptionsWidget::OpenSurvivalLevel()
+void UDifficultyOptionsWidget::OpenInGameLevel()
 {
-	UGameplayStatics::OpenLevel(this, FName("SurvivalLevel_1"));
+	UGameplayStatics::OpenLevel(this, FName("MainMap"));
 }

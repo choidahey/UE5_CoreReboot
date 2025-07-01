@@ -1,16 +1,17 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "IngredientWidget.h"
+#include "IngredientsWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "Gimmick/Data/ItemData.h"
 #include "Gimmick/Data/ItemRecipeData.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 
 #include "CraftingWidget.generated.h"
 
-struct FRecipeIngredient;
-class UButton;
 struct FRecipeSelectData;
-class UIngredientWidget;
+class UButton;
+class UIngredientsWidget;
 class UCraftingContainerWidget;
 class UTextBlock;
 class UImage;
@@ -20,14 +21,24 @@ class CR4S_API UCraftingWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+#pragma region UUserWidget Override
+
+public:
+	UCraftingWidget(const FObjectInitializer& ObjectInitializer);
+
+	virtual void NativeConstruct() override;
+	
+#pragma endregion 
+	
 #pragma region Initialize
 
 public:
-	void InitWidget(UCraftingContainerWidget* NewCraftingContainerWidget);
+	void InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent);
+	void UpdateResultItem() const;
 
 private:
 	UPROPERTY()
-	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
+	TObjectPtr<UPlayerInventoryComponent> PlayerInventoryComponent;
 
 #pragma endregion
 
@@ -54,21 +65,55 @@ private:
 	TObjectPtr<UPanelWidget> IngredientsContainer;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UIngredientWidget>> IngredientWidgets;
+	TArray<TObjectPtr<UIngredientsWidget>> IngredientWidgets;
 
 #pragma endregion
 
 #pragma region Crafting
+
+public:
+	void CreateResultItem(const FGameplayTagContainer& ItemTags);
 	
 private:
 	UFUNCTION()
 	void CraftItem();
-	
-	bool bCanCraft = false;
 
-	FItemRecipeData ItemRecipeData = FItemRecipeData();
+	void PlayCraftingSound() const;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Crafitng|Sound")
+	TObjectPtr<USoundBase> CraftingSound;
+	
+	bool bCanCraft;
+	
+	FItemRecipeData ItemRecipeData;
 
 	TArray<FIngredientData> CurrentIngredients;
+
+	UPROPERTY()
+	TObjectPtr<UBaseInventoryItem> ResultItem;
 	
 #pragma endregion
+
+#pragma region Tooltip
+
+private:
+	UFUNCTION()
+	UWidget* ShowToolTip();
+
+	UPROPERTY(EditDefaultsOnly, Category = "ItemTooltip")
+	TSubclassOf<UItemTooltipWidget> ItemTooltipWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UItemTooltipWidget> ItemTooltipWidget;
+	
+#pragma endregion 
+
+#pragma region Delegate
+
+public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCraftingComplete);
+	UPROPERTY(BlueprintAssignable, Category = "Crafting")
+	FOnCraftingComplete OnCraftingComplete;
+	
+#pragma endregion 
 };

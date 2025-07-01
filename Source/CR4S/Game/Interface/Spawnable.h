@@ -3,7 +3,7 @@
 #include "UObject/Interface.h"
 #include "Spawnable.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnDied, AActor*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSpawnableDestroyed, AActor*);
 
 UINTERFACE(MinimalAPI)
 class USpawnable : public UInterface 
@@ -16,5 +16,5 @@ class CR4S_API ISpawnable
 	GENERATED_BODY()
 
 public:
-	virtual FOnDied* GetOnDiedDelegate() = 0;
+	virtual FOnSpawnableDestroyed* GetOnSpawnableDestroyedDelegate() = 0;
 };

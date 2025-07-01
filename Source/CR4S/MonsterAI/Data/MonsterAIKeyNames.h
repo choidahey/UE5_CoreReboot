@@ -20,18 +20,31 @@ struct FRegionBossAIKeys : public FAIKeys
 {
 	static const FName CombatStartLocation;
 	static const FName PatrolTargetLocation;
-	static const FName SkillTargetLocation;
-	static const FName MoveSpeedScale;
-	static const FName ApproachType;
 	static const FName CurrentPhase;
 	static const FName ShouldReturn;
 	static const FName LastIdleBoredTime;
+	static const FName SkillTargetLocation;
+	static const FName CurrentPatternID;
+	static const FName PreviousPatternID;
+	static const FName PatternStepIndex;
+	static const FName AttackType;
 };
 
 struct FSeasonBossAIKeys : public FAIKeys
 {
 	static const FName NearestHouseActor;
-	static const FName bIsIceRoadForward;
-	static const FName bIsDashAway;
-	static const FName bIsDashForward;
+	static const FName HouseAcceptRadius;
+	static const FName PlayerAcceptRadius;
+	static const FName CurrentDistance;
+	static const FName CurrentHP;
+	static const FName AttackType;
+	static const FName CurrentSkillRange;
+	static const FName MeleeOptimalDistance;
+	static const FName RangedOptimalDistance;
+	static const FName TeleportLocation;
+	static const FName SelectedComboKey;
+	static const FName SpecialPatternKey;
+	static const FName bIsDashing;
+	static const FName CurrentPhase;
+	static const FName bIsPlayedBerserkAnim;
 };

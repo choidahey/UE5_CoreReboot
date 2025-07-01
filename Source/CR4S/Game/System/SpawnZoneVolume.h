@@ -1,25 +1,48 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Game/System/SeasonManager.h"
 #include "SpawnZoneVolume.generated.h"
 
 class USceneComponent;
 class USplineComponent;
 class USpawnZoneManager;
 
+UENUM(BlueprintType)
+enum class ESpawnerType : uint8
+{
+    Creature         UMETA(DisplayName = "Creature"),
+    Crop            UMETA(DisplayName = "Crop"),
+    None            UMETA(DisplayName = "None")
+    //Resource        UMETA(DisplayName = "Resource"),       
+    //Item            UMETA(DisplayName = "Item"),           
+    //Structure       UMETA(DisplayName = "Structure"),      
+    //Decoration      UMETA(DisplayName = "Decoration"),     
+};
+
+
 USTRUCT(BlueprintType)
 struct FSpawnClassInfo
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
+    UPROPERTY(EditAnywhere, Category = "Spawn")
     TSubclassOf<AActor> SpawnClass;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
+    UPROPERTY(EditAnywhere, Category = "Spawn")
     int32 SpawnCount = 1;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-    float RespawnTime = 5.0f;
+    UPROPERTY(EditAnywhere, Category = "Spawn")
+    bool bEnableRespawn = true;
+   
+    UPROPERTY(EditAnywhere, Category = "Spawn", meta = (EditCondition = "bEnableRespawn"))
+    float RespawnTime = 20.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Spawn")
+    bool bEnableSpawnRate = true;
+
+    UPROPERTY(EditAnywhere, Category = "Spawn", meta = (EditCondition = "bEnableSpawnRate"))
+    float SpawnRate = 2.0f;
 };
 
 
@@ -34,6 +57,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 #pragma endregion
 
@@ -48,8 +72,17 @@ public:
     UPROPERTY(VisibleAnywhere)
     USplineComponent* SplineComponent;
 
-    UPROPERTY(EditAnywhere, Category = "Spawn")
-    TArray<FSpawnClassInfo> ActorClasses;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Spawner")
+    ESpawnerType SpawnerType = ESpawnerType::None;
+
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> BountifulSeasonSpawns;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> FrostSeasonSpawns;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> RainySeasonSpawns;
+    UPROPERTY(EditAnywhere, Category = "Spawn|Actor")
+    TArray<FSpawnClassInfo> DrySeasonSpawns;
 
     UPROPERTY(EditAnywhere) //Used in Fallback
     float SpawnHeight = 100.f;
@@ -64,6 +97,8 @@ public:
 
     TArray<FVector2D> GetPolygonFromSpline() const;
 
+
+
 #if WITH_EDITOR
     void DrawDebugLines();
 #endif
@@ -73,7 +108,11 @@ public:
 #pragma region Spawn, Despawn and Respawn
 
 public:
+    void SetZoneActive(bool bNewActive);
+
     void SpawnActorsInZone();
+    void SpawnCreatures();
+    void SpawnCrops();
     void DespawnActorsInZone();
 
 protected:
@@ -81,14 +120,22 @@ protected:
     void HandleActorDeath(AActor* Actor);
     UFUNCTION()
     void RespawnActor(TSubclassOf<AActor> ActorClass);
+    UFUNCTION()
+    void OnSeasonChanged(ESeasonType Season);
 
-    AActor* SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass, const FVector& Location);
+    void UpdateSeasonSpawns(ESeasonType Season);
+
+    AActor* SpawnActorsAndTrack(TSubclassOf<AActor> SpawnClass, const FVector& Location);
     bool TryGetGroundSpawnLocation(const FVector2D& Point2D, FVector& OutLocation) const;
 
     UPROPERTY()
     TArray<TWeakObjectPtr<AActor>> SpawnedActors;
 
+    UPROPERTY()
+    TArray<FTimerHandle> SpawnedTimers;
+
 	USpawnZoneManager* SpawnZoneManager = nullptr;
+    const TArray<FSpawnClassInfo>* SeasonSpawns = nullptr;
 
 private:
     bool bIsZoneActive = false;

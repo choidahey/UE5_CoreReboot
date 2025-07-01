@@ -11,21 +11,13 @@ AIceSpike::AIceSpike()
 	
 	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionComp"));
 	CollisionComp->SetupAttachment(RootComponent);
-	if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(CollisionComp))
-	{
-		CapsuleComp->InitCapsuleSize(50.f, 50.f);
-	}
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionComp->SetCollisionObjectType(ECC_WorldDynamic);
 	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	CollisionComp->SetGenerateOverlapEvents(true);
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AIceSpike::OnOverlap);
-
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComp"));
-	StaticMeshComp->SetupAttachment(RootComponent);
-	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	InitialLifeSpan = LifeTime;
+	
+	StaticMesh->SetupAttachment(RootComponent);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AIceSpike::BeginPlay()
@@ -36,12 +28,13 @@ void AIceSpike::BeginPlay()
 }
 void AIceSpike::Launch()
 {
-	if (!StaticMeshComp || !CollisionComp) return;
+	if (!CollisionComp) return;
 	
-	InitialOffset = StaticMeshComp->GetRelativeLocation();
+	InitialOffset = StaticMesh->GetRelativeLocation();
 	TargetOffset = InitialOffset + FVector(0, 0, 0);
 	ElapsedRise = 0.f;
 	bRising = true;
+	SetLifeSpan(LifeTime);
 }
 
 void AIceSpike::Tick(float DeltaTime)
@@ -54,7 +47,7 @@ void AIceSpike::Tick(float DeltaTime)
 	const float Alpha = FMath::Clamp(ElapsedRise / RiseDuration, 0.f, 1.f);
 
 	const FVector NewOffset = FMath::Lerp(InitialOffset, TargetOffset, Alpha);
-	StaticMeshComp->SetRelativeLocation(NewOffset);
+	StaticMesh->SetRelativeLocation(NewOffset);
 	CollisionComp->SetRelativeLocation(NewOffset);
 
 	if (Alpha >= 1.f)

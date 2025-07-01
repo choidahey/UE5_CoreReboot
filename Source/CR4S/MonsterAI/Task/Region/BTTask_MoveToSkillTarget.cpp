@@ -15,8 +15,6 @@ UBTTask_MoveToSkillTarget::UBTTask_MoveToSkillTarget()
 
 	bNotifyTick = true;
 
-	SkillTargetLocationKey.SelectedKeyName = FRegionBossAIKeys::SkillTargetLocation;
-	ApproachTypeKey.SelectedKeyName = FRegionBossAIKeys::ApproachType;
 }
 
 EBTNodeResult::Type UBTTask_MoveToSkillTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -27,48 +25,10 @@ EBTNodeResult::Type UBTTask_MoveToSkillTarget::ExecuteTask(UBehaviorTreeComponen
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 	if (!BlackboardComp) return EBTNodeResult::Failed;
 
-	TargetLocation = BlackboardComp->GetValueAsVector(SkillTargetLocationKey.SelectedKeyName);
-	ApproachType = static_cast<EApproachType>(BlackboardComp->GetValueAsEnum(ApproachTypeKey.SelectedKeyName));
-
 	UCharacterMovementComponent* MoveComp = Monster->FindComponentByClass<UCharacterMovementComponent>();
 	if (!MoveComp) return EBTNodeResult::Failed;
 
-	switch (ApproachType)
-	{
-	case EApproachType::Stand:
-		return EBTNodeResult::Succeeded;
-
-	case EApproachType::AdvanceCast:
-	case EApproachType::Stalk:
-		MoveComp->MaxWalkSpeed = SlowMoveSpeed;
-		break;
-
-	case EApproachType::Dash:
-	case EApproachType::CloseBurst:
-		MoveComp->MaxWalkSpeed = DashMoveSpeed;
-		break;
-
-	case EApproachType::Flank:
-	{
-		const FVector Forward = Monster->GetActorForwardVector();
-		const FVector Right = Monster->GetActorRightVector();
-		const FVector FlankOffset = Right * 300.f;
-		const FVector FlankLocation = TargetLocation + FlankOffset;
-
-		OwnerComp.GetAIOwner()->MoveToLocation(FlankLocation, AcceptableRadius);
-		return EBTNodeResult::Succeeded;
-	}
-
-	case EApproachType::Teleport:
-		Monster->SetActorLocation(TargetLocation, false, nullptr, ETeleportType::TeleportPhysics);
-		return EBTNodeResult::Succeeded;
-
-	default:
-		break;
-	}
-
 	FAIMoveRequest MoveRequest;
-	MoveRequest.SetGoalLocation(TargetLocation);
 	MoveRequest.SetAcceptanceRadius(AcceptableRadius);
 
 	const EPathFollowingRequestResult::Type Result = OwnerComp.GetAIOwner()->MoveTo(MoveRequest);

@@ -14,25 +14,25 @@ class CR4S_API UAnimalInteractWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-public:
-	void InitByAnimalState(bool bIsStunned);
-
-protected:
-	virtual void NativeOnInitialized() override;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UButton> CaptureButton;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UButton> ButcherButton;
-
-	UFUNCTION()
-	void OnClickedCapture();
-
-	UFUNCTION()
-	void OnClickedButcher();
-
-public:
-	UPROPERTY()
-	TObjectPtr<class ABaseAnimal> OwningAnimal;
+// public:
+// 	void InitByAnimalState(bool bIsStunned);
+//
+// protected:
+// 	virtual void NativeOnInitialized() override;
+//
+// 	UPROPERTY(meta = (BindWidget))
+// 	TObjectPtr<class UButton> CaptureButton;
+//
+// 	UPROPERTY(meta = (BindWidget))
+// 	TObjectPtr<class UButton> ButcherButton;
+//
+// 	UFUNCTION()
+// 	void OnClickedCapture();
+//
+// 	UFUNCTION()
+// 	void OnClickedButcher();
+//
+// public:
+// 	UPROPERTY()
+// 	TObjectPtr<class ABaseAnimal> OwningAnimal;
 };

@@ -2,14 +2,17 @@
 
 #include "CR4S.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 
+#define LOCTEXT_NAMESPACE "ConsumableInventoryItem"
+
 UConsumableInventoryItem::UConsumableInventoryItem()
-	: HeatEffectDuration(0),
-	  HumidityEffectDuration(0),
-	  ColdEffectDuration(0)
 {
+	bUsePassiveEffect = true;
+	FreshnessText = LOCTEXT("FreshnessText", "신선도");
+	RottenDescription = LOCTEXT("RottenDescription", "썩은 아이템");
 }
 
 void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInventoryComponent,
@@ -23,18 +26,25 @@ void UConsumableInventoryItem::InitInventoryItem(UBaseInventoryComponent* NewInv
 		return;
 	}
 
-	const UWorld* World = GetWorld();
-	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(World)))
-	{
-		return;
-	}
-
-	WorldTimeManager = World->GetSubsystem<UWorldTimeManager>();
-
 	if (const FConsumableItemData* FindItemData =
 		DataTable->FindRow<FConsumableItemData>(NewInventoryItemData.RowName, TEXT("")))
 	{
 		ConsumableItemData = *FindItemData;
+
+		FreshnessInfo.ShelfLifeSeconds = ConsumableItemData.ShelfLife * 60;
+		FreshnessInfo.RemainingFreshnessTime = FreshnessInfo.ShelfLifeSeconds;
+	}
+
+	DefaultDescription = GetItemDescription();
+}
+
+void UConsumableInventoryItem::UpdateInventoryItem(UBaseInventoryComponent* NewInventoryComponent)
+{
+	Super::UpdateInventoryItem(NewInventoryComponent);
+
+	if (IsValid(InventoryComponent))
+	{
+		SetDecayRateMultiplier(InventoryComponent->HasRefrigeration() ? 0.5f : 1.0f);
 	}
 }
 
@@ -42,137 +52,253 @@ void UConsumableInventoryItem::UseItem(const int32 Index)
 {
 	Super::UseItem(Index);
 
-	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)) ||
-		!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent->GetOwner())))
+	if (!CR4S_VALIDATE(LogInventory, IsValid(InventoryComponent)))
 	{
 		return;
 	}
 
 	if (IsValid(PlayerStatusComponent))
 	{
-		PlayerStatusComponent->AddCurrentHunger(ConsumableItemData.HungerRestore);
-		PlayerStatusComponent->AddCurrentHP(ConsumableItemData.HealthRestore);
-		
-		ApplyResistanceEffect();
+		if (!IsRotten())
+		{
+			PlayerStatusComponent->AddCurrentHunger(ConsumableItemData.HungerRestore);
+			PlayerStatusComponent->AddCurrentHP(ConsumableItemData.HealthRestore);
+
+			ApplyResistanceEffect();
+		}
 
 		InventoryComponent->RemoveItemByIndex(Index, 1);
 	}
 }
 
-void UConsumableInventoryItem::HandlePassiveEffect()
+void UConsumableInventoryItem::HandlePassiveEffect(const int64 NewPlayTime)
 {
-	Super::HandlePassiveEffect();
+	Super::HandlePassiveEffect(NewPlayTime);
 
-	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(InventoryComponent)))
+	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(InventoryComponent)) ||
+		!FreshnessInfo.ShouldDecay() ||
+		!UpdateFreshnessDecay(NewPlayTime))
 	{
-		return;
+		EndPassiveEffect();
 	}
+}
+
+bool UConsumableInventoryItem::UpdateFreshnessDecay(const int64 NewPlayTime)
+{
+	if (FreshnessInfo.PreviousDecayPlayTime < 0)
+	{
+		FreshnessInfo.PreviousDecayPlayTime = NewPlayTime;
+		return true;
+	}
+
+	const int64 DeltaInt = NewPlayTime - FreshnessInfo.PreviousDecayPlayTime;
+	FreshnessInfo.PreviousDecayPlayTime = NewPlayTime;
+
+	if (DeltaInt <= 0)
+	{
+		return false;
+	}
+
+	const float DeltaSeconds = static_cast<float>(DeltaInt);
+	const float ActualDecay = DeltaSeconds * FreshnessInfo.DecayRateMultiplier;
+	FreshnessInfo.RemainingFreshnessTime -= ActualDecay;
+
+	if (OnFreshnessChanged.IsBound())
+	{
+		OnFreshnessChanged.Broadcast(FreshnessInfo.GetFreshnessPercent());
+	}
+
+	UpdateItemDescription(CreateNewDescription());
+
+	if (FreshnessInfo.RemainingFreshnessTime <= 0.f)
+	{
+		FreshnessInfo.RemainingFreshnessTime = 0.f;
+		OnItemRotten();
+	}
+
+	return true;
+}
+
+void UConsumableInventoryItem::OnItemRotten()
+{
+	CR4S_Log(LogTemp, Warning, TEXT("Item has fully rotted!"));
+	FreshnessInfo.bIsRotten = true;
+	UpdateItemDescription(RottenDescription);
+	EndPassiveEffect();
+}
+
+FText UConsumableInventoryItem::CreateNewDescription() const
+{
+	FNumberFormattingOptions NumberFormat;
+	NumberFormat.SetMaximumFractionalDigits(2);
+	NumberFormat.SetMinimumFractionalDigits(0);
+
+	const FText PercentText = FText::AsPercent(FreshnessInfo.GetFreshnessPercent(), &NumberFormat);
+
+	return FText::Format(
+		LOCTEXT("ItemDescriptionFormat", "{0}\n{1}: {2}"),
+		DefaultDescription,
+		FreshnessText,
+		PercentText
+	);
 }
 
 void UConsumableInventoryItem::ApplyResistanceEffect()
 {
-	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(WorldTimeManager)))
+	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(WorldTimeManager)) ||
+		!CR4S_VALIDATE(LogInventoryItem, IsValid(PlayerStatusComponent)))
 	{
 		return;
 	}
 
-	if (ConsumableItemData.HeatResistanceValue > 0)
+	ClearAllEffects();
+
+	AddResistanceBuff(EResistanceBuffType::Heat,
+	                  ConsumableItemData.HeatResistanceValue,
+	                  ConsumableItemData.HeatResistanceDuration);
+
+	AddResistanceBuff(EResistanceBuffType::Humidity,
+	                  ConsumableItemData.HumidityResistanceValue,
+	                  ConsumableItemData.HumidityResistanceDuration);
+
+	AddResistanceBuff(EResistanceBuffType::Cold,
+	                  ConsumableItemData.ColdResistanceValue,
+	                  ConsumableItemData.ColdResistanceDuration);
+
+	if (ResistanceEffects.Num() > 0 &&
+		!WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(this, &ThisClass::UpdateAllResistanceEffects))
 	{
-		HeatEffectDuration = ConsumableItemData.HeatResistanceDuration * 60;
-
-		PlayerStatusComponent->AddHeatThreshold(ConsumableItemData.HeatResistanceValue);
-
-		WorldTimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::UpdateHeatResistanceEffect);
-
-		CR4S_Log(LogInventoryItem, Warning, TEXT("+%d"), ConsumableItemData.HeatResistanceValue);
-	}
-
-	if (ConsumableItemData.HumidityResistanceValue > 0)
-	{
-		HeatEffectDuration = ConsumableItemData.HumidityResistanceDuration * 60;
-
-		PlayerStatusComponent->AddHeatThreshold(ConsumableItemData.HumidityResistanceValue);
-
-		WorldTimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::UpdateHumidityResistanceEffect);
-		
-		CR4S_Log(LogInventoryItem, Warning, TEXT("+%d"), ConsumableItemData.HumidityResistanceValue);
-	}
-
-	if (ConsumableItemData.ColdResistanceValue > 0)
-	{
-		HeatEffectDuration = ConsumableItemData.ColdResistanceDuration * 60;
-
-		PlayerStatusComponent->AddHeatThreshold(ConsumableItemData.ColdResistanceValue);
-
-		WorldTimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::UpdateColdResistanceEffect);
-		
-		CR4S_Log(LogInventoryItem, Warning, TEXT("+%d"), ConsumableItemData.ColdResistanceValue);
+		WorldTimeManager->OnWorldTimeUpdated.AddUniqueDynamic(this, &ThisClass::UpdateAllResistanceEffects);
 	}
 }
 
-void UConsumableInventoryItem::ClearResistanceEffect(const EResistanceBuffType Type) const
+void UConsumableInventoryItem::AddResistanceBuff(const EResistanceBuffType Type,
+                                                 const int32 Value,
+                                                 const float DurationMinutes)
+{
+	if (Value <= 0 || DurationMinutes <= 0.f)
+	{
+		return;
+	}
+
+	auto& [Duration, Elapsed, ResistanceValue, PrevPlayTime] = ResistanceEffects.Add(Type);
+	ResistanceValue = Value;
+	Duration = DurationMinutes * 60.f;
+	Elapsed = 0.f;
+	PrevPlayTime = -1;
+
+	ApplyThreshold(Type, Value);
+	CR4S_Log(LogTemp, Warning, TEXT("Applied %s buff +%d"), *UEnum::GetValueAsString(Type), Value);
+}
+
+void UConsumableInventoryItem::UpdateAllResistanceEffects(const int64 NewPlayTime)
+{
+	TArray<EResistanceBuffType> ToRemove;
+
+	for (auto& Pair : ResistanceEffects)
+	{
+		EResistanceBuffType Type = Pair.Key;
+		FResistanceEffect& E = Pair.Value;
+
+		if (E.PrevPlayTime < 0)
+		{
+			E.PrevPlayTime = NewPlayTime;
+			continue;
+		}
+
+		const int64 DeltaInt = NewPlayTime - E.PrevPlayTime;
+		E.PrevPlayTime = NewPlayTime;
+		if (DeltaInt <= 0) continue;
+
+		const float DeltaSec = static_cast<float>(DeltaInt);
+		E.Elapsed += DeltaSec;
+
+		if (E.Elapsed >= E.Duration)
+		{
+			ToRemove.Add(Type);
+		}
+	}
+
+	for (const EResistanceBuffType Type : ToRemove)
+	{
+		ClearResistanceEffect(Type);
+		ResistanceEffects.Remove(Type);
+	}
+
+	if (ResistanceEffects.Num() == 0)
+	{
+		WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::UpdateAllResistanceEffects);
+	}
+}
+
+void UConsumableInventoryItem::ClearAllEffects()
+{
+	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(PlayerStatusComponent)) ||
+		!CR4S_VALIDATE(LogInventoryItem, IsValid(WorldTimeManager)))
+	{
+		return;
+	}
+
+	for (const auto& [Type, Value] : ResistanceEffects)
+	{
+		ApplyThreshold(Type, -Value.ResistanceValue);
+		UE_LOG(LogTemp, Log, TEXT("Cleared %s buff (bulk) -%d"), *UEnum::GetValueAsString(Type), Value.ResistanceValue);
+	}
+
+	ResistanceEffects.Empty();
+
+	WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::UpdateAllResistanceEffects);
+}
+
+void UConsumableInventoryItem::ClearResistanceEffect(const EResistanceBuffType Type)
+{
+	if (!CR4S_VALIDATE(LogInventoryItem, IsValid(PlayerStatusComponent)))
+	{
+		return;
+	}
+
+	if (const FResistanceEffect* ResistanceEffect = ResistanceEffects.Find(Type))
+	{
+		ApplyThreshold(Type, -ResistanceEffect->ResistanceValue);
+		CR4S_Log(LogTemp, Warning, TEXT("Cleared %s buff -%d"),
+		         *UEnum::GetValueAsString(Type),
+		         ResistanceEffect->ResistanceValue);
+	}
+}
+
+void UConsumableInventoryItem::ApplyThreshold(const EResistanceBuffType Type, const int32 Value) const
 {
 	switch (Type)
 	{
 	case EResistanceBuffType::Heat:
-		PlayerStatusComponent->AddHeatThreshold(-ConsumableItemData.HeatResistanceValue);
-		CR4S_Log(LogInventoryItem, Warning, TEXT("-%d"), ConsumableItemData.HeatResistanceValue);
+		PlayerStatusComponent->AddHeatThreshold(Value);
 		break;
 	case EResistanceBuffType::Humidity:
-		PlayerStatusComponent->AddHeatThreshold(-ConsumableItemData.HumidityResistanceValue);
-		CR4S_Log(LogInventoryItem, Warning, TEXT("-%d"), ConsumableItemData.HumidityResistanceValue);
+		PlayerStatusComponent->AddHumidityThreshold(Value);
 		break;
 	case EResistanceBuffType::Cold:
-		PlayerStatusComponent->AddHeatThreshold(-ConsumableItemData.ColdResistanceValue);
-		CR4S_Log(LogInventoryItem, Warning, TEXT("-%d"), ConsumableItemData.ColdResistanceValue);
+		PlayerStatusComponent->AddColdThreshold(Value);
 		break;
 	}
 }
 
-void UConsumableInventoryItem::UpdateHeatResistanceEffect(int64 PlayTime)
+FInventoryItemSaveGame UConsumableInventoryItem::GetInventoryItemSaveData()
 {
-	HeatEffectDuration--;
+	FInventoryItemSaveGame ItemSaveGame = Super::GetInventoryItemSaveData();
 
-	if (HeatEffectDuration <= 0)
-	{
-		ClearResistanceEffect(EResistanceBuffType::Heat);
-	}
+	ItemSaveGame.InventoryItemData.ItemInfoData.Description = DefaultDescription;
+	ItemSaveGame.FreshnessInfo = FreshnessInfo;
 
-	if (IsValid(WorldTimeManager) && WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(
-		this, &ThisClass::UpdateHeatResistanceEffect))
-	{
-		WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::UpdateHeatResistanceEffect);
-	}
+	return ItemSaveGame;
 }
 
-void UConsumableInventoryItem::UpdateHumidityResistanceEffect(int64 PlayTime)
+void UConsumableInventoryItem::LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+                                                         const FInventoryItemSaveGame& ItemSaveGame)
 {
-	HumidityEffectDuration--;
-
-	if (HumidityEffectDuration <= 0)
-	{
-		ClearResistanceEffect(EResistanceBuffType::Humidity);
-	}
-
-	if (IsValid(WorldTimeManager) && WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(
-		this, &ThisClass::UpdateHumidityResistanceEffect))
-	{
-		WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::UpdateHumidityResistanceEffect);
-	}
+	Super::LoadInventoryItemSaveData(NewInventoryComponent, ItemSaveGame);
+	
+	FreshnessInfo = ItemSaveGame.FreshnessInfo;
+	FreshnessInfo.PreviousDecayPlayTime = -1;
 }
 
-void UConsumableInventoryItem::UpdateColdResistanceEffect(int64 PlayTime)
-{
-	ColdEffectDuration--;
-
-	if (ColdEffectDuration <= 0)
-	{
-		ClearResistanceEffect(EResistanceBuffType::Cold);
-	}
-
-	if (IsValid(WorldTimeManager) && WorldTimeManager->OnWorldTimeUpdated.IsAlreadyBound(
-		this, &ThisClass::UpdateColdResistanceEffect))
-	{
-		WorldTimeManager->OnWorldTimeUpdated.RemoveDynamic(this, &ThisClass::UpdateColdResistanceEffect);
-	}
-}
+#undef LOCTEXT_NAMESPACE

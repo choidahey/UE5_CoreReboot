@@ -9,33 +9,59 @@ class CR4S_API UC4CheatManager : public UCheatManager
 {
 	GENERATED_BODY()
 
+#pragma region Time Manipulation Commands
 public:
-	//Cheat Command
-	UFUNCTION(exec)
+	UFUNCTION(Exec)
 	void AddMinute(int32 Amount);
-	UFUNCTION(exec)
+	UFUNCTION(Exec)
 	void AddDay(int32 Amount);
+#pragma endregion
 
-	UFUNCTION(exec)
+#pragma region Monster Commands
+public:
+	UFUNCTION(Exec)
 	void SetMonstersHP(const float InHealth);
-	
-protected:
-	//Helper Decelaration
-	UPROPERTY()
-	TObjectPtr<class UTimeCheatHelper> TimeHelper;
 
-	virtual void InitCheatManager() override;
-
+#pragma endregion
 
 #pragma region Item And Gimmick
-
 public:
 	UFUNCTION(Exec)
 	void AddItem(FName RowName, int32 Count) const;
 
 protected:
-	UPROPERTY()
-	TObjectPtr<class UItemGimmickHelper> ItemGimmickHelper;
+
+
+#pragma endregion
+
+#pragma region Save
+public:
+	UFUNCTION(Exec)
+	void SaveNow();
+
+#pragma endregion
+
+#pragma region InvincibleMode
+public:
+	UFUNCTION(Exec)
+	void SetInvincibleMode(const bool bInvincibleMode) const;
 	
 #pragma endregion
+	
+#pragma region Helper Deceleration
+protected:
+	UPROPERTY()
+	TObjectPtr<class UTimeCheatHelper> TimeHelper;
+	UPROPERTY()
+	TObjectPtr<class UItemGimmickHelper> ItemGimmickHelper;
+	UPROPERTY()
+	TObjectPtr<class USaveGameHelper> SaveGameHelper;
+	UPROPERTY()
+	TObjectPtr<class UCharacterCheatHelper> CharacterCheatHelper;
+
+	virtual void InitCheatManager() override;
+
+#pragma endregion
+
+	
 };

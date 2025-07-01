@@ -15,13 +15,13 @@ UInputBufferComponent::UInputBufferComponent()
 	
 }
 
+void UInputBufferComponent::SetWeaponComponent(URobotWeaponComponent* InWeaponComp)
+{
+}
+
 void UInputBufferComponent::SetInputEnable(const bool Enable)
 {
 	bInputEnable=Enable;
-	UE_LOG(LogTemp, Display, TEXT("[%s] Buffer class: %s, name: %s, Enable : %d"),
-		*FString(__FUNCTION__)
-		,*this->GetClass()->GetName(),
-		*this->GetName(), bInputEnable);
 	if (Enable)
 	{
 		ExecuteInputQueue();
@@ -40,21 +40,21 @@ void UInputBufferComponent::SetInputQueue(const EInputType Input)
 		BufferClearTimerHandle,
 		this,
 		&UInputBufferComponent::ClearInputQueue,
-		1.f,
+		0.2f,
 		false
 	);
 }
 
 bool UInputBufferComponent::CheckInputQueue(const EInputType Input)
 {
-	UE_LOG(LogTemp, Display, TEXT("[%s] Buffer class: %s, name: %s, Enable : %d"),
-		*FString(__FUNCTION__)
-		,*this->GetClass()->GetName(),
-		*this->GetName(), bInputEnable);
 	if (bInputEnable) return true;
 
 	SetInputQueue(Input);
 	return false;
+}
+
+void UInputBufferComponent::SetCurrentTool(APlayerTool* InTool)
+{
 }
 
 void UInputBufferComponent::ExecuteInputQueue() const

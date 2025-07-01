@@ -15,7 +15,7 @@ AFallingBombActor::AFallingBombActor()
 		StaticMesh->SetSimulatePhysics(false);
 		StaticMesh->SetEnableGravity(false);
 	}
-
+	
 	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
 	CollisionComp->SetupAttachment(RootComp);
 	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
@@ -23,7 +23,6 @@ AFallingBombActor::AFallingBombActor()
 
 	LandingTrigger = CreateDefaultSubobject<UCapsuleComponent>(TEXT("LandingTrigger"));
 	LandingTrigger->SetupAttachment(RootComp);
-	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	LandingTrigger->SetGenerateOverlapEvents(true);
 }
 

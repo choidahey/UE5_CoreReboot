@@ -2,8 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTService.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
 #include "BTService_UpdateState.generated.h"
 
+
+struct FAIKeys;
 
 UCLASS()
 class CR4S_API UBTService_UpdateState : public UBTService
@@ -20,12 +23,8 @@ protected:
 	FBlackboardKeySelector TargetActorKey;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector HouseActorKey;
+	FBlackboardKeySelector NearestHouseActorKey;
 
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector PlayerAttackRadiusKey;
-	
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector HouseAttackRadiusKey;
-	
+private:
+	float CurrentHPValue = 0.f;
 };

@@ -8,7 +8,10 @@
 #include "Components/MonsterAnimComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Data/MonsterAIKeyNames.h" 
+#include "Game/System/AudioManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Inventory/Components/BaseInventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ABaseMonster::ABaseMonster()
 	: MyHeader(TEXT("BaseMonster"))
@@ -38,6 +41,7 @@ void ABaseMonster::BeginPlay()
 
 	if (StateComponent)
 	{
+		StateComponent->InitializeStunData(AttributeComponent->GetMonsterAttribute());
 		StateComponent->OnStateChanged.AddDynamic(this, &ABaseMonster::OnMonsterStateChanged);
 	}
 
@@ -79,6 +83,13 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	return DamageAmount;
 }
 
+void ABaseMonster::TakeStun_Implementation(const float StunAmount)
+{
+	if (StateComponent)
+		StateComponent->AddStun(StunAmount);
+}
+
+
 void ABaseMonster::UseSkill(int32 SkillIndex)
 {
 	if (SkillComponent)
@@ -105,10 +116,19 @@ void ABaseMonster::HandleDeath()
 		return;
 	}
 
+	if (UAudioManager* AudioMgr = GetGameInstance()->GetSubsystem<UAudioManager>())
+	{
+		AudioMgr->StopBGM();
+	}
+	
 	bIsDead = true;
 	StateComponent->SetState(EMonsterState::Dead);
-
 	OnDied.Broadcast(this);
+
+	if (UBaseInventoryComponent* InventoryComp = GetPlayerInventory())
+	{
+		TryDropItems(InventoryComp);
+	}
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		MoveComp->DisableMovement();
@@ -116,14 +136,14 @@ void ABaseMonster::HandleDeath()
 	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
 	{
 		AIC->StopMovement();
+		
+		if (UBehaviorTreeComponent* BTComp = AIC->FindComponentByClass<UBehaviorTreeComponent>())
+			BTComp->StopTree(EBTStopMode::Safe);
 
 		if (UBlackboardComponent* BB = AIC->GetBlackboardComponent())
 			BB->SetValueAsBool(FAIKeys::IsDead, true);
 	}
 
-	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	GetMesh()->SetAllBodiesSimulatePhysics(true);
-	GetMesh()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (AnimComponent)
@@ -131,30 +151,60 @@ void ABaseMonster::HandleDeath()
 		AnimComponent->PlayDeathMontage();
 	}
 
-	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	SetLifeSpan(5.f);
+
+	FTimerHandle FadeStartTimerHandle;
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateLambda([this]()
 	{
-		if (UAnimMontage* DeathMontage = AnimComponent->GetDeathMontage())
-		{
-			FOnMontageEnded EndDel;
-			EndDel.BindUObject(this, &ABaseMonster::OnDeathMontageEnded);
-			AnimInst->Montage_SetEndDelegate(EndDel, DeathMontage);
-		}
-	}
+		StartFadeOut();
+	});
+
+	GetWorld()->GetTimerManager().SetTimer(
+		FadeStartTimerHandle,
+		FadeDelegate,
+		3.0f,
+		false
+	);
 }
 
-void ABaseMonster::OnDeathMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (bInterrupted)
-		return;
-
-	SetLifeSpan(1.5f);
-	
-	if (DissolveMaterial)
+void ABaseMonster::StartFadeOut()
+{    
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp) return;
+    
+	for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
 	{
-		for (int32 i = 0; i < GetMesh()->GetNumMaterials(); ++i)
+		if (UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i))
 		{
-			GetMesh()->SetMaterial(i, DissolveMaterial);
+			DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
 		}
+	}
+
+	FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseMonster::UpdateFade);
+	GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
+
+	MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+}
+
+void ABaseMonster::UpdateFade()
+{
+	ElapsedFadeTime += 0.02f;
+	float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
+    
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
+		{
+			if (UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(MeshComp->GetMaterial(i)))
+			{
+				DynMat->SetScalarParameterValue(TEXT("Appearance"), NewAppearance);
+			}
+		}
+	}
+    
+	if (ElapsedFadeTime >= 2.0f)
+	{
+		GetWorldTimerManager().ClearTimer(FadeTimerHandle);
 	}
 }
 
@@ -175,4 +225,41 @@ void ABaseMonster::OnMonsterStateChanged(EMonsterState Previous, EMonsterState C
 		*UEnum::GetValueAsString(Previous),
 		*UEnum::GetValueAsString(Current)
 	);
+}
+
+UBaseInventoryComponent* ABaseMonster::GetPlayerInventory() const
+{
+	if (APawn* Pawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0))
+	{
+		return Pawn->FindComponentByClass<UBaseInventoryComponent>();
+	}
+	return nullptr;
+}
+
+void ABaseMonster::TryDropItems(UBaseInventoryComponent* InventoryComp) const
+{
+	if (DropItems.IsEmpty())
+		return;
+
+	TMap<FName,int32> ItemsToAdd;
+	for (const FDropData& DropData : DropItems)
+	{
+		if (!DropData.DropItemRowName.IsNone() && DropData.DropItemCount > 0)
+		{
+			ItemsToAdd.FindOrAdd(DropData.DropItemRowName) += DropData.DropItemCount;
+		}
+	}
+	if (ItemsToAdd.IsEmpty())
+		return;
+
+	InventoryComp->AddItems(ItemsToAdd);
+
+	// NOTICE :: TestLog
+	for (auto& Pair : ItemsToAdd)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Dropped %s x%d"),
+			*GetClass()->GetName(),
+			*Pair.Key.ToString(),
+			Pair.Value);
+	}
 }

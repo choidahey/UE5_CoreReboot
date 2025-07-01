@@ -19,8 +19,12 @@ public:
 	// Sets default values for this actor's properties
 	APlayerTool();
 
-	void Initialize(APlayerCharacter* OwnerCharacter);
+#pragma region Get
+	FORCEINLINE void SetMontagePlayRate(const float InRate) { MontagePlayRate = InRate; }
+#pragma endregion
 	
+	void Initialize(APlayerCharacter* OwnerCharacter);
+
 #pragma region Override
 public:
 	virtual void SetGameplayTag(const FGameplayTag GameplayTag) override;
@@ -43,6 +47,8 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FPlayerToolInfo PlayerToolInfo;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	float MontagePlayRate{1.3};
 #pragma endregion
 	
 #pragma region Cached

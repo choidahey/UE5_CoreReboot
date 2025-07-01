@@ -19,6 +19,8 @@
 #include "Character/Components/WeaponTraceComponent.h"
 #include "Character/Weapon/BaseTool.h"
 #include "Character/Weapon/PlayerTool.h"
+#include "Game/SaveGame/SaveGameManager.h"
+#include "Inventory/Components/PlayerInventoryComponent.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -45,11 +47,82 @@ APlayerCharacter::APlayerCharacter()
 
 	NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
+
+	PlayerInventory = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventory"));
+}
+
+FName APlayerCharacter::GetUniqueSaveID()
+{
+	return UniqueSaveID;
+}
+
+void APlayerCharacter::SetUniqueSaveID(FName NewID)
+{
+	UniqueSaveID=NewID;
+}
+
+void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
+{
+	OutSaveData.ActorType=ESavedActorType::PlayerCharacter;
+	
+	FPlayerCharacterSaveGame& PlayerData=OutSaveData.PlayerCharacterData;
+	
+	OutSaveData.ActorTransform=GetActorTransform();
+	PlayerData.CurrentHP=Status->GetCurrentHP();
+	PlayerData.CurrentResource=Status->GetCurrentResource();
+	PlayerData.CurrentHunger=Status->GetCurrentHunger();
+	PlayerData.CurrentTemperature=EnvironmentalStatus->GetCurrentTemperature();
+	PlayerData.CurrentHumidity=EnvironmentalStatus->GetCurrentHumidity();
+	PlayerData.EquippedToolTag= CurrentTool ? CurrentTool->GetToolGameplayTag() : FGameplayTag::EmptyTag;
+	PlayerData.Stance=GetStance();
+	PlayerData.Gait=GetGait();
+	PlayerData.OverlayMode=GetOverlayMode();
+	PlayerData.bIsRightShoulder=Camera->IsRightShoulder();
+
+	PlayerInventory->GetPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
+}
+
+void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
+{
+	FPlayerCharacterSaveGame& PlayerData=InSaveData.PlayerCharacterData;
+	
+	Status->SetCurrentHP(PlayerData.CurrentHP);
+	Status->SetCurrentResource(PlayerData.CurrentResource);
+	Status->OnResourceConsumed();
+	Status->SetCurrentHunger(PlayerData.CurrentHunger);
+	EnvironmentalStatus->SetCurrentTemperature(PlayerData.CurrentTemperature);
+	EnvironmentalStatus->SetCurrentHumidity(PlayerData.CurrentHumidity);
+	SetCurrentToolByTag(PlayerData.EquippedToolTag);
+	SetDesiredStance(PlayerData.Stance);
+	SetDesiredGait(PlayerData.Gait);
+	SetOverlayMode(PlayerData.OverlayMode);
+	Camera->SetRightShoulder(PlayerData.bIsRightShoulder);
+
+	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
+}
+
+void APlayerCharacter::OnDeath()
+{
+	if (IsValid(PlayerInventory) && PlayerInventory->IsOpen())
+	{
+		PlayerInventory->CloseInventoryWidget();
+	}
+	
+	APlayerController* PC=Cast<APlayerController>(GetController());
+	if (!CR4S_ENSURE(LogHong1,PC)) return;
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
+
+	InputSubsystem->RemoveMappingContext(InputMappingContext);
+	SetOverlayMode(AlsOverlayModeTags::Default);
+	StartRagdolling();
+	Status->StopConsumeHunger();
 }
 
 void APlayerCharacter::SetCurrentToolByTag(const FGameplayTag& ToolTag)
 {
-	if (!CurrentTool||CurrentTool->GetGameplayTag().MatchesTagExact(ToolTag)) return;
+	if (!CurrentTool||CurrentTool->GetToolGameplayTag().MatchesTagExact(ToolTag)) return;
 	
 	CurrentTool->SetGameplayTag(ToolTag);
 	
@@ -66,6 +139,7 @@ void APlayerCharacter::InitializeCurrentTool()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Instigator=this;
 	SpawnParams.Owner=this;
+	
 	APlayerTool* NewTool=GetWorld()->SpawnActor<APlayerTool>(SpawnParams);
 	const FAttachmentTransformRules AttachRules(
 		EAttachmentRule::SnapToTarget,
@@ -84,7 +158,7 @@ void APlayerCharacter::InitializeCurrentTool()
 	CurrentTool->Initialize(this);
 }
 
-void APlayerCharacter::InitializeWidgets()
+void APlayerCharacter::InitializeWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -92,17 +166,20 @@ void APlayerCharacter::InitializeWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHPWidget);
-				Status->OnResourceChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateResourceWidget);
-				Status->OnHungerChanged.AddUObject(InGameWidget,&UDefaultInGameWidget::UpdateHungerWidget);
+				if (!CR4S_ENSURE(LogHong1,Status)) return;
+				
+				InGameWidget->BindWidgetsToStatus(Status);
+				InGameWidget->ToggleWidgetMode(false);
 
-				InGameWidget->InitializeStatusWidget(Status,false);
+				if (!CR4S_ENSURE(LogHong1,EnvironmentalStatus)) return;
+				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
+				
 			}
 		}
 	}
 }
 
-void APlayerCharacter::DisconnectWidgets()
+void APlayerCharacter::DisconnectWidgets() const
 {
 	if (ACharacterController* CurrentController=Cast<ACharacterController>(GetController()))
 	{
@@ -110,9 +187,8 @@ void APlayerCharacter::DisconnectWidgets()
 		{
 			if (UDefaultInGameWidget* InGameWidget=CurrentHUD->GetInGameWidget())
 			{
-				Status->OnHPChanged.RemoveAll(InGameWidget);
-				Status->OnResourceChanged.RemoveAll(InGameWidget);
-				Status->OnHungerChanged.RemoveAll(InGameWidget);
+				InGameWidget->UnbindStatusFromUI();
+				InGameWidget->UnbindEnvStatusFromUI();
 			}
 		}
 	}
@@ -153,21 +229,54 @@ void APlayerCharacter::NotifyControllerChanged()
 float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	Status->AddCurrentHP(-DamageAmount);
+	Status->TakeDamage(DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void APlayerCharacter::Destroyed()
+{
+	if (CurrentTool)
+	{
+		CurrentTool->Destroy();
+		CurrentTool=nullptr;
+	}
+	Super::Destroyed();
 }
 
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->RegisterSavableActor(this);
+		}
+	}
 	
 	//Binding Delegate Functions and Set up Widget
 	InitializeWidgets();
 
-	InitializeCurrentTool();
+	InitializeCurrentTool(); 
 
 	if (!CR4S_ENSURE(LogHong1,PlayerCharacterSettingsDataAsset)) return;
 	PlayerCharacterSettings=PlayerCharacterSettingsDataAsset->PlayerCharacterSettings;
+
+	if (!CR4S_ENSURE(LogHong1,Status)) return;
+	Status->OnDeathState.AddUObject(this,&APlayerCharacter::OnDeath);
+}
+
+void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UGameInstance* GI=GetWorld()->GetGameInstance())
+	{
+		if (USaveGameManager* SaveManager=GI->GetSubsystem<USaveGameManager>())
+		{
+			SaveManager->UnregisterSavableActor(this);
+		}
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void APlayerCharacter::CalcCamera(const float DeltaTime, FMinimalViewInfo& ViewInfo)
@@ -208,6 +317,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(ViewModeAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnViewMode);
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnAttack);
+		EnhancedInput->BindAction(InteractionAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInteraction);
+		EnhancedInput->BindAction(QuickSlotAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnQuickSlotNumberPressed);
+		EnhancedInput->BindAction(OpenInventoryAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInventoryOpen);
 	}
 }
 
@@ -217,9 +329,13 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	
 	SetOverlayMode(AlsOverlayModeTags::Default);
 
+	Interaction->InitComponent();
 	Interaction->StartDetectProcess();
 	
 	InitializeWidgets();
+	Status->SetIsUnPossessed(false);
+
+	PlayerInventory->InitInventory();
 }
 
 void APlayerCharacter::UnPossessed()
@@ -232,8 +348,10 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
+	
 	SetOverlayMode(OverlayMode::Mounted);
 	DisconnectWidgets();
+	Status->SetIsUnPossessed(true);
 	Super::UnPossessed();
 }
 
@@ -371,14 +489,44 @@ void APlayerCharacter::Input_OnSwitchShoulder()
 	Camera->SetRightShoulder(!Camera->IsRightShoulder());
 }
 
-void APlayerCharacter::Input_OnAttack()
+void APlayerCharacter::Input_OnAttack() 
 {
 	if (!CR4S_ENSURE(LogHong1,CurrentTool)
-		||!CR4S_ENSURE(LogHong1,(PlayerInputBuffer->CheckInputQueue(EInputType::Attack))))
+		||!PlayerInputBuffer->CheckInputQueue(EInputType::Attack))
 	{
 		return;
 	}
 	CurrentTool->OnAttack();
+}
+
+void APlayerCharacter::Input_OnInteraction()
+{
+	if (!CR4S_ENSURE(LogHong1, GetLocomotionMode()==AlsLocomotionModeTags::Grounded
+		&& AlsCharacterMovement->GetGaitAmount()<=KINDA_SMALL_NUMBER))
+	{
+		return;
+	}
+	
+	CR4S_ENSURE(LogHong1,Interaction->TryStartInteraction());
+}
+
+void APlayerCharacter::Input_OnQuickSlotNumberPressed(const FInputActionValue& ActionValue)
+{
+	float RawValue=ActionValue.Get<float>();
+	int32 Index=FMath::RoundToInt(RawValue)-1;
+
+	if (Index>=0 && Index<=9)
+	{
+		PlayerInventory->UseItem(Index);
+	}
+}
+
+void APlayerCharacter::Input_OnInventoryOpen()
+{
+	if (PlayerInventory)
+	{
+		PlayerInventory->OpenPlayerInventoryWidget(0);
+	}
 }
 
 void APlayerCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation)

@@ -1,5 +1,9 @@
 #include "MonsterAnimComponent.h"
+#include "AIController.h"
 #include "CR4S.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "MonsterAI/Data/MonsterAIKeyNames.h"
+
 
 UMonsterAnimComponent::UMonsterAnimComponent()
 	: MyHeader(TEXT("MonsterAnimComponent"))
@@ -89,6 +93,11 @@ void UMonsterAnimComponent::PlayCombatMontage()
 	PlayMontage(CombatMontage);
 }
 
+void UMonsterAnimComponent::PlayBerserkMontage()
+{
+	PlayMontage(BerserkMontage);
+}
+
 void UMonsterAnimComponent::PlayDeathMontage()
 {
 	PlayMontage(DeathMontage);
@@ -99,7 +108,7 @@ void UMonsterAnimComponent::PlayStunnedMontage()
 	PlayMontage(StunnedMontage);
 }
 
-void UMonsterAnimComponent::PlayHitReactMontage()
-{
-	PlayMontage(HitReactMontage);
-}
+// void UMonsterAnimComponent::PlayHitReactMontage()
+// {
+// 	PlayMontage(HitReactMontage);
+// }

@@ -4,4 +4,5 @@ AVitaDryBossMonster::AVitaDryBossMonster()
 {
 	MonsterID = TEXT("VitaDryBoss");
 	EnvTempDelta = 10.f;
+	DropItems.Add({ FName("HeartOfTheSun"), 1 });
 }

@@ -1,16 +1,20 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Game/Interface/Spawnable.h" // Added Spawnable Interface Library 
+#include "Game/Interface/Spawnable.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Engine/DataTable.h"
 #include "Data/AnimalStatsRow.h"
+#include "Utility/StunnableInterface.h"
+#include "Game/System/AudioManager.h"
+#include "Data/AnimalSoundData.h"
 #include "BaseAnimal.generated.h"
 
 class UAnimalRangedAttackComponent;
 class UAnimalPerceptionComponent;
 class UGroundMovementComponent;
 class UNavigationInvokerComponent;
+class UParticleSystemComponent;
 
 UENUM(BlueprintType)
 enum class EAnimalState : uint8
@@ -39,14 +43,15 @@ enum class EAnimalBehavior : uint8
 	Aggressive,
 	Coward,
 	Passive_AggroOnHit,
-	Passive_FleeOnHit
+	Passive_FleeOnHit,
+	Monster
 };
 
 //DECLARE_MULTICAST_DELEGATE(FOnDied); 
 //Declared in Spawnable Interface, thus Deleted 
 
 UCLASS(Abstract)
-class CR4S_API ABaseAnimal : public ACharacter, public ISpawnable //Interface Added
+class CR4S_API ABaseAnimal : public ACharacter, public ISpawnable, public IStunnableInterface
 {
 	GENERATED_BODY()
 
@@ -59,6 +64,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName RowName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UAnimalSoundData* SoundData;
 
 protected:
 	void LoadStats();
@@ -89,6 +97,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
 	class USphereComponent* AttackRange;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	class USphereComponent* EnemyCollision;
+
 	UPROPERTY(VisibleAnywhere)
 	UGroundMovementComponent* GroundComp;
 
@@ -107,27 +118,34 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	EAnimalBehavior BehaviorTypeEnum;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bPlayerDead = false;
+
 	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
-	void SetAnimalState(EAnimalState NewState);
+	virtual void SetAnimalState(EAnimalState NewState);
 	void ClearTarget();
 
-	FOnDied OnDied;
+	FOnSpawnableDestroyed OnSpawnableDestroyed;
 
 	//Function to Return OnDied Delegate by Spawnable Interface
-	virtual FOnDied* GetOnDiedDelegate() override { return &OnDied; }
+	virtual FOnSpawnableDestroyed* GetOnSpawnableDestroyedDelegate() override { return &OnSpawnableDestroyed; }
 
 public:
 		
 	UFUNCTION(BlueprintCallable)
 	virtual void ApplyStun(float Amount);
+
+	virtual void TakeStun_Implementation(const float StunAmount) override;
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void RecoverFromStun();
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	void ShowHitEffect(AActor* DamageCauser);
 	
 	UFUNCTION(BlueprintCallable)
 	void Die();
-	
-	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UInteractableComponent> InteractableComponent;
@@ -138,21 +156,15 @@ public:
 
 	// void SetbIsTamed(bool bNewValue);
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<class UAnimalInteractWidget> InteractWidgetClass;
+	// UPROPERTY(EditDefaultsOnly, Category = "UI")
+	// TSubclassOf<class UAnimalInteractWidget> InteractWidgetClass;
 
 	UFUNCTION()
 	void OnInteract(AActor* Interactor);
 
 	UPROPERTY()
 	TObjectPtr<class UAnimalInteractWidget> ActiveInteractWidget;
-
-	UFUNCTION()
-	void Capture();
-
-	UFUNCTION()
-	void Butcher();
-
+	
 	//float LastAttackTime = 0.0f;
 	//float CachedAttackInterval = 0.0f;
 
@@ -162,6 +174,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
 	UArrowComponent* MuzzleArrow;
 
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* StunEffectComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects")
+	class UNiagaraComponent* HitEffectComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects")
+	TArray<class UNiagaraSystem*> HitEffectSystems;
 
 #pragma region Attack
 	
@@ -175,11 +195,11 @@ public:
 	virtual void PerformChargeAttack();
 	virtual void PerformRangedAttack();
 	
-	float PlayAttackMontage();
-	float PlayChargeAttackMontage();
-	float PlayRangedAttackMontage();
+	virtual float PlayAttackMontage();
+	virtual float PlayChargeAttackMontage();
+	virtual float PlayRangedAttackMontage();
 
-	void ResetAttackFlag() { bIsAttacking = false; }
+	virtual void ResetAttackFlag() { bIsAttacking = false; }
 	void ResetMeleeAttack() { bIsMeleeOnCooldown = false; }
 	void ResetChargeAttack() { bIsChargeOnCooldown = false; }
 	void ResetRangedAttack() { bIsRangedOnCooldown = false; }
@@ -210,6 +230,7 @@ public:
 	FTimerHandle MeleeAttackTimerHandle;
 	FTimerHandle ChargeAttackTimerHandle;
 	FTimerHandle RangedAttackTimerHandle;
+	
 	
 	uint8 bIsAttacking : 1 = 0;
 	
@@ -242,10 +263,23 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float RangedProbability = 0.0f;
-
 	
 #pragma endregion
 
+#pragma region Pade Out Effect
+
+public:
+	void StartFadeOut();
+	void UpdateFade();
+	
+private:
+	// Fade Out
+	FTimerHandle FadeDelayTimerHandle;
+	FTimerHandle FadeTimerHandle;
+	float ElapsedFadeTime = 0.f;
+	
+#pragma endregion
+	
 #pragma region Debug
 public:
 	void DrawDebugVisuals();
@@ -255,5 +289,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bDrawAttackRangeDebug : 1 = 0;
+#pragma endregion
+
+#pragma region SFX
+	void PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch = 1.0f, const float StartTime = 0.0f) const;
 #pragma endregion
 };

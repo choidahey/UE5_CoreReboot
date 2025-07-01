@@ -1,13 +1,14 @@
 #include "AnimalRangedAttackComponent.h"
-#include "../AnimalProjectileSubsystem.h"
-#include "../Projectile/Manager/AnimalProjectilePoolManager.h"
-#include "../Projectile/AnimalProjectile.h"
-#include "Engine/World.h"
+
+#include "AIController.h"
+#include "ObjectPoolComponent.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
+#include "FriendlyAI/Projectile/AnimalProjectile.h"
 #include "GameFramework/Actor.h"
-#include "Engine/World.h"
-#include "../BaseAnimal.h"
 #include "Components/ArrowComponent.h"
-#include "Components/SceneComponent.h"
+#include "../BaseAnimal.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 UAnimalRangedAttackComponent::UAnimalRangedAttackComponent()
 {
@@ -17,48 +18,68 @@ UAnimalRangedAttackComponent::UAnimalRangedAttackComponent()
 void UAnimalRangedAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	ProjectileSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UAnimalProjectileSubsystem>();
-	PoolManager = UAnimalProjectilePoolManager::Get(GetWorld());
 }
 
 void UAnimalRangedAttackComponent::FireProjectile()
 {
-	if (!ProjectileSubsystem) return;
-
-	const FAnimalProjectileInfo* Info = ProjectileSubsystem->GetProjectileInfo(ProjectileRowHandle.RowName);
-	if (!Info) return;
+	if (!ProjectileClass) return;
 
 	ABaseAnimal* OwnerAnimal = Cast<ABaseAnimal>(GetOwner());
-	FTransform SpawnTransform = OwnerAnimal
+	FTransform SpawnTransform = OwnerAnimal && OwnerAnimal->MuzzleArrow
 		? OwnerAnimal->MuzzleArrow->GetComponentTransform()
 		: GetOwner()->GetActorTransform();
 
 	UWorld* World = GetWorld();
 	if (!World) return;
 
-	PoolManager = UAnimalProjectilePoolManager::Get(World);
+	UProjectilePoolSubsystem* PoolSubsystem = World->GetSubsystem<UProjectilePoolSubsystem>();
+	if (!PoolSubsystem) return;
 
-	AAnimalProjectile* Projectile = nullptr;
-	if (PoolManager)
-	{
-		Projectile = PoolManager->Acquire(Info->ProjectileClass);
-	}
-	if (!Projectile)
-	{
-		Projectile = World->SpawnActor<AAnimalProjectile>(
-			Info->ProjectileClass,
-			SpawnTransform.GetLocation(),
-			SpawnTransform.GetRotation().Rotator()
-		);
-	}
-
-	Projectile->SetActorTransform(SpawnTransform);
-	Projectile->SetActorHiddenInGame(false);
-	Projectile->SetActorEnableCollision(true);
+	AActor* SpawnedActor = PoolSubsystem->SpawnFromPool(ProjectileClass,
+														SpawnTransform.GetLocation(),
+														SpawnTransform.GetRotation().Rotator());
 	
+	AAnimalProjectile* Projectile = Cast<AAnimalProjectile>(SpawnedActor);
+	if (!Projectile) return;
+
+	Projectile->SetOwner(OwnerAnimal);
+
+	if (OwnerAnimal && OwnerAnimal->bStatsReady)
+	{
+		float Damage = OwnerAnimal->GetCurrentStats().AttackDamage * DamageMultiplier;
+		Projectile->SetProjectileDamage(Damage);
+	}
+	
+	if (auto PoolComp = Projectile->FindComponentByClass<UObjectPoolComponent>())
+	{
+		PoolComp->ReturnToPoolAfter(ProjectileLifetime);
+	}
+
+	AAIController* AICon = Cast<AAIController>(OwnerAnimal->GetController());
+	UBlackboardComponent* BB = AICon ? AICon->FindComponentByClass<UBlackboardComponent>() : nullptr;
+	AActor* Target = BB ? Cast<AActor>(BB->GetValueAsObject("TargetActor")) : nullptr;
+
+	FVector Direction;
+	if (Target)
+	{
+		FVector SpawnLoc = SpawnTransform.GetLocation();
+		FRotator MuzzleRot = SpawnTransform.GetRotation().Rotator();
+		FVector ToTarget = Target->GetActorLocation() - SpawnLoc;
+		FRotator DesiredRot = ToTarget.Rotation();
+		FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(DesiredRot, MuzzleRot);
+
+		float ClampedYaw   = FMath::Clamp(DeltaRot.Yaw,   -MaxYawAngle,   MaxYawAngle);
+		float ClampedPitch = FMath::Clamp(DeltaRot.Pitch, -MaxPitchAngle, MaxPitchAngle);
+
+		Direction = (MuzzleRot + FRotator(ClampedPitch, ClampedYaw, 0)).Vector();
+	}
+	else
+	{
+		Direction = SpawnTransform.GetRotation().GetForwardVector();
+	}
+
 	if (Projectile->ProjectileMovement)
 	{
-		Projectile->ProjectileMovement->Velocity = SpawnTransform.GetRotation().GetForwardVector() * Info->Speed;
+		Projectile->ProjectileMovement->Velocity = Direction * ProjectileSpeed;
 	}
-	Projectile->SetLifeSpan(Info->Lifetime);
 }

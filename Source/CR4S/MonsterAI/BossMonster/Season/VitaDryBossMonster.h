@@ -13,11 +13,12 @@ public:
 	AVitaDryBossMonster();
 
 protected:
-	virtual UNiagaraSystem* GetOpeningNiagara() const override
-	{
-		return OpeningNiagara;
-	}
+	virtual UNiagaraSystem* GetOpeningNiagara() const override { return OpeningNiagara; }
+	virtual USoundBase* GetBattleBGM() const override{ return BattleBGM; }
 
-	UPROPERTY(EditDefaultsOnly, Category="Boss|Opening Pattern")
+	UPROPERTY(EditDefaultsOnly, Category="Opening Pattern")
 	TObjectPtr<UNiagaraSystem> OpeningNiagara = nullptr;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Opening Pattern")
+	TObjectPtr<USoundBase> BattleBGM = nullptr;
 };

@@ -77,7 +77,7 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 	{
 		if (GroundAnimal->AIJumpComponent)
 		{
-			GroundAnimal->AIJumpComponent->Activate();
+			GroundAnimal->AIJumpComponent->ActivateJumpComponent();
 		}
 	}
 
@@ -92,6 +92,20 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
+	}
+
+	if (AAnimalAIController* AIController = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
+	{
+		AActor* CurrentPlayerTarget = AIController->GetCurrentPlayerTarget();
+		if (IsValid(CurrentPlayerTarget) && CurrentPlayerTarget != TargetToChase)
+		{
+			TargetToChase = CurrentPlayerTarget;
+			Animal->CurrentTarget = CurrentPlayerTarget;
+			if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
+			{
+				BB->SetValueAsObject(TEXT("TargetActor"), CurrentPlayerTarget);
+			}
+		}
 	}
 
 	ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(TargetToChase);
@@ -122,7 +136,7 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		{
 			if (GroundAnimal->AIJumpComponent && !GroundAnimal->AIJumpComponent->IsActive())
 			{
-				GroundAnimal->AIJumpComponent->Activate();
+				GroundAnimal->AIJumpComponent->ActivateJumpComponent();
 			}
 		}
 	}

@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "BaseSkillActor.h"
-#include "NiagaraComponent.h"
 #include "GameFramework/Actor.h"
 #include "FieldActor.generated.h"
 
@@ -10,7 +9,7 @@ UENUM(BlueprintType)
 enum class ESpawnSource : uint8
 {
 	Owner    UMETA(DisplayName="Owner"),
-	Target   UMETA(DisplayName="Target")
+	Enemy   UMETA(DisplayName="Target")
 };
 
 UCLASS()
@@ -24,35 +23,27 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Boss|Skill")
 	void Initialize(AActor* OwnerMonster, AActor* TargetActor = nullptr);
 
-	FORCEINLINE void SetNiagaraActive(bool bActive) const { NiagaraComp->Activate(bActive); }
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-
-    UPROPERTY(VisibleAnywhere, Category="Boss|Skill")
-    class UCapsuleComponent* CapsuleComp;
-
-	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	float InitCapsuleRadius = 100.f;
 	
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	float InitCapsuleHalfHeight = 100.f;
-	
-	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	bool bFollowOwner = false;
+	bool bDrawLine = false;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	ESpawnSource SpawnSource = ESpawnSource::Owner;
+	ESpawnSource SpawnTarget = ESpawnSource::Owner;
+	
+	UPROPERTY(EditAnywhere, Category="Boss|Skill")
+	bool bIsFollowTarget = false;
+
+	UPROPERTY(EditAnywhere, Category="Boss|Skill")
+	bool bIsAttachGround = false;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float LifeTime = 5.f;
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
 	float DamageTickInterval = 0.5f;
-	
-	UPROPERTY(EditAnywhere, Category="Boss|Skill")
-	FVector InitialNiagaraScale  = FVector(1.f);
 
 	UPROPERTY(EditAnywhere, Category="Boss|Skill")
     bool bDynamicSize = false;
@@ -67,11 +58,11 @@ protected:
 	class UCurveVector* DynamicScaleCurve = nullptr;
 
 private:
-	void ApplyInitialScale();
-	void PerformGroundTrace();
+	AActor* GetTargetActor() const;
+	void AttachGround();
 	void StartTimers();
 	void UpdateDynamicScale(float DeltaTime);
-	void FollowOwner();
+	void FollowTarget();
 	
 	virtual void OnOverlap(
 		UPrimitiveComponent* OverlappedComp,
@@ -88,19 +79,25 @@ private:
 
 	UFUNCTION()
 	void EndSkill();
+	FVector GetGroundLocation(const FVector& BaseLocation) const;
 	void ApplyDamageTick();
 
 	UPROPERTY()
 	AActor* OwnerActor = nullptr;
 
 	UPROPERTY()
+	AActor* EnemyActor = nullptr;
+
+	UPROPERTY()
 	AActor* TargetActor = nullptr;
 	
 	UPROPERTY()
-	TSet<AActor*> OverlappingActors;
+	TSet<TWeakObjectPtr<AActor>> OverlappingActors;
 	
 	float ElapsedTime = 0.f;
 	float TraceHeight = 1000.f;
+	FVector InitialActorScale = FVector(1.f);
+	FVector InitialOffset = FVector(0.f);
 
 	FTimerHandle LifeTimerHandle;
 	FTimerHandle DamageTimerHandle;

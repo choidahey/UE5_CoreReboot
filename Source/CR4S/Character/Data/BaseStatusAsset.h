@@ -20,9 +20,14 @@ public:
 	float MaxResource{100000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Resource{100000};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ResourceConsumptionMultiplier {1};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Armor{0};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ArmorConstant {1000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackPower{0};
 	
@@ -34,13 +39,21 @@ public:
 	float HumidityThreshold{100};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float RollStaminaCost{1000};
+	float HeatDamageInterval{1};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HeatDamageAmount{10};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ResourceConsumptionAmount{1000};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceRegenDelay{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceRegenInterval{0.1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ResourceRegenPerInterval{100};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ResourceRegenMultiplier{1};
 };
 
 

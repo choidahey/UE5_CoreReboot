@@ -13,6 +13,7 @@ UBTTask_PlayAttackMontage::UBTTask_PlayAttackMontage()
 {
 	NodeName = TEXT("PlayAttackMontage");
 	SkillIndexKey.SelectedKeyName = FAIKeys::SkillIndex;
+	bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTTask_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -23,13 +24,6 @@ EBTNodeResult::Type UBTTask_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponen
 	UMonsterSkillComponent* SkillComp = Monster->FindComponentByClass<UMonsterSkillComponent>();
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 	if (!IsValid(SkillComp) || !IsValid(BlackboardComp)) return EBTNodeResult::Failed;
-	
-	UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>();
-	if (!IsValid(AnimComp))
-	{
-		CR4S_Log(LogMonster, Warning, TEXT("[%s] Missing MonsterAnimComponent"), *MyHeader);
-		return EBTNodeResult::Failed;
-	}
 
 	const int32 SkillIndex = BlackboardComp->GetValueAsInt(SkillIndexKey.SelectedKeyName);
 
@@ -42,6 +36,13 @@ EBTNodeResult::Type UBTTask_PlayAttackMontage::ExecuteTask(UBehaviorTreeComponen
 	BlackboardComp->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, true);
 	
 	SkillComp->UseSkill(SkillIndex);
+
+	UMonsterAnimComponent* AnimComp = Monster->FindComponentByClass<UMonsterAnimComponent>();
+	if (!IsValid(AnimComp))
+	{
+		CR4S_Log(LogMonster, Warning, TEXT("[%s] No montage is playing after UseSkill"), *GetClass()->GetName());
+		return EBTNodeResult::Failed;
+	}
 
 	AnimComp->OnMontageEndedNotify.RemoveAll(this);
 	AnimComp->OnMontageEndedNotify.AddDynamic(this, &UBTTask_PlayAttackMontage::OnAnimMontageEnded);
@@ -69,7 +70,6 @@ EBTNodeResult::Type UBTTask_PlayAttackMontage::AbortTask(UBehaviorTreeComponent&
 
 	if (UBlackboardComponent* BB = CachedOwnerComp->GetBlackboardComponent())
 	{
-		// TODO :: 여기 너무 부자연스럽게 끊기는데 자연스럽게 어캐하지
 		BB->SetValueAsBool(FAIKeys::bIsPlayingAttackMontage, false);
 	}
 	

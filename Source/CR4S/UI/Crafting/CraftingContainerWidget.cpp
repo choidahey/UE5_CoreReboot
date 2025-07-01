@@ -5,13 +5,10 @@
 #include "CraftingWidget.h"
 #include "RecipeSelectWidget.h"
 #include "Gimmick/Data/ItemRecipeData.h"
-#include "Gimmick/Manager/ItemGimmickSubsystem.h"
-#include "Inventory/Components/PlayerInventoryComponent.h"
+#include "Gimmick/Data/RecipeCategoryData.h"
 
-void UCraftingContainerWidget::InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent)
+void UCraftingContainerWidget::InitWidget(UPlayerInventoryComponent* PlayerInventoryComponent)
 {
-	PlayerInventoryComponent = NewPlayerInventoryComponent;
-
 	if (IsValid(CraftingCategorySelectWidget))
 	{
 		CraftingCategorySelectWidget->InitWidget(this);
@@ -21,25 +18,28 @@ void UCraftingContainerWidget::InitWidget(UPlayerInventoryComponent* NewPlayerIn
 
 	if (IsValid(RecipeSelectWidget))
 	{
-		RecipeSelectWidget->InitWidget(this);
+		RecipeSelectWidget->InitWidget(CraftingWidget);
 
 		CloseRecipeSelectWidget();
 	}
 
 	if (IsValid(CraftingWidget))
 	{
-		CraftingWidget->InitWidget(this);
+		CraftingWidget->InitWidget(PlayerInventoryComponent);
 	}
-
-	ItemGimmickSubsystem = GetWorld()->GetSubsystem<UItemGimmickSubsystem>();
 }
 
 void UCraftingContainerWidget::UpdateWidget(const int32 NewCraftingDifficulty)
 {
 	CraftingDifficulty = NewCraftingDifficulty;
 
-	CR4S_Log(LogCraftingUI, Warning, TEXT("Crafting Difficulty: %d"), CraftingDifficulty);
+	// CR4S_Log(LogCraftingUI, Warning, TEXT("Crafting Difficulty: %d"), NewCraftingDifficulty);
 
+	if (IsValid(CraftingCategorySelectWidget))
+	{
+		CraftingCategorySelectWidget->UpdateCategories(CraftingDifficulty);
+	}
+	
 	CloseCraftingWidget();
 
 	CloseRecipeSelectWidget();
@@ -47,9 +47,22 @@ void UCraftingContainerWidget::UpdateWidget(const int32 NewCraftingDifficulty)
 
 void UCraftingContainerWidget::OpenRecipeSelectWidget(const FRecipeCategoryData& RecipeCategoryData) const
 {
-	if (IsValid(RecipeSelectWidget))
+	if (IsValid(RecipeSelectWidget) && IsValid(ItemRecipeData))
 	{
-		RecipeSelectWidget->OpenWidget(RecipeCategoryData);
+		TArray<const FItemRecipeData*> RecipeItems;
+		for (auto& Pair : ItemRecipeData->GetRowMap())
+		{
+			if (const FItemRecipeData* Data = reinterpret_cast<FItemRecipeData*>(Pair.Value))
+			{
+				if (Data->RecipeTag == RecipeCategoryData.RecipeTag &&
+					Data->CraftingDifficulty <= CraftingDifficulty)
+				{
+					RecipeItems.AddUnique(Data);
+				}
+			}
+		}
+		
+		RecipeSelectWidget->OpenWidget(RecipeCategoryData.Icon, RecipeCategoryData.Name, RecipeItems);
 	}
 
 	CloseCraftingWidget();
@@ -63,52 +76,11 @@ void UCraftingContainerWidget::CloseRecipeSelectWidget() const
 	}
 }
 
-void UCraftingContainerWidget::OpenCraftingWidget(const FRecipeSelectData& NewRecipeSelectData) const
-{
-	if (IsValid(CraftingWidget))
-	{
-		CraftingWidget->OpenWidget(NewRecipeSelectData);
-	}
-}
-
 void UCraftingContainerWidget::CloseCraftingWidget() const
 {
 	if (IsValid(CraftingWidget))
 	{
 		CraftingWidget->CloseWidget();
-	}
-}
-
-const FItemInfoData* UCraftingContainerWidget::GetItemInfoData(const FName RowName) const
-{
-	if (IsValid(ItemGimmickSubsystem))
-	{
-		return ItemGimmickSubsystem->FindItemInfoData(RowName);
-	}
-
-	return nullptr;
-}
-
-int32 UCraftingContainerWidget::GetItemCountByRowName(const FName RowName) const
-{
-	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(PlayerInventoryComponent)))
-	{
-		return 0;
-	}
-
-	return PlayerInventoryComponent->GetItemCountByRowName(RowName);
-}
-
-void UCraftingContainerWidget::CraftItem(const FItemRecipeData& ItemRecipeData) const
-{
-	if (CR4S_VALIDATE(LogCraftingUI, IsValid(PlayerInventoryComponent)))
-	{
-		for (const auto& [IngredientItemName, Count] : ItemRecipeData.Ingredients)
-		{
-			PlayerInventoryComponent->RemoveItemByRowName(IngredientItemName, Count);
-		}
-		
-		PlayerInventoryComponent->AddItem(ItemRecipeData.ResultItemName, ItemRecipeData.ResultCount);
 	}
 }
 

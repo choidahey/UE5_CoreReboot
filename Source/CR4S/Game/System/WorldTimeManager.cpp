@@ -3,31 +3,25 @@
 #include "Game/System/EnvironmentManager.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Internationalization/Text.h"
 
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
     UWorld* World = Cast<UWorld>(Outer);
-    if (World && World->GetName() == TEXT("SurvivalLevel_1"))
+    if (World && World->GetName() == TEXT("MenuLevel"))
     {
-		return true;  // Creates this subsystem only in the SurvivalLevel world
+		return false;
     }
 
-    return false;
+    return true;
 }
 
 void UWorldTimeManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	LoadTimeData();
-
     FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UWorldTimeManager::OnPostWorldInit);
 	FWorldDelegates::OnWorldCleanup.AddUObject(this, &UWorldTimeManager::OnWorldCleanup);
-}
-
-void UWorldTimeManager::LoadTimeData()
-{
-	// if Saved Data Exists, Load Time Data
 }
 
 void UWorldTimeManager::OnPostWorldInit(UWorld* World, const UWorld::InitializationValues IVS)
@@ -56,6 +50,16 @@ void UWorldTimeManager::StartWorldTime()
 	{
 		GetWorld()->GetTimerManager().SetTimer(TimeUpdateHandle, this, &UWorldTimeManager::UpdateTime, 1.0f / WorldTimeMultiplier, true);
 	}
+}
+
+void UWorldTimeManager::SetWorldTime(FWorldTimeData NewTimeData)
+{
+	CurrentTimeData = NewTimeData;
+	TotalPlayTime = NewTimeData.Day * DayCycleLength * 60 + NewTimeData.Minute * 60 + NewTimeData.Second;
+
+	AdvanceSkyTime(CurrentTimeData.Minute, CurrentTimeData.Second);
+	UpdateTimeWidget();
+	OnWorldTimeUpdated.Broadcast(TotalPlayTime);
 }
 
 void UWorldTimeManager::UpdateTime()
@@ -167,4 +171,13 @@ void UWorldTimeManager::AdvanceSkyTime(int32 Min, int32 Sec)
 	const int32 TimeOfDay = FMath::Clamp(static_cast<int32>(TimeRatio * 2400.0f), 0, 2400);
 
 	EnvironmentManager->SetSkyTime(TimeOfDay);
+}
+
+FString UWorldTimeManager::CalculateSecondToStr(int64 Time) const
+{
+	int32 Hours = Time / 3600;
+	int32 Minutes = (Time % 3600) / 60;
+	int32 Seconds = Time % 60;
+
+	return FString::Printf(TEXT("%02d:%02d:%02d"), Hours, Minutes, Seconds);
 }

@@ -192,4 +192,3 @@ void AProjectileBomb::ApplyPeriodicDamage(AActor* Victim)
 		UDamageType::StaticClass()
 	);
 }
-

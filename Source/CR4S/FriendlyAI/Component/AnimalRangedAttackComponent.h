@@ -1,14 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SceneComponent.h"
-#include "../AnimalProjectileSubsystem.h"
+#include "Components/ActorComponent.h"
 #include "AnimalRangedAttackComponent.generated.h"
 
-class UAnimalProjectileSubsystem;
 class AAnimalProjectile;
-class USceneComponent;
-class UAnimalProjectilePoolManager;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CR4S_API UAnimalRangedAttackComponent : public UActorComponent
@@ -20,15 +16,27 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
-	UPROPERTY(EditAnywhere, Category="Ranged Attack", meta=(RowType="AnimalProjectileStatsRow", HideDataTable))
-	FDataTableRowHandle ProjectileRowHandle;
 
-private:
-	UAnimalProjectileSubsystem* ProjectileSubsystem;
-	UAnimalProjectilePoolManager* PoolManager;
+public:
+	UFUNCTION(BlueprintCallable)
+	void FireProjectile();
 	
 public:
-	UFUNCTION(BlueprintCallable, Category="Ranged Attack")
-	void FireProjectile();	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AAnimalProjectile> ProjectileClass;
+
+	UPROPERTY(EditAnywhere)
+	float ProjectileSpeed = 0.f;
+
+	UPROPERTY(EditAnywhere)
+	float ProjectileLifetime = 0.f;
+
+	UPROPERTY(EditAnywhere)
+	float MaxYawAngle = 60.f;
+	
+	UPROPERTY(EditAnywhere)
+	float MaxPitchAngle = 60.f;
+
+	UPROPERTY(EditAnywhere)
+	float DamageMultiplier = 1.0f;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Game/System/AudioManager.h"
 #include "GameFramework/Actor.h"
 #include "BaseSkillActor.generated.h"
 
@@ -9,6 +10,7 @@ class UStaticMeshComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class USoundBase;
+struct FNiagaraParamSet;
 
 UCLASS()
 class CR4S_API ABaseSkillActor : public AActor
@@ -44,6 +46,7 @@ protected:
 
 public:
 	virtual void InitializeSkillData();
+	virtual void ApplyInitialOverlapDamage();
 	virtual void ApplyEffectToActor(AActor* Target);
 
 #pragma endregion
@@ -70,7 +73,18 @@ protected:
 protected:
 	void PlayEffectAtLocation(const FVector& Location);
 	void PlaySoundAtLocation(const FVector& Location);
+	virtual void PlaySkillSound(USoundBase* Sound);
 
+	void SpawnEffectAtLocationWithParams(UNiagaraSystem* System, const FVector& Location, const FNiagaraParamSet& Params);
+
+	// Execute SKill
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Audio")
+	TObjectPtr<USoundBase> LaunchSkillSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Audio")
+	EConcurrencyType StartSoundType = EConcurrencyType::Impact;
+
+	// Hit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|FX")
 	TObjectPtr<UNiagaraSystem> HitEffect;
 
@@ -87,9 +101,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
 	float StunGaugeAmount = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
+	float StunDamageMultiplier = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
 	bool bAllowMultipleHits = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Attributes")
+	bool bIsStunned = false;
 
 	UPROPERTY()
 	TSet<TWeakObjectPtr<AActor>> AlreadyDamaged;

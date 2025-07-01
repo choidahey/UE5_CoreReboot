@@ -54,6 +54,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Monster|Skill")
 	int32 CurrentSkillIndex = INDEX_NONE;
 
+protected:
+	UFUNCTION()
+	void OnSkillActorSpawned(AActor* NewActor);
+	void CancelAllSkills();
+	
+	FDelegateHandle SpawnHandle;
+
+	UPROPERTY()
+	TArray<TWeakObjectPtr<AActor>> ActiveSkillActors;
+
 #pragma endregion
 
 #pragma region Helpers
@@ -81,7 +91,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Monster|Skill")
-	void SetAttackCollisionEnabled(bool bEnable, int32 InSkillIndex);
+	void SetAttackCollisionEnabled(bool bEnable);
 
 	UFUNCTION()
 	void OnAttackHit(
@@ -92,9 +102,6 @@ public:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
-	TArray<TObjectPtr<UPrimitiveComponent>> WeaponColliders;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
 	TArray<TObjectPtr<UPrimitiveComponent>> BodyColliders;

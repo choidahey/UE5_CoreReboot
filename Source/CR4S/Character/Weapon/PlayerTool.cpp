@@ -59,15 +59,12 @@ void APlayerTool::OnAttack()
 {
 	if (!CR4S_ENSURE(LogHong1,OwningCharacter)||!CR4S_ENSURE(LogHong1,PlayerToolInfo.AttackMontage)) return;
 	
-	OwningCharacter->PlayAnimMontage(PlayerToolInfo.AttackMontage);
+	OwningCharacter->PlayAnimMontage(PlayerToolInfo.AttackMontage,MontagePlayRate);
 }
 
 float APlayerTool::ComputeFinalDamage()
 {
-	UPlayerCharacterStatusComponent* StatusComp=OwningCharacter->FindComponentByClass<UPlayerCharacterStatusComponent>();
-	if (!CR4S_ENSURE(LogHong1,StatusComp)) return 0;
-
-	return StatusComp->GetAttackPower();
+	return PlayerToolInfo.AttackPower;
 }
 
 // Called when the game starts or when spawned

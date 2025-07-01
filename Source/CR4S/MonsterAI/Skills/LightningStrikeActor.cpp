@@ -17,7 +17,12 @@ ALightningStrikeActor::ALightningStrikeActor()
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ALightningStrikeActor::OnOverlap);
 }
 
-void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect, float DamageAmount)
+void ALightningStrikeActor::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNiagaraSystem* LightningEffect)
 {
 	FVector GroundTarget = TargetLocation;
 
@@ -40,6 +45,7 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 	const float CapsuleCenterZ = CapsuleBottomZ + CapsuleHalfHeight;
 
 	SetActorLocation(GroundTarget);
+	InitializeSkillData();
 
 	UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(CollisionComp);
 	if (Capsule)
@@ -57,23 +63,23 @@ void ALightningStrikeActor::InitializeStrike(const FVector& TargetLocation, UNia
 		NiagaraComp->Activate(true);
 	}
 
-#if WITH_EDITOR
-	if (IsValid(CollisionComp))
-	{
-		DrawDebugCapsule(
-			GetWorld(),
-			CollisionComp->GetComponentLocation(),
-			CapsuleHalfHeight,
-			CapsuleRadius,
-			CollisionComp->GetComponentQuat(),
-			FColor::Red,
-			false,
-			2.f,
-			0,
-			2.f
-		);
-#endif
-	}
+//#if WITH_EDITOR
+//	if (IsValid(CollisionComp))
+//	{
+//		DrawDebugCapsule(
+//			GetWorld(),
+//			CollisionComp->GetComponentLocation(),
+//			CapsuleHalfHeight,
+//			CapsuleRadius,
+//			CollisionComp->GetComponentQuat(),
+//			FColor::Red,
+//			false,
+//			2.f,
+//			0,
+//			2.f
+//		);
+//	}
+//#endif
 
 	FTimerHandle DestroyHandle;
 	GetWorld()->GetTimerManager().SetTimer(

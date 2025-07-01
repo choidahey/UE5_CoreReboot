@@ -1,5 +1,6 @@
 #include "Game/System/SpawnZoneVolume.h"
 #include "Game/System/SpawnZoneManager.h"
+#include "Game/System/SeasonManager.h"
 #include "Components/SplineComponent.h"
 #include "Components/SphereComponent.h"
 #include "FriendlyAI/BaseAnimal.h"
@@ -45,12 +46,39 @@ void ASpawnZoneVolume::BeginPlay()
         const FBox2D Bounds2D = CalculateSplineBounds2D();
         SpawnZoneManager->RegisterZone(this, Bounds2D);
     }
+
+    if (USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>())
+    {
+        UpdateSeasonSpawns(SeasonManager->GetCurrentSeason());
+
+        SeasonManager->OnSeasonChanged.AddDynamic(this, &ASpawnZoneVolume::OnSeasonChanged);
+    }
+
+
 #if WITH_EDITOR
     DrawDebugLines();
 #endif
 }
 
-AActor* ASpawnZoneVolume::SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass, const FVector& Location)
+void ASpawnZoneVolume::SetZoneActive(bool bNewActive)
+{
+    if (bIsZoneActive == bNewActive)
+        return;
+
+    bIsZoneActive = bNewActive;
+
+    if (bIsZoneActive)
+    {
+        SpawnActorsInZone();
+    }
+    else
+    {
+        DespawnActorsInZone();
+    }
+}
+
+
+AActor* ASpawnZoneVolume::SpawnActorsAndTrack(TSubclassOf<AActor> SpawnClass, const FVector& Location)
 {
     UWorld* World = GetWorld();
     if (!World || !SpawnClass) return nullptr;
@@ -66,7 +94,7 @@ AActor* ASpawnZoneVolume::SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass,
             ISpawnable* Spawnable = Cast<ISpawnable>(Spawned);
             if (Spawnable)
             {
-                if (FOnDied* Delegate = Spawnable->GetOnDiedDelegate())
+                if (FOnSpawnableDestroyed* Delegate = Spawnable->GetOnSpawnableDestroyedDelegate())
                 {
                     Delegate->AddUObject(this, &ASpawnZoneVolume::HandleActorDeath);
                 }
@@ -76,15 +104,111 @@ AActor* ASpawnZoneVolume::SpawnActorWithDelegate(TSubclassOf<AActor> SpawnClass,
     return Spawned;
 }
 
+
 void ASpawnZoneVolume::SpawnActorsInZone()
 {
-    if (ActorClasses.Num() == 0 || !SplineComponent) return;
-    if (bIsZoneActive) return;
+    if (!SplineComponent || !SeasonSpawns || SeasonSpawns->Num() == 0) return;
 
+    switch (SpawnerType)
+    {
+    case ESpawnerType::Creature:
+        SpawnCreatures();
+        break;
+
+    case ESpawnerType::Crop:
+        SpawnCrops();
+        break;
+
+    default:
+        break;
+    }
+}
+
+
+void ASpawnZoneVolume::SpawnCreatures()
+{
     TArray<FVector2D> Polygon = GetPolygonFromSpline();
     if (Polygon.Num() < 3) return;
 
-    for (const FSpawnClassInfo& SpawnInfo : ActorClasses)
+    SpawnedActors.Empty();
+
+    for (const FSpawnClassInfo& SpawnInfo : *SeasonSpawns)
+    {
+        if (!SpawnInfo.SpawnClass) continue;
+
+        if (SpawnInfo.bEnableSpawnRate)
+        {
+            for (int32 i = 0; i < SpawnInfo.SpawnCount; ++i)
+            {
+                FTimerHandle TimerHandle;
+                FSpawnClassInfo SpawnInfoCopy = SpawnInfo;
+                FTimerDelegate TimerDel;
+
+                TimerDel.BindLambda([this, SpawnInfoCopy, Polygon]()
+                    {
+                        if (!IsValid(this)) return;
+
+                        FVector2D RandomPoint2D;
+                        if (GetRandomPointInPolygon(Polygon, RandomPoint2D))
+                        {
+                            FVector SpawnLocation;
+                            if (!TryGetGroundSpawnLocation(RandomPoint2D, SpawnLocation))
+                            {
+                                SpawnLocation = FVector(RandomPoint2D.X, RandomPoint2D.Y, SpawnHeight);
+                            }
+
+                            AActor* Spawned = SpawnActorsAndTrack(SpawnInfoCopy.SpawnClass, SpawnLocation);
+                            if (Spawned)
+                            {
+                                SpawnedActors.Add(Spawned);
+                            }
+                        }
+                    });
+
+                GetWorld()->GetTimerManager().SetTimer(
+                    TimerHandle,
+                    TimerDel,
+                    FMath::Max(0.001f, i * SpawnInfo.SpawnRate),
+                    false
+                );
+
+                SpawnedTimers.Add(TimerHandle);
+            }
+        }
+        else
+        {
+            for (int32 i = 0; i < SpawnInfo.SpawnCount; ++i)
+            {
+                FVector2D RandomPoint2D;
+                if (GetRandomPointInPolygon(Polygon, RandomPoint2D))
+                {
+                    FVector SpawnLocation;
+                    if (!TryGetGroundSpawnLocation(RandomPoint2D, SpawnLocation))
+                    {
+                        SpawnLocation = FVector(RandomPoint2D.X, RandomPoint2D.Y, SpawnHeight);
+                    }
+
+                    AActor* Spawned = SpawnActorsAndTrack(SpawnInfo.SpawnClass, SpawnLocation);
+                    if (Spawned)
+                    {
+                        SpawnedActors.Add(Spawned);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+void ASpawnZoneVolume::SpawnCrops()
+{
+    TArray<FVector2D> Polygon = GetPolygonFromSpline();
+    if (Polygon.Num() < 3) return;
+
+    SpawnedActors.Empty();
+
+    for (const FSpawnClassInfo& SpawnInfo : *SeasonSpawns)
     {
         if (!SpawnInfo.SpawnClass) continue;
 
@@ -99,7 +223,7 @@ void ASpawnZoneVolume::SpawnActorsInZone()
                     SpawnLocation = FVector(RandomPoint2D.X, RandomPoint2D.Y, SpawnHeight);
                 }
 
-                AActor* Spawned = SpawnActorWithDelegate(SpawnInfo.SpawnClass, SpawnLocation);
+                AActor* Spawned = SpawnActorsAndTrack(SpawnInfo.SpawnClass, SpawnLocation);
                 if (Spawned)
                 {
                     SpawnedActors.Add(Spawned);
@@ -107,9 +231,9 @@ void ASpawnZoneVolume::SpawnActorsInZone()
             }
         }
     }
-
-    bIsZoneActive = true;
 }
+
+
 
 void ASpawnZoneVolume::DespawnActorsInZone()
 {
@@ -120,39 +244,46 @@ void ASpawnZoneVolume::DespawnActorsInZone()
             Actor->Destroy();
         }
     }
-
     SpawnedActors.Empty();
-    bIsZoneActive = false;
+
+    for (FTimerHandle& Timer : SpawnedTimers)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(Timer);
+    }
+    SpawnedTimers.Empty();
 }
 
 void ASpawnZoneVolume::HandleActorDeath(AActor* Actor)
 {
-    if (!Actor) return;
+    if (!Actor || !SeasonSpawns) return;
 
     SpawnedActors.Remove(Actor);
 
-    for (const FSpawnClassInfo& Info : ActorClasses)
+    for (const FSpawnClassInfo& Info : *SeasonSpawns)
     {
         if (Actor->IsA(Info.SpawnClass))
         {
-            FTimerDelegate RespawnDelegate;
-            RespawnDelegate.BindUFunction(this, FName("RespawnActor"), Info.SpawnClass);
+            if (Info.bEnableRespawn)
+            {
+                FTimerDelegate RespawnDelegate;
+                RespawnDelegate.BindUFunction(this, FName("RespawnActor"), Info.SpawnClass);
 
-            GetWorld()->GetTimerManager().SetTimerForNextTick([this, RespawnDelegate, Info]()
-                {
-                    FTimerHandle TempHandle;
-                    GetWorld()->GetTimerManager().SetTimer(
-                        TempHandle,
-                        RespawnDelegate,
-                        Info.RespawnTime,
-                        false
-                    );
-                });
-
+                GetWorld()->GetTimerManager().SetTimerForNextTick([this, RespawnDelegate, Info]()
+                    {
+                        FTimerHandle TempHandle;
+                        GetWorld()->GetTimerManager().SetTimer(
+                            TempHandle,
+                            RespawnDelegate,
+                            Info.RespawnTime,
+                            false
+                        );
+                    });
+            }
             break;
         }
     }
 }
+
 
 void ASpawnZoneVolume::RespawnActor(TSubclassOf<AActor> ActorClass)
 {
@@ -168,10 +299,43 @@ void ASpawnZoneVolume::RespawnActor(TSubclassOf<AActor> ActorClass)
         SpawnLocation = FVector(RandomPoint2D.X, RandomPoint2D.Y, SpawnHeight);
     }
 
-    AActor* NewActor = SpawnActorWithDelegate(ActorClass, SpawnLocation);
+    AActor* NewActor = SpawnActorsAndTrack(ActorClass, SpawnLocation);
     if (NewActor)
     {
         SpawnedActors.Add(NewActor);
+    }
+}
+
+void ASpawnZoneVolume::OnSeasonChanged(ESeasonType Season)
+{
+    UpdateSeasonSpawns(Season);
+
+    if (bIsZoneActive)
+    {
+        DespawnActorsInZone();
+        SpawnActorsInZone();
+    }
+}
+
+void ASpawnZoneVolume::UpdateSeasonSpawns(ESeasonType Season)
+{
+    switch (Season)
+    {
+    case ESeasonType::BountifulSeason:
+        SeasonSpawns = &BountifulSeasonSpawns;
+        break;
+    case ESeasonType::FrostSeason:
+        SeasonSpawns = &FrostSeasonSpawns;
+        break;
+    case ESeasonType::RainySeason:
+        SeasonSpawns = &RainySeasonSpawns;
+        break;
+    case ESeasonType::DrySeason:
+        SeasonSpawns = &DrySeasonSpawns;
+        break;
+    default:
+        SeasonSpawns = nullptr;
+        break;
     }
 }
 
@@ -222,7 +386,11 @@ TArray<FVector2D> ASpawnZoneVolume::GetPolygonFromSpline() const
 bool ASpawnZoneVolume::TryGetGroundSpawnLocation(const FVector2D& Point2D, FVector& OutLocation) const
 {
     UWorld* World = GetWorld();
-    if (!World) return false;
+    if (!IsValid(World))
+    {
+        UE_LOG(LogTemp, Error, TEXT("TryGetGroundSpawnLocation: World is nullptr! Zone: %s"), *GetName());
+        return false;
+    }
 
     FVector Start(Point2D.X, Point2D.Y, 0.0f);
     FVector End(Point2D.X, Point2D.Y, -30000.f);
@@ -254,6 +422,19 @@ FBox2D ASpawnZoneVolume::CalculateSplineBounds2D() const
 
     return Bounds2D;
 }
+
+void ASpawnZoneVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>())
+    {
+        SeasonManager->OnSeasonChanged.RemoveDynamic(this, &ASpawnZoneVolume::OnSeasonChanged);
+    }
+
+    SpawnedTimers.Empty();
+
+    Super::EndPlay(EndPlayReason);
+}
+
 
 #if WITH_EDITOR
 void ASpawnZoneVolume::DrawDebugLines()

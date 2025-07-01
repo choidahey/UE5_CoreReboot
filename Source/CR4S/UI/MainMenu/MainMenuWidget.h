@@ -5,77 +5,75 @@
 
 class UButtonWidget;
 class UTextBlock;
+class UImage;
+class UGameIntroWidget;
 class UConfirmWidget;
 class USettingsWidget;
 class UCreditsWidget;
 class UDifficultyOptionsWidget;
+class UGameSaveWidget;
 class USoundBase;
-class UAudioComponent;
 
 UCLASS()
 class CR4S_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
-
-public:
-	UFUNCTION()
-	void FadeOutBGM(float FadeDuration = 1.0f);
+#pragma region Constructors and Initializers
 
 protected:
+	UFUNCTION()
+	void InitMainMenu();
+
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
-	UFUNCTION()
-	void OnPlayGameButtonHovered();
-	UFUNCTION()
-	void OnPlayGameButtonUnhovered();
-	UFUNCTION()
-	void OnGameButtonHovered();
-	UFUNCTION()
-	void OnGameButtonUnhovered();
-	UFUNCTION()
-	void OnSettingsButtonClicked();
-	UFUNCTION()
-	void OnCreditsButtonClicked();
-	UFUNCTION()
-	void OnQuitButtonClicked();
-	UFUNCTION()
-	void OnNewGameButtonClicked();
+#pragma endregion
 
 
-	void CreateChildWidgets();
-
-	void SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility InVisibility);
-
-public:
-	void HideMenuButtons();
-	void ShowMenuButtons();
-	void ShowGameButtons();
-	void HideGameButtons();
+#pragma region Widget Class and Assignables
 
 protected:
-	UPROPERTY()
-	UConfirmWidget* ConfirmWidgetInstance;
-	UPROPERTY()
-	UDifficultyOptionsWidget* DifficultyOptionsWidgetInstance;
-	UPROPERTY()
-	USettingsWidget* SettingsWidgetInstance;
-	UPROPERTY()
-	UCreditsWidget* CreditsWidgetInstance;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UGameIntroWidget> IntroWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UConfirmWidget> ConfirmWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UDifficultyOptionsWidget> DifficultyOptionsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UGameSaveWidget> GameSaveWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UCreditsWidget> CreditsWidgetClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
 	USoundBase* MainMenuBGM;
-	UPROPERTY()
-	UAudioComponent* BGMComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Background")
+	TArray<UTexture2D*> BackgroundImages;
+
+#pragma endregion
+
+#pragma region Widget Instances
+
+protected:
+	UPROPERTY()
+	TObjectPtr<UConfirmWidget> ConfirmWidgetInstance;
+	UPROPERTY()
+	TObjectPtr<UDifficultyOptionsWidget> DifficultyOptionsWidgetInstance;
+	UPROPERTY()
+	TObjectPtr<UGameSaveWidget> GameSaveWidgetInstance;
+	UPROPERTY()
+	TObjectPtr<USettingsWidget> SettingsWidgetInstance;
+	UPROPERTY()
+	TObjectPtr<UCreditsWidget> CreditsWidgetInstance;
+
+#pragma endregion
+
+#pragma region Widget Bindings
+
+protected:
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* PlayGameButton;
 	UPROPERTY(meta = (BindWidget))
@@ -85,15 +83,56 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* QuitButton;
 	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* NewGameButton;
-	UPROPERTY(meta = (BindWidget))
-	UButtonWidget* LoadGameButton;
-
+	TObjectPtr<UImage> BackgroundImage;
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* FadeIn;
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* FadeOut;
+	UWidgetAnimation* ShowButtonsAnim;
 
-	FTimerHandle FadeOutTimerHandle;
+#pragma endregion
+
+#pragma region Widget Controls
+public:
+	void PlayIntroSequence();
+
+	void ShowBackground();
+
+	UFUNCTION()
+	void HideMenuButtons();
+	UFUNCTION()
+	void ShowMenuButtons();
+
+protected:
+	UFUNCTION(Category = "Background")
+	void ShowNextBackground();
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* BackgroundMID = nullptr;
+
+private:
+	void CreateChildWidgets();
+	void SetWidgetVisibility(UUserWidget* Widget, ESlateVisibility InVisibility);
+
+	int32 CurrentIndex = 0;
+
+	FTimerHandle DissolveTimerHandle;
+
+
+#pragma endregion
+
+#pragma region Delegates & Events
+
+protected:
+	UFUNCTION()
+	void OnPlayGameButtonClicked();
+	UFUNCTION()
+	void OnSettingsButtonClicked();
+	UFUNCTION()
+	void OnCreditsButtonClicked();
+	UFUNCTION()
+	void OnQuitButtonClicked();
+
+public:
+
+	FTimerHandle DissolveStepTimerHandle;
+	FTimerHandle NextBackgroundTimerHandle;
 };
