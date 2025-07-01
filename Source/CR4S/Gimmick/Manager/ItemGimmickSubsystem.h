@@ -38,6 +38,8 @@ public:
 	const FGimmickInfoData* FindGimmickInfoData(const FName& RowName) const;
 
 	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Find Data")
+	void GetItemInfoData(const FName& RowName, FItemInfoData& OutItemInfoData) const;
+	UFUNCTION(BlueprintCallable, Category = "ItemGimmickSubsystem|Find Data")
 	void GetGimmickInfoData(const FName& RowName, FGimmickInfoData& OutGimmickInfoData) const;
 
 private:
