@@ -48,7 +48,7 @@ public:
 #pragma region Initialize
 
 public:
-	void InitInventory();
+	virtual void InitInventory();
 
 #pragma endregion
 
@@ -138,7 +138,7 @@ protected:
 	                                 TSet<int32>& ChangedItemSlots,
 	                                 UBaseInventoryItem* OriginItem);
 
-	UBaseInventoryItem* CreateInventoryItem(const FGameplayTagContainer& ItemTags);
+
 	UPROPERTY(EditDefaultsOnly, Category = "InventorySystem")
 	int32 MaxInventorySize;
 

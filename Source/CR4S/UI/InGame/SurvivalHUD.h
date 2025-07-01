@@ -103,8 +103,15 @@ public:
 	// If TargetWidget = nullptr, HUD hides all the Child Widgets
 	UFUNCTION(BlueprintCallable)
 	void ShowWidgetOnly(UUserWidget* TargetWidget = nullptr);
+	
 	UFUNCTION(BlueprintCallable)
 	void ShowMessage(const FText& InText, float Duration);
+
+	UFUNCTION(BlueprintCallable)
+	void HideHUD();
+
+	UFUNCTION(BlueprintCallable)
+	void OnlyShowDefaults ();
 
 #pragma endregion
 
@@ -115,9 +122,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HandleGameOverToggle();
 
+
+
 	void ShowLoading();
 	void PlayEndingSequence();
 	void BindGameOverWidget();
+
+
 
 #pragma endregion
 

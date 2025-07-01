@@ -16,9 +16,9 @@ UPlayerInventoryComponent::UPlayerInventoryComponent()
 	MaxInventorySize = 50;
 }
 
-void UPlayerInventoryComponent::BeginPlay()
+void UPlayerInventoryComponent::InitInventory()
 {
-	Super::BeginPlay();
+	Super::InitInventory();
 
 	QuickSlotInventoryComponent = NewObject<UBaseInventoryComponent>(this);
 	QuickSlotInventoryComponent->SetMaxInventorySize(10);

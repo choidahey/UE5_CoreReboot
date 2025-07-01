@@ -328,6 +328,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	InitializeWidgets();
 	Status->SetIsUnPossessed(false);
 
+	PlayerInventory->InitInventory();
 }
 
 void APlayerCharacter::UnPossessed()

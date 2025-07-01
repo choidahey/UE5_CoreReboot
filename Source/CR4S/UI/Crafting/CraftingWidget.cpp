@@ -8,11 +8,26 @@
 #include "Components/TextBlock.h"
 #include "Game/System/AudioManager.h"
 #include "Gimmick/Data/ItemData.h"
+#include "Gimmick/Manager/ItemGimmickSubsystem.h"
+#include "Inventory/InventoryItem/BaseInventoryItem.h"
+#include "Inventory/InventoryItem/RobotPartsInventoryItem.h"
+#include "Inventory/UI/ItemTooltipWidget.h"
+#include "Utility/Cr4sGameplayTags.h"
 
 UCraftingWidget::UCraftingWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer),
 	  bCanCraft(false)
 {
+}
+
+void UCraftingWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (IsValid(ItemIcon))
+	{
+		ItemIcon->ToolTipWidgetDelegate.BindDynamic(this, &ThisClass::ShowToolTip);
+	}
 }
 
 void UCraftingWidget::InitWidget(UPlayerInventoryComponent* NewPlayerInventoryComponent)
@@ -39,6 +54,31 @@ void UCraftingWidget::InitWidget(UPlayerInventoryComponent* NewPlayerInventoryCo
 	}
 }
 
+void UCraftingWidget::UpdateResultItem() const
+{
+	const UDataTable* DataTable = ItemRecipeData.ItemInfoDataHandle.DataTable;
+	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(DataTable)))
+	{
+		return;
+	}
+
+	const FName RowName = ItemRecipeData.ItemInfoDataHandle.RowName;
+	if (const FItemInfoData* ItemData
+		= DataTable->FindRow<FItemInfoData>(RowName,TEXT("Item")))
+	{
+		const FGameplayTagContainer& ItemTags = ItemData->ItemTags;			
+		if (ItemTags.HasTag(ItemTags::RobotParts) || ItemTags.HasTag(ItemTags::Weapon))
+		{
+			URobotPartsInventoryItem* RobotPartsItem = Cast<URobotPartsInventoryItem>(ResultItem);
+			if (IsValid(RobotPartsItem))
+			{
+				RobotPartsItem->SetItemInfoData(*ItemData);
+				RobotPartsItem->InitTextFormat();
+			}
+		}
+	}
+}
+
 void UCraftingWidget::OpenWidget(const FRecipeSelectData& RecipeSelectData)
 {
 	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(ItemIcon)) ||
@@ -51,6 +91,8 @@ void UCraftingWidget::OpenWidget(const FRecipeSelectData& RecipeSelectData)
 	}
 
 	ItemRecipeData = RecipeSelectData.RecipeData;
+
+	UpdateResultItem();
 
 	ItemIcon->SetBrushFromTexture(RecipeSelectData.Icon, true);
 	ItemName->SetText(RecipeSelectData.Name);
@@ -121,6 +163,11 @@ void UCraftingWidget::CloseWidget()
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
+void UCraftingWidget::CreateResultItem(const FGameplayTagContainer& ItemTags)
+{
+	ResultItem = UItemGimmickSubsystem::CreateInventoryItem(this, ItemTags);
+}
+
 void UCraftingWidget::CraftItem()
 {
 	if (!CR4S_VALIDATE(LogCraftingUI, IsValid(PlayerInventoryComponent)))
@@ -186,4 +233,21 @@ void UCraftingWidget::PlayCraftingSound() const
 	{
 		AudioManager->PlayUISound(CraftingSound);
 	}
+}
+
+UWidget* UCraftingWidget::ShowToolTip()
+{
+	if (!CR4S_VALIDATE(LogInventoryUI, ItemTooltipWidgetClass))
+	{
+		return nullptr;
+	}
+
+	if (!IsValid(ItemTooltipWidget))
+	{
+		ItemTooltipWidget = CreateWidget<UItemTooltipWidget>(this, ItemTooltipWidgetClass);
+	}
+
+	ItemTooltipWidget->InitWidget(ResultItem);
+
+	return ItemTooltipWidget;
 }
