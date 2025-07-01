@@ -224,7 +224,7 @@ void APlayerCharacter::NotifyControllerChanged()
 float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	Status->AddCurrentHP(-DamageAmount);
+	Status->TakeDamage(DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 

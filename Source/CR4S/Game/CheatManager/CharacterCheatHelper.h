@@ -13,4 +13,7 @@ UCLASS()
 class CR4S_API UCharacterCheatHelper : public UObject
 {
 	GENERATED_BODY()
+
+public:
+	void SetInvincibleMode(const bool bInvincibleMode) const;
 };
