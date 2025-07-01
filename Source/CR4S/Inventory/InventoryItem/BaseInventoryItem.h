@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Data/ItemData.h"
 #include "Inventory/Data/InventoryItemData.h"
 #include "UObject/Object.h"
@@ -101,6 +102,11 @@ public:
 		InventoryItemData.ItemInfoData.Description = NewDescription;
 	}
 
+	FORCEINLINE void SetItemInfoData(const FItemInfoData& NewItemInfoData)
+	{
+		InventoryItemData.ItemInfoData = NewItemInfoData;
+	}
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "InventoryItem")
 	FInventoryItemData InventoryItemData;
@@ -115,8 +121,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|SaveData")
 	virtual FInventoryItemSaveGame GetInventoryItemSaveData();
 	UFUNCTION(BlueprintCallable, Category = "InventoryItem|LoadData")
-	virtual void LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent, const FInventoryItemSaveGame& ItemSaveGame);
-	
+	virtual void LoadInventoryItemSaveData(UBaseInventoryComponent* NewInventoryComponent,
+	                                       const FInventoryItemSaveGame& ItemSaveGame);
+
 #pragma endregion
 
 #pragma region Delegate

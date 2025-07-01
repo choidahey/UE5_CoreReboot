@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Gimmick/Data/ItemData.h"
 #include "ItemTooltipWidget.generated.h"
 
 class UBaseInventoryItem;
 class UTextBlock;
 class UImage;
-struct FItemInfoData;
 
 UCLASS()
 class CR4S_API UItemTooltipWidget : public UUserWidget

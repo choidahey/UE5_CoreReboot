@@ -82,20 +82,20 @@ void AGroundShockActor::InitShock(const FRotator& FacingRot)
 				Niagara->Activate(true);
 			}
 
-#if WITH_EDITOR
-			DrawDebugCapsule(
-				GetWorld(),
-				Pos + FVector(0, 0, CapsuleHalfHeight),
-				CapsuleHalfHeight,
-				CapsuleRadius,
-				FQuat(RotatedDir.Rotation()),
-				FColor::Orange,
-				false,
-				LifeTime,
-				0,
-				1.f
-			);
-#endif
+//#if WITH_EDITOR
+//			DrawDebugCapsule(
+//				GetWorld(),
+//				Pos + FVector(0, 0, CapsuleHalfHeight),
+//				CapsuleHalfHeight,
+//				CapsuleRadius,
+//				FQuat(RotatedDir.Rotation()),
+//				FColor::Orange,
+//				false,
+//				LifeTime,
+//				0,
+//				1.f
+//			);
+//#endif
 		}
 	}
 

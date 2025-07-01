@@ -46,11 +46,11 @@ void AProjectileShard::InitializeDirection(const FVector& InDirection, float InS
     ProjectileMovement->Activate();
     MaxTravelDistance = ExplosionRange;
 
-#if WITH_EDITOR
-    const FVector Start = GetActorLocation();
-    const FVector End = Start + InDirection.GetSafeNormal() * 5000.f;
-    DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 3.f, 0, 1.5f);
-#endif
+//#if WITH_EDITOR
+//    const FVector Start = GetActorLocation();
+//    const FVector End = Start + InDirection.GetSafeNormal() * 5000.f;
+//    DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 3.f, 0, 1.5f);
+//#endif
 }
 
 void AProjectileShard::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

@@ -31,6 +31,16 @@ private:
 public:
 	UFUNCTION()
 	void SaveGame();
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGame")
+	FText SaveSuccessText;
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGame")
+	FText SaveFailedText;
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGame")
+	FText DoNotSleepText;
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGame")
+	float MessageDuration = 2.f;
 	
 #pragma endregion 
 
@@ -39,6 +49,9 @@ public:
 protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Sleep")
 	void PlaySleepingAnimation();
+
+	UFUNCTION(BlueprintCallable)
+	void DoNotSleepNotify();
 	
 private:
 	UFUNCTION()
@@ -54,17 +67,6 @@ private:
 	bool bIsSleeping;
 	
 #pragma endregion
-
-#pragma region CanNotSleepNotify
-
-private:
-	UFUNCTION(BlueprintCallable, Category = "CanNotSleepNotify")
-	void PlayCanNotSleepNotifyAnim();
-	
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* CanNotSleepNotifyAnim;
-	
-#pragma endregion 
 
 #pragma region ModifyStat
 
