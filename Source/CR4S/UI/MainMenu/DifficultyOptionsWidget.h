@@ -27,7 +27,7 @@ protected:
 
 	virtual void NativeConstruct() override;
 
-	void OpenSurvivalLevel();
+	void OpenInGameLevel();
 
 	UPROPERTY(meta = (BindWidget))
 	UBaseWindowWidget* WindowWidget;
