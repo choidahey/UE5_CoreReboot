@@ -3,6 +3,7 @@
 #include "Game/System/EnvironmentManager.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Internationalization/Text.h"
 
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -170,4 +171,13 @@ void UWorldTimeManager::AdvanceSkyTime(int32 Min, int32 Sec)
 	const int32 TimeOfDay = FMath::Clamp(static_cast<int32>(TimeRatio * 2400.0f), 0, 2400);
 
 	EnvironmentManager->SetSkyTime(TimeOfDay);
+}
+
+FString UWorldTimeManager::CalculateSecondToStr(int64 Time) const
+{
+	int32 Hours = Time / 3600;
+	int32 Minutes = (Time % 3600) / 60;
+	int32 Seconds = Time % 60;
+
+	return FString::Printf(TEXT("%02d:%02d:%02d"), Hours, Minutes, Seconds);
 }

@@ -1,4 +1,4 @@
-#include "Game/System/SeasonManager.h"
+﻿#include "Game/System/SeasonManager.h"
 #include "Game/System/SeasonType.h"
 #include "Game/System/EnvironmentManager.h"
 #include "MonsterAI/Data/SeasonWave.h"
@@ -291,3 +291,39 @@ FVector USeasonManager::GetRandomSpawnLocationAroundPlayer(float MinRadius, floa
 }
 
 
+FString USeasonManager::GetSeasonAsString(ESeasonType Season) const
+{
+	switch (Season)
+	{
+	case ESeasonType::None:
+	{
+		static const FString ErrorText(TEXT("ERROR"));
+		return ErrorText;
+	}
+	case ESeasonType::BountifulSeason:
+	{
+		static const FString BountifulText(TEXT("풍요기"));
+		return BountifulText;
+	}
+	case ESeasonType::FrostSeason:
+	{
+		static const FString FrostText(TEXT("혹한기"));
+		return FrostText;
+	}
+	case ESeasonType::RainySeason:
+	{
+		static const FString RainyText(TEXT("우기"));
+		return RainyText;
+	}
+	case ESeasonType::DrySeason:
+	{
+		static const FString DryText(TEXT("건기"));
+		return DryText;
+	}
+	default:
+	{
+		static const FString UnknownText(TEXT("알수없음"));
+		return UnknownText;
+	}
+	}
+}

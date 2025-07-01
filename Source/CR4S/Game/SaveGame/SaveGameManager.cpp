@@ -46,6 +46,16 @@ bool USaveGameManager::SaveAll(const FString& SlotName)
     FSaveSlotMetaData Data;
     Data.SlotName = SlotName;
     Data.SaveTime = Now;
+    //Data.Description = 
+    
+    UWorldTimeManager* TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
+    if (!CR4S_VALIDATE(LogSave, TimeManager)) return false;
+
+    USeasonManager* SeasonManager = GetWorld()->GetSubsystem<USeasonManager>();
+    if (!CR4S_VALIDATE(LogSave, SeasonManager)) return false;
+
+    Data.TotalGameTime = TimeManager->CalculateSecondToStr(WorldSave->TotalGameTime);
+    Data.Season = SeasonManager->GetSeasonAsString(WorldSave->Season);
 
     MetaSave->SaveSlots.Add(SlotName, Data);
     SaveMeta();

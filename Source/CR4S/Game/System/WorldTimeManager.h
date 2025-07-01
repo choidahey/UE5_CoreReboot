@@ -46,6 +46,7 @@ public:
 	FORCEINLINE void SetTotalPlayTime(int64 Time) { TotalPlayTime = Time; }
 	FORCEINLINE void SetDayCycleLength(int32 Length) { DayCycleLength = Length ; }
 	
+	FString CalculateSecondToStr(int64 Time) const;
 	void SetWorldTime(FWorldTimeData NewTimeData);
 
 
