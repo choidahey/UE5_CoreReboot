@@ -63,8 +63,8 @@ protected:
 	
 #pragma region Cached
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UBaseStatusComponent> CachedStatusComp;
+	TWeakObjectPtr<UBaseStatusComponent> CachedStatusComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UEnvironmentalStatusComponent> CachedEnvironmentalStatusComp;
+	TWeakObjectPtr<UEnvironmentalStatusComponent> CachedEnvironmentalStatusComp;
 #pragma endregion
 };

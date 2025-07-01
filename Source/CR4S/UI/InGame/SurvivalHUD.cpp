@@ -5,9 +5,10 @@
 #include "GameFramework/Character.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 
-void ASurvivalHUD::BeginPlay()
+
+void ASurvivalHUD::PostInitializeComponents()
 {
-	Super::BeginPlay();
+	Super::PostInitializeComponents();
 
 	InGameWidget = CreateAndAddWidget<UDefaultInGameWidget>(InGameWidgetClass, 0, ESlateVisibility::Visible);
 
@@ -15,35 +16,31 @@ void ASurvivalHUD::BeginPlay()
 	PauseWidget->OnResumeRequested.BindUObject(this, &ASurvivalHUD::HandlePauseToggle);
 
 	InventoryContainerWidget = CreateAndAddWidget(InventoryContainerWidgetClass, 0, ESlateVisibility::Visible);
-
-	BindGameOverWidget();
 }
 
-void ASurvivalHUD::BindGameOverWidget()
+
+void ASurvivalHUD::BeginPlay()
 {
+	Super::BeginPlay();
+
+}
+
+
+void ASurvivalHUD::BindGameOverWidget(UBaseStatusComponent* BaseStatComp)
+{
+	if (!BaseStatComp) return;
 	GameOverWidget = CreateAndAddWidget<UGameOverWidget>(GameOverWidgetClass, 11, ESlateVisibility::Hidden);
 
-	if (APlayerController* PC = GetOwningPlayerController())
-	{
-		if (APawn* Pawn = PC->GetPawn())
+	BaseStatComp->OnDeathState.AddLambda([this]()
 		{
-			if (ACharacter* Character = Cast<ACharacter>(Pawn))
+			if (GameOverWidget)
 			{
-				if (UBaseStatusComponent* StatusComponent = Character->FindComponentByClass<UBaseStatusComponent>())
-				{
-					StatusComponent->OnDeathState.AddLambda([this]()
-						{
-							if (GameOverWidget)
-							{
-								HandleGameOverToggle();
-							}
-						});
-				}
+				HandleGameOverToggle();
 			}
-		}
-	}
-
+		});
 }
+
+
 
 void ASurvivalHUD::ShowLoading()
 {

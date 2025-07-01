@@ -74,22 +74,28 @@ void UCharacterEnvironmentStatusWidget::InitializeWidget(UEnvironmentalStatusCom
 
 void UCharacterEnvironmentStatusWidget::ClearBindingsToStatusComp()
 {
-	CachedStatusComp->OnColdThresholdChanged.RemoveAll(this);
-	CachedStatusComp->OnHeatThresholdChanged.RemoveAll(this);
-	CachedStatusComp->OnHumidityThresholdChanged.RemoveAll(this);
-	CachedStatusComp=nullptr;
+	if (CachedStatusComp.IsValid())
+	{
+		CachedStatusComp->OnColdThresholdChanged.RemoveAll(this);
+		CachedStatusComp->OnHeatThresholdChanged.RemoveAll(this);
+		CachedStatusComp->OnHumidityThresholdChanged.RemoveAll(this);
+		CachedStatusComp = nullptr;
+	}
 }
 
 void UCharacterEnvironmentStatusWidget::ClearBindingsToEnvStatusComp()
 {
-	CachedEnvironmentalStatusComp->OnTemperatureChanged.RemoveAll(this);
-	CachedEnvironmentalStatusComp->OnHumidityChanged.RemoveAll(this);
-	CachedEnvironmentalStatusComp=nullptr;
+	if (CachedEnvironmentalStatusComp.IsValid())
+	{
+		CachedEnvironmentalStatusComp->OnTemperatureChanged.RemoveAll(this);
+		CachedEnvironmentalStatusComp->OnHumidityChanged.RemoveAll(this);
+		CachedEnvironmentalStatusComp = nullptr;
+	}
 }
 
 void UCharacterEnvironmentStatusWidget::OnTemperatureChanged(float NewTemperature)
 {
-	if (CachedEnvironmentalStatusComp && CachedStatusComp)
+	if (CachedEnvironmentalStatusComp.IsValid() && CachedStatusComp.IsValid())
 	{
 
 		float HeatThreshold=CachedStatusComp->GetHeatThreshold();
@@ -126,7 +132,7 @@ void UCharacterEnvironmentStatusWidget::OnTemperatureChanged(float NewTemperatur
 
 void UCharacterEnvironmentStatusWidget::OnHumidityChanged(float NewHumidity)
 {
-	if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp && CachedStatusComp)) return;
+	if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp.IsValid() && CachedStatusComp.IsValid())) return;
 
 	const float HumidityThreshold = CachedStatusComp->GetHumidityThreshold();
 	HumidityProgressBar->SetPercent(NewHumidity / HumidityThreshold);
@@ -138,7 +144,7 @@ void UCharacterEnvironmentStatusWidget::OnHumidityChanged(float NewHumidity)
 void UCharacterEnvironmentStatusWidget::UpdateColdThreshold(float NewThreshold)
 {
 	MinTempText->SetText(FText::AsNumber(NewThreshold));
-	if (CachedEnvironmentalStatusComp)
+	if (CachedEnvironmentalStatusComp.IsValid())
 	{
 		OnTemperatureChanged(CachedEnvironmentalStatusComp->GetCurrentTemperature());
 	}
@@ -147,7 +153,7 @@ void UCharacterEnvironmentStatusWidget::UpdateColdThreshold(float NewThreshold)
 void UCharacterEnvironmentStatusWidget::UpdateHeatThreshold(float NewThreshold)
 {
 	MaxTempText->SetText(FText::AsNumber(NewThreshold));
-	if (CachedEnvironmentalStatusComp)
+	if (CachedEnvironmentalStatusComp.IsValid())
 	{
 		OnTemperatureChanged(CachedEnvironmentalStatusComp->GetCurrentTemperature());
 	}
@@ -156,7 +162,7 @@ void UCharacterEnvironmentStatusWidget::UpdateHeatThreshold(float NewThreshold)
 void UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold(float NewThreshold)
 {
 	MaxHuText->SetText(FText::AsNumber(NewThreshold));
-	if (CachedEnvironmentalStatusComp)
+	if (CachedEnvironmentalStatusComp.IsValid())
 	{
 		OnHumidityChanged(CachedEnvironmentalStatusComp->GetCurrentHumidity());
 	}
@@ -164,14 +170,14 @@ void UCharacterEnvironmentStatusWidget::UpdateHumidityThreshold(float NewThresho
 
 void UCharacterEnvironmentStatusWidget::UpdateTemperatureProgressBar()
 {
-	if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp)) return;
+	if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp.IsValid())) return;
 
 	OnTemperatureChanged(CachedEnvironmentalStatusComp->GetCurrentTemperature());
 }
 
 void UCharacterEnvironmentStatusWidget::UpdateHumidityProgressBar()
 {
-    if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp)) return;
+    if (!CR4S_ENSURE(LogHong1,CachedEnvironmentalStatusComp.IsValid())) return;
     
     OnHumidityChanged(CachedEnvironmentalStatusComp->GetCurrentHumidity());
 }
