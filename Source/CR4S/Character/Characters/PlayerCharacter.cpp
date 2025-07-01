@@ -318,6 +318,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnAttack);
 		EnhancedInput->BindAction(InteractionAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInteraction);
+		EnhancedInput->BindAction(QuickSlotAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnQuickSlotNumberPressed);
 	}
 }
 
@@ -506,6 +507,17 @@ void APlayerCharacter::Input_OnInteraction()
 	}
 	
 	CR4S_ENSURE(LogHong1,Interaction->TryStartInteraction());
+}
+
+void APlayerCharacter::Input_OnQuickSlotNumberPressed(const FInputActionValue& ActionValue)
+{
+	float RawValue=ActionValue.Get<float>();
+	int32 Index=FMath::RoundToInt(RawValue)-1;
+
+	if (Index>=0 && Index<=8)
+	{
+		PlayerInventory->UseItem(Index);
+	}
 }
 
 void APlayerCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation)
