@@ -23,7 +23,7 @@ class CR4S_API UBaseStatusComponent : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UBaseStatusComponent();
-
+	
 #pragma region Damage
 	virtual void TakeDamage(const float DamageAmount);
 #pragma endregion
@@ -176,5 +176,14 @@ public:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	FTimerHandle OverHeatDamageTimerHandle;
 #pragma endregion
+
+#pragma region Develop
+	virtual void SetInvincibleMode(const bool bEnabled);
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Debug")
+	uint8 bInvincibleEnabled:1 {false};
+#pragma endregion
+	
 };
 

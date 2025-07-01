@@ -1,4 +1,6 @@
 #include "Game/CheatManager/C4CheatManager.h"
+
+#include "CharacterCheatHelper.h"
 #include "EngineUtils.h"
 #include "Game/CheatManager/TimeCheatHelper.h"
 #include "Game/CheatManager/SaveGameHelper.h"
@@ -15,6 +17,15 @@ void UC4CheatManager::InitCheatManager()
 
     ItemGimmickHelper = NewObject<UItemGimmickHelper>(this);
     SaveGameHelper = NewObject<USaveGameHelper>(this);
+    CharacterCheatHelper=NewObject<UCharacterCheatHelper>(this);
+}
+
+void UC4CheatManager::SetInvincibleMode(const bool bInvincibleMode) const
+{
+    if (CharacterCheatHelper)
+    {
+        CharacterCheatHelper->SetInvincibleMode(bInvincibleMode);
+    }
 }
 
 void UC4CheatManager::SaveNow()

@@ -123,6 +123,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintAssignable)
 	FOnHungerDebuffChanged OnHungerDebuffChanged;
 #pragma endregion
+
+#pragma region Develop
+	virtual void SetInvincibleMode(const bool bEnabled) override;
+#pragma endregion
+	
 };
 
 

@@ -93,6 +93,19 @@ void UPlayerCharacterStatusComponent::BeginPlay()
 	StartConsumeHunger();
 }
 
+void UPlayerCharacterStatusComponent::SetInvincibleMode(const bool bEnabled)
+{
+	Super::SetInvincibleMode(bEnabled);
+	if (bInvincibleEnabled)
+	{
+		GetWorld()->GetTimerManager().PauseTimer(HungerTimerHandle);
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().UnPauseTimer(HungerTimerHandle);
+	}
+}
+
 // Called every frame
 void UPlayerCharacterStatusComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                                     FActorComponentTickFunction* ThisTickFunction)

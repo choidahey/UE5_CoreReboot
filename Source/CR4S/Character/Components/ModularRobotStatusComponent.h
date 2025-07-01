@@ -223,4 +223,9 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Timer")
 	FTimerHandle StunRecoveryStartTimerHandle;
 #pragma endregion
+
+#pragma region Develop
+	virtual void SetInvincibleMode(const bool bEnabled) override;
+#pragma endregion
+	
 };

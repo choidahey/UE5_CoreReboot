@@ -18,6 +18,8 @@ UModularRobotStatusComponent::UModularRobotStatusComponent()
 
 void UModularRobotStatusComponent::TakeDamage(const float DamageAmount)
 {
+	if (bInvincibleEnabled) return;
+	
 	const float ArmorFactor=BaseStatus.Armor*RobotStatus.ArmorMultiplier;
 	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant/(BaseStatus.ArmorConstant+ArmorFactor));
 	
@@ -163,6 +165,19 @@ void UModularRobotStatusComponent::ApplyHighHumidityDebuff()
 void UModularRobotStatusComponent::RemoveHighHumidityDebuff()
 {
 	RobotStatus.AttackPowerMultiplier/=RobotStatus.HighHumidityAttackPowerMultiplier;
+}
+
+void UModularRobotStatusComponent::SetInvincibleMode(const bool bEnabled)
+{
+	Super::SetInvincibleMode(bEnabled);
+	if (bInvincibleEnabled)
+	{
+		GetWorld()->GetTimerManager().PauseTimer(EnergyTimerHandle);	
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().UnPauseTimer(EnergyTimerHandle);
+	}
 }
 
 // Called every frame
