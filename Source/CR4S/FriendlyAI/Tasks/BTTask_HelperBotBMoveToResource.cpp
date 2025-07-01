@@ -258,11 +258,9 @@ EBTNodeResult::Type UBTTask_HelperBotBMoveToResource::AbortTask(
     UBehaviorTreeComponent& OwnerComp,
     uint8* NodeMemory)
 {
-    //UE_LOG(LogTemp, Warning, TEXT("BTTask_HelperBotBMoveToResource: AbortTask called"));
-    
     FBTMoveToResourceMemory* MyMemory = reinterpret_cast<FBTMoveToResourceMemory*>(NodeMemory);
     
-    if (MyMemory->QueryInstance)
+    if (MyMemory->QueryInstance && IsValid(MyMemory->QueryInstance))
     {
         MyMemory->QueryInstance->GetOnQueryFinishedEvent()
             .RemoveDynamic(this, &UBTTask_HelperBotBMoveToResource::OnQueryFinished);
