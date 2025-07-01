@@ -70,14 +70,14 @@ void UDifficultyOptionsWidget::HandleOpenLevel()
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
 		this,
-		&UDifficultyOptionsWidget::OpenSurvivalLevel,
+		&UDifficultyOptionsWidget::OpenInGameLevel,
 		1.0f,
 		false
 	);
 }
 
 
-void UDifficultyOptionsWidget::OpenSurvivalLevel()
+void UDifficultyOptionsWidget::OpenInGameLevel()
 {
 	UGameplayStatics::OpenLevel(this, FName("MainMap"));
 }
