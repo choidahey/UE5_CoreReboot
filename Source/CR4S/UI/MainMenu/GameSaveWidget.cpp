@@ -227,7 +227,7 @@ void UGameSaveWidget::RequestEnterGame(int32 SlotIndex)
 	AC4MenuGameMode* GM = Cast<AC4MenuGameMode>(UGameplayStatics::GetGameMode(this));
 	if (GM)
 	{
-		GM->OpenSurvivalLevel(SlotIndex);
+		GM->OpenInGameLevel(SlotIndex);
 	}
 	else
 	{

@@ -103,6 +103,11 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 
 void APlayerCharacter::OnDeath()
 {
+	if (IsValid(PlayerInventory) && PlayerInventory->IsOpen())
+	{
+		PlayerInventory->CloseInventoryWidget();
+	}
+	
 	APlayerController* PC=Cast<APlayerController>(GetController());
 	if (!CR4S_ENSURE(LogHong1,PC)) return;
 
@@ -224,7 +229,7 @@ void APlayerCharacter::NotifyControllerChanged()
 float APlayerCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	Status->AddCurrentHP(-DamageAmount);
+	Status->TakeDamage(DamageAmount);
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
@@ -253,7 +258,7 @@ void APlayerCharacter::BeginPlay()
 	//Binding Delegate Functions and Set up Widget
 	InitializeWidgets();
 
-	InitializeCurrentTool();
+	InitializeCurrentTool(); 
 
 	if (!CR4S_ENSURE(LogHong1,PlayerCharacterSettingsDataAsset)) return;
 	PlayerCharacterSettings=PlayerCharacterSettingsDataAsset->PlayerCharacterSettings;
@@ -313,6 +318,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(SwitchShoulderAction, ETriggerEvent::Triggered, this, &ThisClass::Input_OnSwitchShoulder);
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnAttack);
 		EnhancedInput->BindAction(InteractionAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInteraction);
+		EnhancedInput->BindAction(QuickSlotAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnQuickSlotNumberPressed);
+		EnhancedInput->BindAction(OpenInventoryAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInventoryOpen);
 	}
 }
 
@@ -485,7 +492,7 @@ void APlayerCharacter::Input_OnSwitchShoulder()
 void APlayerCharacter::Input_OnAttack() 
 {
 	if (!CR4S_ENSURE(LogHong1,CurrentTool)
-		||!CR4S_ENSURE(LogHong1,(PlayerInputBuffer->CheckInputQueue(EInputType::Attack))))
+		||!PlayerInputBuffer->CheckInputQueue(EInputType::Attack))
 	{
 		return;
 	}
@@ -501,6 +508,25 @@ void APlayerCharacter::Input_OnInteraction()
 	}
 	
 	CR4S_ENSURE(LogHong1,Interaction->TryStartInteraction());
+}
+
+void APlayerCharacter::Input_OnQuickSlotNumberPressed(const FInputActionValue& ActionValue)
+{
+	float RawValue=ActionValue.Get<float>();
+	int32 Index=FMath::RoundToInt(RawValue)-1;
+
+	if (Index>=0 && Index<=9)
+	{
+		PlayerInventory->UseItem(Index);
+	}
+}
+
+void APlayerCharacter::Input_OnInventoryOpen()
+{
+	if (PlayerInventory)
+	{
+		PlayerInventory->OpenPlayerInventoryWidget(0);
+	}
 }
 
 void APlayerCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DisplayInfo, float& Unused, float& VerticalLocation)

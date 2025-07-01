@@ -18,6 +18,8 @@ UBaseStatusComponent::UBaseStatusComponent()
 
 void UBaseStatusComponent::TakeDamage(const float DamageAmount)
 {
+	if (bInvincibleEnabled) return;
+	
 	const float ArmorFactor=BaseStatus.Armor;
 	const float ComputedDamage = DamageAmount*(BaseStatus.ArmorConstant/(BaseStatus.ArmorConstant+ArmorFactor));
 
@@ -37,6 +39,11 @@ void UBaseStatusComponent::Refresh()
 void UBaseStatusComponent::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void UBaseStatusComponent::SetInvincibleMode(const bool bEnabled)
+{
+	bInvincibleEnabled = bEnabled;
 }
 
 

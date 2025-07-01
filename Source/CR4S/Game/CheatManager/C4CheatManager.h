@@ -41,6 +41,13 @@ public:
 
 #pragma endregion
 
+#pragma region InvincibleMode
+public:
+	UFUNCTION(Exec)
+	void SetInvincibleMode(const bool bInvincibleMode) const;
+	
+#pragma endregion
+	
 #pragma region Helper Deceleration
 protected:
 	UPROPERTY()
@@ -49,8 +56,12 @@ protected:
 	TObjectPtr<class UItemGimmickHelper> ItemGimmickHelper;
 	UPROPERTY()
 	TObjectPtr<class USaveGameHelper> SaveGameHelper;
+	UPROPERTY()
+	TObjectPtr<class UCharacterCheatHelper> CharacterCheatHelper;
 
 	virtual void InitCheatManager() override;
 
 #pragma endregion
+
+	
 };

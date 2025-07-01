@@ -15,6 +15,10 @@ UInputBufferComponent::UInputBufferComponent()
 	
 }
 
+void UInputBufferComponent::SetWeaponComponent(URobotWeaponComponent* InWeaponComp)
+{
+}
+
 void UInputBufferComponent::SetInputEnable(const bool Enable)
 {
 	bInputEnable=Enable;
@@ -47,6 +51,10 @@ bool UInputBufferComponent::CheckInputQueue(const EInputType Input)
 
 	SetInputQueue(Input);
 	return false;
+}
+
+void UInputBufferComponent::SetCurrentTool(APlayerTool* InTool)
+{
 }
 
 void UInputBufferComponent::ExecuteInputQueue() const

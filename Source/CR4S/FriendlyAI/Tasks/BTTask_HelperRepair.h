@@ -19,10 +19,12 @@ struct FBTRepairMemory
    
 	float CachedRepairPerSecond = 0.f;
 	bool bIsTargetDestroyedBound = false;
-   
+
+	FTimerHandle BeamUpdateTimer;
+
 	UPROPERTY()
 	TWeakObjectPtr<UBehaviorTreeComponent> OwnerComp = nullptr;
-   
+
 	uint8* NodeMemoryPtr = nullptr;
 
 	FBTRepairMemory()

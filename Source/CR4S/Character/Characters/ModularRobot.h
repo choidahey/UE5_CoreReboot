@@ -225,7 +225,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<URobotInputBufferComponent> InputBuffer;
+	TObjectPtr<UInputBufferComponent> InputBuffer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<URobotInventoryComponent> RobotInventoryComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))

@@ -8,6 +8,7 @@
 #include "Components/SplineComponent.h"
 #include "NiagaraComponent.h"
 #include "Data/HelperBotSaveData.h"
+#include "Game/Interface/SavableActor.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "BaseHelperBot.generated.h"
 
@@ -23,7 +24,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTryInteract, AController*, Intera
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDetectionStateChanged, AController*, DetectingController, bool, bIsDetected);
 
 UCLASS()
-class CR4S_API ABaseHelperBot : public ACharacter
+class CR4S_API ABaseHelperBot : public ACharacter, public ISavableActor
 {
 	GENERATED_BODY()
 
@@ -273,15 +274,29 @@ private:
 	void UpdateFadeOut();
 #pragma endregion
 
+#pragma region Save & Load
 public:
 	UFUNCTION(BlueprintCallable)
 	FHelperBotSaveGame GetHelperBotSaveData() const;
 
 	UFUNCTION(BlueprintCallable)
 	void LoadHelperBotSaveData(const FHelperBotSaveGame& Data);
+
+	virtual void SetUniqueSaveID(FName NewID) override;
+	virtual FName GetUniqueSaveID() override;
+	virtual void GatherSaveData(FSavedActorData& OutSaveData) override;
+	virtual void ApplySaveData(FSavedActorData& InSaveData) override;
+
+private:
+	FName UniqueSaveID = NAME_None;
+
+#pragma endregion
 	
+#pragma region Sound Effects
+	public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound")
 	UHelperBotSoundData* SoundData;
 	
 	void PlayBotSound(USoundBase* Sound, const FVector& Location = FVector::ZeroVector) const;
+#pragma endregion
 };
