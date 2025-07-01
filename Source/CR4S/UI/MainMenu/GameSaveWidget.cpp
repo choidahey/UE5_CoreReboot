@@ -1,4 +1,4 @@
-#include "UI/MainMenu/GameSaveWidget.h"
+﻿#include "UI/MainMenu/GameSaveWidget.h"
 #include "UI/MainMenu/MainMenuWidget.h"
 #include "UI/Common/ButtonWidget.h"
 #include "UI/MainMenu/EmptySlotWidget.h"
@@ -63,7 +63,7 @@ void UGameSaveWidget::HandleEmptySlotSelected(int32 SlotIndex)
 	if (ConfirmWidget)
 	{
 		ConfirmWidget->AddToViewport();
-		ConfirmWidget->Confirm(FText::FromString(FString::Printf(TEXT("Start New Game On slot %d?"), SlotIndex)));
+		ConfirmWidget->Confirm(FText::FromString(FString::Printf(TEXT("%d번 슬롯에 새로운 게임을 시작하시겠습니까?"), SlotIndex)));
 		ConfirmWidget->OnYes.BindDynamic(this, &UGameSaveWidget::HandleStartNewGame);
 		ConfirmWidget->OnNo.BindDynamic(this, &UGameSaveWidget::HandleCloseConfirmWidget);
 	}
@@ -243,11 +243,11 @@ void UGameSaveWidget::LogSaveSlotsInfo() const
 	{
 		if (Elem.Value)
 		{
-			UE_LOG(LogTemp, Log, TEXT("[SaveSlot] Index %d �� Valid Widget: %s"), Elem.Key, *Elem.Value->GetName());
+			UE_LOG(LogTemp, Log, TEXT("[SaveSlot] Index %d → Valid Widget: %s"), Elem.Key, *Elem.Value->GetName());
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[SaveSlot] Index %d �� nullptr"), Elem.Key);
+			UE_LOG(LogTemp, Warning, TEXT("[SaveSlot] Index %d → nullptr"), Elem.Key);
 		}
 	}
 
