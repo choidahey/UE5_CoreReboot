@@ -143,7 +143,7 @@ void ABaseAnimal::LoadStats()
 
             if (BehaviorTypeEnum == EAnimalBehavior::Monster || BehaviorTypeEnum == EAnimalBehavior::Aggressive)
             {
-                EnemyCollision->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Overlap);
+                EnemyCollision->SetCollisionResponseToChannel(ECC_GameTraceChannel4, ECR_Overlap);
             }
             
             if (GetCharacterMovement())
