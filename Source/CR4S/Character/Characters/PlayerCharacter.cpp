@@ -253,7 +253,7 @@ void APlayerCharacter::BeginPlay()
 	//Binding Delegate Functions and Set up Widget
 	InitializeWidgets();
 
-	InitializeCurrentTool();
+	InitializeCurrentTool(); 
 
 	if (!CR4S_ENSURE(LogHong1,PlayerCharacterSettingsDataAsset)) return;
 	PlayerCharacterSettings=PlayerCharacterSettingsDataAsset->PlayerCharacterSettings;
@@ -485,7 +485,7 @@ void APlayerCharacter::Input_OnSwitchShoulder()
 void APlayerCharacter::Input_OnAttack() 
 {
 	if (!CR4S_ENSURE(LogHong1,CurrentTool)
-		||!CR4S_ENSURE(LogHong1,(PlayerInputBuffer->CheckInputQueue(EInputType::Attack))))
+		||!PlayerInputBuffer->CheckInputQueue(EInputType::Attack))
 	{
 		return;
 	}

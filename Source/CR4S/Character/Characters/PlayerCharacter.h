@@ -118,7 +118,7 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UWeaponTraceComponent> WeaponTrace;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
-	TObjectPtr<UPlayerInputBufferComponent> PlayerInputBuffer;
+	TObjectPtr<UInputBufferComponent> PlayerInputBuffer;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UPlayerCharacterStatusComponent> Status;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")

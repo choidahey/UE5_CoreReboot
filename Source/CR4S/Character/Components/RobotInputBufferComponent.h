@@ -19,7 +19,7 @@ class CR4S_API URobotInputBufferComponent : public UInputBufferComponent
 public:
 	URobotInputBufferComponent();
 
-	FORCEINLINE void SetWeaponComponent(URobotWeaponComponent* InWeaponComp) { CachedWeaponComponent=InWeaponComp; }
+	FORCEINLINE virtual void SetWeaponComponent(URobotWeaponComponent* InWeaponComp) override { CachedWeaponComponent=InWeaponComp; }
 	
 #pragma region Override
 public:

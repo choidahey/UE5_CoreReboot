@@ -7,6 +7,8 @@
 #include "InputBufferComponent.generated.h"
 
 
+class URobotWeaponComponent;
+class APlayerTool;
 class UPlayerCharacterStatus;
 class APlayerCharacter;
 
@@ -32,9 +34,11 @@ public:
 
 #pragma region Input & Weapon
 	virtual void ExecuteInputQueue() const;
+	virtual bool CheckInputQueue(const EInputType Input);
+	virtual void SetCurrentTool(APlayerTool* InTool);
+	virtual void SetWeaponComponent(URobotWeaponComponent* InWeaponComp);
 	void SetInputEnable(const bool Enable);
 	void SetInputQueue(const EInputType Input);
-	virtual bool CheckInputQueue(const EInputType Input);
 	void ClearInputQueue();
 #pragma endregion
 	

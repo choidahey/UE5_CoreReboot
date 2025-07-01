@@ -17,16 +17,9 @@ void UInputDisabled::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequence
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
 
-	if (UPlayerInputBufferComponent* Buffer=OwningCharacter->FindComponentByClass<UPlayerInputBufferComponent>())
+	if (UInputBufferComponent* Buffer=OwningCharacter->FindComponentByClass<UInputBufferComponent>())
 	{
-		UE_LOG(LogTemp, Display, TEXT("NotifyBegin got Buffer class: %s, name: %s, Enable : %d"),
-		*Buffer->GetClass()->GetName(),
-		*Buffer->GetName(), false);
 		Buffer->SetInputEnable(false);
-	}
-	else if (URobotInputBufferComponent* RobotBuffer=OwningCharacter->FindComponentByClass<URobotInputBufferComponent>())
-	{
-		RobotBuffer->SetInputEnable(false);
 	}
 	
 	//Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
@@ -38,13 +31,9 @@ void UInputDisabled::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 	ACharacter* OwningCharacter=Cast<ACharacter>(MeshComp->GetOwner());
 	if (!OwningCharacter) return;
 	
-	if (UPlayerInputBufferComponent* Buffer=OwningCharacter->FindComponentByClass<UPlayerInputBufferComponent>())
+	if (UInputBufferComponent* Buffer=OwningCharacter->FindComponentByClass<UInputBufferComponent>())
 	{
 		Buffer->SetInputEnable(true);
-	}
-	else if (URobotInputBufferComponent* RobotBuffer=OwningCharacter->FindComponentByClass<URobotInputBufferComponent>())
-	{
-		RobotBuffer->SetInputEnable(true);
 	}
 	
 	//Super::NotifyEnd(MeshComp, Animation, EventReference);
