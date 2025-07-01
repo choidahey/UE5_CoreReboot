@@ -319,6 +319,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* Input)
 		EnhancedInput->BindAction(AttackAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnAttack);
 		EnhancedInput->BindAction(InteractionAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInteraction);
 		EnhancedInput->BindAction(QuickSlotAction,ETriggerEvent::Triggered,this,&ThisClass::Input_OnQuickSlotNumberPressed);
+		EnhancedInput->BindAction(OpenInventoryAction,ETriggerEvent::Started,this,&ThisClass::Input_OnInventoryOpen);
 	}
 }
 
@@ -514,9 +515,17 @@ void APlayerCharacter::Input_OnQuickSlotNumberPressed(const FInputActionValue& A
 	float RawValue=ActionValue.Get<float>();
 	int32 Index=FMath::RoundToInt(RawValue)-1;
 
-	if (Index>=0 && Index<=8)
+	if (Index>=0 && Index<=9)
 	{
 		PlayerInventory->UseItem(Index);
+	}
+}
+
+void APlayerCharacter::Input_OnInventoryOpen()
+{
+	if (PlayerInventory)
+	{
+		PlayerInventory->OpenPlayerInventoryWidget(0);
 	}
 }
 

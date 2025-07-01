@@ -109,6 +109,8 @@ private:
 	void Input_OnInteraction();
 
 	void Input_OnQuickSlotNumberPressed(const FInputActionValue& ActionValue);
+
+	void Input_OnInventoryOpen();
 #pragma endregion
 
 #pragma region Components
@@ -185,6 +187,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> QuickSlotAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> OpenInventoryAction;
 #pragma endregion
 	
 #pragma region LookSettings

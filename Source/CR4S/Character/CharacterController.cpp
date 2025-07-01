@@ -1,5 +1,6 @@
 #include "CharacterController.h"
 
+#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Game/CheatManager/C4CheatManager.h"
 #include "UI/InGame/SurvivalHUD.h"
@@ -28,8 +29,15 @@ void ACharacterController::BeginPlay()
 void ACharacterController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-
-	//Bind Actions related UI
+	
+	if (IsValid(InputComponent))
+	{
+		auto* EnhancedInput{Cast<UEnhancedInputComponent>(InputComponent)};
+		if (IsValid(EnhancedInput))
+		{
+			EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ThisClass::OnPauseRequested);
+		}
+	}
 }
 
 void ACharacterController::OnPauseRequested()
