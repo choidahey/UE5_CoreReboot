@@ -56,7 +56,7 @@ float ADestructibleGimmick::TakeDamage(const float DamageAmount, struct FDamageE
 
 	const UPlayerInventoryComponent* PlayerInventoryComponent
 		= DamageCauser->FindComponentByClass<UPlayerInventoryComponent>();
-	if (IsValid(PlayerInventoryComponent) && ToolBonusDamageTag == PlayerInventoryComponent->GetHeldToolTag())
+	if (IsValid(PlayerInventoryComponent) && PlayerInventoryComponent->GetHeldToolTag().MatchesTag(ToolBonusDamageTag))
 	{
 		Damage *= ToolBonusDamageMultiplier;
 	}
