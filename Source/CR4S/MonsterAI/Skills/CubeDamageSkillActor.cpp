@@ -22,16 +22,16 @@ void ACubeDamageSkillActor::BeginPlay()
 		Box->OnComponentBeginOverlap.AddUniqueDynamic(this, &ACubeDamageSkillActor::OnOverlap);
 	}
 
-#if WITH_EDITOR
-	DrawDebugBox(
-		GetWorld(),
-		GetActorLocation(),
-		BoxExtent,
-		FColor::Red,
-		false,
-		2.0f
-	);
-#endif
+//#if WITH_EDITOR
+//	DrawDebugBox(
+//		GetWorld(),
+//		GetActorLocation(),
+//		BoxExtent,
+//		FColor::Red,
+//		false,
+//		2.0f
+//	);
+//#endif
 
 	ApplyInitialOverlapDamage();
 	SetLifeSpan(LifeTime);

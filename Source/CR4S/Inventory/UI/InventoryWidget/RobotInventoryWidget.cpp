@@ -7,6 +7,7 @@
 #include "Inventory/UI/ItemSlotWidget/RobotPartsItemSlotWidget.h"
 #include "UI/Crafting/CraftingWidget.h"
 #include "UI/Crafting/RecipeSelectWidget.h"
+#include "Utility/Cr4sGameplayTags.h"
 
 void URobotInventoryWidget::NativeConstruct()
 {
@@ -43,6 +44,7 @@ void URobotInventoryWidget::InitWidget(ASurvivalHUD* SurvivalHUD, const bool bNe
 	if (IsValid(CraftingWidget) && IsValid(InventoryContainerWidget))
 	{
 		CraftingWidget->InitWidget(InventoryContainerWidget->GetPlayerInventoryComponent());
+		CraftingWidget->CreateResultItem(FGameplayTagContainer(FGameplayTag(ItemTags::RobotParts)));
 	}
 }
 

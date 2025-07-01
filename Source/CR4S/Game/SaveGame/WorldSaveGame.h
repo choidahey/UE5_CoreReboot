@@ -2,6 +2,7 @@
 
 #include "GameFramework/SaveGame.h"
 #include "Game/System/SeasonType.h"
+#include "GimmickSaveGame.h"
 #include "Game/System/WorldTimeManager.h"
 #include "WorldSaveGame.generated.h"
 
@@ -26,8 +27,11 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Time")
 	int64 TotalGameTime;
 
-	UPROPERTY(VisibleAnywhere, Category = "GameSettings")
+	UPROPERTY(VisibleAnywhere, Category = "DifficultySettings")
 	int32 SeasonLength;
-	UPROPERTY(VisibleAnywhere, Category = "GameSettings")
+	UPROPERTY(VisibleAnywhere, Category = "DifficultySettings")
 	int32 DayCycleLength;
+
+	UPROPERTY(VisibleAnywhere, Category = "Item|Gimmick")
+	FGimmickSaveGame GimmickSaveGame;
 };

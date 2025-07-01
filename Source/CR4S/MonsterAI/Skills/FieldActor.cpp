@@ -82,21 +82,21 @@ void AFieldActor::UpdateDynamicScale(float DeltaTime)
 
 	SetActorScale3D(CalculateScale);
 	
-	if (bDrawLine)
-	{
-		DrawDebugCapsule(
-			GetWorld(),
-			CollisionComp->GetComponentLocation(),
-			Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleHalfHeight(),
-			Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleRadius(),
-			CollisionComp->GetComponentQuat(),
-			FColor::Blue,
-			false,
-			LifeTime,
-			0,
-			2.f
-		);
-	}
+	//if (bDrawLine)
+	//{
+	//	DrawDebugCapsule(
+	//		GetWorld(),
+	//		CollisionComp->GetComponentLocation(),
+	//		Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleHalfHeight(),
+	//		Cast<UCapsuleComponent>(CollisionComp)->GetScaledCapsuleRadius(),
+	//		CollisionComp->GetComponentQuat(),
+	//		FColor::Blue,
+	//		false,
+	//		LifeTime,
+	//		0,
+	//		2.f
+	//	);
+	//}
 }
 
 void AFieldActor::AttachGround()
@@ -133,24 +133,24 @@ void AFieldActor::FollowTarget()
 	
 	SetActorLocation(TargetLocation);
 
-	if (bDrawLine)
-	{
-		if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(CollisionComp))
-		{
-			DrawDebugCapsule(
-				GetWorld(),
-				CollisionComp->GetComponentLocation(),
-				CapsuleComp->GetScaledCapsuleHalfHeight(),
-				CapsuleComp->GetScaledCapsuleRadius(),
-				CollisionComp->GetComponentQuat(),
-				FColor::Red,
-				false,
-				LifeTime,
-				0,
-				2.f
-			);
-		}
-	}
+	//if (bDrawLine)
+	//{
+	//	if (UCapsuleComponent* CapsuleComp = Cast<UCapsuleComponent>(CollisionComp))
+	//	{
+	//		DrawDebugCapsule(
+	//			GetWorld(),
+	//			CollisionComp->GetComponentLocation(),
+	//			CapsuleComp->GetScaledCapsuleHalfHeight(),
+	//			CapsuleComp->GetScaledCapsuleRadius(),
+	//			CollisionComp->GetComponentQuat(),
+	//			FColor::Red,
+	//			false,
+	//			LifeTime,
+	//			0,
+	//			2.f
+	//		);
+	//	}
+	//}
 }
 
 void AFieldActor::OnOverlap(
@@ -161,8 +161,8 @@ void AFieldActor::OnOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	if (OtherActor && OtherActor != OwnerActor && !OtherActor->IsA(ABaseMonster::StaticClass()))
-		OverlappingActors.Add(OtherActor);
+	if (IsValid(OtherActor) && OtherActor != OwnerActor && !OtherActor->IsA(ABaseMonster::StaticClass()))
+		OverlappingActors.Add(TWeakObjectPtr<AActor>(OtherActor));
 
 	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
@@ -172,23 +172,39 @@ void AFieldActor::OnEndOverlap(UPrimitiveComponent* OverlappedComp,
 	UPrimitiveComponent* OtherComp,
 	int32 BodyIndex)
 {
-    OverlappingActors.Remove(OtherActor);
+	OverlappingActors.Remove(TWeakObjectPtr<AActor>(OtherActor));
 }
 
 void AFieldActor::ApplyDamageTick()
 {
 	if (OverlappingActors.Num() == 0) return;
     
-    TSet<AActor*> ActorsCopy = OverlappingActors;
-        
-	for (AActor* Actor : ActorsCopy)
+	TArray<TWeakObjectPtr<AActor>> ToRemove;
+	for (const TWeakObjectPtr<AActor>& WeakActor : OverlappingActors)
 	{
+		if (!WeakActor.IsValid())
+		{
+			ToRemove.Add(WeakActor);
+		}
+	}
+    
+	for (const TWeakObjectPtr<AActor>& WeakActor : ToRemove)
+	{
+		OverlappingActors.Remove(WeakActor);
+	}
+	
+	TSet<TWeakObjectPtr<AActor>> ActorsCopy = OverlappingActors;
+    
+	for (const TWeakObjectPtr<AActor>& WeakActor : ActorsCopy)
+	{
+		AActor* Actor = WeakActor.Get();
+        
 		if (!IsValid(Actor) || Cast<ABaseMonster>(Actor) || Cast<AAnimalMonster>(Actor))
 		{
-			OverlappingActors.Remove(Actor);
+			OverlappingActors.Remove(WeakActor);
 			continue;
 		}
-		
+        
 		UGameplayStatics::ApplyDamage(Actor, Damage, GetInstigatorController(), this, nullptr);
 	}
 }
@@ -197,6 +213,17 @@ void AFieldActor::EndSkill()
 {
 	GetWorld()->GetTimerManager().ClearTimer(DamageTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(LifeTimerHandle);
+
+	OverlappingActors.Empty();
+	OwnerActor = nullptr;
+	EnemyActor = nullptr;
+	TargetActor = nullptr;
+
+	if (NiagaraComp && NiagaraComp->IsActive())
+	{
+		NiagaraComp->Deactivate();
+	}
+	
 	Destroy();
 }
 

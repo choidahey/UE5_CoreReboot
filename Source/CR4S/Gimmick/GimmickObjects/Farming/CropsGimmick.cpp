@@ -79,6 +79,7 @@ void ACropsGimmick::InitCollisionSetting() const
 	if (IsValid(GimmickMeshComponent))
 	{
 		GimmickMeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+		GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 		GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		GimmickMeshComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
 	}

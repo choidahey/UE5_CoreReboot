@@ -6,7 +6,8 @@ UObjectShakeComponent::UObjectShakeComponent()
 	  ShakeInterval(0.02f),
 	  ShakeIntensity(2.5f),
 	  OriginalLocation(FVector::ZeroVector),
-	  ElapsedTime(0.f)
+	  ElapsedTime(0.f),
+	  LastOffset(FVector::ZeroVector)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
@@ -51,16 +52,23 @@ void UObjectShakeComponent::PerformShake()
 		return;
 	}
 
-	const FVector RandomOffset = FMath::VRand() * ShakeIntensity;
+	OwnerActor->AddActorWorldOffset(-LastOffset, false, nullptr, ETeleportType::TeleportPhysics);
 
-	OwnerActor->SetActorLocation(OriginalLocation + RandomOffset, false, nullptr, ETeleportType::TeleportPhysics);
+	const FVector NewOffset = FMath::VRand() * ShakeIntensity;
+	LastOffset = NewOffset;
+
+	OwnerActor->AddActorWorldOffset(LastOffset, false, nullptr, ETeleportType::TeleportPhysics);
 }
 
 void UObjectShakeComponent::StopShake()
 {
-	ElapsedTime = 0.f;
 	GetWorld()->GetTimerManager().ClearTimer(ShakeTimerHandle);
-
-	OwnerActor->SetActorLocation(OriginalLocation, false, nullptr, ETeleportType::TeleportPhysics);
+	
+	if (IsValid(OwnerActor))
+	{
+		OwnerActor->AddActorWorldOffset(-LastOffset, false, nullptr, ETeleportType::TeleportPhysics);
+	}
+	
+	ElapsedTime = 0.f;
+	LastOffset = FVector::ZeroVector;
 }
-
