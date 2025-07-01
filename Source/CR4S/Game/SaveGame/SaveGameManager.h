@@ -36,22 +36,34 @@ public:
     
 #pragma region Public API - Save / Load
 public:
-    bool SaveAll(const FString& SlotName);
+
     UFUNCTION(BlueprintCallable)
     void PreloadSaveData(const FString& SlotName);
-    void ApplyAll();
+ 
     UFUNCTION(BlueprintCallable)
     void ApplyCoreData();
+    UFUNCTION(BlueprintCallable)
     void ApplyWorldData();
+    UFUNCTION(BlueprintCallable)
+    void ApplyBuildingData();
 
     UFUNCTION(BlueprintCallable)
     bool SaveCore(const FString& SlotName);
+    UFUNCTION(BlueprintCallable)
     bool SaveWorld(const FString& SlotName);
+    UFUNCTION(BlueprintCallable)
+    bool SaveBuilding(const FString& SlotName);
 
     void SaveSettings(USettingsSaveGame* InSettingsSave);
+
+
     USettingsSaveGame* LoadSettings();
 
+
     void DeleteSaveGame(const FString& SlotName);
+
+    bool SaveAll(const FString& SlotName);
+    void ApplyAll();
 
 #pragma endregion
 
@@ -83,6 +95,9 @@ protected:
     TObjectPtr<UWorldSaveGame> WorldSave;
     UPROPERTY()
     TObjectPtr<UCoreSaveGame> CoreSave;
+    UPROPERTY()
+    TObjectPtr<USaveGame> BuildingSave;
+
     UPROPERTY()
     TObjectPtr<USettingsSaveGame> SettingsSave;
 

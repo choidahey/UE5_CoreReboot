@@ -7,7 +7,6 @@
 #include "Game/System/WorldTimeManager.h"
 #include "Inventory/Components/BaseInventoryComponent.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 UBaseInventoryItem::UBaseInventoryItem()
 	: bUsePassiveEffect(false),

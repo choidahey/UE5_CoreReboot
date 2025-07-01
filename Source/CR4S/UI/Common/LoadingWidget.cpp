@@ -1,5 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "UI/Common/LoadingWidget.h"
+#include "Components/Border.h"
 
+void ULoadingWidget::HideImage()
+{
+	LoadingBorder->SetBrushColor(FLinearColor::Black);
+}

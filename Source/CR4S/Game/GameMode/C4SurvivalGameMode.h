@@ -15,15 +15,19 @@ public:
 	void ReturnToMenu();
 
 protected:
-	
+
 	UFUNCTION(BlueprintCallable)
 	void EndGameSequence();
+
 	virtual void StartPlay() override;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
 	USoundBase* GameStartSFX;
 
+	UPROPERTY()
+	bool bIsTransitioningLevel = false;
 private:
 
 	void HandleStartGame();
+
 };

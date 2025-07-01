@@ -29,7 +29,7 @@ void AC4MenuGameMode::BeginPlay()
     }
 }
 
-void AC4MenuGameMode::OpenSurvivalLevel(int32 SlotIndex)
+void AC4MenuGameMode::OpenInGameLevel(int32 SlotIndex)
 {
     UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>();
     AudioManager->StopBGM();
@@ -48,13 +48,24 @@ void AC4MenuGameMode::OpenSurvivalLevel(int32 SlotIndex)
             LoadingWidget->AddToViewport();
         }
 	}
-
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4MenuGameMode::LoadSurvivalLevel, 1.0f, false);
-
+    if (SaveGameManager->IsNewGame())
+    {
+        FTimerHandle TimerHandle;
+        GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4MenuGameMode::LoadCinematicMap, 1.0f, false);
+    }
+    else
+    {
+        FTimerHandle TimerHandle;
+        GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4MenuGameMode::LoadMainMap, 1.0f, false);
+    }
 }
 
-void AC4MenuGameMode::LoadSurvivalLevel()
+void AC4MenuGameMode::LoadCinematicMap()
+{
+    UGameplayStatics::OpenLevel(this, FName("_CinematicMap"));
+}
+
+void AC4MenuGameMode::LoadMainMap()
 {
     UGameplayStatics::OpenLevel(this, FName("MainMap"));
 }

@@ -49,17 +49,17 @@ void ASphereDamageSkillActor::SetupCollisionComponent()
 		Sphere->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnOverlap);
 	}
 
-#if WITH_EDITOR
-	DrawDebugSphere(
-		GetWorld(),
-		CollisionComp->GetComponentLocation(),
-		SphereRadius,
-		16,
-		FColor::Red,
-		false,
-		2.0f
-	);
-#endif
+//#if WITH_EDITOR
+//	DrawDebugSphere(
+//		GetWorld(),
+//		CollisionComp->GetComponentLocation(),
+//		SphereRadius,
+//		16,
+//		FColor::Red,
+//		false,
+//		2.0f
+//	);
+//#endif
 }
 
 void ASphereDamageSkillActor::SnapToGroundIfNeeded()

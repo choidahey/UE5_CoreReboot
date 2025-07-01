@@ -24,19 +24,19 @@ void AExplosionActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-#if WITH_EDITOR
-	DrawDebugSphere(
-		GetWorld(),
-		GetActorLocation(),
-		ShockwaveRadius,
-		32,
-		FColor::Cyan,
-		false,
-		5.0f,
-		0,
-		2.0f
-	);
-#endif
+//#if WITH_EDITOR
+//	DrawDebugSphere(
+//		GetWorld(),
+//		GetActorLocation(),
+//		ShockwaveRadius,
+//		32,
+//		FColor::Cyan,
+//		false,
+//		5.0f,
+//		0,
+//		2.0f
+//	);
+//#endif
 
 	ApplyShockwaveDamage();
 

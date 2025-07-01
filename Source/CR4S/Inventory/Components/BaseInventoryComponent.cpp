@@ -8,9 +8,6 @@
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/InventoryItem/ConsumableInventoryItem.h"
 #include "Inventory/InventoryItem/HelperBotInventoryItem.h"
-#include "Inventory/InventoryItem/RobotPartsInventoryItem.h"
-#include "Inventory/InventoryItem/ToolInventoryItem.h"
-#include "Utility/Cr4sGameplayTags.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
 	: MaxInventorySize(10),
@@ -171,7 +168,7 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 				continue;
 			}
 
-			UBaseInventoryItem* EmptyInventoryItem = CreateInventoryItem(ItemData->ItemTags);
+			UBaseInventoryItem* EmptyInventoryItem = UItemGimmickSubsystem::CreateInventoryItem(this, ItemData->ItemTags);
 			if (!CR4S_VALIDATE(LogInventory, EmptyInventoryItem))
 			{
 				continue;
@@ -245,31 +242,6 @@ bool UBaseInventoryComponent::CheckRottenItem(UBaseInventoryItem* OriginItem, UB
 	return TargetConsumableInventoryItem->IsRotten();
 }
 
-UBaseInventoryItem* UBaseInventoryComponent::CreateInventoryItem(const FGameplayTagContainer& ItemTags)
-{
-	if (ItemTags.HasTag(ItemTags::Tools))
-	{
-		return NewObject<UToolInventoryItem>(this);
-	}
-	
-	if (ItemTags.HasTag(ItemTags::Consumable))
-	{
-		return NewObject<UConsumableInventoryItem>(this);
-	}
-	
-	if (ItemTags.HasTag(ItemTags::HelperBot))
-	{
-		return NewObject<UHelperBotInventoryItem>(this);
-	}
-
-	if (ItemTags.HasTag(ItemTags::RobotParts) || ItemTags.HasTag(ItemTags::Weapon))
-	{
-		return NewObject<URobotPartsInventoryItem>(this);
-	}
-
-	return NewObject<UBaseInventoryItem>(this);
-}
-
 bool UBaseInventoryComponent::IsItemAllowedByFilter(const FGameplayTagContainer& ItemTags) const
 {
 	if (!IsValid(FilterData))
@@ -304,7 +276,7 @@ void UBaseInventoryComponent::LoadInventorySaveGame(const FInventorySaveGame& Sa
 		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
 
 		const FGameplayTagContainer& Tags = SaveItemData.InventoryItemData.ItemInfoData.ItemTags;
-		UBaseInventoryItem* Item = CreateInventoryItem(Tags);
+		UBaseInventoryItem* Item = UItemGimmickSubsystem::CreateInventoryItem(this, Tags);
 		Item->LoadInventoryItemSaveData(this, SaveItemData);
 		InventoryItems[Index] = Item;
 

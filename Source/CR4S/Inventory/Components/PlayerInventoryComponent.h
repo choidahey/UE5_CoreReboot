@@ -19,14 +19,15 @@ class CR4S_API UPlayerInventoryComponent : public UBaseInventoryComponent
 
 public:
 	UPlayerInventoryComponent();
-
-	virtual void BeginPlay() override;
+	
+	virtual void InitInventory() override;
 
 	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr) override;
 
 	virtual int32 RemoveItemByRowName(const FName RowName, const int32 Count) override;
 	virtual void RemoveAllItemByRowName(const FName RowName) override;
 	virtual int32 GetItemCountByRowName(const FName RowName) const override;
+
 
 #pragma endregion
 

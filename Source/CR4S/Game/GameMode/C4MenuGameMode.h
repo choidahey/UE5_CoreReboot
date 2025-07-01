@@ -13,7 +13,7 @@ class CR4S_API AC4MenuGameMode : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
-	void OpenSurvivalLevel(int32 SlotIndex);
+	void OpenInGameLevel(int32 SlotIndex);
 
 	
 
@@ -31,7 +31,9 @@ protected:
 
 private:
 
-	void LoadSurvivalLevel();
+	void LoadCinematicMap();
+
+	void LoadMainMap();
 
 
 

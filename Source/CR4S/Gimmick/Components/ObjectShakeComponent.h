@@ -52,5 +52,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Shake")
 	float ElapsedTime;
 
+	FVector LastOffset;
+
 #pragma endregion
 };
