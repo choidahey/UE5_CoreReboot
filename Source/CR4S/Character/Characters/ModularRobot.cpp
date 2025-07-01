@@ -27,6 +27,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Utility/DataLoaderSubsystem.h"
+#include "Utility/DLWEInteractionHelperComponent.h"
 
 
 // Sets default values
@@ -105,6 +106,9 @@ AModularRobot::AModularRobot()
 	EnvironmentalStatus=CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
 
 	HoverTimeLine=CreateDefaultSubobject<UTimelineComponent>(TEXT("HoverTimeLine"));
+
+	DLWEInteractionHelper = CreateDefaultSubobject<UDLWEInteractionHelperComponent>(TEXT("DLWEInteractionHelper"));
+	DLWEInteractionHelper->SetupAttachment(LegMesh);
 }
 
 FName AModularRobot::GetUniqueSaveID()
@@ -328,6 +332,11 @@ void AModularRobot::EquipLegParts(const FGameplayTag& Tag)
 	
 	const bool bIsQuadrupedal=Tag.MatchesTag(LegTags::Quadrupedal);
 	SetLegManagerEnabled(bIsQuadrupedal);
+
+	if (IsValid(DLWEInteractionHelper))
+	{
+		DLWEInteractionHelper->UpdateConnectSlot();
+	}
 }
 
 void AModularRobot::EquipBoosterParts(const FGameplayTag& Tag)
