@@ -126,7 +126,7 @@ public:
 
 	void ShowLoading();
 	void PlayEndingSequence();
-	void BindGameOverWidget();
+	void BindGameOverWidget(UBaseStatusComponent* BaseStatComp);
 
 
 
@@ -134,5 +134,5 @@ public:
 
 private:
 	virtual void BeginPlay() override;
-
+	virtual void PostInitializeComponents() override;
 };

@@ -175,6 +175,8 @@ void APlayerCharacter::InitializeWidgets() const
 				InGameWidget->BindEnvStatusWidgetToEnvStatus(EnvironmentalStatus);
 				
 			}
+
+			CurrentHUD->BindGameOverWidget(Status);
 		}
 	}
 }
@@ -256,8 +258,6 @@ void APlayerCharacter::BeginPlay()
 	}
 	
 	//Binding Delegate Functions and Set up Widget
-	InitializeWidgets();
-
 	InitializeCurrentTool(); 
 
 	if (!CR4S_ENSURE(LogHong1,PlayerCharacterSettingsDataAsset)) return;
@@ -352,6 +352,7 @@ void APlayerCharacter::UnPossessed()
 	SetOverlayMode(OverlayMode::Mounted);
 	DisconnectWidgets();
 	Status->SetIsUnPossessed(true);
+
 	Super::UnPossessed();
 }
 
