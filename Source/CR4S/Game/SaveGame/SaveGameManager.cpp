@@ -18,6 +18,7 @@
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "DeveloperSettings/CR4SDataTableSettings.h"
+#include "FriendlyAI/BaseHelperBot.h"
 #include "Game/Interface/SavableActor.h"
 
 void USaveGameManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -387,6 +388,9 @@ void USaveGameManager::ApplyCoreData()
             break;
         case ESavedActorType::ModularRobot:
             ActorClassToSpawn = SpawnClassDataAsset->ModularRobotClass;
+            break;
+        case ESavedActorType::HelperBot:
+            ActorClassToSpawn = SpawnClassDataAsset->HelperBotClass;
             break;
         default:
             continue; // 타입이 없으면 건너뛰기

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "HelperBotSaveGame.h"
 #include "PlayerCharacterSaveGame.h"
 #include "GameFramework/SaveGame.h"
 #include "CoreSaveGame.generated.h"
@@ -9,7 +10,8 @@ enum class ESavedActorType : uint8
 {
 	None,
 	PlayerCharacter,
-	ModularRobot
+	ModularRobot,
+	HelperBot
 };
 
 USTRUCT(BlueprintType)
@@ -29,6 +31,9 @@ public:
 
 	UPROPERTY()
 	FModularRobotSaveGame RobotData;
+
+	UPROPERTY()
+	FHelperBotSaveGame HelperBotData;
 };
 
 UCLASS()
