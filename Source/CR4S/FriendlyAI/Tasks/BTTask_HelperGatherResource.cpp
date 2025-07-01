@@ -69,7 +69,7 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 	ABaseHelperBot* Helper = Cast<ABaseHelperBot>(Pawn);
 	if (!Helper) return EBTNodeResult::Failed;
 
-	MyMemory->CachedDamagePerSecond = Helper->GetWoodDamagePerSecond();
+	MyMemory->CachedDamagePerSecond = Helper->GetRockPerSecond();
 	Helper->SetIsWorking(true);
 	Helper->UpdateEyeBeamWorkTarget(TargetActor);
 	
@@ -103,7 +103,7 @@ EBTNodeResult::Type UBTTask_HelperGatherResource::ExecuteTask(UBehaviorTreeCompo
 		{
 			if (MyMemory->CachedTarget.IsValid() && MyMemory->CachedHelper.IsValid() && !MyMemory->CachedTarget->IsActorBeingDestroyed())
 			{
-				float DamagePerTick = MyMemory->CachedDamagePerSecond * 0.2f;
+				float DamagePerTick = MyMemory->CachedDamagePerSecond / 5.0f;
 				UGameplayStatics::ApplyDamage(
 					MyMemory->CachedTarget.Get(), 
 					DamagePerTick, 
