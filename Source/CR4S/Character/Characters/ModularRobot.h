@@ -11,6 +11,7 @@
 #include "Utility/StunnableInterface.h"
 #include "ModularRobot.generated.h"
 
+class UDLWEInteractionHelperComponent;
 class UWeaponTraceComponent;
 class USaveGame;
 class UTimelineComponent;
@@ -232,6 +233,8 @@ private:
 	TObjectPtr<USkeletalMeshComponent> LegMesh;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USkeletalMeshComponent> ArmMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UDLWEInteractionHelperComponent> DLWEInteractionHelper;
 #pragma endregion
 
 #pragma region Cached
