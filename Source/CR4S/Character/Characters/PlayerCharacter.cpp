@@ -103,6 +103,11 @@ void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 
 void APlayerCharacter::OnDeath()
 {
+	if (IsValid(PlayerInventory) && PlayerInventory->IsOpen())
+	{
+		PlayerInventory->CloseInventoryWidget();
+	}
+	
 	APlayerController* PC=Cast<APlayerController>(GetController());
 	if (!CR4S_ENSURE(LogHong1,PC)) return;
 
