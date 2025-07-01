@@ -147,6 +147,11 @@ void UBTTask_HelperHarvestCrop::OnTargetDestroyed(AActor* DestroyedActor)
 		
 		if (MyMemory->CachedTarget.Get() == DestroyedActor)
 		{
+			if (MyMemory->BeamUpdateTimer.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(MyMemory->BeamUpdateTimer);
+			}
+
 			if (MyMemory->CachedHelper.IsValid())
 			{
 				ABaseHelperBot* Helper = Cast<ABaseHelperBot>(MyMemory->CachedHelper.Get());
