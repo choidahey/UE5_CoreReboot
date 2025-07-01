@@ -48,7 +48,8 @@ public:
 	void HandleDayChange();
 
 	void ChangeToNextSeason();
-
+	UFUNCTION()
+	FString GetSeasonAsString(ESeasonType Season) const;
 #pragma endregion
 
 #pragma region Internal Season Logic
@@ -94,6 +95,8 @@ private:
 	void SpawnSeasonMonsters();
 
 	FVector GetRandomSpawnLocationAroundPlayer(float MinRadius, float MaxRadius, int32 MaxAttempts);
+
+
 
 #pragma endregion
 

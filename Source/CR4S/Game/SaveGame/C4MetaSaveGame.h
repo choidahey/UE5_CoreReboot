@@ -15,10 +15,13 @@ struct FSaveSlotMetaData
     FDateTime SaveTime;
 
     UPROPERTY()
-    FString Description; // ex: "Day 5, Location: Forest"
+    FString ThumbnailPath;
 
     UPROPERTY()
-    FString ThumbnailPath;
+    FString TotalGameTime;
+
+    UPROPERTY()
+    FString Season;
 
     TWeakObjectPtr<class UCoreSaveGame> CoreSaveGamePtr;
     TWeakObjectPtr<class UWorldSaveGame> WorldSaveGamePtr;
