@@ -6,6 +6,7 @@
 #include "NavigationSystem.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "CR4S.h"
 
 void UAnimNotifyState_MoveToCharacter::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
@@ -65,7 +66,8 @@ void UAnimNotifyState_MoveToCharacter::StartMoveTo()
 		if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World))
 		{
 			FNavLocation ProjectedLocation;
-			if (NavSys->ProjectPointToNavigation(RawTargetLocation, ProjectedLocation, FVector(500, 500, 3000)))
+			FVector ProjectExtent = FVector(500, 500, 5000);
+			if (NavSys->ProjectPointToNavigation(RawTargetLocation, ProjectedLocation, ProjectExtent))
 			{
 				GoalLocation = ProjectedLocation.Location;
 			}
@@ -79,7 +81,19 @@ void UAnimNotifyState_MoveToCharacter::StartMoveTo()
 	MoveRequest.SetCanStrafe(true);
 	MoveRequest.SetReachTestIncludesAgentRadius(false);
 
-	CachedController->MoveTo(MoveRequest);
+	FPathFollowingRequestResult Result = CachedController->MoveTo(MoveRequest);
+
+#if WITH_EDITOR
+	UE_LOG(LogMonster, Log, TEXT("[MoveToCharacter - BEFORE] MoveTo Result: Code=%d (%s), GoalLocation: %s"),
+		static_cast<int32>(Result.Code),
+		Result.Code == EPathFollowingRequestResult::RequestSuccessful ? TEXT("RequestSuccessful") :
+		Result.Code == EPathFollowingRequestResult::AlreadyAtGoal ? TEXT("AlreadyAtGoal") :
+		Result.Code == EPathFollowingRequestResult::Failed ? TEXT("Failed") :
+		TEXT("Unknown"),
+		*GoalLocation.ToString()
+	);
+#endif
+
 }
 
 void UAnimNotifyState_MoveToCharacter::LaunchJumpTowardTarget()
