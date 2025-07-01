@@ -107,6 +107,8 @@ private:
 	void Input_OnAttack();
 
 	void Input_OnInteraction();
+
+	void Input_OnQuickSlotNumberPressed(const FInputActionValue& ActionValue);
 #pragma endregion
 
 #pragma region Components
@@ -180,6 +182,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
 	TObjectPtr<UInputAction> InteractionAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Player Character", Meta = (DisplayThumbnail = false))
+	TObjectPtr<UInputAction> QuickSlotAction;
 #pragma endregion
 	
 #pragma region LookSettings

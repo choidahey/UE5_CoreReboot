@@ -15,16 +15,6 @@ public:
 	void ReturnToMenu();
 
 protected:
-	UFUNCTION()
-	void OnCinematicLevelLoaded();
-	UFUNCTION()
-	void OnCinematicLevelUnloaded();
-
-	UFUNCTION(BlueprintCallable)
-	void HandleStartNewGame();
-
-	UFUNCTION(BlueprintCallable)
-	void NotifyMainMapReady();
 
 	UFUNCTION(BlueprintCallable)
 	void EndGameSequence();

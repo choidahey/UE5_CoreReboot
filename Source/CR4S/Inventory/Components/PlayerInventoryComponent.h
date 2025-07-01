@@ -51,6 +51,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|InventoryContainerWidget")
 	URobotInventoryWidget* GetRobotInventoryWidget() const;
 
+	FORCEINLINE bool IsOpen() const
+	{
+		if (IsValid(InventoryContainerWidgetInstance))
+		{
+			return InventoryContainerWidgetInstance->IsOpen();
+		}
+		
+		return false;
+	}
+	
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
 

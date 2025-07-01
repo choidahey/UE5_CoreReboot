@@ -8,6 +8,7 @@
 
 class AModularRobot;
 class APlayerCharacter;
+class ABaseHelperBot;
 /**
  * 
  */
@@ -21,4 +22,6 @@ public:
 	TSubclassOf<APlayerCharacter> PlayerCharacterClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
 	TSubclassOf<AModularRobot> ModularRobotClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
+	TSubclassOf<ABaseHelperBot> HelperBotClass;
 };

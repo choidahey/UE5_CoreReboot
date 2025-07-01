@@ -18,6 +18,7 @@
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Characters/PlayerCharacter.h"
 #include "DeveloperSettings/CR4SDataTableSettings.h"
+#include "FriendlyAI/BaseHelperBot.h"
 #include "Game/Interface/SavableActor.h"
 
 void USaveGameManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -388,6 +389,9 @@ void USaveGameManager::ApplyCoreData()
         case ESavedActorType::ModularRobot:
             ActorClassToSpawn = SpawnClassDataAsset->ModularRobotClass;
             break;
+        case ESavedActorType::HelperBot:
+            ActorClassToSpawn = SpawnClassDataAsset->HelperBotClass;
+            break;
         default:
             continue; // 타입이 없으면 건너뛰기
         }
@@ -402,9 +406,6 @@ void USaveGameManager::ApplyCoreData()
         {
             if (ISavableActor* Savable = Cast<ISavableActor>(NewSpawnedActor))
             {
-                Savable->SetUniqueSaveID(ActorID);
-                Savable->ApplySaveData(SavedData);
-
                 if (APlayerCharacter* NewPlayer = Cast<APlayerCharacter>(NewSpawnedActor))
                 {
                     if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
@@ -413,6 +414,9 @@ void USaveGameManager::ApplyCoreData()
                         PC->Possess(NewPlayer);
                     }
                 }
+
+                Savable->SetUniqueSaveID(ActorID);
+                Savable->ApplySaveData(SavedData);
             }
         }
     }  
