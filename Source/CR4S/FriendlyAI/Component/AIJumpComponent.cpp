@@ -73,8 +73,8 @@ void UAIJumpComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
     
     if (HasReachedTarget())
     {
-        ResetJumpState();
-        return;
+        //ResetJumpState();
+        //return;
     }
     
     if (bEnableRotation && CurrentTargetActor)

@@ -143,7 +143,7 @@ void ABaseAnimal::LoadStats()
 
             if (BehaviorTypeEnum == EAnimalBehavior::Monster || BehaviorTypeEnum == EAnimalBehavior::Aggressive)
             {
-                EnemyCollision->SetCollisionResponseToChannel(ECC_GameTraceChannel3, ECR_Overlap);
+                EnemyCollision->SetCollisionResponseToChannel(ECC_GameTraceChannel4, ECR_Overlap);
             }
             
             if (GetCharacterMovement())
@@ -599,6 +599,22 @@ void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) c
 float ABaseAnimal::PlayAttackMontage()
 {
     if (bIsAttacking || !MeleeAttackMontage) return 0.0f;
+    
+    if (CurrentTarget)
+    {
+        FRotator CurrentRotation = GetActorRotation();
+        FVector Direction = (CurrentTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+        FRotator TargetRotation = Direction.Rotation();
+        
+        float DeltaYaw = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, TargetRotation.Yaw);
+        float ClampedYaw = FMath::Clamp(DeltaYaw, -90.0f, 90.0f);
+        
+        FRotator DesiredRotation = CurrentRotation;
+        DesiredRotation.Yaw += ClampedYaw;
+        
+        FRotator InterpRotation = FMath::RInterpConstantTo(CurrentRotation, DesiredRotation, GetWorld()->GetDeltaSeconds(), 360.0f);
+        SetActorRotation(InterpRotation);
+    }
 
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance)
@@ -636,6 +652,22 @@ float ABaseAnimal::PlayChargeAttackMontage()
 {
     if (bIsAttacking || !ChargeMontage) return 0.0f;
 
+    if (CurrentTarget)
+    {
+        FRotator CurrentRotation = GetActorRotation();
+        FVector Direction = (CurrentTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+        FRotator TargetRotation = Direction.Rotation();
+        
+        float DeltaYaw = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, TargetRotation.Yaw);
+        float ClampedYaw = FMath::Clamp(DeltaYaw, -90.0f, 90.0f);
+        
+        FRotator DesiredRotation = CurrentRotation;
+        DesiredRotation.Yaw += ClampedYaw;
+        
+        FRotator InterpRotation = FMath::RInterpConstantTo(CurrentRotation, DesiredRotation, GetWorld()->GetDeltaSeconds(), 360.0f);
+        SetActorRotation(InterpRotation);
+    }
+    
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance)
     {
@@ -672,6 +704,22 @@ float ABaseAnimal::PlayRangedAttackMontage()
 {
     if (bIsAttacking || !RangedMontage) return 0.0f;
 
+    if (CurrentTarget)
+    {
+        FRotator CurrentRotation = GetActorRotation();
+        FVector Direction = (CurrentTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+        FRotator TargetRotation = Direction.Rotation();
+        
+        float DeltaYaw = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, TargetRotation.Yaw);
+        float ClampedYaw = FMath::Clamp(DeltaYaw, -90.0f, 90.0f);
+        
+        FRotator DesiredRotation = CurrentRotation;
+        DesiredRotation.Yaw += ClampedYaw;
+        
+        FRotator InterpRotation = FMath::RInterpConstantTo(CurrentRotation, DesiredRotation, GetWorld()->GetDeltaSeconds(), 360.0f);
+        SetActorRotation(InterpRotation);
+    }
+    
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
     if (AnimInstance)
     {

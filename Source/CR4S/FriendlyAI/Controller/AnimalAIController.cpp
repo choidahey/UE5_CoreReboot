@@ -107,28 +107,6 @@ void AAnimalAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus S
                 }
             }
             
-            if (Cast<APlayerCharacter>(Actor))
-            {
-                if (Animal->bPlayerDead)
-                {
-                    return;
-                }
-                AActor* PlayerTarget = GetCurrentPlayerTarget();
-                SetTargetActor(PlayerTarget);
-            }
-            
-            else if (AModularRobot* SensedRobot = Cast<AModularRobot>(Actor))
-            {
-                if (SensedRobot->GetMountedCharacter())
-                {
-                    SetTargetActor(SensedRobot);
-                }
-            }
-            else
-            {
-                SetTargetActor(Actor);
-            }
-            
             HandlePerceptionResponse(Animal, Actor);
         }
         else
@@ -160,6 +138,26 @@ void AAnimalAIController::HandlePerceptionResponse(ABaseAnimal* Animal, AActor* 
     switch (Animal->BehaviorTypeEnum)
     {
     case EAnimalBehavior::Aggressive:
+        if (Cast<APlayerCharacter>(SensedActor))
+        {
+            if (Animal->bPlayerDead)
+            {
+                return;
+            }
+            AActor* PlayerTarget = GetCurrentPlayerTarget();
+            SetTargetActor(PlayerTarget);
+        }
+        else if (AModularRobot* SensedRobot = Cast<AModularRobot>(SensedActor))
+        {
+            if (SensedRobot->GetMountedCharacter())
+            {
+                SetTargetActor(SensedRobot);
+            }
+        }
+        else
+        {
+            SetTargetActor(SensedActor);
+        }
         SetAnimalState(EAnimalState::Chase);
         break;
 
@@ -168,11 +166,28 @@ void AAnimalAIController::HandlePerceptionResponse(ABaseAnimal* Animal, AActor* 
         {
             if (TargetAnimal->BehaviorTypeEnum == EAnimalBehavior::Aggressive)
             {
+                SetTargetActor(SensedActor);
                 SetAnimalState(EAnimalState::Flee);
             }
         }
         else if (Cast<APlayerCharacter>(SensedActor) || Cast<AModularRobot>(SensedActor))
         {
+            if (Cast<APlayerCharacter>(SensedActor))
+            {
+                if (Animal->bPlayerDead)
+                {
+                    return;
+                }
+                AActor* PlayerTarget = GetCurrentPlayerTarget();
+                SetTargetActor(PlayerTarget);
+            }
+            else if (AModularRobot* SensedRobot = Cast<AModularRobot>(SensedActor))
+            {
+                if (SensedRobot->GetMountedCharacter())
+                {
+                    SetTargetActor(SensedRobot);
+                }
+            }
             SetAnimalState(EAnimalState::Flee);
         }
         break;
@@ -351,13 +366,13 @@ void AAnimalAIController::SetAnimalState(EAnimalState NewState)
     {
         Animal->SetAnimalState(NewState);
 
-        if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
-        {
-            if (GroundAnimal->AIJumpComponent && GroundAnimal->AIJumpComponent->IsActive())
-            {
-                GroundAnimal->AIJumpComponent->DeactivateJumpComponent();
-            }
-        }
+        // if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
+        // {
+        //     if (GroundAnimal->AIJumpComponent && GroundAnimal->AIJumpComponent->IsActive())
+        //     {
+        //         GroundAnimal->AIJumpComponent->DeactivateJumpComponent();
+        //     }
+        // }
     }
 }
 
@@ -375,11 +390,11 @@ void AAnimalAIController::SetTargetByDamage(AActor* Attacker)
             ? FVector::Dist(Animal->GetActorLocation(), Animal->CurrentTarget->GetActorLocation())
             : FLT_MAX;
 
-        const bool bForceTargetSwitch =
-            Animal->BehaviorTypeEnum == EAnimalBehavior::Passive_AggroOnHit ||
-            Animal->BehaviorTypeEnum == EAnimalBehavior::Passive_FleeOnHit;
-
-        if (bForceTargetSwitch || !IsValid(Animal->CurrentTarget) || DistanceToNew < DistanceToCurrent)
+        const bool bShouldChangeTarget = !IsValid(Animal->CurrentTarget) ||
+        ((Animal->BehaviorTypeEnum == EAnimalBehavior::Aggressive ||
+            Animal->BehaviorTypeEnum == EAnimalBehavior::Coward) && DistanceToNew < DistanceToCurrent);
+        
+        if (bShouldChangeTarget || !IsValid(Animal->CurrentTarget) || DistanceToNew < DistanceToCurrent)
         {
             if (Cast<APlayerCharacter>(Attacker) || Cast<AModularRobot>(Attacker))
             {

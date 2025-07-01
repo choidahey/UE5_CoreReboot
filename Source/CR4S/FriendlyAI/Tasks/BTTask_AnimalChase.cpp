@@ -124,19 +124,31 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		return;
 	}
 
-	static FVector LastTargetLocation = FVector::ZeroVector;
-	const FVector CurrentTargetLocation = TargetToChase->GetActorLocation();
-	const float DistanceMoved = FVector::DistSquared(LastTargetLocation, CurrentTargetLocation);
-
-	if (DistanceMoved > FMath::Square(50.f))
+	float DesiredRadius = 0.f;
+	if (Animal->bCanRanged && !Animal->bIsRangedOnCooldown)
 	{
-		LastTargetLocation = CurrentTargetLocation;
+		DesiredRadius = Animal->RangedRange;
+	}
+	else if (Animal->bCanCharge && !Animal->bIsChargeOnCooldown)
+	{
+		DesiredRadius = Animal->DashRange;
+	}
+	else
+	{
+		DesiredRadius = Animal->MeleeRange;
+	}
 
+	const float DistanceToTarget = FVector::Dist(
+		Animal->GetActorLocation(),
+		TargetToChase->GetActorLocation());
+
+	if (DistanceToTarget > DesiredRadius)
+	{
 		if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
 		{
-			if (GroundAnimal->AIJumpComponent && !GroundAnimal->AIJumpComponent->IsActive())
+			if (GroundAnimal->AIJumpComponent && !GroundAnimal->AIJumpComponent->GetIsComponentActive())
 			{
-				GroundAnimal->AIJumpComponent->ActivateJumpComponent();
+				GroundAnimal->AIJumpComponent->ActivateJumpComponent(DesiredRadius);
 			}
 		}
 	}
