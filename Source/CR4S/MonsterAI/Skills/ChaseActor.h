@@ -13,6 +13,8 @@ class CR4S_API AChaseSkillActor : public ABaseSkillActor
 public:
 	AChaseSkillActor();
 
+	void Initialize();
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;

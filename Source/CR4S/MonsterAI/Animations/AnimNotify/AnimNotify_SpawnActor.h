@@ -4,8 +4,6 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "AnimNotify_SpawnActor.generated.h"
 
-class ABlizzard;
-
 UCLASS()
 class CR4S_API UAnimNotify_SpawnActor : public UAnimNotify
 {
