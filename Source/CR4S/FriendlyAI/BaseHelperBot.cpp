@@ -27,6 +27,7 @@
 #include "Components/WidgetComponent.h"
 #include "Data/HelperBotSoundData.h"
 #include "Game/SaveGame/HelperBotSaveGame.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "Game/System/AudioManager.h"
 
 
@@ -107,6 +108,11 @@ void ABaseHelperBot::BeginPlay()
 			InfoUIInstance->SetOwnerHelperBot(this);
 		}
 		InfoWidgetComponent->SetVisibility(false);
+	}
+
+	if (USaveGameManager* SaveManager = GetGameInstance()->GetSubsystem<USaveGameManager>())
+	{
+		SaveManager->RegisterSavableActor(this);
 	}
 }
 
@@ -609,6 +615,31 @@ bool ABaseHelperBot::RepairBot(APlayerCharacter* Player)
 }
 #pragma endregion
 
+#pragma region Save & Load
+
+void ABaseHelperBot::SetUniqueSaveID(FName NewID)
+{
+	UniqueSaveID = NewID;
+}
+
+FName ABaseHelperBot::GetUniqueSaveID()
+{
+	return UniqueSaveID;
+}
+
+void ABaseHelperBot::GatherSaveData(FSavedActorData& OutSaveData)
+{
+	OutSaveData.ActorTransform = GetActorTransform();
+	OutSaveData.ActorType = ESavedActorType::HelperBot;
+	OutSaveData.HelperBotData = GetHelperBotSaveData();
+}
+
+void ABaseHelperBot::ApplySaveData(FSavedActorData& InSaveData)
+{
+	SetActorTransform(InSaveData.ActorTransform);
+	LoadHelperBotSaveData(InSaveData.HelperBotData);
+}
+
 FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const
 {
 	FHelperBotSaveGame Data;
@@ -629,8 +660,9 @@ FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const
 
 void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
 {
-	BotName = Data.BotName;
-	CurrentHealth = Data.CurrentHealth;
+	PickUpData.bIsInit = true;
+	PickUpData.CurrentHealth = Data.CurrentHealth;
+	PickUpData.BotName = Data.BotName;
 	SetActorLocation(Data.CurrentLocation);
 	
 	if (AHelperBotAIController* BotAI = Cast<AHelperBotAIController>(GetController()))
@@ -647,6 +679,7 @@ void ABaseHelperBot::LoadHelperBotSaveData(const FHelperBotSaveGame& Data)
 	}
 }
 
+#pragma endregion
 
 void ABaseHelperBot::PlayBotSound(USoundBase* Sound, const FVector& Location) const
 {
