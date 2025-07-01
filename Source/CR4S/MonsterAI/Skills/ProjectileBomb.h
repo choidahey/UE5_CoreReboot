@@ -17,6 +17,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 	virtual float TakeDamage(
 		float DamageAmount,
@@ -81,7 +82,7 @@ protected:
 
 private:
 	void ApplyPeriodicDamage(AActor* Victim);
-	
+
 	UPROPERTY()
 	TMap<AActor*, FTimerHandle> OverlapDamageTimers;
 

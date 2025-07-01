@@ -171,6 +171,8 @@ void AProjectileBomb::OnExplosionOverlap(UPrimitiveComponent* OverlappedComp,
 	if (!OtherActor || OtherActor == this || OtherActor == GetInstigator() || Cast<ABaseMonster>(OtherActor) || Cast<AAnimalMonster>(OtherActor))
 		return;
 
+	ExplosionOverlapComp->SetGenerateOverlapEvents(false);
+	
 	FTimerHandle& Handle = OverlapDamageTimers.FindOrAdd(OtherActor);
 	GetWorldTimerManager().SetTimer(
 		Handle,
@@ -182,7 +184,14 @@ void AProjectileBomb::OnExplosionOverlap(UPrimitiveComponent* OverlappedComp,
 
 void AProjectileBomb::ApplyPeriodicDamage(AActor* Victim)
 {
-	if (!Victim) return;
+	if (!IsValid(Victim))
+	{
+		if (FTimerHandle* HandlePtr = OverlapDamageTimers.Find(Victim))
+		{
+			GetWorldTimerManager().ClearTimer(*HandlePtr);
+		}
+		return;
+	}
 
 	UGameplayStatics::ApplyDamage(
 		Victim,
@@ -191,4 +200,10 @@ void AProjectileBomb::ApplyPeriodicDamage(AActor* Victim)
 		this,
 		UDamageType::StaticClass()
 	);
+}
+
+void AProjectileBomb::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
