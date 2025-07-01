@@ -84,6 +84,3 @@ DerivedDataCache/*
 
 # Prerequisites
 *.d
-Content/CR4S/_Map/MainMap1.umap
-Content/CR4S/_Blueprint/Character/Robot/BP_Robot.uasset
-Content/CR4S/_Blueprint/Character/Robot/BP_Robot.uasset
