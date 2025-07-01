@@ -1,7 +1,10 @@
 #include "MonsterAI/Skills/BreathActor.h"
 #include "MonsterAI/Components/MonsterSkillComponent.h"
+#include "Character/Characters/ModularRobot.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
 #include "DrawDebugHelpers.h"
 
 ABreathActor::ABreathActor()
@@ -85,8 +88,25 @@ void ABreathActor::DoDamage()
 	TArray<AActor*> HitActors;
 	UGameplayStatics::GetAllActorsOfClass(this, AActor::StaticClass(), HitActors);
 
+	TSet<APlayerCharacter*> MountedPlayers;
+	for (TActorIterator<AModularRobot> It(GetWorld()); It; ++It)
+	{
+		if (APlayerCharacter* Mounted = It->GetMountedCharacter())
+		{
+			MountedPlayers.Add(Mounted);
+		}
+	}
+
 	for (AActor* Target : HitActors)
 	{
+		if (APlayerCharacter* Player = Cast<APlayerCharacter>(Target))
+		{
+			if (MountedPlayers.Contains(Player))
+			{
+				continue;
+			}
+		}
+
 		const FVector ToTarget = Target->GetActorLocation() - Origin;
 		if (ToTarget.Size() > Range) continue;
 

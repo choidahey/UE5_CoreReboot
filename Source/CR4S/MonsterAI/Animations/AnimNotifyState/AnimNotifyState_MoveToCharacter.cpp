@@ -82,18 +82,6 @@ void UAnimNotifyState_MoveToCharacter::StartMoveTo()
 	MoveRequest.SetReachTestIncludesAgentRadius(false);
 
 	FPathFollowingRequestResult Result = CachedController->MoveTo(MoveRequest);
-
-#if WITH_EDITOR
-	UE_LOG(LogMonster, Log, TEXT("[MoveToCharacter - BEFORE] MoveTo Result: Code=%d (%s), GoalLocation: %s"),
-		static_cast<int32>(Result.Code),
-		Result.Code == EPathFollowingRequestResult::RequestSuccessful ? TEXT("RequestSuccessful") :
-		Result.Code == EPathFollowingRequestResult::AlreadyAtGoal ? TEXT("AlreadyAtGoal") :
-		Result.Code == EPathFollowingRequestResult::Failed ? TEXT("Failed") :
-		TEXT("Unknown"),
-		*GoalLocation.ToString()
-	);
-#endif
-
 }
 
 void UAnimNotifyState_MoveToCharacter::LaunchJumpTowardTarget()
