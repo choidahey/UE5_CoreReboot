@@ -1,5 +1,6 @@
 #include "Game/GameMode/C4SurvivalGameMode.h"
 #include "Game/SaveGame/SaveGameManager.h"
+#include "Game/System/EnvironmentManager.h"
 #include "UI/InGame/SurvivalHUD.h"
 #include "Engine/LevelScriptActor.h"
 #include "Kismet/GameplayStatics.h"
@@ -10,6 +11,7 @@ void AC4SurvivalGameMode::StartPlay()
     Super::StartPlay();
 
     HandleStartGame();
+    WaitForWorldReady();
 }
 
 void AC4SurvivalGameMode::ReturnToMenuWithDelay(float Delay)
@@ -53,6 +55,19 @@ void AC4SurvivalGameMode::HandleStartGame()
 {
     CR4S_SIMPLE_SCOPE_LOG;
 
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (!PC)
+    {
+        CR4S_Log(LogGM, Warning, TEXT("PlayerController not found."));
+        return;
+    }
+
+    ASurvivalHUD* HUD = Cast<ASurvivalHUD>(PC->GetHUD());
+    if (HUD)
+    {
+        HUD->ShowLoading(false);
+    }
+
     USaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<USaveGameManager>();
     if (!SaveGameManager)
     {
@@ -72,5 +87,50 @@ void AC4SurvivalGameMode::HandleStartGame()
             UGameplayStatics::PlaySound2D(this, GameStartSFX);
         }
 
+    }
+}
+
+void AC4SurvivalGameMode::WaitForWorldReady()
+{
+    AEnvironmentManager* EnvironmentManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AEnvironmentManager::StaticClass()));
+
+    if (EnvironmentManager && EnvironmentManager->IsEnvironmentReady())
+    {
+        GetWorld()->GetTimerManager().ClearTimer(WorldReadyCheckTimerHandle);
+
+        APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+        if (!PC)
+        {
+            CR4S_Log(LogGM, Warning, TEXT("PlayerController not found."));
+            return;
+        }
+
+        ASurvivalHUD* HUD = Cast<ASurvivalHUD>(PC->GetHUD());
+        if (HUD)
+        {
+            HUD->OnLoadingFinished();
+        }
+    }
+    else
+    {
+        if (!GetWorld()->GetTimerManager().IsTimerActive(WorldReadyCheckTimerHandle))
+        {
+            GetWorld()->GetTimerManager().SetTimer(
+                WorldReadyCheckTimerHandle,
+                this,
+                &AC4SurvivalGameMode::WaitForWorldReady,
+                0.5f,
+                true
+            );
+        }
+
+        if (!EnvironmentManager)
+        {
+            UE_LOG(LogGM, Warning, TEXT("WaitForWorldReady: EnvironmentManager not found."));
+        }
+        else
+        {
+            UE_LOG(LogGM, Warning, TEXT("WaitForWorldReady: EnvironmentManager found but not ready."));
+        }
     }
 }

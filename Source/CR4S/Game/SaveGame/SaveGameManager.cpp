@@ -434,6 +434,7 @@ void USaveGameManager::ApplyWorldData()
     SeasonManager->SetCurrentSeasonDay(WorldSave->SeasonDay);
     SeasonManager->SetCurrentDawnDuskTime(WorldSave->DawnTime, WorldSave->DuskTime);
     SeasonManager->SetCurrentSeason(WorldSave->Season);
+    SeasonManager->NotifyWeatherSet(true);
 
     TimeManager->UpdateTimeWidget();
 

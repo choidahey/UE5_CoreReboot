@@ -145,6 +145,11 @@ void USeasonManager::ChangeToNextSeason()
 	SetCurrentSeason(NextSeason);	
 }
 
+void USeasonManager::NotifyWeatherSet(bool bHasSet)
+{
+	EnvironmentManager->bHasSetWeather = true;
+}
+
 
 void USeasonManager::SetCurrentSeason(ESeasonType NewSeason)
 {

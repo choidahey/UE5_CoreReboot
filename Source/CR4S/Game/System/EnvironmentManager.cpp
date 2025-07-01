@@ -1,6 +1,7 @@
 #include "Game/System/EnvironmentManager.h"
 #include "Engine/DataAsset.h"
 #include "Game/System/WorldTimeManager.h"
+#include "Game/SaveGame/SaveGameManager.h"
 #include "Game/System/SeasonType.h"
 #include "Game/System/SpawnZoneManager.h"
 #include "Game/System/SeasonManager.h"
@@ -16,7 +17,14 @@ void AEnvironmentManager::BeginPlay()
     // Load Weather if there is Save
 
     //For NewGame, Season Starts with Bountiful Season
-    UE_LOG(LogTemp, Warning, TEXT("BeginPlay time: %.6f"), FPlatformTime::Seconds());
+    
+    if (USaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<USaveGameManager>())
+    {
+        if (SaveGameManager->IsNewGame())
+        {
+            SetWeatherBySeason(ESeasonType::BountifulSeason, 10);
+        }
+    }
 
 
     TimeManager = GetWorld()->GetSubsystem<UWorldTimeManager>();
@@ -87,6 +95,8 @@ void AEnvironmentManager::SetWeatherBySeason(ESeasonType Season, float Transitio
     {
         UE_LOG(LogTemp, Error, TEXT("SetWeatherBySeason: Preset is not assigned for season %s"), *UEnum::GetValueAsString(Season));
     }
+
+    bHasSetWeather = true;
 }
 
 AEnvironmentalModifierVolume* AEnvironmentManager::SpawnEnvModVol(
@@ -163,4 +173,10 @@ void AEnvironmentManager::AdvanceTimeOfDay(float TimeOfDay)
     const int32 RemainingMinutes = MinuteOffset % (TimeManager->GetDayCycleLength());
 
     TimeManager->ModifyTime(DayOffset, RemainingMinutes);
+}
+
+
+bool AEnvironmentManager::IsEnvironmentReady()
+{
+    return bHasSetWeather;
 }

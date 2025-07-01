@@ -45,10 +45,26 @@ void ASurvivalHUD::BindGameOverWidget()
 
 }
 
-void ASurvivalHUD::ShowLoading()
+void ASurvivalHUD::ShowLoading(bool bShowImage)
 {
-	ULoadingWidget* LoadingWidget = CreateAndAddWidget<ULoadingWidget>(LoadingWidgetClass, 12, ESlateVisibility::Visible);
-	ShowWidgetOnly(LoadingWidget);
+	if (!LoadingWidget)
+	{
+		LoadingWidget = CreateAndAddWidget<ULoadingWidget>(LoadingWidgetClass, 12, ESlateVisibility::Visible);
+		ShowWidgetOnly(LoadingWidget);
+
+		if (!bShowImage)
+		{
+			LoadingWidget->HideImage();
+		}
+	}
+}
+
+void ASurvivalHUD::OnLoadingFinished()
+{
+	if (LoadingWidget)
+	{
+		LoadingWidget->RemoveFromParent();
+	}
 }
 
 void ASurvivalHUD::ShowMessage(const FText& InText, float Duration)

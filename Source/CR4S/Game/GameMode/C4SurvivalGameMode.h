@@ -28,6 +28,8 @@ protected:
 	bool bIsTransitioningLevel = false;
 private:
 
+	void WaitForWorldReady();
 	void HandleStartGame();
 
+	FTimerHandle WorldReadyCheckTimerHandle;
 };

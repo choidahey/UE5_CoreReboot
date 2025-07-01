@@ -52,12 +52,17 @@ public:
 #pragma endregion
 
 #pragma region Internal Season Logic
+
+public:
+	void NotifyWeatherSet(bool bHasSet);
+
 protected:
 	UPROPERTY(Transient)
 	AEnvironmentManager* EnvironmentManager;
 
 private:
 	void HandleSeasonChange(ESeasonType NewSeason);
+
 
 	ESeasonType CurrentSeason = ESeasonType::BountifulSeason;
 

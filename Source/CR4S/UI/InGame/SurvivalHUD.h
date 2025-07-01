@@ -87,6 +87,9 @@ protected:
 	TObjectPtr<UNotificationWidget> NotificationWidget;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UInventoryContainerWidget> InventoryContainerWidget;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<ULoadingWidget> LoadingWidget;
+
 
 #pragma endregion
 
@@ -122,9 +125,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HandleGameOverToggle();
 
-
-
-	void ShowLoading();
+	void ShowLoading(bool bShowImage = true );
+	void OnLoadingFinished();
 	void PlayEndingSequence();
 	void BindGameOverWidget();
 

@@ -62,6 +62,9 @@ public:
 
 	);
 
+	bool IsEnvironmentReady();
+	bool bHasSetWeather = false;
+
 protected:
 	AEnvironmentManager();
 	virtual void BeginPlay() override;
