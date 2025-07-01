@@ -7,6 +7,9 @@
 #include "NiagaraFunctionLibrary.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Region/KamishForestBoss.h"
+#include "NavigationSystem.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "CR4S.h"
 
 ARotatingProjectile::ARotatingProjectile()
 {
@@ -92,7 +95,24 @@ void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, floa
 
 	SetActorRotation(FRotator(0.f, MoveDirection.Rotation().Yaw, 0.f));
 	SetActorScale3D(ProjectileScale);
-	
+
+	if (AKamishForestBoss* Boss = Cast<AKamishForestBoss>(GetOwner()))
+	{
+		if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
+		{
+			FNavLocation ProjectedLocation;
+			FVector ProjectExtent = FVector(500, 500, 5000);
+			if (NavSys->ProjectPointToNavigation(TargetLocation, ProjectedLocation, ProjectExtent))
+			{
+				Boss->SetWeaponLandingLocation(ProjectedLocation.Location);
+			}
+			else
+			{
+				UE_LOG(LogMonster, Warning, TEXT("[Projectile] TargetLocation not on NavMesh, skipping SetWeaponLandingLocation."));
+			}
+		}
+	}
+
 	CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
 	CollisionComp->SetGenerateOverlapEvents(true);
 
@@ -103,6 +123,7 @@ void ARotatingProjectile::LaunchProjectile(const FVector& InTargetLocation, floa
 	LandingTrigger->OnComponentBeginOverlap.AddUniqueDynamic(this, &ARotatingProjectile::OnLandingDetected);
 
 	SpawnAndAttachTrailEffect();
+	SetLifeSpan(AutoDestroyDelay);
 }
 
 FVector ARotatingProjectile::ComputeParabolicVelocity(const FVector& Start, const FVector& Target, float Speed) const
