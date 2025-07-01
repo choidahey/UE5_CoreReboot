@@ -7,6 +7,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "MonsterAI/BaseMonster.h"
 #include "MonsterAI/Region/KamishForestBoss.h"
+#include "MonsterAI/Skills/WeaponActor.h"
 #include "NavigationSystem.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "CR4S.h"
@@ -296,7 +297,21 @@ void ARotatingProjectile::Destroyed()
 		if (VisualWeapon)
 		{
 			VisualWeapon->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, RestoreSocketName);
+
+			if (AKamishForestBoss* Boss = Cast<AKamishForestBoss>(BossActor))
+			{
+				if (AWeaponActor* Weapon = Cast<AWeaponActor>(VisualWeapon))
+				{
+					Boss->VisualWeaponActor = Weapon;
+				}
+			}
 		}
+	}
+
+	if (TrailEffectComp)
+	{
+		TrailEffectComp->DestroyComponent();
+		TrailEffectComp = nullptr;
 	}
 
 	Super::Destroyed();

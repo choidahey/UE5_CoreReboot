@@ -55,6 +55,17 @@ void AKamishForestBoss::OnMonsterStateChanged(EMonsterState Previous, EMonsterSt
 
 void AKamishForestBoss::HandleDeath()
 {
+	for (auto Weapon : WeaponActors)
+	{
+		if (IsValid(Weapon)) Weapon->Destroy();
+	}
+	if (IsValid(ThrownWeapon)) ThrownWeapon->Destroy();
+	if (IsValid(VisualWeaponActor)) VisualWeaponActor->Destroy(); 
+
+	WeaponActors.Empty();
+	ThrownWeapon = nullptr;
+	VisualWeaponActor = nullptr;
+
 	DestroyActiveClouds();
 	Super::HandleDeath();
 }

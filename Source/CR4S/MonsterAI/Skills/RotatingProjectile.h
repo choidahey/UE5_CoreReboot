@@ -54,6 +54,9 @@ public:
 	FVector ProjectileScale = FVector(1.0f);
 
 protected:
+	UPROPERTY()
+	TObjectPtr<AActor> BossActor;
+
 	UPROPERTY(EditDefaultsOnly, Category = "VisualWeapon")
 	TSubclassOf<AActor> VisualWeaponClass;
 
@@ -78,9 +81,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Lifetime")
 	float BossApproachRadius = 200.0f;
 
-
 private:
-	TObjectPtr<AActor> BossActor;
 	FName RestoreSocketName;
 
 	bool bIsLaunched = false;

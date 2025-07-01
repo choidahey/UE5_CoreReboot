@@ -31,6 +31,14 @@ public:
 	UPROPERTY()
 	TArray<TObjectPtr<AWeaponActor>> WeaponActors;
 
+	UPROPERTY()
+	TObjectPtr<AWeaponActor> ThrownWeapon = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<AWeaponActor> VisualWeaponActor = nullptr;
+
+	FVector WeaponLandingLocation;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Kamish|Weapon")
 	TSubclassOf<AActor> WeaponActorClass;
