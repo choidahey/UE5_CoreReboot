@@ -406,9 +406,6 @@ void USaveGameManager::ApplyCoreData()
         {
             if (ISavableActor* Savable = Cast<ISavableActor>(NewSpawnedActor))
             {
-                Savable->SetUniqueSaveID(ActorID);
-                Savable->ApplySaveData(SavedData);
-
                 if (APlayerCharacter* NewPlayer = Cast<APlayerCharacter>(NewSpawnedActor))
                 {
                     if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
@@ -417,6 +414,9 @@ void USaveGameManager::ApplyCoreData()
                         PC->Possess(NewPlayer);
                     }
                 }
+
+                Savable->SetUniqueSaveID(ActorID);
+                Savable->ApplySaveData(SavedData);
             }
         }
     }  
