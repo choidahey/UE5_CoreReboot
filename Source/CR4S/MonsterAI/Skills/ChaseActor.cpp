@@ -1,9 +1,11 @@
 #include "MonsterAI/Skills/ChaseActor.h"
 
+#include "CR4S.h"
 #include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Components/SphereComponent.h"
+#include "Game/System/EnvironmentalModifierVolume.h"
 
 AChaseSkillActor::AChaseSkillActor()
 {
@@ -22,10 +24,8 @@ AChaseSkillActor::AChaseSkillActor()
 	NiagaraComp->bAutoActivate = false;
 }
 
-void AChaseSkillActor::BeginPlay()
+void AChaseSkillActor::Initialize()
 {
-	Super::BeginPlay();
-
 	if (Lifetime > 0.f)
 	{
 		SetLifeSpan(Lifetime);
@@ -47,7 +47,11 @@ void AChaseSkillActor::BeginPlay()
 	{
 		ActivateChase();
 	}
-	
+}
+
+void AChaseSkillActor::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void AChaseSkillActor::ActivateChase()
@@ -136,8 +140,11 @@ void AChaseSkillActor::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	if (OtherActor && OtherActor->IsA(ABaseSkillActor::StaticClass())) return;
 
 	if (OtherActor && OtherActor == GetInstigator()) return;
+	
+	if (OtherActor && OtherActor->IsA(AEnvironmentalModifierVolume::StaticClass()))
+		return;
 		
 	Super::OnOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-
+	
 	Destroy();
 }

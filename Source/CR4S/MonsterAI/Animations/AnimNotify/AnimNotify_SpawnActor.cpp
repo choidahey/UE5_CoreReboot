@@ -5,12 +5,15 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "MonsterAI/Data/MonsterAIKeyNames.h"
+#include "MonsterAI/Skills/ChaseActor.h"
 #include "MonsterAI/Skills/FieldActor.h"
 #include "MonsterAI/Skills/SpawnCircleActor.h"
 
 
 void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	UE_LOG(LogTemp, Warning, TEXT(">> SpawnActorNotify 호출됨"));
+	
 	if (!IsValid(MeshComp)
 		|| !IsValid(MeshComp->GetWorld())
 		|| !IsValid(SpawnFieldActorClass)
@@ -65,18 +68,26 @@ void UAnimNotify_SpawnActor::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 		SpawnRotation,
 		SpawnParams
 	);
+	
 	if (!IsValid(SpawnActor)) return;
 	
 	if (AFieldActor* FieldActor = Cast<AFieldActor>(SpawnActor))
 	{
 		FieldActor->Initialize(Cast<AActor>(OwnerPawn), Target);
+		CR4S_Log(LogDa, Log, TEXT("[%s] Success Spawn FieldActor"), *MyHeader);
 	}
 	else if (ASpawnCircleActor* SpawnCircle = Cast<ASpawnCircleActor>(SpawnActor))
 	{
 		SpawnCircle->SpawnInCircle(Cast<AActor>(OwnerPawn));
+		CR4S_Log(LogDa, Log, TEXT("[%s] Success Spawn SpawnCircle"), *MyHeader);
+	}
+	else if (AChaseSkillActor* ChaseActor = Cast<AChaseSkillActor>(SpawnActor))
+	{
+		ChaseActor->Initialize();
+		CR4S_Log(LogDa, Log, TEXT("[%s] Success Spawn ChaseActor"), *MyHeader);
 	}
 	else
 	{
-		CR4S_Log(LogDa, Log, TEXT("[%s] Invaild Blizzard Actor"), *MyHeader);
+		CR4S_Log(LogDa, Log, TEXT("[%s] Please Check SpawnActor Type"), *MyHeader);
 	}
 }
