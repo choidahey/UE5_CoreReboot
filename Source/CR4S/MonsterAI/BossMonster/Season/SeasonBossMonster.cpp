@@ -146,23 +146,23 @@ void ASeasonBossMonster::SpawnOpeningPattern()
       AnimComponent->PlayCombatMontage();
    }
    
-   if (AEnvironmentManager* EnvManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(World, AEnvironmentManager::StaticClass())))
-   {
-      SpawnedEnvVolume = EnvManager->SpawnEnvModVol(
-         GetActorLocation(),
-         EnvVolRadius,
-         EnvVolHeight,
-         EnvTempDelta,
-         EnvHumidDelta,
-         EnvVolChangeSpeed,
-         -1.f);
-      
-      if (IsValid(SpawnedEnvVolume))
-      {
-         SpawnedEnvVolume->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-         SpawnedEnvVolume->SetActorRelativeLocation(FVector::ZeroVector);
-      }
-   }
+   // if (AEnvironmentManager* EnvManager = Cast<AEnvironmentManager>(UGameplayStatics::GetActorOfClass(World, AEnvironmentManager::StaticClass())))
+   // {
+   //    SpawnedEnvVolume = EnvManager->SpawnEnvModVol(
+   //       GetActorLocation(),
+   //       EnvVolRadius,
+   //       EnvVolHeight,
+   //       EnvTempDelta,
+   //       EnvHumidDelta,
+   //       EnvVolChangeSpeed,
+   //       -1.f);
+   //    
+   //    if (IsValid(SpawnedEnvVolume))
+   //    {
+   //       SpawnedEnvVolume->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+   //       SpawnedEnvVolume->SetActorRelativeLocation(FVector::ZeroVector);
+   //    }
+   // }
 
    FVector ActorLoc = GetActorLocation();
    const float TraceHeight = 5000.f;
