@@ -73,4 +73,27 @@ void AC4SurvivalGameMode::HandleStartGame()
         }
 
     }
+
+    else
+    {
+        CR4S_Log(LogGM, Log, TEXT("New game detected. Showing guide widget."));
+
+        APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+        if (PC)
+        {
+            ASurvivalHUD* HUD = Cast<ASurvivalHUD>(PC->GetHUD());
+            if (HUD)
+            {
+                HUD->HandleGuideToggle();
+            }
+            else
+            {
+                CR4S_Log(LogGM, Warning, TEXT("HUD cast failed."));
+            }
+        }
+        else
+        {
+            CR4S_Log(LogGM, Warning, TEXT("PlayerController not found."));
+        }
+    }
 }
