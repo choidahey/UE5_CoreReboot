@@ -12,6 +12,7 @@
 #include "Components/Image.h"
 #include "UI/Common/ProgressBarWidget.h"
 #include "UI/InGame/TimeDisplayWidget.h"
+#include "UI/InGame/GuideWidget.h"
 
 void UDefaultInGameWidget::NativeConstruct()
 {
@@ -145,5 +146,25 @@ void UDefaultInGameWidget::UpdateTimeWidget(FWorldTimeData CurrentTimeData)
 	}
 }
 
+void UDefaultInGameWidget::ShowGuideWidget(int32 DisplayTime)
+{
+	if (ToggleGuideAnim)
+	{
+		PlayAnimation(ToggleGuideAnim);
+	}
 
+	if (DisplayTime > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(GuideWidgetTimerHandle, this, &UDefaultInGameWidget::HideGuideWidget, DisplayTime, false);
+	}
+
+}
+
+void UDefaultInGameWidget::HideGuideWidget()
+{
+	if (ToggleGuideAnim)
+	{
+		PlayAnimation(ToggleGuideAnim, 0.0f, 1, EUMGSequencePlayMode::Reverse);
+	}
+}
 

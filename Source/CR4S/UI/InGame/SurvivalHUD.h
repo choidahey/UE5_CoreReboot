@@ -121,7 +121,8 @@ public:
 	void HandlePauseToggle();
 	UFUNCTION(BlueprintCallable)
 	void HandleGameOverToggle();
-
+	UFUNCTION(BlueprintCallable)
+	void HandleGuideToggle();
 
 
 	void ShowLoading();
