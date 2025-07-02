@@ -17,6 +17,7 @@ class UCharacterStatusWidget;
 class UPlayerCharacterStatusComponent;
 class UCharacterEnvironmentStatusWidget;
 class UTimeDisplayWidget;
+class UGuideWidget;
 
 UCLASS()
 class CR4S_API UDefaultInGameWidget : public UUserWidget
@@ -55,7 +56,8 @@ public:
 	void UpdateHungerWidget(const float InPercentage);
 	void UpdateTimeWidget(FWorldTimeData CurrentTimeData);
 
-
+	void ShowGuideWidget(int32 DisplayTime);
+	void HideGuideWidget();
 #pragma endregion
 
 #pragma region CrosshairImage
@@ -82,6 +84,8 @@ protected:
 	TObjectPtr<UImage> AimCircle;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UAmmoWidget> CurrentAmmoWidgets;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UGuideWidget> GuideWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<ULockOnWidget>> LockOnWidgets;
@@ -93,5 +97,15 @@ protected:
 	TObjectPtr<ULockOnWidget> LockOnWidget2;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<ULockOnWidget> LockOnWidget3;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> ToggleGuideAnim;
+
+#pragma endregion
+
+#pragma region Widget Timer
+
+	FTimerHandle GuideWidgetTimerHandle;
+
 #pragma endregion
 };

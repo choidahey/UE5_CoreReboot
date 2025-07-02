@@ -96,6 +96,15 @@ void ASurvivalHUD::HandleGameOverToggle()
 	ToggleWidget(GameOverWidget);
 }
 
+void ASurvivalHUD::HandleGuideToggle()
+{
+	const bool bIsVisible = InGameWidget->GetVisibility() == ESlateVisibility::Visible;
+	if (bIsVisible)
+	{
+		InGameWidget->ShowGuideWidget(10);
+	}
+}
+
 void ASurvivalHUD::ToggleWidget(UUserWidget* Widget)
 {
 	if (!Widget)
