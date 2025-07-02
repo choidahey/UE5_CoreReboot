@@ -12,7 +12,7 @@ void ASurvivalHUD::PostInitializeComponents()
 
 	InGameWidget = CreateAndAddWidget<UDefaultInGameWidget>(InGameWidgetClass, 0, ESlateVisibility::Visible);
 
-	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 10, ESlateVisibility::Collapsed);
+	PauseWidget = CreateAndAddWidget<UPauseWidget>(PauseWidgetClass, 12, ESlateVisibility::Collapsed);
 	PauseWidget->OnResumeRequested.BindUObject(this, &ASurvivalHUD::HandlePauseToggle);
 
 	InventoryContainerWidget = CreateAndAddWidget(InventoryContainerWidgetClass, 0, ESlateVisibility::Visible);
@@ -29,7 +29,7 @@ void ASurvivalHUD::BeginPlay()
 void ASurvivalHUD::BindGameOverWidget(UBaseStatusComponent* BaseStatComp)
 {
 	if (!BaseStatComp) return;
-	GameOverWidget = CreateAndAddWidget<UGameOverWidget>(GameOverWidgetClass, 11, ESlateVisibility::Hidden);
+	GameOverWidget = CreateAndAddWidget<UGameOverWidget>(GameOverWidgetClass, 20, ESlateVisibility::Hidden);
 
 	BaseStatComp->OnDeathState.AddLambda([this]()
 		{
@@ -44,20 +44,20 @@ void ASurvivalHUD::BindGameOverWidget(UBaseStatusComponent* BaseStatComp)
 
 void ASurvivalHUD::ShowLoading()
 {
-	ULoadingWidget* LoadingWidget = CreateAndAddWidget<ULoadingWidget>(LoadingWidgetClass, 12, ESlateVisibility::Visible);
+	ULoadingWidget* LoadingWidget = CreateAndAddWidget<ULoadingWidget>(LoadingWidgetClass, 11, ESlateVisibility::Visible);
 	ShowWidgetOnly(LoadingWidget);
 }
 
 void ASurvivalHUD::ShowMessage(const FText& InText, float Duration)
 {
-	NotificationWidget = CreateAndAddWidget<UNotificationWidget>(NotificationWidgetClass, 11, ESlateVisibility::Collapsed);
+	NotificationWidget = CreateAndAddWidget<UNotificationWidget>(NotificationWidgetClass, 0, ESlateVisibility::Collapsed);
 
 	NotificationWidget->ShowNotification(InText, Duration);
 }
 
 void ASurvivalHUD::PlayEndingSequence()
 {
-	EndingWidget = CreateAndAddWidget<UEndingSummaryWidget>(EndingSummaryWidgetClass, 11, ESlateVisibility::Visible);
+	EndingWidget = CreateAndAddWidget<UEndingSummaryWidget>(EndingSummaryWidgetClass, 30, ESlateVisibility::Visible);
 	SetInputMode(ESurvivalInputMode::UIOnly, EndingWidget, true);
 }
 

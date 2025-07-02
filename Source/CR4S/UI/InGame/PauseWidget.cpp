@@ -44,7 +44,7 @@ void UPauseWidget::OnSettingsButtonClicked()
 	{
 		if (!SettingsWidgetInstance->IsInViewport())
 		{
-			SettingsWidgetInstance->AddToViewport(11);
+			SettingsWidgetInstance->AddToViewport(13);
 		}
 
 		HideMenu();
