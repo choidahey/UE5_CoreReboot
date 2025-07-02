@@ -272,7 +272,7 @@ void UInventoryContainerWidget::PlaySound2D(USoundBase* Sound,
 
 FReply UInventoryContainerWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (InKeyEvent.GetKey() == EKeys::RightBracket && PlayerInventoryComponent)
+	if (InKeyEvent.GetKey() == EKeys::I && PlayerInventoryComponent)
 	{
 		PlayerInventoryComponent->CloseInventoryWidget();
 		return FReply::Handled();
