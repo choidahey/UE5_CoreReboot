@@ -242,6 +242,7 @@ private:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<APlayerCharacter> MountedCharacter;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FTimerHandle DashCooldownTimerHandle;
 

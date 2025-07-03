@@ -635,6 +635,7 @@ void AModularRobot::MountRobot(AActor* InActor)
 	if (IsValid(PreviousCharacter))
 	{
 		MountedCharacter=Cast<APlayerCharacter>(PreviousCharacter);
+		MountedCharacter->SetLocomotionAction(CustomLocomotionAction::Mounted);
 		RobotInventoryComponent->UpdatePlayerInventoryComponent(MountedCharacter);
 		PreviousCharacter->SetActorEnableCollision(false);
 		PreviousCharacter->SetActorTickEnabled(false);
@@ -645,10 +646,12 @@ void AModularRobot::MountRobot(AActor* InActor)
 			EAttachmentRule::KeepWorld,
 			false
 		);
+		const FName AttachSocketName = MountedCharacter->GetStance().MatchesTag(AlsStanceTags::Standing)
+								? RobotSettings.StandingMountSocketName : RobotSettings.CrouchingMountSocketName;
 		PreviousCharacter->AttachToComponent(
 			GetMesh(),
 			AttachRule,
-			RobotSettings.MountSocketName
+			AttachSocketName
 		);
 	}
 	AController* InController=Cast<AController>(PreviousCharacter->GetController());
@@ -670,31 +673,31 @@ void AModularRobot::UnMountRobot()
 	
 	if ( !bIsDead && (bInAir || !bIsStopped)) return;
 	
-	ACharacter* NextCharacter=MountedCharacter.Get();
-	if (IsValid(NextCharacter))
+	if (IsValid(MountedCharacter))
 	{
 		FVector PossibleLocation;
-		FRotator CharRot=NextCharacter->GetActorRotation();
-		const bool bCanExit=FindPossibleUnmountLocation(NextCharacter,PossibleLocation);
+		FRotator CharRot=MountedCharacter->GetActorRotation();
+		const bool bCanExit=FindPossibleUnmountLocation(MountedCharacter,PossibleLocation);
 		if (!bCanExit)
 		{
 			UE_LOG(LogHong1,Warning,TEXT("Can't find unmounted location"));
 			return;
 		}
 		
-		NextCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);	
-		NextCharacter->TeleportTo(PossibleLocation,CharRot,false,true);
+		MountedCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);	
+		MountedCharacter->TeleportTo(PossibleLocation,CharRot,false,true);
 		
-		NextCharacter->SetActorEnableCollision(true);
-		NextCharacter->SetActorTickEnabled(true);
+		MountedCharacter->SetActorEnableCollision(true);
+		MountedCharacter->SetActorTickEnabled(true);
 	}
 
 	if (AController* CurrentController=GetController())
 	{
 		CurrentController->UnPossess();
-		if (IsValid(NextCharacter))
+		if (IsValid(MountedCharacter))
 		{
-			CurrentController->Possess(NextCharacter);
+			MountedCharacter->SetLocomotionAction(FGameplayTag::EmptyTag);
+			CurrentController->Possess(MountedCharacter);
 		}
 	}
 	
