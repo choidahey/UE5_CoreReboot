@@ -960,7 +960,6 @@ void AModularRobot::Input_StopJump(const FInputActionValue& Value)
 	{
 		Status->StopHover();
 		bIsHovering=false;
-		HoverTimeLine->Stop();
 	}
 }
 
@@ -968,20 +967,6 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 {
 	if (bIsDashing||!Status->HasEnoughResourceForRoll()||!BoosterTag.IsValid()||!Status->IsRobotActive()) return;
 	
-	bIsDashing = true;
-	
-	FVector LastInput=GetLastMovementInputVector();
-	FVector ForwardVector=GetActorForwardVector();
-	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
-	float DashPower=RobotSettings.BoosterStrength;
-	FVector LaunchVelocity=FVector::ZeroVector;
-	
-	const bool bInAir=GetCharacterMovement()->IsFalling()||GetCharacterMovement()->IsFlying();
-	if (!bInAir)
-	{
-		DashPower+=RobotSettings.LegStrength;
-	}
-
 	for (FName BoosterSocket : RobotSettings.BoosterSocketNames)
 	{
 		const FVector BoosterLocation=GetMesh()->GetSocketLocation(BoosterSocket);
@@ -1013,9 +998,21 @@ void AModularRobot::Input_Dash(const FInputActionValue& Value)
 		}
 	}
 
+	bIsDashing = true;
+	FVector LastInput=GetLastMovementInputVector();
+	FVector ForwardVector=GetActorForwardVector();
+	FVector DashDirection=LastInput.IsNearlyZero()?ForwardVector:LastInput.GetSafeNormal();
+	float DashPower=RobotSettings.BoosterStrength;
+
+	const bool bInAir=GetCharacterMovement()->IsFalling()||GetCharacterMovement()->IsFlying();
+	if (!bInAir)
+	{
+		DashPower+=RobotSettings.LegStrength;
+	}
+
 	const float WeightBasedDivisor=Status->GetCurrentWeight()*RobotSettings.WeightFactor;
 	const float FinalVelocityAmount=DashPower/WeightBasedDivisor;
-	LaunchVelocity=DashDirection*FinalVelocityAmount;
+	FVector LaunchVelocity=DashDirection*FinalVelocityAmount;
 	LaunchVelocity.Z += bInAir ? 0 : RobotSettings.DashZMultiplier*FinalVelocityAmount;;
 
 	
@@ -1055,29 +1052,26 @@ void AModularRobot::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		if (ACharacterController* MyController=Cast<ACharacterController>(GetController()))
-		{
-			// Moving
-			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Move);
-			//Looking
-			EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
-			//Dash
-			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AModularRobot::Input_Dash);
-			// Jump
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AModularRobot::Input_StartJump);
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
-			//Attack
-			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
-			EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackLeftArm);
-			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightArm);
-			EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackRightArm);
-			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftShoulder);
-			EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackLeftShoulder);
-			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightShoulder);
-			EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackRightShoulder);
-			
-			EnhancedInputComponent->BindAction(InteractionAction,ETriggerEvent::Started, this, &AModularRobot::UnMountRobot);
-		}
+		// Moving
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AModularRobot::Input_Move);
+		//Looking
+		EnhancedInputComponent->BindAction(LookAction,ETriggerEvent::Triggered, this, &AModularRobot::Input_Look);
+		//Dash
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &AModularRobot::Input_Dash);
+		// Jump
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AModularRobot::Input_StartJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AModularRobot::Input_StopJump);
+		//Attack
+		EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftArm);
+		EnhancedInputComponent->BindAction(Attack1Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackLeftArm);
+		EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightArm);
+		EnhancedInputComponent->BindAction(Attack2Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackRightArm);
+		EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackLeftShoulder);
+		EnhancedInputComponent->BindAction(Attack3Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackLeftShoulder);
+		EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Started,WeaponManager.Get(),&URobotWeaponComponent::Input_OnAttackRightShoulder);
+		EnhancedInputComponent->BindAction(Attack4Action,ETriggerEvent::Completed,WeaponManager.Get(),&URobotWeaponComponent::Input_StopAttackRightShoulder);
+		
+		EnhancedInputComponent->BindAction(InteractionAction,ETriggerEvent::Started, this, &AModularRobot::UnMountRobot);
 	}
 }
 

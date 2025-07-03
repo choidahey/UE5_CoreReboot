@@ -5,6 +5,7 @@
 
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -59,6 +60,10 @@ void UModularRobotStatusComponent::BeginPlay()
 	{
 		BaseStatus=StatusData->BaseStats;
 		RobotStatus=StatusData->RobotStats;
+	}
+	if (OwningCharacter)
+	{
+		HoverTimelineComp=OwningCharacter->FindComponentByClass<UTimelineComponent>();
 	}
 }
 
@@ -472,9 +477,13 @@ void UModularRobotStatusComponent::StartHover()
 void UModularRobotStatusComponent::StopHover()
 {
 	if (!CR4S_ENSURE(LogHong1,GetWorld()&&OwningCharacter)) return;
-	
+
 	OwningCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 	GetWorld()->GetTimerManager().ClearTimer(HoverTimerHandle);
+	if (HoverTimelineComp && HoverTimelineComp->IsPlaying())
+	{
+		HoverTimelineComp->Stop();
+	}
 }
 
 void UModularRobotStatusComponent::ConsumeResourceForHovering()

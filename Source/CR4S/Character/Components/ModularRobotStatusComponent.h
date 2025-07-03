@@ -7,6 +7,7 @@
 #include "Character/Data/ModularRobotStatus.h"
 #include "ModularRobotStatusComponent.generated.h"
 
+class UTimelineComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnergyChangedDelegate, float, Percent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStunChangedDelegate, float, Percent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeightChangedDelegate, float, NewValue);
@@ -169,6 +170,8 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Owner")
 	TObjectPtr<AModularRobot> OwningCharacter;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cached")
+	TObjectPtr<UTimelineComponent> HoverTimelineComp;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Stun")
 	float StunRecoveryStartTime{0};
