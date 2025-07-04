@@ -28,6 +28,8 @@ ACropsGimmick::ACropsGimmick()
 	InitCollisionSetting();
 
 	EnvironmentalStatus = CreateDefaultSubobject<UEnvironmentalStatusComponent>(TEXT("EnvironmentalStatus"));
+
+	GimmickMeshComponent->SetCullDistance(15000);
 }
 
 void ACropsGimmick::BeginPlay()
