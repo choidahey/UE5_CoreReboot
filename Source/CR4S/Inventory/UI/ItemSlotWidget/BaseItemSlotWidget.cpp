@@ -49,6 +49,11 @@ void UBaseItemSlotWidget::NativeConstruct()
 
 	PlayerController = GetOwningPlayer();
 
+	if (IsValid(PlayerController))
+	{
+		SurvivalHUD = Cast<ASurvivalHUD>(PlayerController->GetHUD());
+	}
+
 	InventoryContainerWidget = GetTypedOuter<UInventoryContainerWidget>();
 
 	SetIsFocusable(true);

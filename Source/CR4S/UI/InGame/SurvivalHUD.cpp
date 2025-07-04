@@ -50,7 +50,7 @@ void ASurvivalHUD::ShowLoading()
 
 void ASurvivalHUD::ShowMessage(const FText& InText, float Duration)
 {
-	NotificationWidget = CreateAndAddWidget<UNotificationWidget>(NotificationWidgetClass, 0, ESlateVisibility::Collapsed);
+	NotificationWidget = CreateAndAddWidget<UNotificationWidget>(NotificationWidgetClass, 100, ESlateVisibility::Collapsed);
 
 	NotificationWidget->ShowNotification(InText, Duration);
 }

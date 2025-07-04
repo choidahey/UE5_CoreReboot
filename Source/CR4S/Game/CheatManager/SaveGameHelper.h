@@ -11,4 +11,6 @@ class CR4S_API USaveGameHelper : public UObject
 public:
 
 	void SaveNow();
+
+	void LoadGame();
 };

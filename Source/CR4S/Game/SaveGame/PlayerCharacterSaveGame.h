@@ -94,4 +94,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveData | Mount")
 	uint8 bWasPlayerMounted:1 {false};
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Inventory")
+	FInventorySaveGame InventorySaveGame;
 };

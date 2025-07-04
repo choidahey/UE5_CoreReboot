@@ -146,6 +146,8 @@ void AModularRobot::GatherSaveData(FSavedActorData& OutSaveData)
 	WeaponManager->GatherWeaponSaveData(RobotData.EquippedWeapons);
 
 	RobotData.bWasPlayerMounted= MountedCharacter ? true : false;
+
+	RobotData.InventorySaveGame = RobotInventoryComponent->GetInventorySaveGame();
 }
 
 void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
@@ -170,6 +172,8 @@ void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 	EquipBoosterParts(RobotData.BoosterTag);
 
 	WeaponManager->ApplyWeaponSaveData(RobotData.EquippedWeapons);
+
+	RobotInventoryComponent->LoadInventorySaveGame(RobotData.InventorySaveGame);
 }
 
 void AModularRobot::HandleHoverEffects() 

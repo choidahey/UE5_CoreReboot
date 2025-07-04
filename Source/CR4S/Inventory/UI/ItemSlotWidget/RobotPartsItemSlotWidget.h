@@ -91,4 +91,14 @@ private:
 	int32 WeaponSlotIndex = -1;
 
 #pragma endregion
+
+#pragma region Notification
+
+private:
+	UPROPERTY(EditAnywhere, Category = "RobotPartsItemSlotWidget|Notification")
+	FText NotEquippedBodyParts;
+	UPROPERTY(EditDefaultsOnly, Category = "RobotPartsItemSlotWidget|Notification")
+	float MessageDuration = 1.5f;
+	
+#pragma endregion 
 };

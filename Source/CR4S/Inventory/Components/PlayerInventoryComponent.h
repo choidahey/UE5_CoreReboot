@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseInventoryComponent.h"
+#include "CR4S.h"
 #include "Gimmick/Components/InteractionComponent.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
 #include "PlayerInventoryComponent.generated.h"
@@ -19,7 +20,7 @@ class CR4S_API UPlayerInventoryComponent : public UBaseInventoryComponent
 
 public:
 	UPlayerInventoryComponent();
-	
+
 	virtual void InitInventory() override;
 
 	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr) override;
@@ -28,6 +29,24 @@ public:
 	virtual void RemoveAllItemByRowName(const FName RowName) override;
 	virtual int32 GetItemCountByRowName(const FName RowName) const override;
 
+private:
+	bool bPlayerInitialized;
+
+#pragma endregion
+
+#pragma region CraftingFreeMode
+
+public:
+	FORCEINLINE bool IsCraftingFreeMode() const { return bIsCraftingFreeMode; }
+	FORCEINLINE void ChangeCraftingFreeMode(const bool bNewCraftingFreeMode)
+	{
+		CR4S_Log(LogInventory, Warning, TEXT("FreMode: %s"),
+		         bNewCraftingFreeMode ? TEXT("TRUE") : TEXT("FALSE"));
+		bIsCraftingFreeMode = bNewCraftingFreeMode;
+	}
+
+private:
+	bool bIsCraftingFreeMode;
 
 #pragma endregion
 
@@ -57,10 +76,10 @@ public:
 		{
 			return InventoryContainerWidgetInstance->IsOpen();
 		}
-		
+
 		return false;
 	}
-	
+
 private:
 	bool PrepareOpenInventory(UInteractionComponent* InteractionComponent = nullptr) const;
 
@@ -101,12 +120,14 @@ private:
 
 public:
 	UFUNCTION(BlueprintPure, Category = "PlayerInventoryComponent|SaveGame")
-	void GetPlayerInventorySaveGame(FInventorySaveGame& OutPlayerInventorySaveGame, FInventorySaveGame& OutQuickSlotSaveGame);
+	void GetPlayerInventorySaveGame(FInventorySaveGame& OutPlayerInventorySaveGame,
+	                                FInventorySaveGame& OutQuickSlotSaveGame);
 	UFUNCTION(BlueprintCallable, Category = "PlayerInventoryComponent|LoadGame")
-	void LoadPlayerInventorySaveGame(const FInventorySaveGame& PlayerInventorySaveGame, const FInventorySaveGame& QuickSlotSaveGame);
-	
+	void LoadPlayerInventorySaveGame(const FInventorySaveGame& PlayerInventorySaveGame,
+	                                 const FInventorySaveGame& QuickSlotSaveGame);
+
 #pragma endregion
-	
+
 #pragma region Delegate
 
 public:

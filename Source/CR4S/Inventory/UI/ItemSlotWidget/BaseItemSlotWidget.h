@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "BaseItemSlotWidget.generated.h"
 
+class ASurvivalHUD;
 class UProgressBar;
 class UItemTooltipWidget;
 class UBaseInventoryWidget;
@@ -47,6 +48,8 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController;
+	UPROPERTY()
+	TObjectPtr<ASurvivalHUD> SurvivalHUD;
 	UPROPERTY()
 	TObjectPtr<UBaseInventoryComponent> InventoryComponent;
 	UPROPERTY()

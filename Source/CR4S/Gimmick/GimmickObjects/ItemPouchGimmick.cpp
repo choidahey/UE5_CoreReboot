@@ -27,6 +27,7 @@ AItemPouchGimmick::AItemPouchGimmick()
 
 	GimmickMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
@@ -36,6 +37,11 @@ void AItemPouchGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	GimmickMeshComponent->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
+	
 	if (CR4S_VALIDATE(LogGimmick, IsValid(InteractableComponent)))
 	{
 		InteractableComponent->OnTryInteract.AddUniqueDynamic(this, &ThisClass::OnGimmickInteracted);

@@ -10,7 +10,8 @@
 #include "Inventory/InventoryItem/HelperBotInventoryItem.h"
 
 UBaseInventoryComponent::UBaseInventoryComponent()
-	: MaxInventorySize(10),
+	: bBaseInitialized(false),
+	  MaxInventorySize(10),
 	  InventoryTitleText(FText::FromString("INVENTORY")),
 	  bHasRefrigeration(false)
 {
@@ -26,6 +27,11 @@ void UBaseInventoryComponent::BeginPlay()
 
 void UBaseInventoryComponent::InitInventory()
 {
+	if (bBaseInitialized)
+	{
+		return;
+	}
+	
 	OwnerActor = Cast<AActor>(GetOwner());
 	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerActor)))
 	{
@@ -39,6 +45,8 @@ void UBaseInventoryComponent::InitInventory()
 	}
 
 	InventoryItems.Init(nullptr, MaxInventorySize);
+
+	bBaseInitialized = true;
 }
 
 void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
@@ -138,7 +146,7 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 			{
 				continue;
 			}
-			
+
 			const int32 SameInventoryItemCount = SameInventoryItem->GetCurrentStackCount();
 			const int32 CanAddCount = ItemData->MaxStackCount - SameInventoryItemCount;
 			const int32 ActualAddCount = FMath::Min(CanAddCount, RemainingCount);
@@ -168,7 +176,8 @@ void UBaseInventoryComponent::StackItemsAndFillEmptySlots(const FName RowName,
 				continue;
 			}
 
-			UBaseInventoryItem* EmptyInventoryItem = UItemGimmickSubsystem::CreateInventoryItem(this, ItemData->ItemTags);
+			UBaseInventoryItem* EmptyInventoryItem = UItemGimmickSubsystem::CreateInventoryItem(
+				this, ItemData->ItemTags);
 			if (!CR4S_VALIDATE(LogInventory, EmptyInventoryItem))
 			{
 				continue;
@@ -230,10 +239,10 @@ bool UBaseInventoryComponent::CheckRottenItem(UBaseInventoryItem* OriginItem, UB
 	{
 		return false;
 	}
-	
+
 	const UConsumableInventoryItem* OriginConsumableInventoryItem = Cast<UConsumableInventoryItem>(OriginItem);
 	const UConsumableInventoryItem* TargetConsumableInventoryItem = Cast<UConsumableInventoryItem>(TargetItem);
-	
+
 	if (IsValid(OriginConsumableInventoryItem) && OriginConsumableInventoryItem->IsRotten())
 	{
 		return !TargetConsumableInventoryItem->IsRotten();
@@ -269,7 +278,7 @@ FInventorySaveGame UBaseInventoryComponent::GetInventorySaveGame()
 void UBaseInventoryComponent::LoadInventorySaveGame(const FInventorySaveGame& SaveGameData)
 {
 	ClearInventoryItems();
-	
+
 	TArray<FInventoryItemSaveGame> ItemSaveGame = SaveGameData.InventoryItemSaveGame;
 	for (const FInventoryItemSaveGame& SaveItemData : ItemSaveGame)
 	{
@@ -335,7 +344,7 @@ void UBaseInventoryComponent::GetSameItemSlotsAndEmptySlots(const FName& InRowNa
 
 UBaseInventoryItem* UBaseInventoryComponent::GetInventoryItemByIndex(const int32 Index) const
 {
-	return InventoryItems.IsValidIndex(Index)? InventoryItems[Index] : nullptr;
+	return InventoryItems.IsValidIndex(Index) ? InventoryItems[Index] : nullptr;
 }
 
 int32 UBaseInventoryComponent::GetItemCountByRowName(const FName RowName) const
@@ -404,7 +413,7 @@ void UBaseInventoryComponent::MergeItem(UBaseInventoryComponent* FromInventoryCo
 		SwapItem(FromInventoryComponent, FromItemIndex, ToItemIndex);
 		return;
 	}
-	
+
 	const int32 ToItemCount = ToItem->GetCurrentStackCount();
 	const int32 MaxStackCount = ToItem->GetMaxStackCount();
 	if (ToItemCount < MaxStackCount)

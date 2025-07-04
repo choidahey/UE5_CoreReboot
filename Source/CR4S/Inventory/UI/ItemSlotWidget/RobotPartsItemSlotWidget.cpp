@@ -183,5 +183,10 @@ bool URobotPartsItemSlotWidget::EquippedBodyParts(const FGameplayTagContainer& I
 		return true;
 	}
 
+	if (CR4S_VALIDATE(LogGimmickUI, IsValid(SurvivalHUD)))
+	{
+		SurvivalHUD->ShowMessage(NotEquippedBodyParts, MessageDuration);
+	}
+
 	return false;
 }
