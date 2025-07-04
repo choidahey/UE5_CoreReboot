@@ -29,8 +29,8 @@ public:
 	UFUNCTION(Exec)
 	void AddItem(FName RowName, int32 Count) const;
 
-protected:
-
+	UFUNCTION(Exec)
+	void SetCraftingFreeMode(const bool bIsCraftingMode);
 
 #pragma endregion
 
@@ -38,6 +38,8 @@ protected:
 public:
 	UFUNCTION(Exec)
 	void SaveNow();
+	UFUNCTION(Exec)
+	void LoadGame();
 
 #pragma endregion
 

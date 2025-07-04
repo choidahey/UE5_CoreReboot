@@ -50,6 +50,9 @@ public:
 public:
 	virtual void InitInventory();
 
+private:
+	bool bBaseInitialized;
+
 #pragma endregion
 
 #pragma region InventorySystem

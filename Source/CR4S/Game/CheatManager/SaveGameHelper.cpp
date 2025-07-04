@@ -14,3 +14,17 @@ void USaveGameHelper::SaveNow()
         }
     }
 }
+
+void USaveGameHelper::LoadGame()
+{
+    if (UWorld* World = GetWorld())
+    {
+        UC4GameInstance* GameInstance = Cast<UC4GameInstance>(World->GetGameInstance());
+        if (GameInstance)
+        {
+            USaveGameManager* SaveGameManager = GameInstance->GetSubsystem<USaveGameManager>();
+            SaveGameManager->PreloadSaveData(GameInstance->CurrentSlotName);
+            SaveGameManager->ApplyAll();
+        }
+    }
+}

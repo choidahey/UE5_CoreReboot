@@ -8,7 +8,8 @@
 #include "UI/InGame/SurvivalHUD.h"
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
-	: InventoryContainerWidgetOrder(20),
+	: bPlayerInitialized(false),
+	  InventoryContainerWidgetOrder(20),
 	  HeldToolTag(FGameplayTag::EmptyTag)
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -19,6 +20,11 @@ UPlayerInventoryComponent::UPlayerInventoryComponent()
 void UPlayerInventoryComponent::InitInventory()
 {
 	Super::InitInventory();
+
+	if (bPlayerInitialized)
+	{
+		return;
+	}
 
 	QuickSlotInventoryComponent = NewObject<UBaseInventoryComponent>(this);
 	QuickSlotInventoryComponent->SetMaxInventorySize(10);
@@ -45,6 +51,8 @@ void UPlayerInventoryComponent::InitInventory()
 	}
 
 	AddItem(FName("StoneAxe"), 1);
+
+	bPlayerInitialized = true;
 }
 
 FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count,
@@ -63,6 +71,11 @@ FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int
 
 int32 UPlayerInventoryComponent::RemoveItemByRowName(const FName RowName, const int32 Count)
 {
+	if (bIsCraftingFreeMode)
+	{
+		return 0;
+	}
+	
 	int32 RemainingCount = Super::RemoveItemByRowName(RowName, Count);
 
 	if (IsValid(QuickSlotInventoryComponent))
@@ -75,6 +88,11 @@ int32 UPlayerInventoryComponent::RemoveItemByRowName(const FName RowName, const 
 
 void UPlayerInventoryComponent::RemoveAllItemByRowName(const FName RowName)
 {
+	if (bIsCraftingFreeMode)
+	{
+		return;
+	}
+	
 	Super::RemoveAllItemByRowName(RowName);
 
 	if (IsValid(QuickSlotInventoryComponent))
@@ -85,6 +103,11 @@ void UPlayerInventoryComponent::RemoveAllItemByRowName(const FName RowName)
 
 int32 UPlayerInventoryComponent::GetItemCountByRowName(const FName RowName) const
 {
+	if (bIsCraftingFreeMode)
+	{
+		return 99;
+	}
+	
 	int32 Count = Super::GetItemCountByRowName(RowName);
 
 	if (IsValid(QuickSlotInventoryComponent))
