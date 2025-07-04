@@ -37,9 +37,9 @@ namespace ToolTags
 	UE_DEFINE_GAMEPLAY_TAG(Hammer,FName(TEXT("Als.OverlayMode.Hammer")));
 }
 
-namespace OverlayMode
+namespace CustomLocomotionAction
 {
-	UE_DEFINE_GAMEPLAY_TAG(Mounted,FName(TEXT("Als.OverlayMode.Mounted")));
+	UE_DEFINE_GAMEPLAY_TAG(Mounted,FName(TEXT("Als.LocomotionAction.Mounted")));
 }
 
 namespace RobotParts

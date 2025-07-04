@@ -25,7 +25,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	float UnMountOffset {-200};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
-	FName MountSocketName {FName("cockpit")};
+	FName StandingMountSocketName {FName("standing")};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
+	FName CrouchingMountSocketName {FName("crouching")};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mount")
 	int32 CollisionCheckCount{8};
 	

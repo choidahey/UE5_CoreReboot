@@ -115,7 +115,7 @@ void APlayerCharacter::OnDeath()
 	if (!CR4S_ENSURE(LogHong1,InputSubsystem)) return;
 
 	InputSubsystem->RemoveMappingContext(InputMappingContext);
-	SetOverlayMode(AlsOverlayModeTags::Default);
+	//SetOverlayMode(AlsOverlayModeTags::Default);
 	StartRagdolling();
 	Status->StopConsumeHunger();
 }
@@ -327,7 +327,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	SetOverlayMode(AlsOverlayModeTags::Default);
 
 	Interaction->InitComponent();
 	Interaction->StartDetectProcess();
@@ -349,7 +348,6 @@ void APlayerCharacter::UnPossessed()
 		}
 	}
 	
-	SetOverlayMode(OverlayMode::Mounted);
 	DisconnectWidgets();
 	Status->SetIsUnPossessed(true);
 

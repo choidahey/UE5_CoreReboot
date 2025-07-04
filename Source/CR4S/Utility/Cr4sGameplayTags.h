@@ -37,7 +37,7 @@ namespace ToolTags
 	CR4S_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hammer);
 }
 
-namespace OverlayMode
+namespace CustomLocomotionAction
 {
 	CR4S_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Mounted);
 }
