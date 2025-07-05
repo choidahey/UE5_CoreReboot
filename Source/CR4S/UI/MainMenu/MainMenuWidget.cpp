@@ -1,4 +1,4 @@
-#include "UI/MainMenu/MainMenuWidget.h"
+﻿#include "UI/MainMenu/MainMenuWidget.h"
 #include "Game/GameInstance/C4GameInstance.h"
 #include "UI/MainMenu/SettingsWidget.h"
 #include "UI/MainMenu/CreditsWidget.h"
@@ -11,6 +11,8 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Game/System/AudioManager.h"
+#include "Game/GameMode/C4MenuGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 void UMainMenuWidget::NativeConstruct()
 {
@@ -23,6 +25,10 @@ void UMainMenuWidget::InitMainMenu()
 {
 	CreateChildWidgets();
 
+	if (DemoModeButton)
+	{
+		DemoModeButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnDemoModeButtonClicked);
+	}
 	if (PlayGameButton)
 	{
 		PlayGameButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnPlayGameButtonClicked);
@@ -35,7 +41,6 @@ void UMainMenuWidget::InitMainMenu()
 	{
 		//CreditsButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnCreditsButtonClicked);
 	}
-
 	if (QuitButton)
 	{
 		QuitButton->OnClicked().AddDynamic(this, &UMainMenuWidget::OnQuitButtonClicked);
@@ -75,6 +80,21 @@ void UMainMenuWidget::CreateChildWidgets()
 	}
 
 }
+#define LOCTEXT_NAMESPACE "MainMenu"
+
+void UMainMenuWidget::OnDemoModeButtonClicked()
+{
+	ConfirmWidgetInstance = CreateWidget<UConfirmWidget>(GetWorld(), ConfirmWidgetClass);
+	if (ConfirmWidgetInstance)
+	{
+		ConfirmWidgetInstance->AddToViewport();
+		ConfirmWidgetInstance->Confirm(LOCTEXT("DemoConfirm", "데모 체험을 하시겠습니까?"));
+		ConfirmWidgetInstance->OnYes.BindDynamic(this, &UMainMenuWidget::RequestOpenDemo);
+		ConfirmWidgetInstance->OnNo.BindDynamic(this, &UMainMenuWidget::HandleCloseConfirmWidget);
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
 
 void UMainMenuWidget::OnPlayGameButtonClicked()
 {
@@ -257,6 +277,28 @@ void UMainMenuWidget::ShowNextBackground()
 		Duration,
 		false
 	);
+}
+
+void UMainMenuWidget::HandleCloseConfirmWidget()
+{
+	if (ConfirmWidgetInstance)
+	{
+		ConfirmWidgetInstance->RemoveFromParent();
+		ConfirmWidgetInstance = nullptr;
+	}
+}
+
+void UMainMenuWidget::RequestOpenDemo()
+{
+	AC4MenuGameMode* GM = Cast<AC4MenuGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		GM->OpenDemoLevel();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Game mode is not valid."));
+	}
 }
 
 void UMainMenuWidget::NativeDestruct()

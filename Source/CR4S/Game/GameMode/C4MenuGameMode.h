@@ -15,7 +15,7 @@ class CR4S_API AC4MenuGameMode : public AGameModeBase
 public:
 	void OpenInGameLevel(int32 SlotIndex);
 
-	
+	void OpenDemoLevel();
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,6 +30,7 @@ protected:
 	TSubclassOf<ULoadingWidget> LoadingWidgetClass;
 
 private:
+	void LoadDemoMap();
 
 	void LoadCinematicMap();
 
