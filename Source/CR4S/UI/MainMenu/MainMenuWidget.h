@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
@@ -11,6 +12,7 @@ class UConfirmWidget;
 class USettingsWidget;
 class UCreditsWidget;
 class UDifficultyOptionsWidget;
+class UConfirmWidget;
 class UGameSaveWidget;
 class USoundBase;
 
@@ -75,6 +77,8 @@ protected:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
+	UButtonWidget* DemoModeButton;
+	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* PlayGameButton;
 	UPROPERTY(meta = (BindWidget))
 	UButtonWidget* SettingsButton;
@@ -104,6 +108,10 @@ public:
 protected:
 	UFUNCTION(Category = "Background")
 	void ShowNextBackground();
+	UFUNCTION()
+	void HandleCloseConfirmWidget();
+	UFUNCTION()
+	void RequestOpenDemo();
 
 	UPROPERTY()
 	UMaterialInstanceDynamic* BackgroundMID = nullptr;
@@ -122,6 +130,8 @@ private:
 #pragma region Delegates & Events
 
 protected:
+	UFUNCTION()
+	void OnDemoModeButtonClicked();
 	UFUNCTION()
 	void OnPlayGameButtonClicked();
 	UFUNCTION()

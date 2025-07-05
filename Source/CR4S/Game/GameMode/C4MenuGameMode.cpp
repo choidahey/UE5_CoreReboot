@@ -60,6 +60,30 @@ void AC4MenuGameMode::OpenInGameLevel(int32 SlotIndex)
     }
 }
 
+
+void AC4MenuGameMode::OpenDemoLevel()
+{
+    UAudioManager* AudioManager = GetGameInstance()->GetSubsystem<UAudioManager>();
+    AudioManager->StopBGM();
+
+    if (LoadingWidgetClass)
+    {
+        ULoadingWidget* LoadingWidget = CreateWidget<ULoadingWidget>(GetWorld(), LoadingWidgetClass);
+        if (LoadingWidget)
+        {
+            LoadingWidget->AddToViewport();
+        }
+    }
+
+    FTimerHandle TimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC4MenuGameMode::LoadDemoMap, 0.5f, false);
+}
+
+void AC4MenuGameMode::LoadDemoMap()
+{
+    UGameplayStatics::OpenLevel(this, FName("UserTestLevel"));
+}
+
 void AC4MenuGameMode::LoadCinematicMap()
 {
     UGameplayStatics::OpenLevel(this, FName("_CinematicMap"));
