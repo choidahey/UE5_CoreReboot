@@ -20,10 +20,10 @@ void UBTService_AMPathCheck::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* 
 	AAnimalMonster* Monster = Cast<AAnimalMonster>(AIController->GetPawn());
 	if (!IsValid(Monster)) return;
 
-	AActor* PlayerTarget = Monster->GetCurrentPlayerTarget();
-	bool bCanReach = AIController->CheckPathToTarget(PlayerTarget);
-
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+	AActor* PlayerTarget = Cast<AActor>(BlackboardComp->GetValueAsObject(TEXT("PrimaryTarget")));
+	bool bCanReach = AIController->CheckPathToTarget(PlayerTarget);
+    
 	if (BlackboardComp)
 	{
 		BlackboardComp->SetValueAsBool(TEXT("bCanReachPlayer"), bCanReach);

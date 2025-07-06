@@ -28,7 +28,7 @@ void AAnimalExplosiveProjectile::OnCapsuleOverlap(UPrimitiveComponent* Overlappe
 		return;
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("Capsule Overlap with: %s"), OtherActor ? *OtherActor->GetName() : TEXT("NULL"));
+	//UE_LOG(LogTemp, Warning, TEXT("Capsule Overlap with: %s"), OtherActor ? *OtherActor->GetName() : TEXT("NULL"));
 	
 	Super::OnCapsuleOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 

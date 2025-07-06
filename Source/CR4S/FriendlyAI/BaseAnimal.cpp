@@ -125,7 +125,6 @@ void ABaseAnimal::LoadStats()
             CurrentStats.RunSpeed = Row->RunSpeed;
             bStatsReady = true;
             CurrentHealth = Row->MaxHealth;
-            JumpPower = Row->JumpPower;
             
             //CachedAttackInterval = Row->AttackInterval;
 
@@ -152,6 +151,7 @@ void ABaseAnimal::LoadStats()
                 GetCharacterMovement()->MaxAcceleration = 2048.f;
                 GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
                 GetCharacterMovement()->GroundFriction = 8.f;
+                GetCharacterMovement()->JumpZVelocity = Row->JumpPower;
             }
 
             if (AAIController* AIController = Cast<AAIController>(GetController()))
