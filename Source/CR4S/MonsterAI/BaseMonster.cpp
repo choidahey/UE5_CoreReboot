@@ -1,4 +1,6 @@
 #include "BaseMonster.h"
+
+#include "CR4S.h"
 #include "Controller/BaseMonsterAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -54,6 +56,22 @@ void ABaseMonster::BeginPlay()
 	{
 		AIC->SetupPerceptionFromMonster(this);
 	}
+
+	OnTakeAnyDamage.AddDynamic(this, &ABaseMonster::OnTakeDamageEvent);
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		const int32 Count = MeshComp->GetNumMaterials();
+		for (int32 i = 0; i < Count; ++i)
+		{
+			UMaterialInterface* Orig = MeshComp->GetMaterial(i);
+			if (Orig)
+			{
+				UMaterialInstanceDynamic* Dyn = UMaterialInstanceDynamic::Create(Orig, this);
+				MeshComp->SetMaterial(i, Dyn);
+				DynamicMaterials.Add(Dyn);
+			}
+		}
+	}
 }
 
 void ABaseMonster::Tick(float DeltaTime)
@@ -70,6 +88,10 @@ void ABaseMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	const float ActualDamage = Super::TakeDamage(
+		DamageAmount, DamageEvent, EventInstigator, DamageCauser
+	);
+	
 	if (!AttributeComponent || IsDead())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TakeDamage - AttributeComponent is null or Monster is already dead!"));
@@ -77,10 +99,10 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	}
 
 	// Apply damage via AttributeComponent
-	AttributeComponent->ApplyDamage(DamageAmount);
-	AddAccumulatedDamage(DamageAmount);
+	AttributeComponent->ApplyDamage(ActualDamage);
+	AddAccumulatedDamage(ActualDamage);
 
-	return DamageAmount;
+	return ActualDamage;
 }
 
 void ABaseMonster::TakeStun_Implementation(const float StunAmount)
@@ -88,7 +110,6 @@ void ABaseMonster::TakeStun_Implementation(const float StunAmount)
 	if (StateComponent)
 		StateComponent->AddStun(StunAmount);
 }
-
 
 void ABaseMonster::UseSkill(int32 SkillIndex)
 {
@@ -253,13 +274,42 @@ void ABaseMonster::TryDropItems(UBaseInventoryComponent* InventoryComp) const
 		return;
 
 	InventoryComp->AddItems(ItemsToAdd);
+}
 
-	// NOTICE :: TestLog
-	for (auto& Pair : ItemsToAdd)
+void ABaseMonster::OnTakeDamageEvent(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatedBy, AActor* DamageCauser)
+{
+	FlashRed();
+}
+
+void ABaseMonster::FlashRed()
+{
+	for (auto* Mat : DynamicMaterials)
 	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] Dropped %s x%d"),
-			*GetClass()->GetName(),
-			*Pair.Key.ToString(),
-			Pair.Value);
+		if (Mat)
+		{
+			Mat->SetVectorParameterValue(FName("DamageColor"), FLinearColor::Red);
+			Mat->SetScalarParameterValue(FName("DamageFlash"), 10.0f);
+		}
+	}
+	
+	GetWorld()->GetTimerManager().ClearTimer(FlashTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		FlashTimerHandle,
+		this,
+		&ABaseMonster::ResetFlash,
+		FlashDuration,
+		false
+	);
+}
+
+void ABaseMonster::ResetFlash()
+{
+	for (auto* Mat : DynamicMaterials)
+	{
+		if (Mat)
+		{
+			Mat->SetScalarParameterValue(FName("DamageFlash"), 0.0f);
+		}
 	}
 }
