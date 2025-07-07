@@ -4,6 +4,7 @@
 #include "Game/System/WorldTimeManager.h"
 #include "DefaultInGameWidget.generated.h"
 
+class UWeaponInfoBlockWidget;
 class UAdditiveRobotStatusWidget;
 class UEnvironmentalStatusComponent;
 class ABaseWeapon;
@@ -87,6 +88,8 @@ protected:
 	TObjectPtr<UImage> AimCircle;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
 	TObjectPtr<UAmmoWidget> CurrentAmmoWidgets;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta=(BindWidgetOptional))
+	TObjectPtr<UWeaponInfoBlockWidget> WeaponInfoBlockWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UGuideWidget> GuideWidget;
 
