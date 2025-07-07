@@ -15,6 +15,7 @@ class UAnimalPerceptionComponent;
 class UGroundMovementComponent;
 class UNavigationInvokerComponent;
 class UParticleSystemComponent;
+class UAIPerceptionStimuliSourceComponent;
 
 UENUM(BlueprintType)
 enum class EAnimalState : uint8
@@ -289,9 +290,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bDrawAttackRangeDebug : 1 = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UAIPerceptionStimuliSourceComponent* PerceptionStimuliSource;
+	
 #pragma endregion
 
 #pragma region SFX
-	void PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch = 1.0f, const float StartTime = 0.0f) const;
+	void PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch = 1.0f, const float StartTime = 0.0f);
 #pragma endregion
 };

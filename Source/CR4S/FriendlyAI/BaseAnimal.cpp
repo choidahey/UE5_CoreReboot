@@ -22,6 +22,7 @@
 #include "Character/Components/BaseStatusComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
 #include "Gimmick/Components/InteractableComponent.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Utility/CombatStatics.h"
 
 ABaseAnimal::ABaseAnimal()
@@ -61,6 +62,10 @@ ABaseAnimal::ABaseAnimal()
     HitEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HitEffectComponent"));
     HitEffectComponent->SetupAttachment(RootComponent);
     HitEffectComponent->bAutoActivate = false;
+
+    PerceptionStimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("PerceptionStimuliSource"));
+    PerceptionStimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
+    PerceptionStimuliSource->RegisterWithPerceptionSystem();
 }
 
 void ABaseAnimal::BeginPlay()
@@ -850,7 +855,7 @@ void ABaseAnimal::UpdateFade()
 #pragma endregion
 
 #pragma region SFX
-void ABaseAnimal::PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch, const float StartTime) const
+void ABaseAnimal::PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch, const float StartTime)
 {
     if (SoundArray.Num() == 0)
         return;
@@ -866,7 +871,7 @@ void ABaseAnimal::PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const F
             UAudioManager* AudioManager = GameInstance->GetSubsystem<UAudioManager>();
             if (IsValid(AudioManager))
             {
-                AudioManager->PlaySFX(SelectedSound, Location, SoundType, Pitch, StartTime);
+                AudioManager->PlaySFX(SelectedSound, Location, SoundType, Pitch, StartTime, this);
             }
         }
     }
