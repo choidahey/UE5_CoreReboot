@@ -284,7 +284,8 @@ void UBaseInventoryComponent::LoadInventorySaveGame(const FInventorySaveGame& Sa
 	{
 		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
 
-		const FGameplayTagContainer& Tags = SaveItemData.InventoryItemData.ItemInfoData.ItemTags;
+		FGameplayTagContainer Tags = SaveItemData.InventoryItemData.ItemInfoData.ItemTags;
+		Tags.FillParentTags();
 		UBaseInventoryItem* Item = UItemGimmickSubsystem::CreateInventoryItem(this, Tags);
 		Item->LoadInventoryItemSaveData(this, SaveItemData);
 		InventoryItems[Index] = Item;
