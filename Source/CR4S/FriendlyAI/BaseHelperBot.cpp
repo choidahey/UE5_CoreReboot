@@ -8,6 +8,7 @@
 #include "Controller/HelperBotAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HelperBotStatsSubsystem.h"
+#include "JsonObjectConverter.h"
 #include "../Gimmick/Components/InteractableComponent.h"
 #include "Components/SplineComponent.h" 
 #include "UI/HelperBotInfoWidget.h"
@@ -630,14 +631,28 @@ FName ABaseHelperBot::GetUniqueSaveID()
 void ABaseHelperBot::GatherSaveData(FSavedActorData& OutSaveData)
 {
 	OutSaveData.ActorTransform = GetActorTransform();
-	OutSaveData.ActorType = ESavedActorType::HelperBot;
-	OutSaveData.HelperBotData = GetHelperBotSaveData();
+	OutSaveData.ActorClassName=SavableClassName;
+	FHelperBotSaveGame HelperBotData=GetHelperBotSaveData();
+	
+	if (!FJsonObjectConverter::UStructToJsonObjectString(HelperBotData,OutSaveData.SerializedData))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to save helper bot data"));
+		OutSaveData.SerializedData.Empty();
+	}
 }
 
 void ABaseHelperBot::ApplySaveData(FSavedActorData& InSaveData)
 {
-	SetActorTransform(InSaveData.ActorTransform);
-	LoadHelperBotSaveData(InSaveData.HelperBotData);
+	FHelperBotSaveGame HelperBotData;
+	if (FJsonObjectConverter::JsonObjectStringToUStruct(InSaveData.SerializedData, &HelperBotData,0,0))
+	{
+		SetActorTransform(InSaveData.ActorTransform);
+		LoadHelperBotSaveData(HelperBotData);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load helper bot data"));
+	}
 }
 
 FHelperBotSaveGame ABaseHelperBot::GetHelperBotSaveData() const

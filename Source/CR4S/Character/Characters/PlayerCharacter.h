@@ -27,6 +27,43 @@ class UInputAction;
 class UEnvironmentalStatusComponent;
 class UGridDetectionComponent;
 
+
+USTRUCT(BlueprintType)
+struct CR4S_API FPlayerCharacterSaveGame
+{
+	GENERATED_BODY()
+public:
+	FPlayerCharacterSaveGame() {}
+	
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
+	float CurrentHP{0};
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
+	float CurrentResource{0};
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
+	float CurrentHunger{0};
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | EnvStatus")
+	float CurrentTemperature{0};
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | EnvStatus")
+	float CurrentHumidity{0};
+	
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Equipment")
+	FGameplayTag EquippedToolTag;
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
+	FGameplayTag Stance;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
+	FGameplayTag Gait;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | ALS")
+	uint8 bIsRightShoulder:1 {true};
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Inventory")
+	FInventorySaveGame InventorySaveGame;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Inventory")
+	FInventorySaveGame QuickSlotSaveGame;
+};
+
 UCLASS(AutoExpandCategories = ("Settings|Player Character"))
 class CR4S_API APlayerCharacter : public AAlsCharacter, public ISavableActor
 {
@@ -234,6 +271,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
 	FName UniqueSaveID;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
+	FString SavableClassName {"APlayerCharacter"};
 #pragma endregion
 	
 };

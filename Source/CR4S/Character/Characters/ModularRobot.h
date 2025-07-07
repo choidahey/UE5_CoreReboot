@@ -33,6 +33,60 @@ class UCameraComponent;
 struct FInputActionValue;
 
 
+USTRUCT(BlueprintType)
+struct CR4S_API FRobotWeaponSaveGame
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData")
+	FGameplayTag WeaponTag;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData")
+	int32 CurrentAmmo{0};
+};
+
+USTRUCT(BlueprintType)
+struct CR4S_API FModularRobotSaveGame
+{
+	GENERATED_BODY()
+public:
+	FModularRobotSaveGame() {}
+	
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
+	float CurrentHP{0};
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
+	float CurrentResource{0};
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
+	float CurrentEnergy{0};
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Status")
+	float CurrentStun{0};
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | EnvStatus")
+	float CurrentTemperature{0};
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | EnvStatus")
+	float CurrentHumidity{0};
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Parts")
+	FGameplayTag CoreTag;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Parts")
+	FGameplayTag BodyTag;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Parts")
+	FGameplayTag ArmTag;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Parts")
+	FGameplayTag LegTag;
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Parts")
+	FGameplayTag BoosterTag;
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Weapons")
+	TArray<FRobotWeaponSaveGame> EquippedWeapons;
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Mount")
+	uint8 bWasPlayerMounted:1 {false};
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveData | Inventory")
+	FInventorySaveGame InventorySaveGame;
+};
+
 UCLASS()
 class CR4S_API AModularRobot : public ACharacter, public IStunnableInterface, public ISavableActor
 {
@@ -266,6 +320,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
 	FName UniqueSaveID;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
+	FString SavableClassName {"AModularRobot"};
 #pragma endregion
 
 #pragma region Hover

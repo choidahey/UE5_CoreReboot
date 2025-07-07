@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "Engine/DataAsset.h"
 #include "SpawnActorClassConfig.generated.h"
 
@@ -19,9 +20,20 @@ class CR4S_API USpawnActorClassConfig : public UPrimaryDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	TSubclassOf<APlayerCharacter> PlayerCharacterClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	TSubclassOf<AModularRobot> ModularRobotClass;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
-	TSubclassOf<ABaseHelperBot> HelperBotClass;
+	TMap<FString, TSubclassOf<AActor>> SpawnableClasses
+	{
+		{"APlayerCharacter",nullptr}	,
+		{"AModularRobot",nullptr}	,
+		{"ABaseHelperBot",nullptr}	
+	};
+
+	UFUNCTION(BlueprintPure, Category = "Spawn")
+	TSubclassOf<AActor> GetSpawnClassByName(const FString& ClassName) const
+	{
+		if (const TSubclassOf<AActor>* FoundClass = SpawnableClasses.Find(ClassName))
+		{
+			return *FoundClass;
+		}
+		return nullptr;
+	}
 };
