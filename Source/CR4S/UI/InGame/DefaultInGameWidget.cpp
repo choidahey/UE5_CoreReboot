@@ -5,6 +5,7 @@
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
+#include "Character/UI/AdditiveRobotStatusWidget.h"
 #include "Character/UI/AmmoWidget.h"
 #include "Character/UI/CharacterStatusWidget.h"
 #include "Character/UI/LockOnWidget.h"
@@ -39,6 +40,7 @@ void UDefaultInGameWidget::ToggleWidgetMode(const bool bIsRobot)
 	// }
 	
 	StatusWidget->ToggleWidgetMode(bIsRobot);
+	AdditiveRobotStatusWidget->ToggleWidgetMode(bIsRobot);
 	
 	if (!CR4S_ENSURE(LogHong1,CrosshairWidget && AimCircle)) return;
 	
@@ -87,6 +89,7 @@ void UDefaultInGameWidget::BindWidgetsToStatus(UBaseStatusComponent* InStatus)
 	if (!CR4S_ENSURE(LogHong1,InStatus && StatusWidget)) return;
 	
 	StatusWidget->InitializeWidget(InStatus);
+	AdditiveRobotStatusWidget->InitializeWidget(InStatus);
 	EnvironmentStatusWidget->InitializeWidget(InStatus);
 
 	if (!CR4S_ENSURE(LogHong1,HungerWidget)) return;
