@@ -270,8 +270,8 @@ public:
 #pragma region Pade Out Effect
 
 public:
-	void StartFadeOut();
-	void UpdateFade();
+	void StartFade(bool bIsFadeIn);
+	void UpdateFade(bool bIsFadeIn);
 	
 private:
 	// Fade Out

@@ -71,6 +71,8 @@ ABaseAnimal::ABaseAnimal()
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
+
+    StartFade(true);
     
     if (InteractableComponent)
     {
@@ -389,6 +391,7 @@ void ABaseAnimal::Die()
     if (CurrentState != EAnimalState::Dead) return;
 
     GetWorldTimerManager().ClearTimer(StunRecoverTimer);
+    GetWorldTimerManager().ClearTimer(FadeTimerHandle);
     
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
@@ -437,7 +440,8 @@ void ABaseAnimal::Die()
     SetLifeSpan(30.f);
 
     ElapsedFadeTime = 0.f;
-    GetWorldTimerManager().SetTimer(FadeDelayTimerHandle, this, &ABaseAnimal::StartFadeOut, 28.f, false);
+    FTimerDelegate FadeOutDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::StartFade, false);
+    GetWorldTimerManager().SetTimer(FadeDelayTimerHandle, FadeOutDelegate, 28.f, false);
 }
 
 void ABaseAnimal::SetAnimalState(EAnimalState NewState)
@@ -581,7 +585,7 @@ void ABaseAnimal::OnInteract(AActor* Interactor)
         PlayAnimalSound(SoundData->InteractionSounds, GetActorLocation(), EConcurrencyType::Default);
     }
     
-    StartFadeOut();
+    StartFade(false);
     SetLifeSpan(2.0f);
 }
 
@@ -811,31 +815,53 @@ void ABaseAnimal::PerformRangedAttack()
 }
 #pragma endregion
 
-#pragma region Pade Out Effect
-void ABaseAnimal::StartFadeOut()
+#pragma region Pade Effect
+void ABaseAnimal::StartFade(bool bIsFadeIn)
 {    
     USkeletalMeshComponent* MeshComp = GetMesh();
     if (!MeshComp) return;
-    
+   
     for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
     {
         if (UMaterialInstanceDynamic* DynMat = MeshComp->CreateAndSetMaterialInstanceDynamic(i))
         {
-            DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+            if (bIsFadeIn)
+            {
+                DynMat->SetScalarParameterValue(TEXT("Appearance"), 0.0f);
+                DynMat->SetVectorParameterValue(TEXT("Param"), FLinearColor(0.0f, 0.118151f, 1.0f, 1.0f));
+            }
+            else
+            {
+                DynMat->SetScalarParameterValue(TEXT("Appearance"), 1.0f);
+                DynMat->SetVectorParameterValue(TEXT("Param"), FLinearColor(1.0f, 0.0f, 0.02983f, 1.0f));
+            }
         }
     }
 
-    FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade);
+    ElapsedFadeTime = 0.f;
+    FTimerDelegate FadeDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::UpdateFade, bIsFadeIn);
     GetWorldTimerManager().SetTimer(FadeTimerHandle, FadeDelegate, 0.02f, true);
 
-    MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+    if (!bIsFadeIn)
+    {
+        MeshComp->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+    }
 }
 
-void ABaseAnimal::UpdateFade()
+void ABaseAnimal::UpdateFade(bool bIsFadeIn)
 {
     ElapsedFadeTime += 0.02f;
-    float NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
-    
+   
+    float NewAppearance;
+    if (bIsFadeIn)
+    {
+        NewAppearance = FMath::Lerp(0.0f, 1.0f, ElapsedFadeTime / 2.0f);
+    }
+    else
+    {
+        NewAppearance = FMath::Lerp(1.0f, 0.0f, ElapsedFadeTime / 2.0f);
+    }
+   
     if (USkeletalMeshComponent* MeshComp = GetMesh())
     {
         for (int32 i = 0; i < MeshComp->GetNumMaterials(); ++i)
@@ -846,7 +872,7 @@ void ABaseAnimal::UpdateFade()
             }
         }
     }
-    
+   
     if (ElapsedFadeTime >= 2.0f)
     {
         GetWorldTimerManager().ClearTimer(FadeTimerHandle);
