@@ -6,6 +6,7 @@
 #include "CR4S.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "JsonObjectConverter.h"
 #include "NiagaraFunctionLibrary.h"
 #include "PlayerCharacter.h"
 #include "CR4S/Character/CharacterController.h"
@@ -123,11 +124,12 @@ void AModularRobot::SetUniqueSaveID(FName NewID)
 
 void AModularRobot::GatherSaveData(FSavedActorData& OutSaveData)
 {
-	OutSaveData.ActorType=ESavedActorType::ModularRobot;
-	
-	FModularRobotSaveGame& RobotData=OutSaveData.RobotData;
-	
+	OutSaveData.ActorClassName=SavableClassName;
 	OutSaveData.ActorTransform=GetActorTransform();
+	UE_LOG(LogHong1,Log,TEXT("ClassName : %s"),*OutSaveData.ActorClassName);
+	
+	FModularRobotSaveGame RobotData;
+
 	
 	RobotData.CurrentHP=Status->GetCurrentHP();
 	RobotData.CurrentResource=Status->GetCurrentResource();
@@ -148,32 +150,49 @@ void AModularRobot::GatherSaveData(FSavedActorData& OutSaveData)
 	RobotData.bWasPlayerMounted= MountedCharacter ? true : false;
 
 	RobotData.InventorySaveGame = RobotInventoryComponent->GetInventorySaveGame();
+	
+	if (!FJsonObjectConverter::UStructToJsonObjectString(RobotData,OutSaveData.SerializedData))
+	{
+		UE_LOG(LogTemp,Warning,TEXT("Failed to save modular robot data"));
+		OutSaveData.SerializedData.Empty();
+	}
+	else
+	{
+		UE_LOG(LogHong1,Log,TEXT("Saved robot data"));
+	}
 }
 
 void AModularRobot::ApplySaveData(FSavedActorData& InSaveData)
 {
-	FModularRobotSaveGame& RobotData=InSaveData.RobotData;
+	FModularRobotSaveGame RobotData;
 
-	UnequipAll();
+	if (FJsonObjectConverter::JsonObjectStringToUStruct(InSaveData.SerializedData,&RobotData,false,false))
+	{
+		UnequipAll();
 
-	Status->SetCurrentHP(RobotData.CurrentHP);
-	Status->SetCurrentResource(RobotData.CurrentResource);
-	Status->OnResourceConsumed();
-	Status->SetCurrentEnergy(RobotData.CurrentEnergy);
-	Status->SetCurrentStun(RobotData.CurrentStun);
+		Status->SetCurrentHP(RobotData.CurrentHP);
+		Status->SetCurrentResource(RobotData.CurrentResource);
+		Status->OnResourceConsumed();
+		Status->SetCurrentEnergy(RobotData.CurrentEnergy);
+		Status->SetCurrentStun(RobotData.CurrentStun);
 
-	EnvironmentalStatus->SetCurrentTemperature(RobotData.CurrentTemperature);
-	EnvironmentalStatus->SetCurrentHumidity(RobotData.CurrentHumidity);
+		EnvironmentalStatus->SetCurrentTemperature(RobotData.CurrentTemperature);
+		EnvironmentalStatus->SetCurrentHumidity(RobotData.CurrentHumidity);
 
-	EquipCoreParts(RobotData.CoreTag);
-	EquipBodyParts(RobotData.BodyTag);
-	EquipArmParts(RobotData.ArmTag);
-	EquipLegParts(RobotData.LegTag);
-	EquipBoosterParts(RobotData.BoosterTag);
+		EquipCoreParts(RobotData.CoreTag);
+		EquipBodyParts(RobotData.BodyTag);
+		EquipArmParts(RobotData.ArmTag);
+		EquipLegParts(RobotData.LegTag);
+		EquipBoosterParts(RobotData.BoosterTag);
 
-	WeaponManager->ApplyWeaponSaveData(RobotData.EquippedWeapons);
+		WeaponManager->ApplyWeaponSaveData(RobotData.EquippedWeapons);
 
-	RobotInventoryComponent->LoadInventorySaveGame(RobotData.InventorySaveGame);
+		RobotInventoryComponent->LoadInventorySaveGame(RobotData.InventorySaveGame);	
+	}
+	else
+	{
+		UE_LOG(LogTemp,Warning,TEXT("Failed to load modular robot data"));
+	}
 }
 
 void AModularRobot::HandleHoverEffects() 
