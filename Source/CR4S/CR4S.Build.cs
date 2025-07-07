@@ -26,7 +26,9 @@ public class CR4S : ModuleRules
 			"GameplayTags",
 			"AIModule",
 			"OnlineSubsystem",
-			"OnlineSubsystemSteam"
+			"OnlineSubsystemSteam",
+			"Json",
+			"JsonUtilities"
 		});
 
     PrivateDependencyModuleNames.AddRange(new string[] { "ALS", "ALSCamera" });

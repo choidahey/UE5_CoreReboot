@@ -1,18 +1,9 @@
 #pragma once
 
 #include "HelperBotSaveGame.h"
-#include "PlayerCharacterSaveGame.h"
 #include "GameFramework/SaveGame.h"
 #include "CoreSaveGame.generated.h"
 
-UENUM(BlueprintType)
-enum class ESavedActorType : uint8
-{
-	None,
-	PlayerCharacter,
-	ModularRobot,
-	HelperBot
-};
 
 USTRUCT(BlueprintType)
 struct CR4S_API FSavedActorData
@@ -21,19 +12,13 @@ struct CR4S_API FSavedActorData
 
 public:
 	UPROPERTY()
-	ESavedActorType ActorType = ESavedActorType::None;
+	FString ActorClassName;
 	
 	UPROPERTY()
 	FTransform ActorTransform;
 	
 	UPROPERTY()
-	FPlayerCharacterSaveGame PlayerCharacterData;
-
-	UPROPERTY()
-	FModularRobotSaveGame RobotData;
-
-	UPROPERTY()
-	FHelperBotSaveGame HelperBotData;
+	FString SerializedData;
 };
 
 UCLASS()

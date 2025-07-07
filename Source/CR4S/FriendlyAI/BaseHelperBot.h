@@ -287,8 +287,10 @@ public:
 	virtual void GatherSaveData(FSavedActorData& OutSaveData) override;
 	virtual void ApplySaveData(FSavedActorData& InSaveData) override;
 
-private:
+protected:
 	FName UniqueSaveID = NAME_None;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGame")
+	FString SavableClassName {"ABaseHelperBot"};
 
 #pragma endregion
 	
