@@ -289,7 +289,7 @@ void ABaseMonster::FlashRed()
 		if (Mat)
 		{
 			Mat->SetVectorParameterValue(FName("DamageColor"), FLinearColor::Red);
-			Mat->SetScalarParameterValue(FName("DamageFlash"), 1.0f);
+			Mat->SetScalarParameterValue(FName("DamageFlash"), 10.0f);
 		}
 	}
 	
