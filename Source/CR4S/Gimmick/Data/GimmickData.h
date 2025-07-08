@@ -19,6 +19,17 @@ struct FResourceItemData
 };
 
 USTRUCT(BlueprintType)
+struct FHitCount
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "공격 도구 태그"))
+	FGameplayTag HitToolTag;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "최대 피격 횟수", ClampMin = "1"))
+	int32 MaxHitCount = 1;
+};
+
+USTRUCT(BlueprintType)
 struct FGimmickInfoData : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -37,6 +48,8 @@ struct FGimmickInfoData : public FTableRowBase
 	TSubclassOf<class ABaseGimmick> GimmickClass = nullptr;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "기믹 최대 체력", ClampMin = "0"))
 	int32 GimmickMaxHealth = 0;
+	UPROPERTY(EditAnywhere, meta = (DisplayName = "피격 횟수 목록"))
+	TArray<FHitCount> HitCounts;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "상호작용 효과음"))
 	TObjectPtr<USoundBase> InteractSound;
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "피격 효과음"))

@@ -141,7 +141,8 @@ void UPlayerInventoryComponent::AddItemNotification(const bool bUseItemNotificat
 {
 	if (!bUseItemNotification ||
 		!IsValid(InventoryContainerWidgetInstance) ||
-		!IsValid(ItemGimmickSubsystem))
+		!IsValid(ItemGimmickSubsystem) ||
+		AddedCount <= 0)
 	{
 		return;
 	}
