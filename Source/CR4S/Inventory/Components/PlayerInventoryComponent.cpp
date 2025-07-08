@@ -3,12 +3,15 @@
 #include "CR4S.h"
 #include "Game/SaveGame/InventorySaveGame.h"
 #include "Gimmick/Components/InteractionComponent.h"
+#include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/InventoryItem/BaseInventoryItem.h"
 #include "Inventory/UI/InventoryContainerWidget.h"
+#include "Inventory/UI/ItemNotificationWidget/ItemNotificationWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 
 UPlayerInventoryComponent::UPlayerInventoryComponent()
 	: bPlayerInitialized(false),
+	  bIsCraftingFreeMode(false),
 	  InventoryContainerWidgetOrder(20),
 	  HeldToolTag(FGameplayTag::EmptyTag)
 {
@@ -56,17 +59,32 @@ void UPlayerInventoryComponent::InitInventory()
 }
 
 FAddItemResult UPlayerInventoryComponent::AddItem(const FName RowName, const int32 Count,
-                                                  UBaseInventoryItem* OriginItem)
+                                                  UBaseInventoryItem* OriginItem, const bool bUseItemNotification)
 {
 	const FAddItemResult Result = Super::AddItem(RowName, Count, OriginItem);
 
-	if (!Result.bSuccess ||
-		Result.RemainingCount <= 0)
+	if (!Result.bSuccess)
 	{
 		return Result;
 	}
 
-	return QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount, OriginItem);
+	if (Result.RemainingCount <= 0)
+	{
+		AddItemNotification(bUseItemNotification, RowName, Result.AddedCount);
+
+		return Result;
+	}
+
+	FAddItemResult QuickSlotResult = QuickSlotInventoryComponent->AddItem(RowName, Result.RemainingCount, OriginItem); 
+
+	QuickSlotResult.AddedCount += Result.AddedCount;
+	
+	if (Result.bSuccess)
+	{
+		AddItemNotification(bUseItemNotification, RowName, QuickSlotResult.AddedCount);
+	}
+	
+	return QuickSlotResult;
 }
 
 int32 UPlayerInventoryComponent::RemoveItemByRowName(const FName RowName, const int32 Count)
@@ -75,7 +93,7 @@ int32 UPlayerInventoryComponent::RemoveItemByRowName(const FName RowName, const 
 	{
 		return 0;
 	}
-	
+
 	int32 RemainingCount = Super::RemoveItemByRowName(RowName, Count);
 
 	if (IsValid(QuickSlotInventoryComponent))
@@ -92,7 +110,7 @@ void UPlayerInventoryComponent::RemoveAllItemByRowName(const FName RowName)
 	{
 		return;
 	}
-	
+
 	Super::RemoveAllItemByRowName(RowName);
 
 	if (IsValid(QuickSlotInventoryComponent))
@@ -107,7 +125,7 @@ int32 UPlayerInventoryComponent::GetItemCountByRowName(const FName RowName) cons
 	{
 		return 99;
 	}
-	
+
 	int32 Count = Super::GetItemCountByRowName(RowName);
 
 	if (IsValid(QuickSlotInventoryComponent))
@@ -116,6 +134,22 @@ int32 UPlayerInventoryComponent::GetItemCountByRowName(const FName RowName) cons
 	}
 
 	return Count;
+}
+
+void UPlayerInventoryComponent::AddItemNotification(const bool bUseItemNotification, const FName RowName,
+                                                    const int32 AddedCount) const
+{
+	if (!bUseItemNotification ||
+		!IsValid(InventoryContainerWidgetInstance) ||
+		!IsValid(ItemGimmickSubsystem))
+	{
+		return;
+	}
+
+	if (const FItemInfoData* ItemInfoData = ItemGimmickSubsystem->FindItemInfoData(RowName))
+	{
+		InventoryContainerWidgetInstance->AddItemNotification(FAddItemData(ItemInfoData->Icon, AddedCount, ItemInfoData->Name));
+	}
 }
 
 UPlanterBoxInventoryWidget* UPlayerInventoryComponent::GetPlanterBoxInventoryWidget() const

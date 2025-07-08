@@ -61,7 +61,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
 	void AddItems(const TMap<FName, int32>& Items);
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
-	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr);
+	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr, bool bUseItemNotification = true);
 	virtual FAddItemResult AddHelperBotItem(FName RowName, int32 Count, const FHelperPickUpData& HelperBotData);
 
 	UFUNCTION(BlueprintCallable, Category = "InventoryComponent")
