@@ -3,6 +3,7 @@
 #include "CR4S.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Border.h"
+#include "Components/VerticalBox.h"
 #include "Game/System/AudioManager.h"
 #include "Gimmick/UI/CompostBinWidget.h"
 #include "Inventory/OpenWidgetType.h"
@@ -11,6 +12,7 @@
 #include "InventoryWidget/PlanterBoxInventoryWidget.h"
 #include "InventoryWidget/RobotInventoryWidget.h"
 #include "InventoryWidget/StorageInventoryWidget.h"
+#include "ItemNotificationWidget/ItemNotificationContainerWidget.h"
 #include "UI/Crafting/CraftingContainerWidget.h"
 #include "UI/InGame/SurvivalHUD.h"
 
@@ -35,7 +37,8 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(QuickSlotBarWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(StorageInventoryWidget)) ||
 		!CR4S_VALIDATE(LogInventoryUI, IsValid(PlanterBoxInventoryWidget)) ||
-		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)))
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(RobotWorkshopWidget)) ||
+		!CR4S_VALIDATE(LogInventoryUI, IsValid(ItemNotificationContainerWidget)))
 	{
 		return;
 	}
@@ -55,7 +58,9 @@ void UInventoryContainerWidget::InitWidget(ASurvivalHUD* InSurvivalHUD,
 	PlanterBoxInventoryWidget->InitWidget(SurvivalHUD, false);
 	CraftingContainerWidget->InitWidget(PlayerInventoryComponent);
 	RobotWorkshopWidget->InitWidget(SurvivalHUD, false);
-	
+
+	ItemNotificationContainerWidget->GetNotificationContainer()->ClearChildren();
+
 	InitToggleWidget(PlayerInventoryWidget);
 	InputGuideContainer->SetVisibility(ESlateVisibility::Collapsed);
 	InitToggleWidget(StorageInventoryWidget);
@@ -306,7 +311,10 @@ void UInventoryContainerWidget::MoveItemToInventory(const UBaseItemSlotWidget* I
 		                                                ? PlayerInventoryComponent
 		                                                : OtherInventoryComponent;
 
-	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName, Item->GetCurrentStackCount(), Item);
+	const FAddItemResult Result = ToInventoryComponent->AddItem(RowName,
+	                                                            Item->GetCurrentStackCount(),
+	                                                            Item,
+	                                                            false);
 
 	FromInventoryComponent->RemoveItemByIndex(ItemSlot->GetSlotIndex(), Result.AddedCount);
 }
@@ -330,4 +338,12 @@ bool UInventoryContainerWidget::CanMoveItem(const bool bTargetIsPlayer) const
 	}
 
 	return true;
+}
+
+void UInventoryContainerWidget::AddItemNotification(const FAddItemData& AddItemData) const
+{
+	if (IsValid(ItemNotificationContainerWidget))
+	{
+		ItemNotificationContainerWidget->AddItemNotification(AddItemData);
+	}
 }

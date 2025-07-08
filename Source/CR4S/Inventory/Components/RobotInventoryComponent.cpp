@@ -13,7 +13,7 @@ URobotInventoryComponent::URobotInventoryComponent()
 	MaxInventorySize = 9;
 }
 
-FAddItemResult URobotInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem)
+FAddItemResult URobotInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem, const bool bUseItemNotification)
 {
 	if (CR4S_VALIDATE(LogInventory, IsValid(PlayerInventoryComponent)))
 	{

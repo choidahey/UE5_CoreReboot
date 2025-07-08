@@ -23,7 +23,7 @@ public:
 
 	virtual void InitInventory() override;
 
-	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr) override;
+	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr, bool bUseItemNotification = true) override;
 
 	virtual int32 RemoveItemByRowName(const FName RowName, const int32 Count) override;
 	virtual void RemoveAllItemByRowName(const FName RowName) override;
@@ -32,6 +32,13 @@ public:
 private:
 	bool bPlayerInitialized;
 
+#pragma endregion
+
+#pragma region ItemNotification
+
+public:
+	void AddItemNotification(bool bUseItemNotification, FName RowName, int32 AddedCount) const;
+	
 #pragma endregion
 
 #pragma region CraftingFreeMode

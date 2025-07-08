@@ -162,6 +162,30 @@ protected:
 
 #pragma endregion
 
+#pragma region TakeDamage Effect
+protected:
+	UFUNCTION()
+	void OnTakeDamageEvent(
+		AActor* DamagedActor,
+		float Damage,
+		const UDamageType* DamageType,
+		AController* InstigatedBy,
+		AActor* DamageCauser
+	);
+
+	void FlashRed();
+	void ResetFlash();
+	
+	UPROPERTY()
+	TArray<UMaterialInstanceDynamic*> DynamicMaterials;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Effect")
+	float FlashDuration = 0.2f;
+
+	FTimerHandle FlashTimerHandle;
+	
+#pragma endregion
+	
 private:
 	FString MyHeader;
 
