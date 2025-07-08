@@ -10,6 +10,8 @@
 class UNiagaraComponent;
 class UObjectPoolComponent;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoChanged, const float InPercent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentAmmoCountChanged, const int32, CurrentAmmo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxAmmoCountChanged, const int32, MaxAmmo);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStartReload, const float Duration);
 
 struct FRangedWeaponData;
@@ -45,6 +47,7 @@ public:
 	
 #pragma region Get
 	float GetCurrentAmmoPercentage() const;
+	int32 GetMaxAmmo() const;
 #pragma endregion
 	
 #pragma region Common
@@ -92,6 +95,10 @@ protected:
 public:
 	FOnCurrentAmmoChanged OnCurrentAmmoChanged;
 	FOnStartReload OnStartReload;
+	UPROPERTY(BlueprintAssignable)
+	FOnCurrentAmmoCountChanged OnCurrentAmmoCountChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnMaxAmmoCountChanged OnMaxAmmoCountChanged;
 #pragma endregion
 };
 

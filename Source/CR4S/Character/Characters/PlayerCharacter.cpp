@@ -346,14 +346,13 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-
 	Interaction->InitComponent();
 	Interaction->StartDetectProcess();
 	
 	InitializeWidgets();
 	Status->SetIsUnPossessed(false);
-
 	PlayerInventory->InitInventory();
+	PlayerInventory->ToggleQuickSlotBarWidget();
 }
 
 void APlayerCharacter::UnPossessed()
@@ -366,7 +365,7 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
-	
+	PlayerInventory->ToggleQuickSlotBarWidget();
 	DisconnectWidgets();
 	Status->SetIsUnPossessed(true);
 

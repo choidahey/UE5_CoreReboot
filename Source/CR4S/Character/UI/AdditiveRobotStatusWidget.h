@@ -4,46 +4,46 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "CharacterStatusWidget.generated.h"
+#include "AdditiveRobotStatusWidget.generated.h"
 
+class UProgressBar;
+class UModularRobotStatusComponent;
 class UBaseStatusComponent;
-class UProgressBarWidget;
-
+/**
+ * 
+ */
 UCLASS()
-class CR4S_API UCharacterStatusWidget : public UUserWidget
+class CR4S_API UAdditiveRobotStatusWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
+	
 public:
-	UCharacterStatusWidget(const FObjectInitializer& ObjectInitializer);
+	virtual void NativeConstruct() override;
 
 #pragma region Update
 	UFUNCTION(BlueprintCallable)
-	void UpdateHP(const float InPercentage);
-	
+	void UpdateEnergy(const float InPercentage);
 	UFUNCTION(BlueprintCallable)
-	void UpdateResource(const float InPercentage);
-
-	void InitializeWidget(UBaseStatusComponent* InStatus);
+	void UpdateStun(const float InPercentage);
 
 	UFUNCTION(BlueprintCallable)
 	void ToggleWidgetMode(const bool bIsRobot) const;
 	
+	void InitializeWidget(UBaseStatusComponent* InStatus);
 	void ClearBindings() const;
 #pragma endregion
-	
+
 #pragma region Widgets
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBarWidget> HP;
-
+	TObjectPtr<UProgressBar> Energy;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBarWidget> Resource;
+	TObjectPtr<UProgressBar> Stun;
 #pragma endregion
 
 #pragma region Cached
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UBaseStatusComponent> CachedStatusComponent;
+	TObjectPtr<UModularRobotStatusComponent> CachedStatusComponent;
 #pragma	endregion
 };
-

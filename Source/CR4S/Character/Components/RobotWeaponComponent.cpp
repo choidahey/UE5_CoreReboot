@@ -8,6 +8,7 @@
 #include "WeaponTraceComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
+#include "Character/Weapon/RobotWeapon/ChargableMeleeWeapon.h"
 #include "Character/Weapon/RobotWeapon/HomingWeapon.h"
 #include "Character/Weapon/RobotWeapon/MeleeWeapon.h"
 #include "Character/Weapon/RobotWeapon/RangedWeapon.h"
@@ -32,6 +33,20 @@ ABaseWeapon* URobotWeaponComponent::GetWeaponByIndex(const int32 SlotIdx)
 	return Weapons[SlotIdx];
 }
 
+bool URobotWeaponComponent::IsDuringAttackAction() const
+{
+	for (int32 i=0;i<Weapons.Num();i++)
+	{
+		if (Weapons.IsValidIndex(i)&&IsValid(Weapons[i]))
+		{
+			if (Weapons[i]->IsDuringAttacking())
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 
 void URobotWeaponComponent::GatherWeaponSaveData(TArray<FRobotWeaponSaveGame>& OutWeaponData) const
@@ -125,8 +140,12 @@ void URobotWeaponComponent::StopAttackBySlot(const int32 SlotIdx)
 	if (!OwningCharacter||!OwningCharacter->IsRobotActive()) return;
 	if (!Weapons.IsValidIndex(SlotIdx)||!IsValid(Weapons[SlotIdx])) return;
 
-	//InputBuffer->ClearInputQueue();
-	Weapons[SlotIdx]->StopAttack();
+	AChargableMeleeWeapon* ChargableMeleeWeapon=Cast<AChargableMeleeWeapon>(Weapons[SlotIdx]);
+	if (!ChargableMeleeWeapon || InputBuffer->CanAttackAction(SlotIdx))
+	{
+		UE_LOG(LogHong1,Warning,TEXT("Stop Attack!"));
+		Weapons[SlotIdx]->StopAttack();
+	}
 }
 
 void URobotWeaponComponent::RefreshWeaponUI()
