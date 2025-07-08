@@ -13,7 +13,7 @@ UPlanterBoxInventoryComponent::UPlanterBoxInventoryComponent()
 	InventoryTitleText = FText::FromString("PLANTER BOX");
 }
 
-FAddItemResult UPlanterBoxInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem)
+FAddItemResult UPlanterBoxInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem, const bool bUseItemNotification)
 {
 	FAddItemResult Result;
 	Result.RemainingCount = Count;
