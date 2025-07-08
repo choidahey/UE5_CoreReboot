@@ -26,6 +26,7 @@ class UInputMappingContext;
 class UInputAction;
 class UEnvironmentalStatusComponent;
 class UGridDetectionComponent;
+class UC4WidgetInteractionComponent;
 
 
 USTRUCT(BlueprintType)
@@ -170,6 +171,8 @@ protected:
 	TObjectPtr<UEnvironmentalStatusComponent> EnvironmentalStatus;
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
 	TObjectPtr<UPlayerInventoryComponent> PlayerInventory;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Player Character")
+	TObjectPtr<UC4WidgetInteractionComponent> WidgetInteraction;
 #pragma endregion
 
 #pragma region InputActions
