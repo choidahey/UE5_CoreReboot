@@ -22,6 +22,7 @@
 #include "Character/Weapon/PlayerTool.h"
 #include "Game/SaveGame/SaveGameManager.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
+#include "Game/C4WidgetInteractionComponent.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -50,6 +51,7 @@ APlayerCharacter::APlayerCharacter()
 	NavInvoker->SetGenerationRadii(NavGenerationRadius, NavRemovalRadius);
 
 	PlayerInventory = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("PlayerInventory"));
+	WidgetInteraction = CreateDefaultSubobject<UC4WidgetInteractionComponent>(TEXT("WidgetInteraction"));
 }
 
 FName APlayerCharacter::GetUniqueSaveID()

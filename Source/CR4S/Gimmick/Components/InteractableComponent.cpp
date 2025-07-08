@@ -1,5 +1,5 @@
 ﻿#include "InteractableComponent.h"
-
+#include "Components/SphereComponent.h" 
 #include "CR4S.h"
 
 UInteractableComponent::UInteractableComponent()
@@ -57,6 +57,53 @@ void UInteractableComponent::DetectionStateChanged(AActor* DetectingActor,
 	if (OnDetectionStateChanged.IsBound())
 	{
 		OnDetectionStateChanged.Broadcast(DetectingActor, bIsDetected);
+	}
+}
+
+void UInteractableComponent::ActivateEndOverlapCollision()
+{
+	if (!bAllowEndOverlap) return;
+
+	AActor* Owner = GetOwner();
+	if (!Owner) return;
+
+	if (Owner->FindComponentByClass<USphereComponent>()) return;
+
+	USphereComponent* Sphere = NewObject<USphereComponent>(Owner, TEXT("EndOverlapSphere"));
+	if (!Sphere) return;
+
+	Sphere->InitSphereRadius(EndOverlapRadius);
+	Sphere->SetCollisionProfileName(TEXT("Trigger"));
+	Sphere->SetupAttachment(Owner->GetRootComponent());
+	Sphere->SetGenerateOverlapEvents(true);
+	Sphere->OnComponentEndOverlap.AddDynamic(this, &UInteractableComponent::OnEndOverlap);
+
+	Sphere->RegisterComponent();
+
+#if WITH_EDITOR
+	if (bDrawDebugSphere)
+	{
+		DrawDebugSphere(
+			GetWorld(),
+			Sphere->GetComponentLocation(),
+			EndOverlapRadius,
+			16,
+			FColor::Green,
+			true,
+			10.f,
+			0,
+			2.0f
+		);
+	}
+#endif
+}
+
+void UInteractableComponent::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OnEndSphereOverlap.IsBound())
+	{
+		OnEndSphereOverlap.Broadcast(OtherActor);
 	}
 }
 
