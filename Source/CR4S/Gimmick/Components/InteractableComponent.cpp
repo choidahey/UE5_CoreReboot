@@ -1,17 +1,13 @@
 ﻿#include "InteractableComponent.h"
-
+#include "Components/SphereComponent.h" 
 #include "CR4S.h"
 
 UInteractableComponent::UInteractableComponent()
-	: InteractionTraceChannel(ECC_GameTraceChannel1),
-	  DefaultHighlightColor(FLinearColor::Green)
+	: InteractionTraceChannel(ECC_GameTraceChannel1)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
 	InteractionText = FText::FromString(TEXT("Default Interaction Text"));
-
-	HighlightOpacityParamName = TEXT("HighlightOpacity");
-	HighlightColorParamName = TEXT("HighlightColor");
 }
 
 void UInteractableComponent::BeginPlay()
@@ -19,22 +15,21 @@ void UInteractableComponent::BeginPlay()
 	Super::BeginPlay();
 
 	UpdateTraceBlocking();
-
-	InitHighlightMaterial();
 }
 
-void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewResponse) const
+void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewResponse)
 {
 	const AActor* Owner = GetOwner();
 	if (IsValid(Owner))
 	{
-		TArray<UMeshComponent*> MeshComponents;
-		Owner->GetComponents<UMeshComponent>(MeshComponents);
-		for (UMeshComponent* MeshComp : MeshComponents)
+		Owner->GetComponents<UMeshComponent>(OwnerMeshComponents);
+		for (UMeshComponent* MeshComp : OwnerMeshComponents)
 		{
 			if (IsValid(MeshComp))
 			{
 				MeshComp->SetCollisionResponseToChannel(InteractionTraceChannel, NewResponse);
+				MeshComp->SetRenderCustomDepth(true);
+				MeshComp->SetCustomDepthStencilValue(0);
 			}
 		}
 	}
@@ -60,55 +55,63 @@ void UInteractableComponent::DetectionStateChanged(AActor* DetectingActor,
 	}
 }
 
-void UInteractableComponent::InitHighlightMaterial()
+void UInteractableComponent::ActivateEndOverlapCollision()
 {
-	const AActor* Owner = GetOwner();
+	if (!bAllowEndOverlap) return;
 
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(Owner)))
+	AActor* Owner = GetOwner();
+	if (!Owner) return;
+
+	if (Owner->FindComponentByClass<USphereComponent>()) return;
+
+	USphereComponent* Sphere = NewObject<USphereComponent>(Owner, TEXT("EndOverlapSphere"));
+	if (!Sphere) return;
+
+	Sphere->InitSphereRadius(EndOverlapRadius);
+	Sphere->SetCollisionProfileName(TEXT("Trigger"));
+	Sphere->SetupAttachment(Owner->GetRootComponent());
+	Sphere->SetGenerateOverlapEvents(true);
+	Sphere->OnComponentEndOverlap.AddDynamic(this, &UInteractableComponent::OnEndOverlap);
+
+	Sphere->RegisterComponent();
+
+#if WITH_EDITOR
+	if (bDrawDebugSphere)
 	{
-		return;
+		DrawDebugSphere(
+			GetWorld(),
+			Sphere->GetComponentLocation(),
+			EndOverlapRadius,
+			16,
+			FColor::Green,
+			true,
+			10.f,
+			0,
+			2.0f
+		);
 	}
+#endif
+}
 
-	TArray<UMeshComponent*> MeshComponents;
-	Owner->GetComponents<UMeshComponent>(MeshComponents);
-	HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
-
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(HighlightMaterialInstance)))
+void UInteractableComponent::OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OnEndSphereOverlap.IsBound())
 	{
-		return;
-	}
-
-	SetHighlight(false);
-	ChangeHighlightColor(DefaultHighlightColor);
-
-	for (UMeshComponent* MeshComp : MeshComponents)
-	{
-		if (IsValid(MeshComp))
-		{
-			MeshComp->SetOverlayMaterial(HighlightMaterialInstance);
-		}
+		OnEndSphereOverlap.Broadcast(OtherActor);
 	}
 }
 
 void UInteractableComponent::SetHighlight(const bool bIsDetected) const
 {
-	const float Opacity = bIsDetected ? 1.f : 0.f;
-	HighlightMaterialInstance->SetScalarParameterValue(HighlightOpacityParamName, Opacity);
-}
-
-void UInteractableComponent::ChangeHighlightColor(const FLinearColor& InHighlightColor)
-{
-	HighlightMaterialInstance->SetVectorParameterValue(HighlightColorParamName, InHighlightColor);
-}
-
-FLinearColor UInteractableComponent::GetHighlightColor() const
-{
-	if (IsValid(HighlightMaterialInstance))
+	const int32 StencilValue = bIsDetected ? 1 : 0;
+	
+	for (UMeshComponent* MeshComp : OwnerMeshComponents)
 	{
-		FLinearColor CurrentColor;
-		HighlightMaterialInstance->GetVectorParameterValue(FMaterialParameterInfo(HighlightColorParamName), CurrentColor);
-		return CurrentColor;
+		if (IsValid(MeshComp))
+		{
+			MeshComp->SetRenderCustomDepth(true);
+			MeshComp->SetCustomDepthStencilValue(StencilValue);
+		}
 	}
-
-	return DefaultHighlightColor;
 }
