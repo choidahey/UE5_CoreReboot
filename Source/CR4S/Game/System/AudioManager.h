@@ -60,7 +60,7 @@ public:
 
 	// Plays Sound Effect in a 3D Space//
 	UFUNCTION(BlueprintCallable)
-	UAudioComponent* PlaySFX(USoundBase* SFX, FVector Location, EConcurrencyType SoundType, float Pitch = 1.0f, float StartTime = 0.0f);
+	UAudioComponent* PlaySFX(USoundBase* SFX, FVector Location, EConcurrencyType SoundType, float Pitch = 1.0f, float StartTime = 0.0f, AActor* SoundInstigator = nullptr);
 
 	// Plays 2D UI Sound Effects  //
 	UFUNCTION(BlueprintCallable)

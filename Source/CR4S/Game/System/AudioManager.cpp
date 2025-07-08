@@ -5,6 +5,8 @@
 #include "Game/SaveGame/SettingsSaveGame.h"
 #include "Game/SaveGame/SaveGameManager.h"
 #include "Components/AudioComponent.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Hearing.h"
 
 void UAudioManager::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -162,7 +164,7 @@ void UAudioManager::StopBGM()
 	}
 }
 
-UAudioComponent* UAudioManager::PlaySFX(USoundBase* SFX, FVector Location, EConcurrencyType SoundType, float Pitch, float StartTime)
+UAudioComponent* UAudioManager::PlaySFX(USoundBase* SFX, FVector Location, EConcurrencyType SoundType, float Pitch, float StartTime, AActor* SoundInstigator)
 {
 	if (!SFX) return nullptr;
 
@@ -181,6 +183,17 @@ UAudioComponent* UAudioManager::PlaySFX(USoundBase* SFX, FVector Location, EConc
 		Concurrency
 	);
 
+	if (SoundInstigator && SoundType != EConcurrencyType::UI)
+	{   
+		UAIPerceptionStimuliSourceComponent* ExistingComp = SoundInstigator->FindComponentByClass<UAIPerceptionStimuliSourceComponent>();
+		if (ExistingComp)
+		{
+			ExistingComp->RegisterForSense(UAISense_Hearing::StaticClass());
+			ExistingComp->RegisterWithPerceptionSystem();
+		}
+		UAISense_Hearing::ReportNoiseEvent(GetWorld(), Location, 10.0f, SoundInstigator, 100.0f, NAME_None);
+	}
+	
 	return SFXComponent;
 }
 // AudioComponent->SetOwner(ptr);

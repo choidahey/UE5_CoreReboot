@@ -15,9 +15,9 @@ AAnimalGround::AAnimalGround()
 void AAnimalGround::BeginPlay()
 {
 	Super::BeginPlay();
-	if (AIJumpComponent)
+	if (UAIJumpComponent* JumpComp = FindComponentByClass<UAIJumpComponent>())
 	{
-		//AIJumpComponent->SetJumpPower(JumpPower);
+		JumpComp->UpdateOwnerStats();
 	}
 
 	UCharacterMovementComponent* Move = GetCharacterMovement();

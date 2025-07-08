@@ -7,7 +7,11 @@
 #include "Gimmick/GimmickObjects/Buildings/BaseBuildingGimmick.h"
 #include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
+#include "Components/CapsuleComponent.h"
+#include "FriendlyAI/ETC/DummyTargetActor.h"
 #include "NavFilters/NavigationQueryFilter.h"
+
+ADummyTargetActor* AAnimalMonsterAIController::SharedDummyTargetActor = nullptr;
 
 #pragma region AAIController Override
 AAnimalMonsterAIController::AAnimalMonsterAIController()
@@ -28,6 +32,13 @@ void AAnimalMonsterAIController::OnPossess(APawn* InPawn)
         UE_LOG(LogTemp, Error, TEXT("AnimalMonsterAIController: Failed to cast pawn to AAnimalMonster"));
         return;
     }
+    
+    if (!IsValid(SharedDummyTargetActor))
+    {
+        SharedDummyTargetActor = GetWorld()->SpawnActor<ADummyTargetActor>();
+        SharedDummyTargetActor->SetActorLocation(ControlledMonster->GetActorLocation());
+    }
+    DummyTargetActor = SharedDummyTargetActor;
 
     if (MonsterBehaviorTree && BlackboardComponent && BehaviorTreeComponent)
     {
@@ -48,6 +59,19 @@ void AAnimalMonsterAIController::Tick(float DeltaSeconds)
     HandleTargetPriorityLogic();
     UpdateBlackboardValues();
 }
+
+void AAnimalMonsterAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (SharedDummyTargetActor && IsValid(SharedDummyTargetActor))
+    {
+        SharedDummyTargetActor->Destroy();
+    }
+    SharedDummyTargetActor = nullptr;
+    DummyTargetActor = nullptr;
+	
+    Super::EndPlay(EndPlayReason);
+}
+
 #pragma endregion
 
 #pragma region State Management
@@ -97,7 +121,28 @@ void AAnimalMonsterAIController::EvaluateTargetPriority()
     
     if (IsValid(PlayerTarget) && !CanReachTarget(PlayerTarget))
     {
-        FindBuildingToDestroy();
+        AActor* NearestBuilding = ControlledMonster->FindNearestDestructibleBuilding();
+        if (IsValid(NearestBuilding))
+        {
+            float Dist = FVector::Dist(ControlledMonster->GetActorLocation(), NearestBuilding->GetActorLocation());
+            ControlledMonster->SetBuildingTarget(NearestBuilding);
+            SetTargetActor(NearestBuilding);
+            if (Dist <= ControlledMonster->MeleeRange)
+            {
+                SetMonsterState(EAnimalState::Attack);
+            }
+            else
+            {
+                SetMonsterState(EAnimalState::Chase);
+            }
+        }
+        else
+        {
+            if (IsValid(DummyTargetActor))
+            {
+                SetMonsterState(EAnimalState::Chase);
+            }
+        }
         return;
     }
     
@@ -235,20 +280,27 @@ void AAnimalMonsterAIController::OnTargetOutOfRange()
 void AAnimalMonsterAIController::UpdateBlackboardValues()
 {
     if (!IsValid(ControlledMonster) || !BlackboardComponent) return;
-    
+
     BlackboardComponent->SetValueAsObject(TEXT("PrimaryTarget"), ControlledMonster->PrimaryTarget);
     BlackboardComponent->SetValueAsObject(TEXT("SecondaryTarget"), ControlledMonster->SecondaryTarget);
     BlackboardComponent->SetValueAsObject(TEXT("BuildingTarget"), ControlledMonster->BuildingTarget);
-    
-    AActor* PlayerTarget = ControlledMonster->GetCurrentPlayerTarget();
-    bool bCanReach = IsValid(PlayerTarget) && CanReachTarget(PlayerTarget);
-    BlackboardComponent->SetValueAsBool(TEXT("bCanReachPlayer"), bCanReach);
-    BlackboardComponent->SetValueAsBool(TEXT("bIsDestroyingBuilding"), ControlledMonster->bIsDestroyingBuilding);
 
-    if (IsValid(PlayerTarget))
+    if (IsValid(ControlledMonster->PrimaryTarget))
     {
-        BlackboardComponent->SetValueAsVector(TEXT("LastKnownPlayerLocation"), PlayerTarget->GetActorLocation());
+        FVector GroundLocation = GetGroundPositionUnderPlayer(ControlledMonster->PrimaryTarget);
+        BlackboardComponent->SetValueAsVector(TEXT("LastKnownPlayerLocation"), GroundLocation);
+
+        if (IsValid(DummyTargetActor) && DummyTargetActor != nullptr)
+        {            
+            FVector OldLocation = DummyTargetActor->GetActorLocation();
+            DummyTargetActor->SetActorLocation(GroundLocation);
+            BlackboardComponent->SetValueAsObject(TEXT("DummyTarget"), DummyTargetActor);
+
+            bool bCanReachDummy = CanReachTarget(DummyTargetActor);
+            AActor* BBDummyTarget = Cast<AActor>(BlackboardComponent->GetValueAsObject(TEXT("DummyTarget")));
+        }
     }
+    
 }
 
 void AAnimalMonsterAIController::HandleTargetPriorityLogic()
@@ -296,7 +348,7 @@ bool AAnimalMonsterAIController::CanReachTarget(AActor* Target) const
         NavFilter
     );
     
-    Query.SetAllowPartialPaths(false);
+    Query.SetAllowPartialPaths(true);
 
     FPathFindingResult Result = NavSystem->FindPathSync(Query);
         
@@ -339,7 +391,7 @@ void AAnimalMonsterAIController::SwitchToTarget(AActor* NewTarget)
 #pragma endregion
 
 void AAnimalMonsterAIController::CheckDistanceAndUpdateState()
-{
+{    
     if (!IsValid(ControlledMonster) || !IsValid(ControlledMonster->CurrentTarget) || 
         ControlledMonster->CurrentState == EAnimalState::Dead) return;
 
@@ -363,4 +415,57 @@ void AAnimalMonsterAIController::CheckDistanceAndUpdateState()
 void AAnimalMonsterAIController::OnDied()
 {
     SetMonsterState(EAnimalState::Dead);
+}
+
+FVector AAnimalMonsterAIController::GetGroundPositionUnderPlayer(AActor* Player) const
+{   
+   if (!IsValid(Player)) 
+   {
+       return FVector::ZeroVector;
+   }
+
+   FVector PlayerLocation = Player->GetActorLocation();
+   FVector GroundLocation = PlayerLocation;   
+   FVector TraceStart = PlayerLocation;
+   FVector TraceEnd = PlayerLocation - FVector(0, 0, 10000.0f);
+    
+   FHitResult HitResult;
+   FCollisionQueryParams QueryParams;
+   QueryParams.AddIgnoredActor(Player);
+   if (ControlledMonster)
+   {
+       QueryParams.AddIgnoredActor(ControlledMonster);
+   }
+    
+   TArray<AActor*> FoundRobots;
+   UGameplayStatics::GetAllActorsOfClass(GetWorld(), AModularRobot::StaticClass(), FoundRobots);
+   for (AActor* Robot : FoundRobots)
+   {
+       QueryParams.AddIgnoredActor(Robot);
+   }
+   QueryParams.bTraceComplex = false;
+   QueryParams.bReturnPhysicalMaterial = false;
+       
+   bool bHit = GetWorld()->LineTraceSingleByChannel(
+       HitResult,
+       TraceStart,
+       TraceEnd,
+       ECC_WorldStatic,
+       QueryParams
+   );
+   
+    if (bHit)
+    {
+        GroundLocation = HitResult.ImpactPoint;
+        UCapsuleComponent* CapsuleComp = ControlledMonster->GetCapsuleComponent();
+        if (CapsuleComp)
+        {
+            GroundLocation.Z = HitResult.ImpactPoint.Z + CapsuleComp->GetScaledCapsuleHalfHeight();
+        }
+        else
+        {
+            GroundLocation.Z = HitResult.ImpactPoint.Z + 50.0f;
+        }
+    }
+   return GroundLocation;
 }
