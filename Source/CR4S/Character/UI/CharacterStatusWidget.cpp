@@ -13,11 +13,15 @@ UCharacterStatusWidget::UCharacterStatusWidget(const FObjectInitializer& ObjectI
 void UCharacterStatusWidget::UpdateHP(const float InPercentage)
 {
 	HP->SetPercent(InPercentage);
+	const int32 DisplayValue = FMath::RoundToInt(InPercentage*100);
+	HP->SetCurrentValueText(FText::AsNumber(DisplayValue));
 }
 
 void UCharacterStatusWidget::UpdateResource(const float InPercentage)
 {
 	Resource->SetPercent(InPercentage);
+	const int32 DisplayValue = FMath::RoundToInt(InPercentage*100);
+	Resource->SetCurrentValueText(FText::AsNumber(DisplayValue));
 }
 
 void UCharacterStatusWidget::ToggleWidgetMode(const bool bIsRobot) const
