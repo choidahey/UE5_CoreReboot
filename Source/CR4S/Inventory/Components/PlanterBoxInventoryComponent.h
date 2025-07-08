@@ -15,7 +15,7 @@ class CR4S_API UPlanterBoxInventoryComponent : public UBaseInventoryComponent
 public:
 	UPlanterBoxInventoryComponent();
 
-	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr) override;
+	virtual FAddItemResult AddItem(FName RowName, int32 Count, UBaseInventoryItem* OriginItem = nullptr, bool bUseItemNotification = true) override;
 
 #pragma endregion
 

@@ -4,6 +4,7 @@
 #include "AmmoWidget.h"
 
 #include "CR4S.h"
+#include "MeshPaintVisualize.h"
 #include "RoundProgressBar.h"
 #include "Character/Weapon/RobotWeapon/BaseWeapon.h"
 #include "Character/Weapon/RobotWeapon/RangedWeapon.h"
@@ -58,7 +59,7 @@ void UAmmoWidget::InitializeWidgetForWeapon(ABaseWeapon* InWeapon, const int32 S
 		UpdateCurrentAmmoWidget(SlotIdx,0);
 	}
 
-	if (!CR4S_ENSURE(LogHong1,CachedWeapons.IsValidIndex(SlotIdx))) return;
+	if (!CR4S_ENSURE(LogHong1,CachedWeapons.IsValidIndex(SlotIdx) && CachedWeapons[SlotIdx].IsValid())) return;
 	
 	CachedWeapons[SlotIdx]=InWeapon;
 }
@@ -106,6 +107,7 @@ void UAmmoWidget::UpdateAmmoWidgetDuringReloading(const int32 SlotIdx, const flo
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindUFunction(this, FName("TickReloadProgress"), SlotIdx);
 
+	AmmoProgressWidgets[SlotIdx]->SetColorAndOpacity(FLinearColor::Red);
 	GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandles[SlotIdx], TimerDelegate, 0.016f, true);
 }
 
@@ -123,6 +125,7 @@ void UAmmoWidget::TickReloadProgress(int32 SlotIdx)
 	if (Progress>=1.f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandles[SlotIdx]);
+		AmmoProgressWidgets[SlotIdx]->SetColorAndOpacity(FLinearColor::White);
 	}
 }
 

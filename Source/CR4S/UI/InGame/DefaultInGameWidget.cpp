@@ -5,9 +5,11 @@
 #include "Character/Components/EnvironmentalStatusComponent.h"
 #include "Character/Components/ModularRobotStatusComponent.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
+#include "Character/UI/AdditiveRobotStatusWidget.h"
 #include "Character/UI/AmmoWidget.h"
 #include "Character/UI/CharacterStatusWidget.h"
 #include "Character/UI/LockOnWidget.h"
+#include "Character/UI/WeaponInfoBlockWidget.h"
 #include "Character/Weapon/RobotWeapon/HomingWeapon.h"
 #include "Components/Image.h"
 #include "UI/Common/ProgressBarWidget.h"
@@ -39,6 +41,7 @@ void UDefaultInGameWidget::ToggleWidgetMode(const bool bIsRobot)
 	// }
 	
 	StatusWidget->ToggleWidgetMode(bIsRobot);
+	AdditiveRobotStatusWidget->ToggleWidgetMode(bIsRobot);
 	
 	if (!CR4S_ENSURE(LogHong1,CrosshairWidget && AimCircle)) return;
 	
@@ -47,12 +50,14 @@ void UDefaultInGameWidget::ToggleWidgetMode(const bool bIsRobot)
 		CrosshairWidget->SetBrushFromTexture(RobotCrosshair);
 		AimCircle->SetVisibility(ESlateVisibility::HitTestInvisible);
 		CurrentAmmoWidgets->SetVisibility(ESlateVisibility::HitTestInvisible);
+		WeaponInfoBlockWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 	}
 	else
 	{
 		CrosshairWidget->SetBrushFromTexture(DefaultCrosshair);
 		AimCircle->SetVisibility(ESlateVisibility::Hidden);
 		CurrentAmmoWidgets->SetVisibility(ESlateVisibility::Hidden);
+		WeaponInfoBlockWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -79,6 +84,10 @@ void UDefaultInGameWidget::BindAmmoWidgetToWeapon(ABaseWeapon* InWeapon, const i
 	if (!CR4S_ENSURE(LogHong1,InWeapon && CurrentAmmoWidgets)) return;
 
 	CurrentAmmoWidgets->InitializeWidgetForWeapon(InWeapon,SlotIdx);
+
+	if (!CR4S_ENSURE(LogHong1,WeaponInfoBlockWidget)) return;
+
+	WeaponInfoBlockWidget->InitializeWidgetBySlotIndex(InWeapon,SlotIdx);
 }
 
 
@@ -87,6 +96,7 @@ void UDefaultInGameWidget::BindWidgetsToStatus(UBaseStatusComponent* InStatus)
 	if (!CR4S_ENSURE(LogHong1,InStatus && StatusWidget)) return;
 	
 	StatusWidget->InitializeWidget(InStatus);
+	AdditiveRobotStatusWidget->InitializeWidget(InStatus);
 	EnvironmentStatusWidget->InitializeWidget(InStatus);
 
 	if (!CR4S_ENSURE(LogHong1,HungerWidget)) return;
@@ -127,6 +137,9 @@ void UDefaultInGameWidget::UnbindWeaponFromUI()
 {
 	if (!CR4S_ENSURE(LogHong1,CurrentAmmoWidgets)) return;
 	CurrentAmmoWidgets->ClearBindingsToWeapon();
+
+	if (!CR4S_ENSURE(LogHong1,WeaponInfoBlockWidget)) return;
+	WeaponInfoBlockWidget->ClearBindingsToWeapon();
 }
 
 void UDefaultInGameWidget::UpdateHungerWidget(const float InPercentage)

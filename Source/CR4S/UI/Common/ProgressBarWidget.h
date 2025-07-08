@@ -20,6 +20,7 @@ class CR4S_API UProgressBarWidget : public UUserWidget
 public:
 	void SetPercent(float Value);
 	void SetFillColorAndOpacity(FColor Color);
+	void SetCurrentValueText(const FText& Text);
 
 protected:
 

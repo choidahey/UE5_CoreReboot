@@ -46,8 +46,13 @@ float ARangedWeapon::GetCurrentAmmoPercentage() const
 	}
 	const int32 MaxAmmo=TypeSpecificInfo.AmmoInfo.MagazineCapacity;
 	const int32 CurrentAmmo=TypeSpecificInfo.AmmoInfo.CurrentAmmo;
-	const float Percent=FMath::Clamp(CurrentAmmo/MaxAmmo,0.f,1.f);
+	const float Percent=FMath::Clamp(static_cast<float>(CurrentAmmo)/MaxAmmo,0.f,1.f);
 	return Percent;
+}
+
+int32 ARangedWeapon::GetMaxAmmo() const
+{
+	return TypeSpecificInfo.AmmoInfo.MagazineCapacity;
 }
 
 void ARangedWeapon::StartSequentialFire(AActor* HomingTarget)
@@ -276,6 +281,7 @@ void ARangedWeapon::SetCurrentAmmo(const int32 NewAmount)
 
 	const float Percent = (MaxAmmo>0) ? static_cast<float>(NewCurrentAmmo)/MaxAmmo : 0;
 	OnCurrentAmmoChanged.Broadcast(Percent);
+	OnCurrentAmmoCountChanged.Broadcast(NewCurrentAmmo);
 }
 
 void ARangedWeapon::PlayMuzzleVFX(const FName& MuzzleSocketName) const

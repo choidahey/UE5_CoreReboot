@@ -20,6 +20,10 @@ public:
 	URobotInputBufferComponent();
 
 	FORCEINLINE virtual void SetWeaponComponent(URobotWeaponComponent* InWeaponComp) override { CachedWeaponComponent=InWeaponComp; }
+
+#pragma region Check
+	bool CanAttackAction(const int32 SlotIdx) const;
+#pragma endregion
 	
 #pragma region Override
 public:

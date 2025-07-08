@@ -6,6 +6,8 @@
 #include "ItemSlotWidget/BaseItemSlotWidget.h"
 #include "InventoryContainerWidget.generated.h"
 
+struct FAddItemData;
+class UItemNotificationContainerWidget;
 class UHelperBotWorkshopWidget;
 class URobotInventoryWidget;
 class UPlanterBoxInventoryWidget;
@@ -91,6 +93,13 @@ private:
 
 #pragma endregion
 
+#pragma region ItemNotification
+
+public:
+	void AddItemNotification(const FAddItemData& AddItemData) const;
+	
+#pragma endregion 
+
 #pragma region BindWidget
 
 public:
@@ -114,6 +123,8 @@ private:
 	TObjectPtr<UCraftingContainerWidget> CraftingContainerWidget;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<URobotInventoryWidget> RobotWorkshopWidget;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UItemNotificationContainerWidget> ItemNotificationContainerWidget;
 	
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UUserWidget> OpenOtherWidget;

@@ -53,3 +53,8 @@ void UProgressBarWidget::SetFillColorAndOpacity(FColor Color)
 {
 	ProgressBar->SetFillColorAndOpacity(Color);
 }
+
+void UProgressBarWidget::SetCurrentValueText(const FText& Text)
+{
+	CurrentValueText->SetText(Text);
+}

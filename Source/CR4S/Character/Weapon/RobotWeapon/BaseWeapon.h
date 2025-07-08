@@ -27,6 +27,7 @@ public:
 	FORCEINLINE float GetWeaponWeight() const { return BaseInfo.Weight; }
 	FORCEINLINE virtual AActor* GetToolOwner() const override { return OwningCharacter; }
 	FORCEINLINE virtual UMeshComponent* GetToolMeshComponent() override { return StaticMeshComp; }
+	FORCEINLINE bool IsDuringAttacking() const { return bIsDuringAttacking; }
 	
 	virtual void Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx);
 	
@@ -45,7 +46,7 @@ protected:
 	void ApplySelfStun() const;
 	void RemoveSelfStun() const;
 
-	void SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const;
+	void SetIsDuringAttacking(const bool bIsAttacking);
 #pragma endregion
 
 	
@@ -66,6 +67,8 @@ protected:
 	uint8 bCanAttack:1 {true};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
 	uint8 bIsRightHand:1 {false};
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cached")
+	uint8 bIsDuringAttacking:1 {false};
 
 	FTimerHandle AttackCooldownTimerHandler;	
 #pragma endregion

@@ -17,6 +17,23 @@ URobotInputBufferComponent::URobotInputBufferComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+bool URobotInputBufferComponent::CanAttackAction(const int32 SlotIdx) const
+{
+	const bool bIsDuringAttack=CachedWeaponComponent->IsDuringAttackAction();
+	if (bIsDuringAttack)
+	{
+		if (ABaseWeapon* NewWeapon=CachedWeaponComponent->GetWeaponByIndex(SlotIdx))
+		{
+			const bool bIsSelfStun=NewWeapon->IsSelfStunWeapon();
+			if (bIsSelfStun)
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 void URobotInputBufferComponent::ExecuteInputQueue() const
 {
 	if (!CR4S_ENSURE(LogHong1,CachedWeaponComponent)) return;
@@ -44,29 +61,19 @@ bool URobotInputBufferComponent::CheckInputQueue(const EInputType Input)
 {
 	if (!Super::CheckInputQueue(Input)) return false;
 
-	if (!CachedWeaponComponent) return false;
-
-	if (CachedWeaponComponent->IsDuringAttackAction())
+	int32 SlotIdx=-1;
+	switch (Input)
 	{
-		int32 Index=-1;
-		switch (Input)
-		{
-		case EInputType::RobotAttack1: Index=0; break;
-		case EInputType::RobotAttack2: Index=1; break;
-		case EInputType::RobotAttack3: Index=2; break;
-		case EInputType::RobotAttack4: Index=3; break;
-		default: break;
-		}
-		if (Index!=-1)
-		{
-			if (ABaseWeapon* NewWeapon=CachedWeaponComponent->GetWeaponByIndex(Index))
-			{
-				if (NewWeapon->IsSelfStunWeapon())
-				{
-					return false;
-				}
-			}
-		}
+	case EInputType::RobotAttack1: SlotIdx=0; break;
+	case EInputType::RobotAttack2: SlotIdx=1; break;
+	case EInputType::RobotAttack3: SlotIdx=2; break;
+	case EInputType::RobotAttack4: SlotIdx=3; break;
+	default: break;
+	}
+	
+	if (SlotIdx!=-1)
+	{
+		return CanAttackAction(SlotIdx);
 	}
 	return true;
 }

@@ -55,8 +55,8 @@ protected:
 #pragma endregion
 
 #pragma region Cached
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Cached")
-	TArray<TObjectPtr<ABaseWeapon>> CachedWeapons;
+	UPROPERTY(VisibleAnywhere, Category = "Cached")
+	TArray<TWeakObjectPtr<ABaseWeapon>> CachedWeapons;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Timer")
 	TArray<FTimerHandle> ReloadTimerHandles;
