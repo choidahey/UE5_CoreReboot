@@ -10,6 +10,7 @@
 #include "AnimalMonsterAIController.generated.h"
 
 class AAnimalMonster;
+class ADummyTargetActor;
 
 UCLASS()
 class CR4S_API AAnimalMonsterAIController : public AAIController
@@ -24,6 +25,7 @@ public:
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 #pragma endregion
 
 #pragma region State Management
@@ -100,6 +102,11 @@ private:
 	UPROPERTY()
 	AAnimalMonster* ControlledMonster = nullptr;
 
+	UPROPERTY()
+	AActor* DummyTargetActor = nullptr;
+
+	static ADummyTargetActor* SharedDummyTargetActor;
+
 	bool bLastCanReachPlayer = false;
 	AActor* LastPrimaryTarget = nullptr;
 #pragma endregion
@@ -109,6 +116,6 @@ public:
 	bool CheckPathToTarget(AActor* Target) { return CanReachTarget(Target);	}
 
 	void CheckDistanceAndUpdateState();
-
+	FVector GetGroundPositionUnderPlayer(AActor* Player) const;
 	void OnDied();
 };

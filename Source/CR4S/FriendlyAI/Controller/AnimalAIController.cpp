@@ -30,7 +30,9 @@ AAnimalAIController::AAnimalAIController()
 
     SightConfig->DetectionByAffiliation.bDetectEnemies   = true;
     SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-    HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+    HearingConfig->DetectionByAffiliation.bDetectEnemies   = true;
+    HearingConfig->DetectionByAffiliation.bDetectNeutrals  = true;
+    HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
 
     AIPerceptionComp->ConfigureSense(*SightConfig);
     AIPerceptionComp->ConfigureSense(*HearingConfig);
@@ -41,6 +43,7 @@ void AAnimalAIController::OnPossess(APawn* InPawn)
     Super::OnPossess(InPawn);
     if (ABaseAnimal* Animal = Cast<ABaseAnimal>(InPawn))
     {
+        ApplyPerceptionStats(Animal->GetCurrentStats());
         AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(
             this, &AAnimalAIController::OnTargetPerceptionUpdated
         );
