@@ -6,7 +6,6 @@
 #include "CR4S.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Components/RobotInputBufferComponent.h"
-#include "Character/Components/RobotWeaponComponent.h"
 
 ABaseWeapon::ABaseWeapon()
 {
@@ -30,17 +29,23 @@ float ABaseWeapon::ComputeFinalDamage()
 void ABaseWeapon::OnAttack()
 {
 	ApplySelfStun();
-	SetWeaponManagerIsDuringAttackAction(true);
+	SetIsDuringAttacking(true);
 }
 
 void ABaseWeapon::StopAttack()
 {
 	RemoveSelfStun();
-	SetWeaponManagerIsDuringAttackAction(false);
+	SetIsDuringAttacking(false);
 }
 
 void ABaseWeapon::StartAttackCooldown()
 {
+	float ElapsedTime=GetWorld()->GetTimerManager().GetTimerElapsed(AttackCooldownTimerHandler);
+	if (ElapsedTime>KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+	
 	bCanAttack=false;
 
 	GetWorld()->GetTimerManager().SetTimer(
@@ -73,12 +78,9 @@ void ABaseWeapon::RemoveSelfStun() const
 	}
 }
 
-void ABaseWeapon::SetWeaponManagerIsDuringAttackAction(const bool bIsAttacking) const
+void ABaseWeapon::SetIsDuringAttacking(const bool bIsAttacking)
 {
-	if (URobotWeaponComponent* WeaponManager=GetTypedOuter<URobotWeaponComponent>())
-	{
-		WeaponManager->SetIsDuringAttackAction(bIsAttacking);
-	}
+	bIsDuringAttacking=bIsAttacking;
 }
 
 void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
@@ -90,6 +92,7 @@ void ABaseWeapon::Initialize(AModularRobot* OwnerCharacter, const int32 SlotIdx)
 	if (!CR4S_ENSURE(LogHong1,CurrentBuffer)) return;
 	
 	InputBuffer=CurrentBuffer;
+	
 	bIsRightHand=SlotIdx%2; // 0:Left, 1: Right
 	if (!BaseInfo.SkeletalMeshs.IsValidIndex(bIsRightHand) || BaseInfo.SkeletalMeshs[bIsRightHand])
 	StaticMeshComp->SetStaticMesh(BaseInfo.SkeletalMeshs[bIsRightHand]);
