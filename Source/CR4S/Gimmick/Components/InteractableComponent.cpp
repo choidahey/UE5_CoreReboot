@@ -3,15 +3,11 @@
 #include "CR4S.h"
 
 UInteractableComponent::UInteractableComponent()
-	: InteractionTraceChannel(ECC_GameTraceChannel1),
-	  DefaultHighlightColor(FLinearColor::Green)
+	: InteractionTraceChannel(ECC_GameTraceChannel1)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
 	InteractionText = FText::FromString(TEXT("Default Interaction Text"));
-
-	HighlightOpacityParamName = TEXT("HighlightOpacity");
-	HighlightColorParamName = TEXT("HighlightColor");
 }
 
 void UInteractableComponent::BeginPlay()
@@ -19,22 +15,21 @@ void UInteractableComponent::BeginPlay()
 	Super::BeginPlay();
 
 	UpdateTraceBlocking();
-
-	InitHighlightMaterial();
 }
 
-void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewResponse) const
+void UInteractableComponent::UpdateTraceBlocking(const ECollisionResponse NewResponse)
 {
 	const AActor* Owner = GetOwner();
 	if (IsValid(Owner))
 	{
-		TArray<UMeshComponent*> MeshComponents;
-		Owner->GetComponents<UMeshComponent>(MeshComponents);
-		for (UMeshComponent* MeshComp : MeshComponents)
+		Owner->GetComponents<UMeshComponent>(OwnerMeshComponents);
+		for (UMeshComponent* MeshComp : OwnerMeshComponents)
 		{
 			if (IsValid(MeshComp))
 			{
 				MeshComp->SetCollisionResponseToChannel(InteractionTraceChannel, NewResponse);
+				MeshComp->SetRenderCustomDepth(true);
+				MeshComp->SetCustomDepthStencilValue(0);
 			}
 		}
 	}
@@ -107,55 +102,16 @@ void UInteractableComponent::OnEndOverlap(UPrimitiveComponent* OverlappedComp, A
 	}
 }
 
-void UInteractableComponent::InitHighlightMaterial()
+void UInteractableComponent::SetHighlight(const bool bIsDetected) const
 {
-	const AActor* Owner = GetOwner();
-
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(Owner)))
-	{
-		return;
-	}
-
-	TArray<UMeshComponent*> MeshComponents;
-	Owner->GetComponents<UMeshComponent>(MeshComponents);
-	HighlightMaterialInstance = UMaterialInstanceDynamic::Create(HighlightMaterial, this);
-
-	if (!CR4S_VALIDATE(LogGimmick, IsValid(HighlightMaterialInstance)))
-	{
-		return;
-	}
-
-	SetHighlight(false);
-	ChangeHighlightColor(DefaultHighlightColor);
-
-	for (UMeshComponent* MeshComp : MeshComponents)
+	const int32 StencilValue = bIsDetected ? 1 : 0;
+	
+	for (UMeshComponent* MeshComp : OwnerMeshComponents)
 	{
 		if (IsValid(MeshComp))
 		{
-			MeshComp->SetOverlayMaterial(HighlightMaterialInstance);
+			MeshComp->SetRenderCustomDepth(true);
+			MeshComp->SetCustomDepthStencilValue(StencilValue);
 		}
 	}
-}
-
-void UInteractableComponent::SetHighlight(const bool bIsDetected) const
-{
-	const float Opacity = bIsDetected ? 1.f : 0.f;
-	HighlightMaterialInstance->SetScalarParameterValue(HighlightOpacityParamName, Opacity);
-}
-
-void UInteractableComponent::ChangeHighlightColor(const FLinearColor& InHighlightColor)
-{
-	HighlightMaterialInstance->SetVectorParameterValue(HighlightColorParamName, InHighlightColor);
-}
-
-FLinearColor UInteractableComponent::GetHighlightColor() const
-{
-	if (IsValid(HighlightMaterialInstance))
-	{
-		FLinearColor CurrentColor;
-		HighlightMaterialInstance->GetVectorParameterValue(FMaterialParameterInfo(HighlightColorParamName), CurrentColor);
-		return CurrentColor;
-	}
-
-	return DefaultHighlightColor;
 }

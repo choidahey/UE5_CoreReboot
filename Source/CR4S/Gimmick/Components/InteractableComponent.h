@@ -21,7 +21,7 @@ public:
 #pragma region Initialize
 
 public:
-	void UpdateTraceBlocking(const ECollisionResponse NewResponse = ECR_Block) const;
+	void UpdateTraceBlocking(const ECollisionResponse NewResponse = ECR_Block);
 	
 #pragma endregion
 	
@@ -65,31 +65,12 @@ private:
 #pragma region Highlight
 
 public:
-	void InitHighlightMaterial();
-
 	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
 	void SetHighlight(const bool bIsDetected) const;
-	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
-	void ChangeHighlightColor(const FLinearColor& InHighlightColor);
 
-	UFUNCTION(BlueprintCallable, Category = "InteractableComponent|Highlight")
-	FLinearColor GetHighlightColor() const;
-	
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
-	TObjectPtr<UMaterialInterface> HighlightMaterial;
-	
 	UPROPERTY()
-	TObjectPtr<UMaterialInstanceDynamic> HighlightMaterialInstance;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
-	FName HighlightOpacityParamName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
-	FName HighlightColorParamName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Highlight")
-	FLinearColor DefaultHighlightColor;
+	TArray<TObjectPtr<UMeshComponent>> OwnerMeshComponents;
 	
 #pragma endregion
 
