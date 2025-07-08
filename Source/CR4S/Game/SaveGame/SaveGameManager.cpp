@@ -388,28 +388,18 @@ void USaveGameManager::ApplyCoreData()
         const FName& ActorID=Pair.Key;
         FSavedActorData& SavedData = Pair.Value;
 
-        UClass* ActorClassToSpawn = nullptr;
         AActor* NewSpawnedActor = nullptr;
+        UClass* ActorClassToSpawn = SpawnClassDataAsset->GetSpawnClassByName(SavedData.ActorClassName);
         
-        switch (SavedData.ActorType)
-        {
-        case ESavedActorType::PlayerCharacter:
-            ActorClassToSpawn = SpawnClassDataAsset->PlayerCharacterClass;
-            break;
-        case ESavedActorType::ModularRobot:
-            ActorClassToSpawn = SpawnClassDataAsset->ModularRobotClass;
-            break;
-        case ESavedActorType::HelperBot:
-            ActorClassToSpawn = SpawnClassDataAsset->HelperBotClass;
-            break;
-        default:
-            continue; // 타입이 없으면 건너뛰기
-        }
-
         if (ActorClassToSpawn)
         {
-            UE_LOG(LogHong1, Log, TEXT("Spawn Actor: %s"), *ActorClassToSpawn->GetName());
             NewSpawnedActor = GetWorld()->SpawnActor<AActor>(ActorClassToSpawn,SavedData.ActorTransform);
+            UE_LOG(LogHong1, Log, TEXT("Spawn Actor: %s"), *ActorClassToSpawn->GetName());
+        }
+        else
+        {
+            UE_LOG(LogHong1, Error, TEXT("Failed to find class to spawn for ActorClassName: : %s"), *SavedData.ActorClassName);
+            continue;
         }
 
         if (NewSpawnedActor)

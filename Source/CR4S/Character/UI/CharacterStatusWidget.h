@@ -23,19 +23,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateResource(const float InPercentage);
-	
-	UFUNCTION(BlueprintCallable)
-	void UpdateEnergy(const float InPercentage);
-
-
-	UFUNCTION(BlueprintCallable)
-	void UpdateStun(const float InPercentage);
-
-	UFUNCTION(BlueprintCallable)
-	void ToggleWidgetMode(const bool bIsRobot);
 
 	void InitializeWidget(UBaseStatusComponent* InStatus);
 
+	UFUNCTION(BlueprintCallable)
+	void ToggleWidgetMode(const bool bIsRobot) const;
+	
 	void ClearBindings() const;
 #pragma endregion
 	
@@ -46,12 +39,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
 	TObjectPtr<UProgressBarWidget> Resource;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBarWidget> Energy;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(BindWidgetOptional))
-	TObjectPtr<UProgressBarWidget> Stun;
 #pragma endregion
 
 #pragma region Cached

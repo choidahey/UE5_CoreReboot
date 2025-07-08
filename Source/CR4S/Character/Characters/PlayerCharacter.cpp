@@ -4,6 +4,7 @@
 #include "CR4S.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "JsonObjectConverter.h"
 #include "Character/CharacterController.h"
 #include "Character/Components/PlayerCharacterStatusComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -63,11 +64,11 @@ void APlayerCharacter::SetUniqueSaveID(FName NewID)
 
 void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
 {
-	OutSaveData.ActorType=ESavedActorType::PlayerCharacter;
-	
-	FPlayerCharacterSaveGame& PlayerData=OutSaveData.PlayerCharacterData;
-	
+	OutSaveData.ActorClassName=SavableClassName;
 	OutSaveData.ActorTransform=GetActorTransform();
+	
+	FPlayerCharacterSaveGame PlayerData;
+	
 	PlayerData.CurrentHP=Status->GetCurrentHP();
 	PlayerData.CurrentResource=Status->GetCurrentResource();
 	PlayerData.CurrentHunger=Status->GetCurrentHunger();
@@ -76,29 +77,47 @@ void APlayerCharacter::GatherSaveData(FSavedActorData& OutSaveData)
 	PlayerData.EquippedToolTag= CurrentTool ? CurrentTool->GetToolGameplayTag() : FGameplayTag::EmptyTag;
 	PlayerData.Stance=GetStance();
 	PlayerData.Gait=GetGait();
-	PlayerData.OverlayMode=GetOverlayMode();
 	PlayerData.bIsRightShoulder=Camera->IsRightShoulder();
 
 	PlayerInventory->GetPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
+
+	if (!FJsonObjectConverter::UStructToJsonObjectString(PlayerData,OutSaveData.SerializedData))
+	{
+		UE_LOG(LogHong1,Error,TEXT("Failed to save player data"));
+		OutSaveData.SerializedData.Empty();
+	}
+	else
+	{
+		UE_LOG(LogHong1,Log,TEXT("Saved player data"));
+	}
 }
 
 void APlayerCharacter::ApplySaveData(FSavedActorData& InSaveData)
 {
-	FPlayerCharacterSaveGame& PlayerData=InSaveData.PlayerCharacterData;
-	
-	Status->SetCurrentHP(PlayerData.CurrentHP);
-	Status->SetCurrentResource(PlayerData.CurrentResource);
-	Status->OnResourceConsumed();
-	Status->SetCurrentHunger(PlayerData.CurrentHunger);
-	EnvironmentalStatus->SetCurrentTemperature(PlayerData.CurrentTemperature);
-	EnvironmentalStatus->SetCurrentHumidity(PlayerData.CurrentHumidity);
-	SetCurrentToolByTag(PlayerData.EquippedToolTag);
-	SetDesiredStance(PlayerData.Stance);
-	SetDesiredGait(PlayerData.Gait);
-	SetOverlayMode(PlayerData.OverlayMode);
-	Camera->SetRightShoulder(PlayerData.bIsRightShoulder);
+	FPlayerCharacterSaveGame PlayerData;
 
-	PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
+	if (FJsonObjectConverter::JsonObjectStringToUStruct(InSaveData.SerializedData,&PlayerData,0,0))
+	{
+		Status->SetCurrentHP(PlayerData.CurrentHP);
+		Status->SetCurrentResource(PlayerData.CurrentResource);
+		Status->OnResourceConsumed();
+		Status->SetCurrentHunger(PlayerData.CurrentHunger);
+		EnvironmentalStatus->SetCurrentTemperature(PlayerData.CurrentTemperature);
+		EnvironmentalStatus->SetCurrentHumidity(PlayerData.CurrentHumidity);
+		SetCurrentToolByTag(PlayerData.EquippedToolTag);
+		SetDesiredStance(PlayerData.Stance);
+		SetDesiredGait(PlayerData.Gait);
+		Camera->SetRightShoulder(PlayerData.bIsRightShoulder);
+		
+		
+		PlayerInventory->LoadPlayerInventorySaveGame(PlayerData.InventorySaveGame,PlayerData.QuickSlotSaveGame);
+		PlayerInventory->SetHeldToolTag(PlayerData.EquippedToolTag);
+	}
+	else
+	{
+		UE_LOG(LogHong1,Error,TEXT("Failed to load player data"));
+	}
+	
 }
 
 void APlayerCharacter::OnDeath()
@@ -327,14 +346,13 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-
 	Interaction->InitComponent();
 	Interaction->StartDetectProcess();
 	
 	InitializeWidgets();
 	Status->SetIsUnPossessed(false);
-
 	PlayerInventory->InitInventory();
+	PlayerInventory->ToggleQuickSlotBarWidget();
 }
 
 void APlayerCharacter::UnPossessed()
@@ -347,7 +365,7 @@ void APlayerCharacter::UnPossessed()
 			InputSubsystem->RemoveMappingContext(InputMappingContext);
 		}
 	}
-	
+	PlayerInventory->ToggleQuickSlotBarWidget();
 	DisconnectWidgets();
 	Status->SetIsUnPossessed(true);
 
@@ -517,6 +535,7 @@ void APlayerCharacter::Input_OnQuickSlotNumberPressed(const FInputActionValue& A
 	if (Index>=0 && Index<=9)
 	{
 		PlayerInventory->UseItem(Index);
+		UE_LOG(LogHong1,Warning,TEXT("Quick Slot : %d"),Index);
 	}
 }
 

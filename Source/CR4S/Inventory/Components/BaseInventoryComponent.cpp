@@ -31,7 +31,7 @@ void UBaseInventoryComponent::InitInventory()
 	{
 		return;
 	}
-	
+
 	OwnerActor = Cast<AActor>(GetOwner());
 	if (!CR4S_VALIDATE(LogInventory, IsValid(OwnerActor)))
 	{
@@ -73,7 +73,10 @@ void UBaseInventoryComponent::AddItems(const TMap<FName, int32>& Items)
 	}
 }
 
-FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32 Count, UBaseInventoryItem* OriginItem)
+FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName,
+                                                const int32 Count,
+                                                UBaseInventoryItem* OriginItem,
+                                                const bool bUseItemNotification)
 {
 	FAddItemResult Result;
 	Result.RemainingCount = Count;
@@ -87,7 +90,7 @@ FAddItemResult UBaseInventoryComponent::AddItem(const FName RowName, const int32
 	StackItemsAndFillEmptySlots(RowName, Count, Result, Result.ChangedItemSlots, OriginItem);
 
 	NotifyInventoryItemsChanged(Result.ChangedItemSlots.Array());
-
+	
 	return Result;
 }
 
@@ -284,7 +287,8 @@ void UBaseInventoryComponent::LoadInventorySaveGame(const FInventorySaveGame& Sa
 	{
 		const int32 Index = SaveItemData.InventoryItemData.SlotIndex;
 
-		const FGameplayTagContainer& Tags = SaveItemData.InventoryItemData.ItemInfoData.ItemTags;
+		FGameplayTagContainer Tags = SaveItemData.InventoryItemData.ItemInfoData.ItemTags;
+		Tags.FillParentTags();
 		UBaseInventoryItem* Item = UItemGimmickSubsystem::CreateInventoryItem(this, Tags);
 		Item->LoadInventoryItemSaveData(this, SaveItemData);
 		InventoryItems[Index] = Item;

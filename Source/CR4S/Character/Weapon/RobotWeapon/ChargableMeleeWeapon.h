@@ -26,7 +26,7 @@ protected:
 
 #pragma region Charge
 	UFUNCTION()
-	void OnChargeAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted); 
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted); 
 #pragma endregion
 
 #pragma region Cached
@@ -37,10 +37,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float OriginalDamageMultiplier{1};
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float OriginalStunAmount{0};
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	uint8 bIsChargeAttacking : 1 {false};
+	float OriginalStunAmount{0};;
 #pragma endregion
 	
 };

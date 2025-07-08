@@ -32,8 +32,7 @@ public:
 
 #pragma region Check
 	ABaseWeapon* GetWeaponByIndex(const int32 SlotIdx);
-	FORCEINLINE bool IsDuringAttackAction() const { return bIsDuringAttackAction; }
-	FORCEINLINE void SetIsDuringAttackAction(const bool bIsAttacking) { bIsDuringAttackAction= bIsAttacking; }
+	bool IsDuringAttackAction() const;
 #pragma endregion
 	
 #pragma region Attack
@@ -92,8 +91,6 @@ protected:
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category="Weapons")
 	TArray<TObjectPtr<ABaseWeapon>> Weapons;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	uint8 bIsDuringAttackAction:1 {false};
 
 #pragma endregion
 
