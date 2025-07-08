@@ -24,6 +24,8 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	virtual void GetResources(const AActor* InventoryOwnerActor) const override;
+
 	virtual void LoadGimmickSaveGameData_Implementation(const FGimmickSaveGameData& GimmickSaveGameData) override;
 	
 #pragma endregion
@@ -56,14 +58,22 @@ private:
 	
 #pragma endregion
 
-#pragma region BonusDamageTag
+#pragma region BonusDamage
 
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = "BonusDamage")
-	FGameplayTag ToolBonusDamageTag;
+private:
+	void InitializeThresholds();
 
-	UPROPERTY(EditDefaultsOnly, Category = "BonusDamage")
-	float ToolBonusDamageMultiplier;
+	void GetRequiredHitsForTool(const FGameplayTag& HeldToolTag, bool& bApplyBonusDamage, int32& OutHitCount) const;
+	int32 CalculatedDamage(int32 RequiredHits) const;
+	
+	UPROPERTY(VisibleAnywhere, Category = "BonusDamage")
+	int32 MaxHitCount;
+	UPROPERTY(VisibleAnywhere, Category = "BonusDamage")
+	int32 NextThresholdIndex;
+	
+	TArray<int32> HealthThresholds;
+	
+	TArray<TMap<FName, int32>> YieldResources;
 	
 #pragma endregion
 

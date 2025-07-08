@@ -53,7 +53,7 @@ void ABaseGimmick::GetResources(const AActor* InventoryOwnerActor) const
 
 	TMap<FName, int32> Resources;
 
-	if (const FGimmickInfoData* GimmickInfoData = ItemGimmickSubsystem->FindGimmickInfoData(GetGimmickDataRowName()))
+	if (const FGimmickInfoData* GimmickInfoData = GetGimmickInfoData())
 	{
 		for (const auto& [RowName, MinCount, MaxCount] : GimmickInfoData->Resources)
 		{
