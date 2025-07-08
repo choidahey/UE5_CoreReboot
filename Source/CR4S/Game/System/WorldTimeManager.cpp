@@ -7,13 +7,23 @@
 
 bool UWorldTimeManager::ShouldCreateSubsystem(UObject* Outer) const
 {
-    UWorld* World = Cast<UWorld>(Outer);
-    if (World && World->GetName() == TEXT("MenuLevel"))
-    {
+	UWorld* World = Cast<UWorld>(Outer);
+	if (!World)
+	{
 		return false;
-    }
+	}
 
-    return true;
+	if (World->GetName() == TEXT("MenuLevel"))
+	{
+		return false;
+	}
+
+	if (!World->IsGameWorld())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void UWorldTimeManager::Initialize(FSubsystemCollectionBase& Collection)

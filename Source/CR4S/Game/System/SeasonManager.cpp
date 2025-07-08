@@ -9,7 +9,17 @@
 bool USeasonManager::ShouldCreateSubsystem(UObject* Outer) const
 {
 	UWorld* World = Cast<UWorld>(Outer);
-	if (World && World->GetName() == TEXT("MenuLevel"))
+	if (!World)
+	{
+		return false;
+	}
+
+	if (World->GetName() == TEXT("MenuLevel"))
+	{
+		return false;
+	}
+
+	if (!World->IsGameWorld())
 	{
 		return false;
 	}
