@@ -5,6 +5,7 @@
 
 class UButtonWidget;
 class USettingsWidget;
+class UHelpWidget;
 class UOverlay;
 
 DECLARE_DELEGATE(FOnResumeRequested);
@@ -23,6 +24,8 @@ protected:
 	UFUNCTION()
 	void OnSettingsButtonClicked();
 	UFUNCTION()
+	void OnHelpButtonClicked();
+	UFUNCTION()
 	void OnToMenuButtonClicked();
 
 	UFUNCTION()
@@ -35,6 +38,8 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButtonWidget> SettingsButton;
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButtonWidget> HelpButton;
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButtonWidget> ToMenuButton;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UOverlay> PauseMenuOverlay;
@@ -46,9 +51,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<USettingsWidget> SettingsWidgetClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UHelpWidget> HelpWidgetClass;
 
 	UPROPERTY()
 	USettingsWidget* SettingsWidgetInstance;
+	UPROPERTY()
+	TObjectPtr<UHelpWidget> HelpWidgetInstance;
 
 	virtual void NativeConstruct() override;
 };
