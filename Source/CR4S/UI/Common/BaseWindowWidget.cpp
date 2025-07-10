@@ -35,16 +35,22 @@ void UBaseWindowWidget::NativePreConstruct()
 		WindowIcon->SetBrush(Brush);
 	}
 
-
-	if (!bShowButtons)
+	if (!bShowRightButton)
 	{
-		BackButton->SetVisibility(ESlateVisibility::Collapsed);
-		ApplyButton->SetVisibility(ESlateVisibility::Collapsed);
+		ApplyButton->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		ApplyButton->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (!bShowLeftButton)
+	{
+		BackButton->SetVisibility(ESlateVisibility::Hidden);
 	}
 	else
 	{
 		BackButton->SetVisibility(ESlateVisibility::Visible);
-		ApplyButton->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 

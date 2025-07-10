@@ -1,4 +1,5 @@
 #include "UI/InGame/PauseWidget.h"
+#include "UI/InGame/HelpWidget.h"
 #include "UI/Common/ButtonWidget.h"
 #include "UI/MainMenu/SettingsWidget.h"
 #include "Components/Overlay.h"
@@ -23,6 +24,10 @@ void UPauseWidget::NativeConstruct()
 	if (SettingsButton)
 	{
 		SettingsButton->OnClicked().AddDynamic(this, &UPauseWidget::OnSettingsButtonClicked);
+	}
+	if (HelpButton)
+	{
+		HelpButton->OnClicked().AddDynamic(this, &UPauseWidget::OnHelpButtonClicked);
 	}
 	if (ToMenuButton)
 	{
@@ -52,6 +57,18 @@ void UPauseWidget::OnSettingsButtonClicked()
 	}
 }
 
+void UPauseWidget::OnHelpButtonClicked()
+{
+	if (!HelpWidgetInstance && HelpWidgetClass)
+	{
+		HelpWidgetInstance = CreateWidget<UHelpWidget>(GetWorld(), HelpWidgetClass);
+		HelpWidgetInstance->AddToViewport(13);
+		HelpWidgetInstance->OnHelpClosed.AddDynamic(this, &UPauseWidget::ShowMenu);
+	}
+
+	HideMenu();
+}
+
 void UPauseWidget::HideMenu()
 {
 	UE_LOG(LogTemp, Warning, TEXT("HideMenu() called"));
@@ -66,6 +83,12 @@ void UPauseWidget::ShowMenu()
 
 	//PlayAnimation(ShowMenuAnim);
 	PauseMenuOverlay->SetVisibility(ESlateVisibility::Visible);
+
+	if (HelpWidgetInstance)
+	{
+		HelpWidgetInstance->OnHelpClosed.RemoveDynamic(this, &UPauseWidget::ShowMenu);
+		HelpWidgetInstance = nullptr;
+	}
 }
 
 void UPauseWidget::OnToMenuButtonClicked()
