@@ -472,6 +472,11 @@ void ABaseAnimal::ClearTarget()
 
 float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+    if (CurrentState == EAnimalState::Dead)
+    {
+        return 0.f;
+    }
+    
     if (ABaseAnimal* Damager = Cast<ABaseAnimal>(DamageCauser))
     {
         if (Damager->RowName == this->RowName)
