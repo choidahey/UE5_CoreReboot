@@ -19,7 +19,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Window")
 	FOnApplyClicked OnApplyClicked;
 	UPROPERTY(BlueprintAssignable, Category = "Window")
-	FOnApplyClicked OnBackClicked;
+	FOnBackClicked OnBackClicked;
 
 protected:
 	virtual void NativeConstruct() override;
@@ -45,4 +45,9 @@ protected:
 	UTexture2D* IconTexture;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
 	bool bShowButtons = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
+	bool bShowLeftButton = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Window")
+	bool bShowRightButton = true;
 };
